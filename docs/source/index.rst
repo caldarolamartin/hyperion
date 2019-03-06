@@ -16,12 +16,7 @@ Index for this documentation
     :caption: Contents:
     :name: mastertoc
 
-    architecture
     installation
     users
     contributors
-    controllers
-    instrument
-    view
-    experiment
-    test
+    developers

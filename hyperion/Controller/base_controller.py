@@ -4,6 +4,11 @@ Base controller
 ===============
 
 This is a base class for a controller.
+The idea is to use this class as the parent class of any driver you are writing by hand.
+By doing so, you gain the possibility of using the context manner for the 'with' block
+and you how which basic methods you should write.
+We strongly recommend you also use the logging, so you can keep track of what is going on
+with your program at every step.
 
 
 """
@@ -38,7 +43,10 @@ class BaseController():
         self.logger.info('Opening connection to device.')
 
     def finalize(self):
-        """ this is to close connection to the device."""
+        """ This method closes the connection to the device.
+        It is ran automatically if you use a with block
+
+        """
         self.logger.warning('Method used from the BaseController class')
         self.logger.info('Closing connection to device.')
 
@@ -48,7 +56,7 @@ class BaseController():
         """
         self.logger.warning('Method used from the BaseController class')
         self.logger.debug('Ask IDN to device.')
-        return 'Name'
+        return 'BaseController'
 
 if __name__ == "__main__":
     from hyperion import _logger_format

@@ -3,7 +3,11 @@
 Base instrument
 ===============
 
-This is a base class for an instrument (named instrument in PythonForTheLab book).
+This is a base class for an instrument (named model in PythonForTheLab book).
+At this level we add more complex functionalities and some not-build in behaviour for the
+device you are controlling.
+The idea is to use this class as the parent class of any other instrument for which
+you wrote the driver by hand (not using other library but the communication).
 
 
 """

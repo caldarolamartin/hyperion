@@ -3,7 +3,9 @@
 Dummy controller
 ================
 
-This is a dummy device, simulated for developing and testing the code
+This is a dummy device, simulated for developing and testing the code.
+It can be used as an example to build your own controller for your device.
+
 
 """
 import logging
@@ -16,7 +18,7 @@ class DummyOutputController(BaseController):
                      }
 
     def __init__(self):
-        """ Init of the class"""
+        """ Init of the class. """
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class BaseController created.')
         self._amplitude = []
@@ -31,7 +33,10 @@ class DummyOutputController(BaseController):
         self._amplitude = self.query('A?')
 
     def finalize(self):
-        """ this is to close connection to the device."""
+        """ This method closes the connection to the device.
+        It is ran automatically if you use a with block
+
+        """
         self.logger.info('Closing connection to device.')
 
     def idn(self):
@@ -63,7 +68,7 @@ class DummyOutputController(BaseController):
         return self.FAKE_RESPONSES['A']
 
     def write(self, msg):
-        """ writes into the device
+        """ Writes into the device
         :param msg: message to be written in the device port
         :type msg: string
         """
@@ -78,7 +83,7 @@ class DummyOutputController(BaseController):
         :return: amplitude value in Volts
         :rtype: float
 
-        :Example:
+        For example, to use the getter you can do the following
 
         >>> with DummyOutputController() as dev:
         >>>    dev.initialize('COM10')
@@ -89,7 +94,7 @@ class DummyOutputController(BaseController):
         :param value: value for the amplitude to set in Volts
         :type value: float
 
-        :Example:
+        For example, using the setter looks like this:
 
         >>> with DummyOutputController() as dev:
         >>>    dev.initialize('COM10')
