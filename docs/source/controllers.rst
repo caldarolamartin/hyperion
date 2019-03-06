@@ -11,3 +11,4 @@ Here we group all the controllers we use for the Hyperion project.
 
     controller/base_controller
     controller/dummy_output_controller
+    controller/lcc25

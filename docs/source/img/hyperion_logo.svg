@@ -17,8 +17,8 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="nanocd_logo.svg"
-   inkscape:export-filename="logo_nanocd.png"
+   sodipodi:docname="hyperion_logo.svg"
+   inkscape:export-filename="logo_hyperion.png"
    inkscape:export-xdpi="200"
    inkscape:export-ydpi="200">
   <defs
@@ -137,9 +137,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.0019869"
-     inkscape:cx="-88.978858"
-     inkscape:cy="157.38489"
+     inkscape:zoom="6.8203704"
+     inkscape:cx="102.04724"
+     inkscape:cy="102.04724"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -147,11 +147,11 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1" />
+     inkscape:window-width="2736"
+     inkscape:window-height="1699"
+     inkscape:window-x="-32000"
+     inkscape:window-y="-32000"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -187,7 +187,7 @@
          id="tspan911"
          x="52.904942"
          y="43.518837"
-         style="stroke-width:0.26458332">Nano CD</tspan></text>
+         style="stroke-width:0.26458332">Hyperion</tspan></text>
     <g
        transform="matrix(0.03940741,0,0,0.03940741,62.487962,58.951535)"
        id="g5176">

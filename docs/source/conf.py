@@ -14,7 +14,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 pygments_style = 'sphinx'
 html_theme = 'sphinx_rtd_theme'
-html_logo = 'img/logo_nanocd.png'
+html_logo = 'img/logo_hyperion.png'
 html_theme_options = {
     'canonical_url': '',
     'analytics_id': '',

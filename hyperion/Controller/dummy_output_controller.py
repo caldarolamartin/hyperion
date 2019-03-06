@@ -36,6 +36,7 @@ class DummyOutputController(BaseController):
 
     def idn(self):
         """ Identify command
+
         :return: identification for the device
         :rtype: string
         """
@@ -43,35 +44,66 @@ class DummyOutputController(BaseController):
         return 'Dummy Output Controller'
 
     def query(self, msg):
-        """ writes into the device """
+        """ writes into the device msg
+
+        :param msg: command to write into the device port
+        :type msg: string
+        """
         self.logger.debug('Writing into the device:{}'.format(msg))
         self.write(msg)
         ans = self.read()
         return ans
 
     def read(self):
-        """ Fake read that returns always"""
+        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
+        
+        :return: fake result
+        :rtype: string
+        """
         return self.FAKE_RESPONSES['A']
 
     def write(self, msg):
-        """ writes into the device"""
+        """ writes into the device
+        :param msg: message to be written in the device port
+        :type msg: string
+        """
         self.logger.debug('Writing into the device:{}'.format(msg))
 
 
     @property
     def amplitude(self):
-        """ Gets the amplitude value"""
+        """ Gets the amplitude value.
+
+        :getter:
+        :return: amplitude value in Volts
+        :rtype: float
+
+        :Example:
+
+        >>> with DummyOutputController() as dev:
+        >>>    dev.initialize('COM10')
+        >>>    dev.amplitude
+        1
+
+        :setter:
+        :param value: value for the amplitude to set in Volts
+        :type value: float
+
+        :Example:
+
+        >>> with DummyOutputController() as dev:
+        >>>    dev.initialize('COM10')
+        >>>    dev.amplitude = 5
+        >>>    dev.amplitude
+        5
+
+
+        """
         self.logger.debug('Getting the amplitude.')
         return self._amplitude
 
     @amplitude.setter
     def amplitude(self, value):
-        """ This method is to set the amplitude
-
-        :param value: value for the amplitude to set in Volts
-        :type value: float
-
-        """
         # would be nice to add a way to check that the value is within the limits of the device.
         if self._amplitude != value:
             self.logger.info('Setting the amplitude to {}'.format(value))

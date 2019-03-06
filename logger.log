@@ -117,3 +117,12 @@
 2019-03-06 18:26:50,940 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
 2019-03-06 18:26:50,944 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
 2019-03-06 18:26:50,944 |     INFO |   finalize() | hyperion.controller.dummy_output_controller                  | Closing connection to device.
+2019-03-06 20:17:14,202 |     INFO |   __init__() | __main__                                                     | Class BaseController created.
+2019-03-06 20:17:14,202 |     INFO | initialize() | __main__                                                     | Opening connection to device.
+2019-03-06 20:17:14,204 |    DEBUG |      query() | __main__                                                     | Writing into the device:A?
+2019-03-06 20:17:14,204 |    DEBUG |      write() | __main__                                                     | Writing into the device:A?
+2019-03-06 20:17:14,205 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 20:17:14,207 |     INFO |  amplitude() | __main__                                                     | Setting the amplitude to 5
+2019-03-06 20:17:14,209 |    DEBUG |      write() | __main__                                                     | Writing into the device:A5
+2019-03-06 20:17:14,210 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 20:17:14,211 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
