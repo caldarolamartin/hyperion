@@ -3,7 +3,6 @@
 Dummy controller
 ================
 
-
 This is a dummy device, simulated for developing and testing the code
 
 """
@@ -18,7 +17,7 @@ class DummyOutput(BaseController):
         """ init of the class"""
         self.logger = logging.getLogger(__name__)
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s -  %(funcName)2s() - %(message)s',
-                            level=logging.INFO)
+                            level=logging.DEBUG)
 
         self.logger.info('Class BaseController created.')
         self._amplitude = []
@@ -47,6 +46,11 @@ class DummyOutput(BaseController):
         self.logger.debug('Writing into the device:{}'.format(msg))
         return 'Answer to: {}'.format(msg)
 
+    def write(self, msg):
+        """ writes into the device"""
+        self.logger.debug('Writing into the device:{}'.format(msg))
+
+
     @property
     def amplitude(self):
         """ Gets the amplitude value"""
@@ -55,9 +59,14 @@ class DummyOutput(BaseController):
 
     @amplitude.setter
     def amplitude(self, value):
-        self.logger.debug('Setting the amplitude to {}'.format(value))
-        self._amplitude = value
-
+        """ This method is to set the amplitude"""
+        # would be nice to add a way to check that the value is within the limits of the device.
+        if self._amplitude != value:
+            self.logger.info('Setting the amplitude to {}'.format(value))
+            self._amplitude = value
+            self.write('A{}'.format(value))
+        else:
+            self.logger.info('The amplitude is already={}'.format(value))
 
 
 if __name__ == "__main__":
