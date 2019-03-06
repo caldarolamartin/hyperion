@@ -1,0 +1,21 @@
+name: hyperion
+dependencies:
+# These are required
+ - python=3.7
+ - numpy>=1.14
+ - scipy
+ - sphinx
+ - pyqt>=5.9.2
+ - qt=5
+ - pyqtgraph
+ - netcdf4
+ - pip:
+   - sphinx_rtd_theme
+   - https://github.com/lantzproject/lantz_core/archive/master.tar.gz
+   - https://github.com/lantzproject/lantz_drivers/archive/master.tar.gz
+   - https://github.com/lantzproject/lantz_qt/archive/master.tar.gz
+   - https://github.com/lantzproject/lantz_sims/archive/master.tar.gz
+   - https://github.com/lantzproject/lantz/archive/master.tar.gz
+   - https://github.com/qpit/thorlabs_apt/archive/master.tar.gz
+   - pyvisa-py
+   - pyserial
