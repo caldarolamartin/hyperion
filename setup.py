@@ -4,22 +4,21 @@ with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="NanoCD",
+    name="Hyperion",
     version="0.1-dev",
-    author="Martin Caldarola",
+    author="See Authors",
     license='BSD',
-    author_email="m.caldarola@tudelft.nl",
-    description="A small package to control the NanoCD setup",
+    author_email="l.kuipers@tudelft.nl",
+    description="A small package to control devices in the Kuipers lab",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/nanooptics-code/experiments/nanocd.git",
+    url="https://gitlab.com/nanooptics-code/hyperion.git",
     python_requires='==3.7',
     packages=setuptools.find_packages(),
     install_requires = [
         'numpy==1.15',
         'scipy',
         'sphinx',
-        'pyqt==5.9.2',
         'pyqtgraph==0.10.0',
         'lantz_core',
         'lantz_drivers',
