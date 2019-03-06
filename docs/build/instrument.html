@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Models &mdash; Hyperion 0.1 documentation</title>
+  <title>Instruments &mdash; Hyperion 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="View and GUI" href="view.html" />
-    <link rel="prev" title="Controllers" href="controllers.html" /> 
+    <link rel="next" title="Base instrument" href="instrument/base_instrument.html" />
+    <link rel="prev" title="Dummy controller" href="controller/dummy_output_controller.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -94,7 +94,9 @@
 <li class="toctree-l1"><a class="reference internal" href="users.html">How to use</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributors.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="controllers.html">Controllers</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Instruments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="instrument/base_instrument.html">Base instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="instrument/dummy_output_instrument.html">Dummy Instrument</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="view.html">View and GUI</a></li>
@@ -145,13 +147,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Models</li>
+      <li>Instruments</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/model.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/instrument.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -164,14 +166,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="models">
-<h1>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="instruments">
+<h1>Instruments<a class="headerlink" href="#instruments" title="Permalink to this headline">¶</a></h1>
 <p>Here we group information about the second layer in our onion principle,
-the <strong>Model</strong>. We usually add functionalities that are specific
+the <strong>Instrument</strong>. We usually add functionalities that are specific
 to the setup or the experiment, not te devices itself, such as
 calibrations or specialized methods that are unlikely to be reused
 in another setup.</p>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Current Models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="instrument/base_instrument.html">Base instrument</a></li>
+<li class="toctree-l1"><a class="reference internal" href="instrument/dummy_output_instrument.html">Dummy Instrument</a></li>
+</ul>
 </div>
 </div>
 
@@ -183,10 +190,10 @@ in another setup.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="view.html" class="btn btn-neutral float-right" title="View and GUI" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="instrument/base_instrument.html" class="btn btn-neutral float-right" title="Base instrument" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="controllers.html" class="btn btn-neutral float-left" title="Controllers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="controller/dummy_output_controller.html" class="btn btn-neutral float-left" title="Dummy controller" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

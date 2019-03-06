@@ -1,5 +1,5 @@
 # build doc
-/docs/build/
+/doc/build/
 
 # pycharm project folder
 .idea/*

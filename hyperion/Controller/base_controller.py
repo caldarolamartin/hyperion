@@ -3,7 +3,7 @@
 Base controller
 ===============
 
-This is a base class for a controller
+This is a base class for a controller.
 
 
 """
@@ -18,12 +18,10 @@ class BaseController():
 
         """
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s -  %(funcName)2s() - %(message)s',
-                            level=logging.INFO)
-
         self.logger.info('Class BaseController created.')
         self.logger.warning('Method used from the BaseController class')
 
+    # the next two methods are needed so the context manager 'with' works.
     def __enter__(self):
         return self
 
@@ -52,11 +50,12 @@ class BaseController():
         self.logger.debug('Ask IDN to device.')
         return 'Name'
 
-
 if __name__ == "__main__":
+    from hyperion import _logger_format
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+        handlers=[logging.FileHandler("logger.log"), logging.StreamHandler()])
 
     with BaseController() as dev:
-
         dev.initialize('COM10')
         dev.idn()
 

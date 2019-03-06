@@ -1,8 +1,8 @@
-Models
-======
+Instruments
+===========
 
 Here we group information about the second layer in our onion principle,
-the **Model**. We usually add functionalities that are specific
+the **Instrument**. We usually add functionalities that are specific
 to the setup or the experiment, not te devices itself, such as
 calibrations or specialized methods that are unlikely to be reused
 in another setup.
@@ -11,4 +11,5 @@ in another setup.
     :maxdepth: 2
     :caption: Current Models:
 
-
+    instrument/base_instrument
+    instrument/dummy_output_instrument

@@ -1,6 +1,6 @@
 """
 ================
-Dummy controller
+Dummy Instrument
 ================
 
 This is a dummy device, simulated for developing and testing the code
@@ -18,12 +18,8 @@ class DummyOutputInstrument(BaseInstrument):
     def __init__(self):
         """ init of the class"""
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s -  %(funcName)2s() - %(message)s',
-                            level=logging.DEBUG)
-
         self.logger.info('Class Dummy_output Instrument created.')
         self.controller = DummyOutputController()
-
 
     def initialize(self, port):
         """ Starts the connection to the device in port
@@ -41,6 +37,9 @@ class DummyOutputInstrument(BaseInstrument):
 
     def idn(self):
         """ Identify command
+
+        :return: identification for the device
+        :rtype: string
 
         """
         self.logger.debug('Ask IDN to device.')
@@ -66,6 +65,9 @@ class DummyOutputInstrument(BaseInstrument):
 
 
 if __name__ == "__main__":
+    from hyperion import _logger_format
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+        handlers=[logging.FileHandler("logger.log"), logging.StreamHandler()])
 
     with DummyOutputInstrument() as dev:
         dev.initialize('COM10')

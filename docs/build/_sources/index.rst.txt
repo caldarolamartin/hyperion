@@ -1,6 +1,6 @@
-=====================================
+======================================
 Welcome to the Hyperion documentation!
-=====================================
+======================================
 
 This is the documentation for the Hyperion project (which is based on
 `Python For the Lab <http://www.pythonforthelab.com>`_).  It is the
@@ -21,7 +21,7 @@ Index for this documentation
     users
     contributors
     controllers
-    model
+    instrument
     view
     experiment
     test

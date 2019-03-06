@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Base controller &mdash; Hyperion 0.1 documentation</title>
+  <title>Dummy controller &mdash; Hyperion 0.1 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Dummy controller" href="dummy_output_controller.html" />
-    <link rel="prev" title="Controllers" href="../controllers.html" /> 
+    <link rel="next" title="Instruments" href="../instrument.html" />
+    <link rel="prev" title="Base controller" href="base_controller.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -94,8 +94,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../users.html">How to use</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributors.html">Contributors</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../controllers.html">Controllers</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Base controller</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dummy_output_controller.html">Dummy controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="base_controller.html">Base controller</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Dummy controller</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../instrument.html">Instruments</a></li>
@@ -149,13 +149,13 @@
         
           <li><a href="../controllers.html">Controllers</a> &raquo;</li>
         
-      <li>Base controller</li>
+      <li>Dummy controller</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/controller/base_controller.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/controller/dummy_output_controller.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -168,28 +168,36 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <span class="target" id="module-hyperion.controller.base_controller"></span><div class="section" id="base-controller">
-<h1>Base controller<a class="headerlink" href="#base-controller" title="Permalink to this headline">¶</a></h1>
-<p>This is a base class for a controller.</p>
+  <span class="target" id="module-hyperion.controller.dummy_output_controller"></span><div class="section" id="dummy-controller">
+<h1>Dummy controller<a class="headerlink" href="#dummy-controller" title="Permalink to this headline">¶</a></h1>
+<p>This is a dummy device, simulated for developing and testing the code</p>
 <dl class="class">
-<dt id="hyperion.controller.base_controller.BaseController">
-<em class="property">class </em><code class="descclassname">hyperion.controller.base_controller.</code><code class="descname">BaseController</code><a class="headerlink" href="#hyperion.controller.base_controller.BaseController" title="Permalink to this definition">¶</a></dt>
-<dd><p>General class for controller</p>
+<dt id="hyperion.controller.dummy_output_controller.DummyOutputController">
+<em class="property">class </em><code class="descclassname">hyperion.controller.dummy_output_controller.</code><code class="descname">DummyOutputController</code><a class="headerlink" href="#hyperion.controller.dummy_output_controller.DummyOutputController" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dummy output device</p>
+<dl class="attribute">
+<dt id="hyperion.controller.dummy_output_controller.DummyOutputController.amplitude">
+<code class="descname">amplitude</code><a class="headerlink" href="#hyperion.controller.dummy_output_controller.DummyOutputController.amplitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the amplitude value</p>
+</dd></dl>
+
 <dl class="method">
-<dt id="hyperion.controller.base_controller.BaseController.finalize">
-<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.base_controller.BaseController.finalize" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperion.controller.dummy_output_controller.DummyOutputController.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.dummy_output_controller.DummyOutputController.finalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>this is to close connection to the device.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="hyperion.controller.base_controller.BaseController.idn">
-<code class="descname">idn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.base_controller.BaseController.idn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Identify command</p>
+<dt id="hyperion.controller.dummy_output_controller.DummyOutputController.idn">
+<code class="descname">idn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.dummy_output_controller.DummyOutputController.idn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify command
+:return: identification for the device
+:rtype: string</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="hyperion.controller.base_controller.BaseController.initialize">
-<code class="descname">initialize</code><span class="sig-paren">(</span><em>port</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.base_controller.BaseController.initialize" title="Permalink to this definition">¶</a></dt>
+<dt id="hyperion.controller.dummy_output_controller.DummyOutputController.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><em>port</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.dummy_output_controller.DummyOutputController.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Starts the connection to the device in port</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -199,6 +207,24 @@
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperion.controller.dummy_output_controller.DummyOutputController.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.dummy_output_controller.DummyOutputController.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>writes into the device</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperion.controller.dummy_output_controller.DummyOutputController.read">
+<code class="descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.dummy_output_controller.DummyOutputController.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fake read that returns always</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperion.controller.dummy_output_controller.DummyOutputController.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.controller.dummy_output_controller.DummyOutputController.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>writes into the device</p>
 </dd></dl>
 
 </dd></dl>
@@ -213,10 +239,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="dummy_output_controller.html" class="btn btn-neutral float-right" title="Dummy controller" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../instrument.html" class="btn btn-neutral float-right" title="Instruments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../controllers.html" class="btn btn-neutral float-left" title="Controllers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="base_controller.html" class="btn btn-neutral float-left" title="Base controller" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; Hyperion 0.1 documentation</title>
+  <title>Base instrument &mdash; Hyperion 0.1 documentation</title>
   
 
   
@@ -34,7 +34,9 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Dummy Instrument" href="dummy_output_instrument.html" />
+    <link rel="prev" title="Instruments" href="../instrument.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,13 +88,17 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">Hyperion Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">How to install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../users.html">How to use</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributors.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../controllers.html">Controllers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../model.html">Models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../instrument.html">Instruments</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Base instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dummy_output_instrument.html">Dummy Instrument</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../view.html">View and GUI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../experiment.html">Model: Experiment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../test.html">Testing</a></li>
@@ -141,13 +147,15 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+          <li><a href="../instrument.html">Instruments</a> &raquo;</li>
+        
+      <li>Base instrument</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/controller/aa_modd18012.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/instrument/base_instrument.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -160,12 +168,57 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <span class="target" id="module-hyperion.instrument.base_instrument"></span><div class="section" id="base-instrument">
+<h1>Base instrument<a class="headerlink" href="#base-instrument" title="Permalink to this headline">¶</a></h1>
+<p>This is a base class for an instrument (named instrument in PythonForTheLab book).</p>
+<dl class="class">
+<dt id="hyperion.instrument.base_instrument.BaseInstrument">
+<em class="property">class </em><code class="descclassname">hyperion.instrument.base_instrument.</code><code class="descname">BaseInstrument</code><a class="headerlink" href="#hyperion.instrument.base_instrument.BaseInstrument" title="Permalink to this definition">¶</a></dt>
+<dd><p>General class for Instrument</p>
+<dl class="method">
+<dt id="hyperion.instrument.base_instrument.BaseInstrument.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.instrument.base_instrument.BaseInstrument.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>this is to close connection to the device.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperion.instrument.base_instrument.BaseInstrument.idn">
+<code class="descname">idn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.instrument.base_instrument.BaseInstrument.idn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify command</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hyperion.instrument.base_instrument.BaseInstrument.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><em>port</em><span class="sig-paren">)</span><a class="headerlink" href="#hyperion.instrument.base_instrument.BaseInstrument.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the connection to the device in port</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>port</strong> (<em>string</em>) – port name to connect to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dummy_output_instrument.html" class="btn btn-neutral float-right" title="Dummy Instrument" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../instrument.html" class="btn btn-neutral float-left" title="Instruments" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

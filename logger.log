@@ -1,0 +1,119 @@
+2019-03-06 18:17:31,309 |     INFO |   __init__() | __main__                                                     | Class Dummy_output Instrument created.
+2019-03-06 18:17:31,309 |     INFO |   __init__() | hyperion.controller.dummy_output_controller                  | Class BaseController created.
+2019-03-06 18:17:31,310 |     INFO | initialize() | __main__                                                     | Opening connection to device.
+2019-03-06 18:17:31,313 |     INFO | initialize() | hyperion.controller.dummy_output_controller                  | Opening connection to device.
+2019-03-06 18:17:31,313 |    DEBUG |      query() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:17:31,314 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:17:31,314 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:17:31,315 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:17:31,316 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | Setting the amplitude to 2
+2019-03-06 18:17:31,317 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A2
+2019-03-06 18:17:31,317 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:17:31,318 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:17:31,318 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | The amplitude is already 2. Not changing the value in the device.
+2019-03-06 18:17:31,319 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:17:31,321 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:17:31,322 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
+2019-03-06 18:17:31,322 |     INFO |   finalize() | hyperion.controller.dummy_output_controller                  | Closing connection to device.
+2019-03-06 18:24:25,871 |     INFO |   __init__() | __main__                                                     | Class Dummy_output Instrument created.
+2019-03-06 18:24:25,871 |     INFO |   __init__() | hyperion.controller.dummy_output_controller                  | Class BaseController created.
+2019-03-06 18:24:25,872 |     INFO | initialize() | __main__                                                     | Opening connection to device.
+2019-03-06 18:24:25,872 |     INFO | initialize() | hyperion.controller.dummy_output_controller                  | Opening connection to device.
+2019-03-06 18:24:25,873 |    DEBUG |      query() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:24:25,873 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:24:25,873 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:24:25,874 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:24:25,875 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | Setting the amplitude to 2
+2019-03-06 18:24:25,875 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A2
+2019-03-06 18:24:25,876 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:24:25,877 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:24:25,878 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | The amplitude is already 2. Not changing the value in the device.
+2019-03-06 18:24:25,878 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:24:25,879 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:24:25,880 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
+2019-03-06 18:24:25,882 |     INFO |   finalize() | hyperion.controller.dummy_output_controller                  | Closing connection to device.
+2019-03-06 18:24:29,320 |     INFO |   __init__() | __main__                                                     | Class Dummy_output Instrument created.
+2019-03-06 18:24:29,321 |     INFO |   __init__() | hyperion.controller.dummy_output_controller                  | Class BaseController created.
+2019-03-06 18:24:29,322 |     INFO | initialize() | __main__                                                     | Opening connection to device.
+2019-03-06 18:24:29,322 |     INFO | initialize() | hyperion.controller.dummy_output_controller                  | Opening connection to device.
+2019-03-06 18:24:29,325 |    DEBUG |      query() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:24:29,326 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:24:29,326 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:24:29,327 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:24:29,328 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | Setting the amplitude to 2
+2019-03-06 18:24:29,329 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A2
+2019-03-06 18:24:29,329 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:24:29,330 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:24:29,332 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | The amplitude is already 2. Not changing the value in the device.
+2019-03-06 18:24:29,333 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:24:29,333 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:24:29,334 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
+2019-03-06 18:24:29,334 |     INFO |   finalize() | hyperion.controller.dummy_output_controller                  | Closing connection to device.
+2019-03-06 18:26:00,814 |     INFO |   __init__() | __main__                                                     | Class Dummy_output Instrument created.
+2019-03-06 18:26:00,814 |     INFO |   __init__() | hyperion.controller.dummy_output_controller                  | Class BaseController created.
+2019-03-06 18:26:00,816 |     INFO | initialize() | __main__                                                     | Opening connection to device.
+2019-03-06 18:26:00,819 |     INFO | initialize() | hyperion.controller.dummy_output_controller                  | Opening connection to device.
+2019-03-06 18:26:00,820 |    DEBUG |      query() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:26:00,820 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:26:00,821 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:00,822 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:00,823 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | Setting the amplitude to 2
+2019-03-06 18:26:00,823 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A2
+2019-03-06 18:26:00,823 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:00,824 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:00,826 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | The amplitude is already 2. Not changing the value in the device.
+2019-03-06 18:26:00,826 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:00,826 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:00,827 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
+2019-03-06 18:26:00,828 |     INFO |   finalize() | hyperion.controller.dummy_output_controller                  | Closing connection to device.
+2019-03-06 18:26:48,549 |     INFO |   __init__() | __main__                                                     | Class Dummy_output Instrument created.
+2019-03-06 18:26:48,549 |     INFO |   __init__() | hyperion.controller.dummy_output_controller                  | Class BaseController created.
+2019-03-06 18:26:48,550 |     INFO | initialize() | __main__                                                     | Opening connection to device.
+2019-03-06 18:26:48,553 |     INFO | initialize() | hyperion.controller.dummy_output_controller                  | Opening connection to device.
+2019-03-06 18:26:48,553 |    DEBUG |      query() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:26:48,554 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:26:48,554 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:48,554 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:48,555 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | Setting the amplitude to 2
+2019-03-06 18:26:48,555 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A2
+2019-03-06 18:26:48,556 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:48,556 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:48,557 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | The amplitude is already 2. Not changing the value in the device.
+2019-03-06 18:26:48,558 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:48,558 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:48,561 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
+2019-03-06 18:26:48,561 |     INFO |   finalize() | hyperion.controller.dummy_output_controller                  | Closing connection to device.
+2019-03-06 18:26:49,716 |     INFO |   __init__() | __main__                                                     | Class Dummy_output Instrument created.
+2019-03-06 18:26:49,716 |     INFO |   __init__() | hyperion.controller.dummy_output_controller                  | Class BaseController created.
+2019-03-06 18:26:49,717 |     INFO | initialize() | __main__                                                     | Opening connection to device.
+2019-03-06 18:26:49,718 |     INFO | initialize() | hyperion.controller.dummy_output_controller                  | Opening connection to device.
+2019-03-06 18:26:49,718 |    DEBUG |      query() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:26:49,720 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:26:49,721 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:49,721 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:49,722 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | Setting the amplitude to 2
+2019-03-06 18:26:49,722 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A2
+2019-03-06 18:26:49,722 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:49,723 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:49,724 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | The amplitude is already 2. Not changing the value in the device.
+2019-03-06 18:26:49,725 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:49,727 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:49,728 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
+2019-03-06 18:26:49,728 |     INFO |   finalize() | hyperion.controller.dummy_output_controller                  | Closing connection to device.
+2019-03-06 18:26:50,931 |     INFO |   __init__() | __main__                                                     | Class Dummy_output Instrument created.
+2019-03-06 18:26:50,931 |     INFO |   __init__() | hyperion.controller.dummy_output_controller                  | Class BaseController created.
+2019-03-06 18:26:50,932 |     INFO | initialize() | __main__                                                     | Opening connection to device.
+2019-03-06 18:26:50,933 |     INFO | initialize() | hyperion.controller.dummy_output_controller                  | Opening connection to device.
+2019-03-06 18:26:50,933 |    DEBUG |      query() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:26:50,934 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A?
+2019-03-06 18:26:50,935 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:50,935 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:50,937 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | Setting the amplitude to 2
+2019-03-06 18:26:50,938 |    DEBUG |      write() | hyperion.controller.dummy_output_controller                  | Writing into the device:A2
+2019-03-06 18:26:50,938 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:50,939 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:50,940 |     INFO |  amplitude() | hyperion.controller.dummy_output_controller                  | The amplitude is already 2. Not changing the value in the device.
+2019-03-06 18:26:50,940 |    DEBUG |  amplitude() | __main__                                                     | Getting the amplitude.
+2019-03-06 18:26:50,940 |    DEBUG |  amplitude() | hyperion.controller.dummy_output_controller                  | Getting the amplitude.
+2019-03-06 18:26:50,944 |     INFO |   finalize() | __main__                                                     | Closing connection to device.
+2019-03-06 18:26:50,944 |     INFO |   finalize() | hyperion.controller.dummy_output_controller                  | Closing connection to device.

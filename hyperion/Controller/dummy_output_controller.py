@@ -10,25 +10,16 @@ import logging
 from hyperion.controller.base_controller import BaseController
 
 class DummyOutputController(BaseController):
-    """ Dummy output device
-
-    """
+    """ Dummy output device """
 
     FAKE_RESPONSES = {'A': 1,
-
-                    }
+                     }
 
     def __init__(self):
-        """ init of the class"""
+        """ Init of the class"""
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s -  %(funcName)2s() - %(message)s',
-                            level=logging.DEBUG)
-
-
-
         self.logger.info('Class BaseController created.')
         self._amplitude = []
-
 
     def initialize(self, port):
         """ Starts the connection to the device in port
@@ -45,13 +36,14 @@ class DummyOutputController(BaseController):
 
     def idn(self):
         """ Identify command
-
+        :return: identification for the device
+        :rtype: string
         """
         self.logger.debug('Ask IDN to device.')
         return 'Dummy Output Controller'
 
     def query(self, msg):
-        """ writes into the device"""
+        """ writes into the device """
         self.logger.debug('Writing into the device:{}'.format(msg))
         self.write(msg)
         ans = self.read()
@@ -75,6 +67,7 @@ class DummyOutputController(BaseController):
     @amplitude.setter
     def amplitude(self, value):
         """ This method is to set the amplitude
+
         :param value: value for the amplitude to set in Volts
         :type value: float
 
@@ -89,6 +82,10 @@ class DummyOutputController(BaseController):
 
 
 if __name__ == "__main__":
+    from hyperion import _logger_format
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(12000), backupCount=7),
+                  logging.StreamHandler()])
 
     with DummyOutputController() as dev:
         dev.initialize('COM10')

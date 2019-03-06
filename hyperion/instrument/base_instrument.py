@@ -3,7 +3,7 @@
 Base instrument
 ===============
 
-This is a base class for an instrument (named model in PythonForTheLab book).
+This is a base class for an instrument (named instrument in PythonForTheLab book).
 
 
 """
@@ -19,9 +19,6 @@ class BaseInstrument():
 
         """
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s -  %(funcName)2s() - %(message)s',
-                            level=logging.INFO)
-
         self.logger.info('Class BaseInstrument created.')
         self.logger.warning('Method used from the BaseInstrument class')
         self.controller = BaseController()
@@ -59,9 +56,11 @@ class BaseInstrument():
 
 
 if __name__ == "__main__":
+    from hyperion import _logger_format
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+        handlers=[logging.FileHandler("logger.log"), logging.StreamHandler()])
 
     with BaseInstrument() as dev:
-
         dev.initialize('COM10')
         dev.idn()
 
