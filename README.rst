@@ -38,7 +38,6 @@ To install the package, you should do
 
     python setup.py develop
 
-
 Finally, in order to have the documentation, you need to create a folder called ``doc/build`` and run
 
 	sphinx-build -b html doc/source/ doc/build/
