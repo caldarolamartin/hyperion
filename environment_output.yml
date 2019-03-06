@@ -70,9 +70,21 @@ dependencies:
   - zlib=1.2.11=h62dcd97_3
   - pip:
     - lantz==0.3
+    - lantz-core==0.5.3.dev0
+    - lantz-drivers==0.5.3.dev0
+    - lantz-qt==0.5.3.dev0
+    - lantz-sims==0.5.2
+    - lantzdev==0.5.3.dev0
+    - pimpmyclass==0.4.2
     - pint==0.9
+    - pyserial==3.4
+    - pysignal==1.1.1
     - pyvisa==1.9.1
+    - pyvisa-py==0.3.1
+    - pyyaml==3.13
+    - serialize==0.1
     - sphinx-rtd-theme==0.4.3
     - stringparser==0.4.1
+    - thorlabs-apt==0.1
 prefix: C:\Users\Martin\Anaconda3\envs\hyperion
 
