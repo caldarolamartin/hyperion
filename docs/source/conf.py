@@ -4,7 +4,6 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 extensions = ['sphinx.ext.autodoc', ]
 
-
 project = 'Hyperion'
 copyright = '2018, Authors: see authors'
 author = 'Authors: see authors'

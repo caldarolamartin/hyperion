@@ -40,7 +40,7 @@ To install the package, you should do
 
 Finally, in order to have the documentation, you need to create a folder called ``doc/build`` and run
 
-	sphinx-build -b html doc/source/ doc/build/
+	sphinx-build -b html docs/source/ docs/build/
 
 This will create a series of html files with the documentation for the project
 in the folder doc/build, you should start at index.html
