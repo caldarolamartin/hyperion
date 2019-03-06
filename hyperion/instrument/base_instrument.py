@@ -58,7 +58,8 @@ class BaseInstrument():
 if __name__ == "__main__":
     from hyperion import _logger_format
     logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.FileHandler("logger.log"), logging.StreamHandler()])
+        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
+                  logging.StreamHandler()])
 
     with BaseInstrument() as dev:
         dev.initialize('COM10')

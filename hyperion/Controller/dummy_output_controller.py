@@ -84,7 +84,7 @@ class DummyOutputController(BaseController):
 if __name__ == "__main__":
     from hyperion import _logger_format
     logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(12000), backupCount=7),
+        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
     with DummyOutputController() as dev:
