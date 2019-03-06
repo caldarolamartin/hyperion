@@ -22,6 +22,7 @@ class BaseController():
                             level=logging.INFO)
 
         self.logger.info('Class BaseController created.')
+        self.logger.warning('Method used from the BaseController class')
 
     def __enter__(self):
         return self
@@ -35,16 +36,19 @@ class BaseController():
         :param port: port name to connect to
         :type port: string
         """
+        self.logger.warning('Method used from the BaseController class')
         self.logger.info('Opening connection to device.')
 
     def finalize(self):
         """ this is to close connection to the device."""
+        self.logger.warning('Method used from the BaseController class')
         self.logger.info('Closing connection to device.')
 
     def idn(self):
         """ Identify command
 
         """
+        self.logger.warning('Method used from the BaseController class')
         self.logger.debug('Ask IDN to device.')
         return 'Name'
 
