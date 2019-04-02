@@ -60,9 +60,9 @@ class BaseController():
 
 if __name__ == "__main__":
     from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                  logging.StreamHandler()])
+        logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+            handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
+                      logging.StreamHandler()])
 
     with BaseController() as dev:
         dev.initialize('COM10')
