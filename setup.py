@@ -8,7 +8,6 @@ setuptools.setup(
     version="0.1-dev",
     author="See Authors",
     license='BSD',
-    author_email="l.kuipers@tudelft.nl",
     description="A small package to control devices in the Kuipers lab",
     long_description=long_description,
     long_description_content_type="text/markdown",

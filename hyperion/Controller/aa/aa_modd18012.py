@@ -1,0 +1,441 @@
+# -*- coding: utf-8 -*-
+"""
+    ===========
+    AOTF driver
+    ===========
+
+    This controller (aa_modd18012.py) supplies one class with several methods to communicate
+    with the AOTF driver from AA optoelectronics model: 1MODD18012_0074
+
+    :copyright: (c)
+    :license: , see LICENSE for more details.
+"""
+import serial
+from time import sleep
+import logging
+
+
+class AaModd18012:
+    """
+    Controller class for the driver aa_mod18012 from AA optoelelectronics.
+    This class has all the methods to communicate using serial.
+
+    NOTE: Our model has different ranges of frequency (see data sheet)
+            Line 1 to 6: 82-151 MHz (this drives short wavelengths)
+            Line 7 to 8: 68-82 MHz  (this drives long wavelengths)
+    """
+
+    # here some parameters I need
+    DEFAULTS = {'write_termination': '\r',
+                'read_termination': '\n',
+                'encoding': 'ascii',
+                'baudrate': 57600,
+                'parity': 'None',
+                'write_timeout': 1,
+                'read_timeout': 1,
+                'frequency': [85, 95, 105, 115, 125, 145, 70, 80]}
+
+    MODES = {'internal': 0, 'external': 1}  # for individual commands
+
+    BLANKING = 0  # channel for blanking
+
+    # limits
+    CHANNEL_s = range(1, 7)
+    LIM_s = (82, 151)  # in MHz
+    LIM_l = (68, 82)  # in MHz
+    CHANNEL_l = range(7, 9)
+    PW_lim = (0, 22)  # in dBm
+
+    def __init__(self, port):
+        """ This is the init for the controller aa_mod18012.
+        It creates the instances of the objects needed to communicate with the device.
+
+
+        """
+
+        self.port = port
+        self.rsc = None
+        # logger
+        self.logger = logging.getLogger(__name__)
+        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s -  %(funcName)2s() - %(message)s',
+                            level=logging.INFO)
+
+        self.logger.info('Class Aa_modd18012 init. Created object.')
+
+    def initialize(self):
+        """ Initialize the device.
+
+        It actually connects to the device using the default settings.
+
+
+        """
+
+        self.rsc = serial.Serial(port=self.port,
+                                 baudrate=self.DEFAULTS['baudrate'],
+                                 timeout=self.DEFAULTS['read_timeout'],
+                                 write_timeout=self.DEFAULTS['write_timeout']
+                                 )
+
+        self.logger.info('Initialized device AOTF at port {}.'.format(self.port))
+
+    def finalize(self):
+        """ Closes the connection to the device
+
+         """
+        if self.rsc is not None:
+            self.rsc.close()
+            self.logger.info('The connection to aa_modd18012 is closed.')
+
+    def write(self, message):
+        """ Sends the message to the device.
+
+        :param message: message to send to the device.
+        :type message: string
+        :return: the response from the device.
+        :rtype: string
+
+        """
+
+        if self.rsc is None:
+            raise Warning('Trying to write to device before initializing')
+
+        msg = message + self.DEFAULTS['write_termination']
+        msg = msg.encode(self.DEFAULTS['encoding'])
+        self.logger.debug('Writing to the device: {} '.format(msg))
+        ans = self.rsc.write(msg)
+        self.logger.debug('Ans: {}'.format(ans))
+        return ans
+
+    def read(self):
+        """ Reads message from the device. It reads until the buffer is clean.
+
+        :return: The messages in the buffer of the device. It removes the end of line characters.
+        :rtype: string
+
+        """
+        if self.rsc is None:
+            raise Warning('Trying to read from device before initializing')
+
+        self.logger.debug('Reading from device')
+
+        reading = True
+        msgs = []
+        while reading:
+            msg = str(self.rsc.readline(), encoding=self.DEFAULTS['encoding'])
+            if msg == '':
+                reading = False
+            # self.logger.debug('Received message: {}'.format(msg))
+            msg = msg.replace("\n", "")  # remove the end of line
+            # self.logger.debug('Removed \\n: {}'.format(msg))
+            msg = msg.replace("\r", "")  # remove the end of line
+            # self.logger.debug('Removed \\r: {}'.format(msg))
+            msgs.append(msg)
+            self.logger.debug('Received message: {}'.format(msg))
+
+        return [x for x in msgs if x != '']
+
+    def query(self, message):
+        """ Writes and Reads the answer from the device.
+            Basically this method is a write followed by a read with a 10ms wait in the middle.
+
+            :param message: Message to be passed to the serial port.
+            :type message: string
+            :return: The reply from the device.
+            :rtype: string
+
+            """
+        if self.rsc is None:
+            raise Warning('Trying to query from device before initializing.')
+
+        ans = self.write(message)
+        self.logger.debug('Sent message: {}.'.format(message))
+        self.logger.debug('Received message: {}'.format(ans))
+        sleep(0.01)
+        ans = self.read()
+        self.logger.debug('Received message: {}.'.format(ans))
+        return ans
+
+    def set_frequency(self, channel, freq):
+        """This function sets RF frequency for a given channel.
+        The device has 8 channels.
+        Channels 1-6 work in the range 82-151 MHz
+        Channels 7-8 work in the range 68-82 MHz
+
+        :param channel: channel to set the frequency.
+        :type channel: int
+        :param freq: Frequency to set in MHz (it has accepted ranges that depends on the channel)
+        :type freq: float
+
+        """
+        self.check_channel(channel)
+        channel, value = self.check_freq(channel, freq)
+        self.query("L{}F{}".format(channel, value))
+
+    def set_powerdb(self, channel, value):
+        """Power for a given channel (in dBm).
+        Range: (0,22) dBm
+
+        :param channel: channel to use
+        :type channel: int
+        :param value: power value in dBm
+        :type value: float
+
+        """
+        self.check_power(value)
+        self.query("L{}D{}".format(channel, value))
+
+    def check_channel(self, channel):
+        """ Method to check the key of the channel is correct
+
+        :param channel: channel to use
+        :type channel: int
+        :return: channel
+        :rtype: int
+
+        """
+        if channel not in range(1, 9):
+            raise Exception('The channel is not supported by the device.')
+        return channel
+
+    def check_freq(self, channel, value):
+        """ Checks if the frequency asked is valid for the desired channel.
+        Specific of our device. If it is not, it gives the right value.
+
+        :param channel: channel to use (can be from 1 to 8 inclusive)
+        :type channel: int
+        :param value: Frequency value in MHz. If 0 is given,
+                      the DEFAULTS['frequency'] value is used for the corresponding channel.
+        :type value: float
+        :return: The channel and value back unless an error.
+        :rtype: int, new_channel
+
+        """
+        if value == 0:
+            new_value = self.DEFAULTS['frequency'][channel - 1]
+            self.logger.debug('Initial Freq 0, setting the default value for channel {}: {}.'.format(value, new_value))
+        else:
+            new_value = value
+
+        if channel in self.CHANNEL_l:
+            if new_value < self.LIM_l[0] or new_value > self.LIM_l[-1]:
+                raise Exception('The channel {} does not support the Frequency {} MHz. \n '
+                                'The supported range is ({},{}) MHz.'.format(channel, value, self.LIM_l[0],
+                                                                             self.LIM_l[1]))
+        elif channel in self.CHANNEL_s:
+            if new_value < self.LIM_s[0] or new_value > self.LIM_s[-1]:
+                raise Exception('The channel {} does not support the Frequency {} MHz. \n '
+                                'The supported range is ({},{}) MHz.'.format(channel, value, self.LIM_s[0],
+                                                                             self.LIM_s[1]))
+
+        self.logger.debug('The Frequency value {} is OK.'.format(new_value))
+
+        return channel, new_value
+
+    def check_power(self, value):
+        """ checks if the power is in the range supported by the device.
+        Range = (0 , 22) dBm. Gives an error if value is not in the range
+
+        :param value: power value in dBm
+        :type value: float
+
+        """
+        if value > self.PW_lim[-1] or value < self.PW_lim[0]:
+            raise Exception('The device does not support the power {} dBm. \n '
+                            'The supported range is ({},{}) dBm.'.format(value, self.PW_lim[0], self.PW_lim[1]))
+        self.logger.debug('The value {} for power in dBm is OK.'.format(value))
+
+    def enable(self, channel, state):
+        """Enable single channels.
+
+        :param channel: channel to use (can be from 1 to 8 inclusive)
+        :type: channel: int
+        :param state: true for on and false for off
+        :type state: logical
+
+        :return: state
+        :rtype: logical
+        """
+        self.check_channel(channel)
+        if state:
+            self.query("L{}O{}".format(channel, 1))
+            self.logger.info('Channel {} set on.'.format(channel))
+        else:
+            self.query("L{}O{}".format(channel, 0))
+            self.logger.info('Channel {} set off.'.format(channel))
+        return state
+
+    def set_operating_mode(self, channel, mode):
+        """Select the operating mode. Can be internal or external.
+
+        :param channel: channel number
+        :type channel: int
+        :param mode: 'internal' or 'external'
+        :type mode: str
+
+        """
+        self.logger.debug('Set operating mode: {}'.format(mode))
+        self.query("L{}I{}".format(channel, self.MODES[mode]))
+
+    def store(self):
+        """ stores in the internal memory the values
+
+        """
+        self.logger.info('Stored current configuration in the EPROM of the device at port {}'.format(self.port))
+        self.query("E")
+
+    def blanking(self, state, mode):
+        """ Define the blanking state. If True (False), all channels are on (off).
+        the type can be 'internal' or 'external'
+
+        :param state: State of the blanking
+        :type state: logical
+        :param mode: external or internal. external is used to follow TTL external modulation
+        :type mode: string
+
+        """
+        if mode == 'internal':
+            if state:
+                self.query("L0I1O1")
+                self.logger.debug('Blanking set internal and ON.')
+            else:
+                self.query("L0I1O0")
+                self.logger.debug('Blanking set internal and OFF.')
+        elif mode == 'external':
+            if state:
+                self.query("L0I0O1")
+                self.logger.debug('Blanking set external and ON.')
+            else:
+                self.query("L0I0O0")
+                self.logger.debug('Blanking set external and OFF.')
+        else:
+            raise Warning('Blanking type not known.')
+
+    def set_all(self, channel, freq, power, state, mode):
+        """ Sets Frequency, power, and state of channel.
+
+        :param channel: channel to use (can be from 1 to 8 inclusive)
+        :type channel: int
+        :param freq: Frequency value in MHz (range depends on the channel)
+        :type freq: float
+        :param power: Power to set in dBm (0 to 22 )
+        :type power: float
+        :param state: true for on and false for off
+        :type state: logical
+        :param mode: 'internal' or 'external'
+        :type mode: string
+
+
+        """
+        if mode == 'internal':
+            mode_value = 1
+        elif mode == 'external':
+            mode_value = 0
+        else:
+            raise Exception('The mode is not recognized.')
+
+        self.check_channel(channel)
+        channel, new_freq = self.check_freq(channel, freq)
+        self.check_power(power)
+
+        if state:
+            msg = "L{}F{}D{}O1I{}".format(channel, new_freq, power, mode_value)
+        else:
+            msg = "L{}F{}D{}O0I{}".format(channel, new_freq, power, mode_value)
+        self.logger.debug('Message to send: {}'.format(msg))
+        ans = self.query(msg)
+        return ans
+
+    def get_states(self):
+        """ Gets the status of all the channels
+
+        :return: message from the driver describing all channel state
+        :rtype: str
+
+        """
+        return self.query('S')
+
+    # def interpret_reply(self, msg):
+    #     """ This is to interpret the reply of the driver"""
+    #     # to do
+
+
+if __name__ == "__main__":
+    import logging
+
+    dev = AaModd18012('COM10')
+    dev.initialize()
+
+    sleep(1)
+
+    # test read and write
+    # ans = dev.write('S')
+    # print('return: {}.'.format(ans))
+    # sleep(1)
+    # for i in range(0,9):
+    #     print(dev.rsc.readline())
+
+    #
+    # write_ans = dev.write('q')
+    # ans = dev.read()
+    # print(ans)
+
+    # test query
+    # ans = dev.query('L101')
+    # print('Response: {}'.format(ans))
+    # print('DONE')
+
+    #   # Get state of all channels
+    # print(dev.query('S'))
+
+    #   # test check value
+    # dev.check_channel(0)
+    # dev.check_channel(10)
+
+    #   # test check freq
+    # dev.check_freq(1,0)
+    # print(dev.check_freq(1,0))
+    # dev.check_freq(1,140)
+    # dev.check_freq(1,161)
+    #
+    # dev.check_freq(7,65)
+    # dev.check_freq(7,70)
+    # dev.check_freq(7,160)
+
+    #   # check power lim
+    # dev.check_power(200)
+
+    #   # check
+    # ch = 1
+    # dt = 0.5
+    # print(dev.get_state(ch))
+    # sleep(dt)
+    # dev.set_frequency(ch,110)
+    # sleep(dt)
+    # #print(dev.get_state(ch))
+    # sleep(dt)
+    # dev.set_powerdb(ch,22)
+    # sleep(dt)
+    # #print(dev.get_state(ch))
+    # sleep(dt)
+    # dev.set_operating_mode(ch,'internal')
+    # sleep(dt)
+    # #print(dev.get_state(ch))
+    # sleep(dt)
+    # dev.enable(ch,True)
+    # sleep(dt)
+    #
+    # # set ch off
+    # print(dev.get_state(ch))
+    # sleep(dt)
+
+    # test set all
+    for ch in range(1, 9):
+        print(dev.set_all(ch, 0, 22, False, 'internal'))
+        sleep(0.1)
+    dev.store()
+    print(dev.query('S'))
+
+    # close connection
+    print('Finalizing...')
+    dev.finalize()
+    print('DONE.')
