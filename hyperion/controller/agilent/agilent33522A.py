@@ -3,7 +3,7 @@
 Agilent 33522A driver
 =====================
 
-Controller class for an arbitrary waveform generator.
+controller class for an arbitrary waveform generator.
 
 
 

@@ -5,17 +5,17 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="Hyperion",
-    version="0.1-dev",
+    version="0.1.dev",
     author="See Authors",
     license='BSD',
     description="A small package to control devices in the Kuipers lab",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/nanooptics-code/hyperion.git",
-    python_requires='==3.7',
+    python_requires='>=3.7',
     packages=setuptools.find_packages(),
     install_requires = [
-        'numpy==1.15',
+        'numpy>=1.16',
         'scipy',
         'sphinx',
         'pyqtgraph==0.10.0',
@@ -23,7 +23,6 @@ setuptools.setup(
         'lantz_drivers',
         'lantz_qt',
         'lantz_sims',
-        'lantz',
         'pyvisa-py'],
     classifiers=[
         "Programming Language :: Python :: 3",

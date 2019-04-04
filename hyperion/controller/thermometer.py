@@ -16,7 +16,7 @@ import logging
 
 class Rs1316:
     """
-    Controller class for the driver aa_mod18012 from AA optoelelectronics.
+    controller class for the driver aa_mod18012 from AA optoelelectronics.
     This class has all the methods to communicate using serial.
 
     NOTE: Our model has different ranges of frequency (see data sheet)

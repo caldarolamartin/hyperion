@@ -46,7 +46,7 @@ class DummyOutputController(BaseController):
         :rtype: string
         """
         self.logger.debug('Ask IDN to device.')
-        return 'Dummy Output Controller'
+        return 'Dummy Output controller'
 
     def query(self, msg):
         """ writes into the device msg
