@@ -13,9 +13,10 @@
 import serial
 from time import sleep
 import logging
+from hyperion.controller.base_controller import BaseController
 
 
-class AaModd18012:
+class AaModd18012(BaseController):
     """
     Controller class for the driver aa_mod18012 from AA optoelelectronics.
     This class has all the methods to communicate using serial.
@@ -49,17 +50,10 @@ class AaModd18012:
     def __init__(self, port):
         """ This is the init for the controller aa_mod18012.
         It creates the instances of the objects needed to communicate with the device.
-
-
         """
-
         self.port = port
         self.rsc = None
-        # logger
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s -  %(funcName)2s() - %(message)s',
-                            level=logging.INFO)
-
         self.logger.info('Class Aa_modd18012 init. Created object.')
 
     def initialize(self):
@@ -69,7 +63,6 @@ class AaModd18012:
 
 
         """
-
         self.rsc = serial.Serial(port=self.port,
                                  baudrate=self.DEFAULTS['baudrate'],
                                  timeout=self.DEFAULTS['read_timeout'],
@@ -95,7 +88,6 @@ class AaModd18012:
         :rtype: string
 
         """
-
         if self.rsc is None:
             raise Warning('Trying to write to device before initializing')
 
@@ -360,82 +352,21 @@ class AaModd18012:
 
 
 if __name__ == "__main__":
-    import logging
+    from hyperion import _logger_format
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+                        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.StreamHandler()])
 
-    dev = AaModd18012('COM10')
-    dev.initialize()
+    with AaModd18012('COM10') as dev:
+        dev.initialize()
+        # test set all
+        for ch in range(1, 9):
+            print(dev.set_all(ch, 0, 22, False, 'internal'))
+            sleep(0.1)
+        dev.store()
+        print(dev.get_states())
 
-    sleep(1)
-
-    # test read and write
-    # ans = dev.write('S')
-    # print('return: {}.'.format(ans))
-    # sleep(1)
-    # for i in range(0,9):
-    #     print(dev.rsc.readline())
-
-    #
-    # write_ans = dev.write('q')
-    # ans = dev.read()
-    # print(ans)
-
-    # test query
-    # ans = dev.query('L101')
-    # print('Response: {}'.format(ans))
-    # print('DONE')
-
-    #   # Get state of all channels
-    # print(dev.query('S'))
-
-    #   # test check value
-    # dev.check_channel(0)
-    # dev.check_channel(10)
-
-    #   # test check freq
-    # dev.check_freq(1,0)
-    # print(dev.check_freq(1,0))
-    # dev.check_freq(1,140)
-    # dev.check_freq(1,161)
-    #
-    # dev.check_freq(7,65)
-    # dev.check_freq(7,70)
-    # dev.check_freq(7,160)
-
-    #   # check power lim
-    # dev.check_power(200)
-
-    #   # check
-    # ch = 1
-    # dt = 0.5
-    # print(dev.get_state(ch))
-    # sleep(dt)
-    # dev.set_frequency(ch,110)
-    # sleep(dt)
-    # #print(dev.get_state(ch))
-    # sleep(dt)
-    # dev.set_powerdb(ch,22)
-    # sleep(dt)
-    # #print(dev.get_state(ch))
-    # sleep(dt)
-    # dev.set_operating_mode(ch,'internal')
-    # sleep(dt)
-    # #print(dev.get_state(ch))
-    # sleep(dt)
-    # dev.enable(ch,True)
-    # sleep(dt)
-    #
-    # # set ch off
-    # print(dev.get_state(ch))
-    # sleep(dt)
-
-    # test set all
-    for ch in range(1, 9):
-        print(dev.set_all(ch, 0, 22, False, 'internal'))
-        sleep(0.1)
-    dev.store()
-    print(dev.query('S'))
-
-    # close connection
-    print('Finalizing...')
-    dev.finalize()
-    print('DONE.')
+        # close connection
+        print('Finalizing...')
+        dev.finalize()
+        print('DONE.')
