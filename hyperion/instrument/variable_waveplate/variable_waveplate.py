@@ -13,15 +13,16 @@ import logging
 import sys
 import os
 import numpy as np
-from PythonForTheLab.Controller.lcc import Lcc
-from PythonForTheLab import ur
+from hyperion.controller.thorlabs.lcc25 import Lcc
+from hyperion.instrument.base_instrument import BaseInstrument
+from hyperion import ur, root_dir
 
 
-class VariableWaveplate():
+class VariableWaveplate(BaseInstrument):
     """ This class is the model for the LCC25 analog voltage generator for the variable waveplate from thorlabs.
 
     """
-    def __init__(self, port, enable=True):
+    def __init__(self, port, enable = True, dummy = True):
         """
         Initialize
         """
@@ -31,18 +32,15 @@ class VariableWaveplate():
         # this is to load the calibration file
         self.calibration = {}
         self.logger.debug('Get the source path')
-        self.root_path = ''
-        for s in sys.path:
-            if s.find('nanocd') > 0:
-                self.root_path = s
 
-        cal_file = os.path.join(self.root_path, 'PythonForTheLab', 'Model', 'variable_waveplate',
+        cal_file = os.path.join(root_dir, 'instrument', 'variable_waveplate',
                                 'lookup_table_qwp_voltage_calibration_2019-03-15.txt')
         self.logger.info('Using Variable Waveplate QWP calibration file: {}'.format(cal_file))
         self.load_calibration(cal_file)
 
         # initialize
-        self.driver = Lcc(port)
+        self.dummy = dummy
+        self.driver = Lcc(port, dummy = dummy)
         self.driver.initialize()
         if enable:
             self.driver.enable_output(True)
@@ -231,7 +229,7 @@ class VariableWaveplate():
 
 
 if __name__ == '__main__':
-    from PythonForTheLab import _logger_format
+    from hyperion import _logger_format
     logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),

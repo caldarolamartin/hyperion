@@ -239,7 +239,12 @@ class Lcc(BaseController):
         :rtype: logical
 
         """
-        ans = float(self.query('enable?'))
+        if self.dummy:
+            ans = 1
+            self.logger.warning('You are in dummy mode!')
+        else:
+            ans = float(self.query('enable?'))
+
         if ans == 1:
             return True
         elif ans == 0:
