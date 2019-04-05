@@ -78,7 +78,7 @@ class Rs1316:
 
         self.last_call = time()
 
-        r = self.rsc.read(9)
+        r = self.rsc.read()
 
         if len(r) < 9:
             self.logger.error('The length of the answer is not long enough. Setting output to NaN')
