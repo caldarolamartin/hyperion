@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =====================
 SK polarimeter driver
@@ -13,11 +14,10 @@ For now it only supports one polarization analyzer connected.
 import ctypes
 import logging
 from time import time, sleep
+from hyperion.controller.base_controller import BaseController
 
-
-class Skpolarimeter():
-    """ This is the controller for the SK polarimeter.
-    Based on their dll.
+class Skpolarimeter(BaseController):
+    """ This is the controller for the SK polarimeter. Based on their dll.
 
     """
 
@@ -27,9 +27,7 @@ class Skpolarimeter():
         """
         self.logger = logging.getLogger(__name__)
 
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(funcName)2s() - %(message)s',
-                            level=logging.DEBUG)
-
+        # TODO: put this in a config.yml file so the code doe not depend on the location (PC)
         # path = 'C:/Users/mcaldarola/Documents/SK Develop/SKPolarizationAnalyzer/'
         # name = 'SKPolarimeterManaged'
         path = 'C:/Users/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeterMFC_VS2015_x64/x64/Release/'
@@ -198,30 +196,35 @@ class Skpolarimeter():
 
 
 if __name__ == "__main__":
+    from hyperion import _logger_format
 
-    s = Skpolarimeter()
-    # get the info needed to open connection
-    s.get_number_polarizers()
-    s.get_device_information()
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.StreamHandler()])
 
-    # open connection
-    s.initialize()
+    with Skpolarimeter() as s:
 
-    # test wavelength
-    #s.get_wavelength()
+        s = Skpolarimeter()
+        # get the info needed to open connection
+        s.get_number_polarizers()
+        s.get_device_information()
 
-    # test get data
-    t = time()
-    s.start_measurement()
+        # open connection
+        s.initialize()
 
-    N = 5
-    print('Getting data {} times'.format(N))
-    for i in range(N):
-        data = s.get_measurement_point()
-        print(time()-t)
+        # test wavelength
+        #s.get_wavelength()
+
+        # test get data
         t = time()
+        s.start_measurement()
 
-    s.stop_measurement()
+        N = 5
+        print('Getting data {} times'.format(N))
+        for i in range(N):
+            data = s.get_measurement_point()
+            print(time()-t)
+            t = time()
 
-    # v = s.get_dll_version()
-    s.finalize()
+        s.stop_measurement()

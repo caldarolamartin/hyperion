@@ -11,8 +11,9 @@ import logging
 
 
 class DummyResourceManager():
-    """ This is a dummy class to emulate the visa resource manager and serial."""
+    """ This is a dummy class to emulate the visa resource manager and serial.
 
+    """
     def __init__(self, resource, encoding='ascii', read_termination='\r'):
         """ Init
 
@@ -39,12 +40,13 @@ class DummyResourceManager():
         return 'DummyResourceManager'
 
     def write(self, msg):
-        """
+        """ Write in the dummy device.
+
         :param msg: message to write in the dummy device
         :type msg: str
-
         :return: answer from the device
-        :rtype str
+        :rtype: str
+
         """
         self.logger.info('Writing to {} message: {}'.format(self.name, msg))
         return 'some response'
@@ -53,7 +55,8 @@ class DummyResourceManager():
         """ Reads from the dummy device
 
         :return: message received from the device
-        :rtype str
+        :rtype: str
+
         """
         self.logger.info('Reading from: {}'.format(self.name))
         ans = 'dummy response!'
@@ -63,7 +66,8 @@ class DummyResourceManager():
         """ reads a line, until a read_termination character is found.
 
         :return: line read.
-        :rtype str
+        :rtype: str
+
         """
         self.logger.info('Reading from: {}'.format(self.name))
         ans = self.read_termination + 'Line dummy response' + self.read_termination
@@ -75,10 +79,11 @@ class DummyResourceManager():
         """ Write - Read cycle.
 
         :param msg: message to write
-        :rtype msg: str
+        :type msg: str
 
         :return: response from the dummy device
-        :rtype str
+        :rtype: str
+
         """
         self.write(msg)
         ans = self.read()
@@ -88,7 +93,8 @@ class DummyResourceManager():
         """ To close the dummy resource
 
         :return: OK flag
-        :rtype str
+        :rtype: str
+
         """
         self.logger.info('Closing dummy resource')
         return 'OK'

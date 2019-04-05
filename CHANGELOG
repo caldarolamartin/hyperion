@@ -1,5 +1,6 @@
 CHANGE LOG
 ==========
 
-
+2019-04-05 Added some devices from the NanoCD project and implemented a first version of dummy mode in some of them.
 2019-03-06 Created the Project and added setup.py, license, changelog. Created the repo in gitlab.
+

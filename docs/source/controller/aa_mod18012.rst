@@ -1,0 +1,2 @@
+.. automodule:: hyperion.controller.aa.aa_modd18012
+    :members:

@@ -12,11 +12,12 @@ and error descriptions
 import logging
 from time import time, sleep
 import numpy as np
-from PythonForTheLab.Controller.sk_pol_ana import Skpolarimeter
-from PythonForTheLab import ur
+from hyperion.controller.sk.sk_pol_ana import Skpolarimeter
+from hyperion.instrument.base_instrument import BaseInstrument
+from hyperion import ur
 
 
-class Polarimeter():
+class Polarimeter(BaseInstrument):
     """ This class is the model for the SK polarimeter.
 
     """
@@ -28,8 +29,6 @@ class Polarimeter():
 
         """
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(funcName)2s() - %(message)s',
-                            level=logging.DEBUG)
 
         self.DEFAULT_SETTINGS = {'wavelength': 601 * ur('nm'),
                                  }
@@ -233,22 +232,28 @@ class Polarimeter():
         return w
 
 if __name__ == "__main__":
-    s = Polarimeter()
+    from hyperion import _logger_format
 
-    wavelengths = np.linspace(500,750,10)* ur('nm')
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.StreamHandler()])
 
-    for w in wavelengths:
-        s.initialize(wavelength = w)
-        s.start_measurement()
-        t = time()
 
-        print('Getting data for wavelength = {}.'.format(w))
-        data = s.get_multiple_data(10)
-        print(data)
-        print('Elapsed time: {} s'.format(time()-t))
-        t = time()
+    with Polarimeter() as s:
+        wavelengths = np.linspace(500,750,10)* ur('nm')
 
-        s.stop_measurement()
+        for w in wavelengths:
+            s.initialize(wavelength = w)
+            s.start_measurement()
+            t = time()
 
-        # v = s.get_dll_version()
-        s.finalize()
+            print('Getting data for wavelength = {}.'.format(w))
+            data = s.get_multiple_data(10)
+            print(data)
+            print('Elapsed time: {} s'.format(time()-t))
+            t = time()
+
+            s.stop_measurement()
+
+    print('DONE')

@@ -13,3 +13,7 @@ in another setup.
 
     instrument/base_instrument
     instrument/dummy_output_instrument
+    instrument/aa_aotf
+    instrument/fun_gen
+    instrument/polarimeter
+    instrument/variable_waveplate
