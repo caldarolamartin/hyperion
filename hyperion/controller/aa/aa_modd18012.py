@@ -47,14 +47,21 @@ class AaModd18012(BaseController):
     CHANNEL_l = range(7, 9)
     PW_lim = (0, 22)  # in dBm
 
-    def __init__(self, port):
+    # for dummy
+    DUMMY = {'write_response': 'Write dummy response to command: ',
+             'read_response' : 'Read dummy response.',
+             }
+
+    def __init__(self, port, dummy = False):
         """ This is the init for the controller aa_mod18012.
         It creates the instances of the objects needed to communicate with the device.
         """
         self.port = port
+        self.dummy = dummy
         self.rsc = None
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class Aa_modd18012 init. Created object.')
+        self.logger.info('Dummy mode: {}'.format(dummy))
 
     def initialize(self):
         """ Initialize the device.
@@ -63,21 +70,29 @@ class AaModd18012(BaseController):
 
 
         """
-        self.rsc = serial.Serial(port=self.port,
-                                 baudrate=self.DEFAULTS['baudrate'],
-                                 timeout=self.DEFAULTS['read_timeout'],
-                                 write_timeout=self.DEFAULTS['write_timeout']
-                                 )
+        if self.dummy:
+            self.rsc = 'Dummy'
+            self.logger.info('Initialized dummy AOTF at port {}'.format(self.port))
+        else:
+            self.rsc = serial.Serial(port=self.port,
+                                     baudrate=self.DEFAULTS['baudrate'],
+                                     timeout=self.DEFAULTS['read_timeout'],
+                                     write_timeout=self.DEFAULTS['write_timeout']
+                                     )
 
-        self.logger.info('Initialized device AOTF at port {}.'.format(self.port))
+            self.logger.info('Initialized device AOTF at port {}.'.format(self.port))
 
     def finalize(self):
         """ Closes the connection to the device
 
          """
         if self.rsc is not None:
-            self.rsc.close()
-            self.logger.info('The connection to aa_modd18012 is closed.')
+            if self.dummy:
+                self.logger.info('Closing dummy device')
+            else:
+                self.rsc.close()
+                self.logger.info('The connection to aa_modd18012 is closed.')
+        self.logger.info('Finalized the class')
 
     def write(self, message):
         """ Sends the message to the device.
@@ -94,7 +109,11 @@ class AaModd18012(BaseController):
         msg = message + self.DEFAULTS['write_termination']
         msg = msg.encode(self.DEFAULTS['encoding'])
         self.logger.debug('Writing to the device: {} '.format(msg))
-        ans = self.rsc.write(msg)
+        if self.dummy:
+            ans = self.DUMMY['write_response'] + '{}'.format(msg)
+        else:
+            ans = self.rsc.write(msg)
+
         self.logger.debug('Ans: {}'.format(ans))
         return ans
 
@@ -108,23 +127,27 @@ class AaModd18012(BaseController):
         if self.rsc is None:
             raise Warning('Trying to read from device before initializing')
 
-        self.logger.debug('Reading from device')
+        self.logger.info('Reading from device')
 
-        reading = True
-        msgs = []
-        while reading:
-            msg = str(self.rsc.readline(), encoding=self.DEFAULTS['encoding'])
-            if msg == '':
-                reading = False
-            # self.logger.debug('Received message: {}'.format(msg))
-            msg = msg.replace("\n", "")  # remove the end of line
-            # self.logger.debug('Removed \\n: {}'.format(msg))
-            msg = msg.replace("\r", "")  # remove the end of line
-            # self.logger.debug('Removed \\r: {}'.format(msg))
-            msgs.append(msg)
-            self.logger.debug('Received message: {}'.format(msg))
-
-        return [x for x in msgs if x != '']
+        if self.dummy:
+            self.logger.debug('reading from dummy device')
+            response = self.DUMMY['read_response']
+        else:
+            reading = True
+            msgs = []
+            while reading:
+                msg = str(self.rsc.readline(), encoding=self.DEFAULTS['encoding'])
+                if msg == '':
+                    reading = False
+                # self.logger.debug('Received message: {}'.format(msg))
+                msg = msg.replace("\n", "")  # remove the end of line
+                # self.logger.debug('Removed \\n: {}'.format(msg))
+                msg = msg.replace("\r", "")  # remove the end of line
+                # self.logger.debug('Removed \\r: {}'.format(msg))
+                msgs.append(msg)
+                self.logger.debug('Received message: {}'.format(msg))
+                response = [x for x in msgs if x != '']
+        return response
 
     def query(self, message):
         """ Writes and Reads the answer from the device.
@@ -357,8 +380,14 @@ if __name__ == "__main__":
                         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with AaModd18012('COM10') as dev:
+    with AaModd18012('COM10', dummy = True) as dev:
         dev.initialize()
+
+        # test basic for dummy device
+        # dev.write('TESTING WRITE')
+        # print(dev.read())
+        # print(dev.query('hola'))
+
         # test set all
         for ch in range(1, 9):
             print(dev.set_all(ch, 0, 22, False, 'internal'))
@@ -366,7 +395,4 @@ if __name__ == "__main__":
         dev.store()
         print(dev.get_states())
 
-        # close connection
-        print('Finalizing...')
-        dev.finalize()
         print('DONE.')

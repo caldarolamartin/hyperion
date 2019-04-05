@@ -1,7 +1,7 @@
 """
-===========
-AOTF driver
-===========
+===============
+AOTF instrument
+===============
 
 This class (aa_aotf.py) is the model to connect to the AOTF using the controller aa_mod18012.py
 
@@ -10,10 +10,6 @@ and some calibrations.
 
  * **Wavelength calibration**: you can directly set the desired wavelength. For this it uses
    a look-up table and interpolation.
- * **EOM bias voltage**: For each wavelength the EOM bias voltage should be changed. It uses a calibration done
-   on the 2018-11-05 to set the right bias voltage according to the wavelength.
- * **Half-wave voltage**: This voltage strongly depends on the working wavelength, so we implemented a method that
-   gives the HWV for a desired wavelength. It uses the calibration done on 2019-02-05
 
 With this the class knows what voltages should be set when changing the wavelength.
 
@@ -22,12 +18,15 @@ import os
 import logging
 import numpy as np
 from time import sleep
-from PythonForTheLab.Controller.aa_modd18012 import AaModd18012
-from PythonForTheLab import ur
+from hyperion import ur, root_dir
+from hyperion.instrument.base_instrument import BaseInstrument
+from hyperion.controller.aa.aa_modd18012 import AaModd18012
 
 
-class AaAotf(AaModd18012):
-    """ This class is the model for the AOTF driver.
+class AaAotf(BaseInstrument):
+    """ This class is the instrument class for the AOTF driver.
+
+    It implements another layer in the MVC design, adding calibration and units functionality.
 
     """
     DEFAULT_SETTINGS = {'frequency': [85, 95, 105, 115, 125, 145, 70, 80],
@@ -36,28 +35,21 @@ class AaAotf(AaModd18012):
                         'mode': 'internal',
                         }
 
-    def __init__(self, port):
+    def __init__(self, port, dummy = False):
         """
         Initialize the Model for Aa_aotf class.
 
 
         """
-
+        self.dummy = dummy
         self.channel_in_use = None
-
         self.logger = logging.getLogger(__name__)
-
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(funcName)2s() - %(message)s',
-                            level=logging.INFO)
-
         self.logger.info('Initializing device AOTF with Aotf_model at port = {}'.format(port))
-        self.driver = AaModd18012(port)
+        self.driver = AaModd18012(port, dummy = dummy)
         self.driver.initialize()
 
         # loads the calibration file to transform freq to wavelength.
-
-        # cal_file = os.path.join(os.getcwd(), 'PythonForTheLab','Model','aotf','lookup_table_cal_aotf_2018_10_18.txt')
-        cal_file = os.path.join(os.getcwd(), 'PythonForTheLab', 'Model', 'aotf', 'lookup_table_cal_aotf_2019-02-05.txt')
+        cal_file = os.path.join(root_dir, 'instrument', 'aotf', 'lookup_table_cal_aotf_2019-02-05.txt')
 
         self.logger.info('Using freq to wavelength calibration for aotf from file {}'
                          .format(cal_file))
@@ -231,48 +223,53 @@ class AaAotf(AaModd18012):
 
 
 if __name__ == '__main__':
-    d = AaAotf('COM10')
-    d.driver.blanking(True, 'internal')
+    from hyperion import _logger_format
 
-    # get status
-    # d.get_states())
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.StreamHandler()])
 
-    # set default settings
-    # d.set_defaults(1)
-    # d.set_defaults(7)
-    # print(d.driver.get_states())
 
-    # turn off all channels and set default frequency
-    # for ch in range(1,9):
-    #   d.set_all_values(ch,0*ur('megahertz'),22,False,'internal')
+    with  AaAotf('COM10', dummy = True) as d:
 
-    # print(d.driver.get_states())
+        d.driver.blanking(True, 'internal')
 
-    # ## freq scan in channel 1 with the driver function.
-    # F = [90, 100, 150]*ur('megahertz')
-    # for value in F:
-    #     d.driver.set_all(1,value.m_as('megahertz'),22,True,'internal')
+        # get status
+        # d.get_states())
 
-    # freq scan in channel 1 with the model method.
-    # F = [90, 100, 110] * ur('megahertz')
-    # for value in F:
-    #     #d.set_all(1, value, 22, True, 'internal') # all input
-    #     d.set_all(1, value, 22)  # all input
+        # set default settings
+        # d.set_defaults(1)
+        # d.set_defaults(7)
+        # print(d.driver.get_states())
 
-    # freq scan all range
-    # F = [70, 80, 90, 105] * ur('megahertz')
-    # for value in F:
-    #     d.set_frequency_all_range(value, 22, True, 'internal') # all input
-    # #     d.set_all(1, value, 22)  # all input
-    # print(d.driver.get_states())
+        # turn off all channels and set default frequency
+        # for ch in range(1,9):
+        #   d.set_all_values(ch,0*ur('megahertz'),22,False,'internal')
 
-    # # check set wavelength
-    wl = [490, 532, 630, 750] * ur('nanometer')
-    for value in wl:
-        print(value)
-        # d.set_frequency_all_range(d.wavelength_to_frequency(value), 22, True, 'internal')
-        d.set_wavelength(value, 22, True, 'internal')
-        sleep(1)
+        # print(d.driver.get_states())
 
-    # close connection
-    d.finalize()
+        # ## freq scan in channel 1 with the driver function.
+        # F = [90, 100, 150]*ur('megahertz')
+        # for value in F:
+        #     d.driver.set_all(1,value.m_as('megahertz'),22,True,'internal')
+
+        # freq scan in channel 1 with the model method.
+        # F = [90, 100, 110] * ur('megahertz')
+        # for value in F:
+        #     #d.set_all(1, value, 22, True, 'internal') # all input
+        #     d.set_all(1, value, 22)  # all input
+
+        # freq scan all range
+        # F = [70, 80, 90, 105] * ur('megahertz')
+        # for value in F:
+        #     d.set_frequency_all_range(value, 22, True, 'internal') # all input
+        # #     d.set_all(1, value, 22)  # all input
+        # print(d.driver.get_states())
+
+        # # check set wavelength
+        wl = [490, 532, 630, 750] * ur('nanometer')
+        for value in wl:
+            print(value)
+            # d.set_frequency_all_range(d.wavelength_to_frequency(value), 22, True, 'internal')
+            d.set_wavelength(value, 22, True, 'internal')
