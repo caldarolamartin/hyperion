@@ -300,7 +300,8 @@ class AaModd18012(BaseController):
 
     def blanking(self, state, mode):
         """ Define the blanking state. If True (False), all channels are on (off).
-        the type can be 'internal' or 'external'
+        It can also be 'internal' or 'external', where external means that the modulation voltage
+        of the channel will be used to define the channel output.
 
         :param state: State of the blanking
         :type state: logical
