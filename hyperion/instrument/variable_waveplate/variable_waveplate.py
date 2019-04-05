@@ -213,6 +213,8 @@ class VariableWaveplate(BaseInstrument):
         This method sets the quarter waveplate (QWP) voltage to the variable waveplate
         for a given wavelength.
 
+        :param ch: channel to use
+        :type ch: int
         :param wavelength: The input wavelength
         :type wavelength: pint Quantity
         :return: the voltage set to the driver

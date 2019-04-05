@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =======================
 LCC25 (thorlabs) driver
@@ -34,7 +35,16 @@ class Lcc(BaseController):
                    'Voltage2': 2,
                    'Modulation': 0}
 
-    def __init__(self, port, dummy = False):
+    def __init__(self, port, dummy=False):
+        """ INIT of the class
+
+        :param port: name of the port where the device is connected. Ex: 'COM5'
+        :type port: str
+        :param dummy: to work in dummy mode
+        :type dummy: logical
+
+        """
+
         self.logger = logging.getLogger(__name__)
         self.port = port
         self.dummy = dummy
@@ -45,6 +55,7 @@ class Lcc(BaseController):
 
     def initialize(self):
         """ Initialize the device
+
         """
         if self.dummy:
             self.rsc = DummyResourceManager(self.port)
@@ -57,7 +68,6 @@ class Lcc(BaseController):
 
         self.logger.info('Initialized device LCC at port {}.'.format(self.port))
 
-
     def idn(self):
         """ Gets the identification for  the device
 
@@ -69,7 +79,7 @@ class Lcc(BaseController):
         if self.rsc is None:
             raise Warning('Trying to write to device before initializing')
 
-        ans = self.query('*idn?', False)
+        ans = self.query('*idn?')
         sleep(0.1)
         return ans
 

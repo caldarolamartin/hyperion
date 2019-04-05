@@ -50,10 +50,10 @@ class AaModd18012(BaseController):
 
     # for dummy
     DUMMY = {'write_response': 'Write dummy response to command: ',
-             'read_response' : 'Read dummy response.',
+             'read_response': 'Read dummy response.',
              }
 
-    def __init__(self, port, dummy = False):
+    def __init__(self, port, dummy=False):
         """ This is the init for the controller aa_mod18012.
         It creates the instances of the objects needed to communicate with the device.
         """
@@ -373,11 +373,14 @@ class AaModd18012(BaseController):
 
 if __name__ == "__main__":
     from hyperion import _logger_format
+
     logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                        handlers=[
+                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5),
+                                                                 backupCount=7),
                             logging.StreamHandler()])
 
-    with AaModd18012('COM10', dummy = True) as dev:
+    with AaModd18012('COM10', dummy=True) as dev:
         dev.initialize()
 
         # test basic for dummy device

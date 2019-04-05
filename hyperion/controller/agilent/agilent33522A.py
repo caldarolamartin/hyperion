@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================
 Agilent 33522A controller
@@ -14,6 +15,7 @@ import logging
 from hyperion.controller.base_controller import BaseController
 from hyperion.controller.dummy_resource import DummyResourceManager
 
+
 class Agilent33522A(BaseController):
     """Agilent 33522A arbitrary waveform generator, 30MHz, 2 channels.
 
@@ -24,8 +26,10 @@ class Agilent33522A(BaseController):
 
     FUNCTIONS = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
 
-    def __init__(self, instrument_id, dummy = False):
+    def __init__(self, instrument_id, dummy=False):
         """ Init for the class
+
+
 
         """
         self.logger = logging.getLogger(__name__)
@@ -389,9 +393,7 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-
-    with Agilent33522A('8967', dummy = True) as gen:
-
+    with Agilent33522A('8967', dummy=True) as gen:
         # initialize
         gen.initialize()
         # test idn
@@ -411,7 +413,7 @@ if __name__ == "__main__":
         # to test FUNCTION waveform
         ch = 1
         gen.get_function(ch)
-        gen.set_function(ch,'SQU')
+        gen.set_function(ch, 'SQU')
         gen.get_function(ch)
 
         ## check error
@@ -421,44 +423,45 @@ if __name__ == "__main__":
         # check voltage high
         ch = 2
         print(gen.get_voltage_high(ch))
-        gen.set_voltage_high(ch,+1.54)
+        gen.set_voltage_high(ch, +1.54)
         print(gen.get_voltage_high(ch))
 
         # check voltage low
         ch = 1
-        print('The low voltage for channel {} is = {}'.format(ch,gen.get_voltage_low(ch)))
-        gen.set_voltage_low(ch,0)
-        print('The low voltage for channel {}  is = {}'.format(ch,gen.get_voltage_low(ch)))
+        print('The low voltage for channel {} is = {}'.format(ch, gen.get_voltage_low(ch)))
+        gen.set_voltage_low(ch, 0)
+        print('The low voltage for channel {}  is = {}'.format(ch, gen.get_voltage_low(ch)))
 
         # check voltage (vpp) and offset
         ch = 1
         # read
-        print('The voltage for channel {} is = {} V.'.format(ch,gen.get_voltage(ch)))
+        print('The voltage for channel {} is = {} V.'.format(ch, gen.get_voltage(ch)))
         print('The ofset for channel {}  is = {} V. '.format(ch, gen.get_voltage_offset(ch)))
         # set and then read
-        gen.set_voltage(ch,4)
+        gen.set_voltage(ch, 4)
         print('The voltage for channel {}  is = {} V.'.format(ch, gen.get_voltage(ch)))
-        gen.set_voltage_offset(ch,1)
+        gen.set_voltage_offset(ch, 1)
         print('The voltage offset for channel {}  is = {} V.'.format(ch, gen.get_voltage_offset(ch)))
 
         ## check voltage limit
-        ch=1
+        ch = 1
         print(gen.get_state_voltage_limits(ch))
         time.sleep(0.1)
-        gen.set_voltage_limits(ch,+5,-5)
+        gen.set_voltage_limits(ch, +5, -5)
         time.sleep(0.1)
-        gen.enable_voltage_limits(ch,True)
+        gen.enable_voltage_limits(ch, True)
 
-        gen.set_voltage_high(ch,4.5) # it gives an error if I ask more than the limit.
+        gen.set_voltage_high(ch, 4.5)  # it gives an error if I ask more than the limit.
 
         # check output enable
         ch = 1
         gen.get_enable_output(ch)
-        gen.enable_output(ch,True)
+        gen.enable_output(ch, True)
         gen.get_enable_output(ch)
 
         # check the frequency settings
-        ch =1
+        ch = 1
         gen.get_frequency(ch)
-        gen.set_frequency(ch,989.65)
+        gen.set_frequency(ch, 989.65)
         gen.get_frequency(ch)
+    print('Done')

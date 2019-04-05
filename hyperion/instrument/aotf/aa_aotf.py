@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 ===============
 AOTF instrument
@@ -35,17 +36,21 @@ class AaAotf(BaseInstrument):
                         'mode': 'internal',
                         }
 
-    def __init__(self, port, dummy = False):
+    def __init__(self, port, dummy=False):
         """
         Initialize the Model for Aa_aotf class.
 
+        :param port: name of the port where the aotf is connected, like 'COM10'
+        :type port: str
+        :param dummy: logical value to allow testing without connection
+        :type logical
 
         """
         self.dummy = dummy
         self.channel_in_use = None
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing device AOTF with Aotf_model at port = {}'.format(port))
-        self.driver = AaModd18012(port, dummy = dummy)
+        self.driver = AaModd18012(port, dummy=dummy)
         self.driver.initialize()
 
         # loads the calibration file to transform freq to wavelength.
@@ -230,8 +235,7 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-
-    with  AaAotf('COM10', dummy = True) as d:
+    with  AaAotf('COM10', dummy=True) as d:
 
         d.driver.blanking(True, 'internal')
 

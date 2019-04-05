@@ -1,12 +1,11 @@
+# -*- coding: utf-8 -*-
 """
 =====================================
 Instrument for the function generator
 =====================================
 
 This class (fun_gen.py) is the model to control the function generator agilent33522A
-
 It ads the use of units with pint
-
 """
 import os
 import yaml
@@ -14,17 +13,23 @@ import logging
 from time import sleep
 from hyperion import ur, root_dir
 from hyperion.controller.agilent.agilent33522A import Agilent33522A
+from hyperion.instrument.base_instrument import BaseInstrument
 
 
-
-class FunGen():
+class FunGen(BaseInstrument):
     """ This class is to control the function generator.
 
     """
-
-    def __init__(self, instrument_id, enable = False, dummy = True):
+    def __init__(self, instrument_id, defaults=False, dummy=True):
         """
         Initialize the fun gen class
+
+        :param instrument_id: name of the port where the aotf is connected, like 'COM10'
+        :type instrument_id: str
+        :param defaults: used to load the default values in the config.ylm
+        :type defaults: logical
+        :param dummy: logical value to allow testing without connection
+        :type logical
         """
         self.logger = logging.getLogger(__name__)
 
@@ -34,13 +39,13 @@ class FunGen():
         self.logger.info('Initializing device Agilent33522A number = {}'.format(instrument_id))
         self.instrument_id = instrument_id
         self.name = 'Agilent33522A'
-        self.driver = Agilent33522A(instrument_id, dummy = dummy)
+        self.driver = Agilent33522A(instrument_id, dummy=dummy)
         if dummy:
             self.logger.info('Working in dummy mode')
 
         self.driver.initialize()
         self.DEFAULTS = {}
-        self.load_defaults(enable)
+        self.load_defaults(defaults)
 
     def __enter__(self):
         return self
@@ -57,7 +62,7 @@ class FunGen():
         """
         return self.driver.idn()
 
-    def load_defaults(self, apply, filename = None):
+    def load_defaults(self, apply, filename=None):
         """ This loads the default configuration and applies it, depending on the
          apply parameter. The information is kept in the variable self.DEFAULTS
 
@@ -376,7 +381,7 @@ class FunGen():
             value = value * ur('volt')
         else:
             value = 10000 * ur('volt')
-            self.logger.warning('The voltage is inveted since your are in dummy mode')
+            self.logger.warning('The voltage is invented since your are in dummy mode')
         return value
 
     def enable_voltage_limits(self, channel, state):
@@ -418,32 +423,30 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with FunGen('8967', enable = False, dummy = True) as d:
+    with FunGen('8967', defaults=False, dummy=True) as d:
         print('Output state for channels = {}'.format(d.output_state()))
 
         # #### test idn
         print('Identification = {}.'.format(d.idn()))
-        #
-
-        #### test output_state
+        # ####   test output_state
         print('Output state = {}'.format(d.output_state()))
-        #### test High and low voltage
-        ch=1
+        # #### test High and low voltage
+        ch = 1
         V = 2.1*ur('volt')
         Vlow = -1.1 * ur('mvolt')
         print('High voltage value = {}.'.format(d.get_voltage_high(ch)))
-        d.set_voltage_high(ch,V)
+        d.set_voltage_high(ch, V)
         print('High voltage value = {}.'.format(d.get_voltage_high(ch)))
-        ## test Low voltage
+        # #### test Low voltage
         print('Low voltage value = {}. '.format(d.get_voltage_low(ch)))
         d.set_voltage_low(ch, Vlow)
         print('Low voltage value = {}. '.format(d.get_voltage_low(ch)))
 
-        #### test vpp and offset voltage
+        # #### test vpp and offset voltage
 
         V = 0.25 * ur('volt')
         DC = 0.5 * ur('mvolt')
-        ## vpp and offset read
+        # #### vpp and offset read
         print('Vpp voltage value = {}. '.format(d.get_voltage_vpp(ch)))
         print('DC offset voltage value = {}. '.format(d.get_voltage_offset(ch)))
         # set
@@ -465,22 +468,22 @@ if __name__ == '__main__':
         d.set_frequency(ch, F)
         # read again
         print('Freq = {}.'.format(d.get_frequency(ch)))
-        ### test wavefunction change
+        # #### test wavefunction change
         ch = 1
         print(d.get_wave_function(ch))
-        d.set_wave_function(ch,'SQU')
+        d.set_wave_function(ch, 'SQU')
         print(d.get_wave_function(ch))
         # test limit voltage functions
-        ch=1
+        ch = 1
         d.enable_voltage_limits(ch, False)
-        ######## read state and values
+        # #### read state and values
         print('Limit voltage state = {}'.format(d.get_voltage_limits_state(ch)))
         print(d.get_voltage_limits(ch))
-        ######## set values and state
+        # ####### set values and state
         print('SETTING limits')
         Vmax = 2*ur('volt')
         Vmin = -2*ur('volt')
-        d.set_voltage_limits(ch,Vmax,Vmin)
+        d.set_voltage_limits(ch, Vmax, Vmin)
         d.enable_voltage_limits(ch, True)
         ######## get state
         print(d.get_voltage_limits_state(ch))

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# not reviewed for hyperion
 """
 LCC 25
 ======

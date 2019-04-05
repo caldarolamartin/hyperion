@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 ===============
 Base controller
@@ -15,7 +16,7 @@ with your program at every step.
 import logging
 
 class BaseController():
-    """ General class for controller
+    """ General class for controller. Use it as parent of your (home-made) controller.
 
     """
     def __init__(self):
