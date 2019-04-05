@@ -14,6 +14,7 @@ import serial
 from time import sleep
 import logging
 from hyperion.controller.base_controller import BaseController
+from hyperion.controller.dummy_resource import DummyResourceManager
 
 
 class AaModd18012(BaseController):
@@ -71,7 +72,7 @@ class AaModd18012(BaseController):
 
         """
         if self.dummy:
-            self.rsc = 'Dummy'
+            self.rsc = DummyResourceManager(self.port)
             self.logger.info('Initialized dummy AOTF at port {}'.format(self.port))
         else:
             self.rsc = serial.Serial(port=self.port,
@@ -87,11 +88,9 @@ class AaModd18012(BaseController):
 
          """
         if self.rsc is not None:
-            if self.dummy:
-                self.logger.info('Closing dummy device')
-            else:
-                self.rsc.close()
-                self.logger.info('The connection to aa_modd18012 is closed.')
+            self.rsc.close()
+            self.logger.info('The connection to aa_modd18012 is closed.')
+
         self.logger.info('Finalized the class')
 
     def write(self, message):
@@ -109,10 +108,7 @@ class AaModd18012(BaseController):
         msg = message + self.DEFAULTS['write_termination']
         msg = msg.encode(self.DEFAULTS['encoding'])
         self.logger.debug('Writing to the device: {} '.format(msg))
-        if self.dummy:
-            ans = self.DUMMY['write_response'] + '{}'.format(msg)
-        else:
-            ans = self.rsc.write(msg)
+        ans = self.rsc.write(msg)
 
         self.logger.debug('Ans: {}'.format(ans))
         return ans
@@ -131,7 +127,7 @@ class AaModd18012(BaseController):
 
         if self.dummy:
             self.logger.debug('reading from dummy device')
-            response = self.DUMMY['read_response']
+            response = self.rsc.read()
         else:
             reading = True
             msgs = []
