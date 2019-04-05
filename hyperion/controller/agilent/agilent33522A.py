@@ -11,7 +11,8 @@ Based on pyvisa to send commands to the USB.
 import visa
 import time
 import logging
-from hyperion.controller.base_controller import  BaseController
+from hyperion.controller.base_controller import BaseController
+from hyperion.controller.dummy_resource import DummyResourceManager
 
 class Agilent33522A(BaseController):
     """Agilent 33522A arbitrary waveform generator, 30MHz, 2 channels.
@@ -378,27 +379,6 @@ class Agilent33522A(BaseController):
         ans = self.rsc.query('SOUR{}:FREQ?'.format(channel))
         self.logger.info('Frequency for channel {} is {} Hz. '.format(channel, ans[:-1]))
         return ans[:-1]
-
-class DummyResourceManager():
-    """ This is a dummy class to emulate the visa resource manager"""
-
-    def __init__(self, resource):
-        """ Init"""
-        self.name = resource
-        self.logger = logging.getLogger(__name__)
-
-    def write(self, msg):
-        self.logger.info('Writing to {} message: {}'.format(self.name, msg))
-
-    def read(self):
-        self.logger.info('Reading from: {}'.format(self.name))
-        ans = 'dummy response!'
-        return ans
-
-    def query(self, msg):
-        self.write(msg)
-        ans = self.read()
-        return ans
 
 
 if __name__ == "__main__":

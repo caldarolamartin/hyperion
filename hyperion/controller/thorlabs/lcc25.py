@@ -3,23 +3,23 @@
 LCC25 (thorlabs) driver
 =======================
 This controller supplies one class with several functions to communicate with the thorlabs
-LCC25 liquid crystal controller
+LCC25 liquid crystal controller.
+
+Note that this controller also implements units.
 
 
 """
-import os
-import sys
 import serial
 import logging
 from time import sleep
-from PythonForTheLab import ur
+from hyperion import ur
+from hyperion.controller.base_controller import BaseController
+from hyperion.controller.dummy_resource import DummyResourceManager
 
-sys.path.append(os.getcwd())
 
+class Lcc(BaseController):
+    """ This class is to controls the LCC25 thorlabs driver for a liquid crystal variable wavelpate.
 
-class Lcc():
-    """ This class is to controls the LCC25 thorlabs driver for a liquid crystal.
-    At nanocd we use it for a variable waveplate.
 
     """
 
@@ -34,25 +34,29 @@ class Lcc():
                    'Voltage2': 2,
                    'Modulation': 0}
 
-    def __init__(self, port):
-
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(funcName)2s() - %(message)s',
-                            level=logging.INFO)
-
+    def __init__(self, port, dummy = False):
+        self.logger = logging.getLogger(__name__)
         self.port = port
+        self.dummy = dummy
         self.rsc = None
         logging.debug('Created object for the LCC. ')
+        if dummy:
+            self.logger.info('Dummy mode ON')
 
     def initialize(self):
         """ Initialize the device
         """
+        if self.dummy:
+            self.rsc = DummyResourceManager(self.port)
+        else:
+            self.rsc = serial.Serial(port=self.port,
+                                     baudrate=self.DEFAULTS['baudrate'],
+                                     timeout=self.DEFAULTS['read_timeout'],
+                                     write_timeout=self.DEFAULTS['write_timeout'])
+            sleep(0.5)
 
-        self.rsc = serial.Serial(port=self.port,
-                                 baudrate=self.DEFAULTS['baudrate'],
-                                 timeout=self.DEFAULTS['read_timeout'],
-                                 write_timeout=self.DEFAULTS['write_timeout'])
-        sleep(0.5)
-        logging.info('Initialized device LCC at port {}.'.format(self.port))
+        self.logger.info('Initialized device LCC at port {}.'.format(self.port))
+
 
     def idn(self):
         """ Gets the identification for  the device
@@ -94,7 +98,7 @@ class Lcc():
             raise Warning('Trying to read from device before initializing')
 
         msg = str(self.rsc.readline(), encoding=self.DEFAULTS['encoding'])
-        return msg.split('\r')[1]
+        return msg.split(self.DEFAULTS['read_termination'])[1]
 
     def query(self, message):
         """ Writes in the buffer and Reads the response.
@@ -108,17 +112,17 @@ class Lcc():
             raise Warning('Trying to query from device before initializing.')
 
         self.write(message)
-        logging.debug('Sent message: {}.'.format(message))
+        self.logger.debug('Sent message: {}.'.format(message))
         sleep(0.2)
         ans = self.read()
-        logging.debug('Recieved message: {}.'.format(ans))
+        self.logger.debug('Recieved message: {}.'.format(ans))
         return ans
 
     def finalize(self):
         """ Closes the connection to the device """
         if self.rsc is not None:
             self.rsc.close()
-            logging.info('Resource connection closed.')
+            self.logger.info('Resource connection closed.')
 
     def set_mode(self, mode):
         """ Sets the modes of operation:
@@ -135,7 +139,7 @@ class Lcc():
         :type mode: int
         """
         self.query('mode={}'.format(self.OUTPUT_MODE[mode]))
-        logging.info('Changed to mode "{}" '.format(mode))
+        self.logger.info('Changed to mode "{}" '.format(mode))
 
     def set_voltage(self, V, Ch=1):
         """ Sets the voltage value for Ch where Ch = 1 or 2 for Voltage1 or Voltage2
@@ -154,7 +158,7 @@ class Lcc():
 
         msg = 'volt' + str(Ch) + '=' + str(V.m_as('volt'))
         self.query(msg)
-        logging.info('Changed "voltage{}" to {} volt'.format(Ch, V.m_as('volt')))
+        self.logger.info('Changed "voltage{}" to {} volt'.format(Ch, V.m_as('volt')))
 
     def get_voltage(self, Ch=1):
         """ Gets the voltage value for VoltageCh where Ch = 1 or 2 for Voltage1 or Voltage2
@@ -170,7 +174,10 @@ class Lcc():
 
         msg = 'volt' + str(Ch) + '?'
         ans = self.query(msg)
-        logging.debug('"voltage{}"={} Volt'.format(Ch, ans))
+        if self.dummy:
+            ans = '10000'
+            self.logger.warning('The voltage is nonsense since you are in dummy mode')
+        self.logger.debug('"voltage{}"={} Volt'.format(Ch, ans))
         voltage = float(ans) * ur('volt')
         return voltage
 
@@ -187,7 +194,7 @@ class Lcc():
         msg = 'freq=' + str(F.m_as('hetz'))
         self.query(msg)
 
-        logging.debug('Changed frequency to {} Hz'.format(F.m_as('hertz')))
+        self.logger.debug('Changed frequency to {} Hz'.format(F.m_as('hertz')))
 
     def get_freq(self):
         """ Gets the frequency of (slow) modulation
@@ -197,7 +204,7 @@ class Lcc():
         """
         msg = 'freq?'
         ans = self.query(msg)
-        logging.debug('Current frequency = {} Hz'.format(ans))
+        self.logger.debug('Current frequency = {} Hz'.format(ans))
         f = float(ans) * ur('hertz')
         return f
 
@@ -218,10 +225,10 @@ class Lcc():
 
         if state:
             self.query('enable=1')
-            logging.info('Output enabled.')
+            self.logger.info('Output enabled.')
         elif state is False:
             self.query('enable=0')
-            logging.info('Output disabled.')
+            self.logger.info('Output disabled.')
         else:
             raise ErrorName('The state can be True or False')
 
@@ -240,36 +247,39 @@ class Lcc():
 
 
 if __name__ == "__main__":
-    dev = Lcc('COM6')
+    from hyperion import _logger_format
 
-    dev.initialize()
-    sleep(0.5)
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.StreamHandler()])
 
-    # ask mode
-    dev.query('mode?')
-    # set mode
-    dev.set_mode('Voltage1')
-    # ask current voltage
-    dev.get_voltage(1)
+    with Lcc('COM6', dummy=True) as dev:
+        dev.initialize()
+        sleep(0.5)
 
-    # set a new voltage
-    # create units
+        # ask mode
+        dev.query('mode?')
+        # set mode
+        dev.set_mode('Voltage1')
+        # ask current voltage
+        dev.get_voltage(1)
 
-    V = 2 * ur('volt')
-    dev.set_voltage(V, Ch=1)
+        #### set a new voltage
+        V = 2 * ur('volt')
+        dev.set_voltage(V, Ch=1)
 
-    # get the frequency of modulation (slow)
-    # dev.get_freq()
+        ##### get the frequency of modulation (slow)
+        dev.get_freq()
 
-    # enable or disable the output.
+        # enable or disable the output.
 
-    # print('Output status:{}'.format(dev.output_status()))
+        # print('Output status:{}'.format(dev.output_status()))
 
-    # dev.enable_output(False)
-    # sleep(0.1)
-    # dev.output_status()
-    # dev.enable_output(True)
-    # dev.output_status()
+        # dev.enable_output(False)
+        # sleep(0.1)
+        # dev.output_status()
+        # dev.enable_output(True)
+        # dev.output_status()
 
-    # close connection
-    dev.finalize()
+    print('Done')
