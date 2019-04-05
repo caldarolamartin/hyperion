@@ -1,19 +1,19 @@
 """
-=====================
-Agilent 33522A driver
-=====================
+=========================
+Agilent 33522A controller
+=========================
 
-controller class for an arbitrary waveform generator.
-
+This is the controller class for the Agilent 33522A function generator.
+Based on pyvisa to send commands to the USB.
 
 
 """
 import visa
 import time
 import logging
+from hyperion.controller.base_controller import  BaseController
 
-
-class Agilent33522A():
+class Agilent33522A(BaseController):
     """Agilent 33522A arbitrary waveform generator, 30MHz, 2 channels.
 
     """
@@ -23,29 +23,42 @@ class Agilent33522A():
 
     FUNCTIONS = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
 
-    def __init__(self, instrument_id):
+    def __init__(self, instrument_id, dummy = False):
         """ Init for the class
 
         """
+        self.logger = logging.getLogger(__name__)
         self.instrument_id = instrument_id
+        self.dummy = dummy
+        self.logger.info('Created controller class for Agilent33522A with id: {}'.format(instrument_id))
+        self.logger.info('Dummy mode: {}'.format(dummy))
 
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(funcName)2s() - %(message)s',
-                            level=logging.INFO)
-
-    def initiate(self):
+    def initialize(self):
         """ This method opens the communication with the device.
 
         """
         self.resource_name = 'USB0::2391::' + self.instrument_id + '::MY50003703::INSTR'
-        rm = visa.ResourceManager()
-        self.rsc = rm.open_resource(self.resource_name)
-        time.sleep(0.5)
+        self.logger.info('Initializing device: {}'.format(self.resource_name))
+        if self.dummy:
+            self.logger.debug('Dummy mode: on')
+            self.rsc = DummyResourceManager(self.resource_name)
+        else:
+            rm = visa.ResourceManager()
+            self.rsc = rm.open_resource(self.resource_name)
+            time.sleep(0.5)
 
     def finalize(self):
         """ This methods closes the visa connection
 
         """
-        self.rsc.close()
+        if self.rsc is not None:
+            if self.dummy:
+                self.logger.debug('Close dummy connection.')
+
+            else:
+                self.logger.debug('Close real connection')
+                self.rsc.close()
+        self.logger.info('Connection closed.')
 
     def idn(self):
         """Ask the device for its identification
@@ -69,10 +82,13 @@ class Agilent33522A():
         """
         self.check_channel(channel)
         ans = self.rsc.query('OUTPUT{}?'.format(channel))
-        if int(ans) == 0:
-            logging.debug('Channel {} output is OFF'.format(channel))
-        elif int(ans) == 1:
-            logging.debug('Channel {} output is ON'.format(channel))
+
+        if not self.dummy:
+            if int(ans) == 0:
+                self.logger.debug('Channel {} output is OFF'.format(channel))
+            elif int(ans) == 1:
+                self.logger.debug('Channel {} output is ON'.format(channel))
+
         return ans
 
     def enable_output(self, channel, state):
@@ -87,10 +103,10 @@ class Agilent33522A():
         self.check_channel(channel)
         if state:
             self.rsc.write('OUTPUT{} ON'.format(channel))
-            logging.debug('Channel {} set on.'.format(channel))
+            self.logger.debug('Channel {} set on.'.format(channel))
         else:
             self.rsc.write('OUTPUT{} OFF'.format(channel))
-            logging.debug('Channel {} set off.'.format(channel))
+            self.logger.debug('Channel {} set off.'.format(channel))
 
     def get_function(self, channel):
         """ Get the function set for the output.
@@ -105,7 +121,7 @@ class Agilent33522A():
         """
         self.check_channel(channel)
         ans = self.rsc.query('SOUR{}:FUNC?'.format(channel))
-        logging.debug('The function for channel {} is {}'.format(channel, ans))
+        self.logger.debug('The function for channel {} is {}'.format(channel, ans))
         return ans
 
     def set_function(self, channel, fun):
@@ -123,7 +139,7 @@ class Agilent33522A():
             raise NameError('The function specified is not supported by this model of fun gen. ')
 
         self.rsc.write('SOUR{}:FUNC {}'.format(channel, fun))
-        logging.debug('Set for channel {} the function {}'.format(channel, fun))
+        self.logger.debug('Set for channel {} the function {}'.format(channel, fun))
 
     def check_channel(self, channel):
         """ Function to check if the channel is present in the system.
@@ -222,7 +238,7 @@ class Agilent33522A():
         """
         self.check_channel(channel)
         ans = self.rsc.query('SOUR{}:VOLTage:OFFset?'.format(channel))
-        logging.debug('The offset for channel {} is {} V.'.format(channel, ans))
+        self.logger.debug('The offset for channel {} is {} V.'.format(channel, ans))
         return ans[:-1]
 
     def get_voltage(self, channel):
@@ -264,9 +280,9 @@ class Agilent33522A():
         """
         self.check_channel(channel)
         self.rsc.write('SOUR{}:VOLT:LIM:HIGH {}'.format(channel, high))
-        logging.info('Set the voltage limit HIGH to {} V.'.format(high))
+        self.logger.info('Set the voltage limit HIGH to {} V.'.format(high))
         self.rsc.write('SOUR{}:VOLT:LIM:LOW {}'.format(channel, low))
-        logging.info('Set the voltage limit LOW to {} V.'.format(low))
+        self.logger.info('Set the voltage limit LOW to {} V.'.format(low))
 
     def get_voltage_limits(self, channel):
         """ Gets the set values for the voltage limits, high and low.
@@ -303,10 +319,10 @@ class Agilent33522A():
         self.check_channel(channel)
         if state:
             self.rsc.write('SOUR{}:VOLT:LIM:STATe 1'.format(channel))
-            logging.info('Turned on the voltage limit setting for channel {}.'.format(channel))
+            self.logger.info('Turned on the voltage limit setting for channel {}.'.format(channel))
         else:
             self.rsc.write('SOUR{}:VOLT:LIM:STATe 0'.format(channel))
-            logging.info('Turned off the voltage limit setting for channel {}.'.format(channel))
+            self.logger.info('Turned off the voltage limit setting for channel {}.'.format(channel))
 
     def get_voltage_limits_state(self, channel):
         """ Checks the status of the voltage limits. It can be on or off
@@ -360,80 +376,109 @@ class Agilent33522A():
         """
         self.check_channel(channel)
         ans = self.rsc.query('SOUR{}:FREQ?'.format(channel))
-        logging.info('Frequency for channel {} is {} Hz. '.format(channel, ans[:-1]))
+        self.logger.info('Frequency for channel {} is {} Hz. '.format(channel, ans[:-1]))
         return ans[:-1]
+
+class DummyResourceManager():
+    """ This is a dummy class to emulate the visa resource manager"""
+
+    def __init__(self, resource):
+        """ Init"""
+        self.name = resource
+        self.logger = logging.getLogger(__name__)
+
+    def write(self, msg):
+        self.logger.info('Writing to {} message: {}'.format(self.name, msg))
+
+    def read(self):
+        self.logger.info('Reading from: {}'.format(self.name))
+        ans = 'dummy response!'
+        return ans
+
+    def query(self, msg):
+        self.write(msg)
+        ans = self.read()
+        return ans
 
 
 if __name__ == "__main__":
-    gen = Agilent33522A('8967')
+    from hyperion import _logger_format
 
-    # initialize
-    gen.initiate()
-    print('Identification: {}'.format(gen.idn()))
-    print(gen.get_system_error())
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.StreamHandler()])
 
-    # list of tests of the avove functions
 
-    # ## to test output enable for channel ch
-    # ch = 1
-    # gen.get_output_enabled(ch)
-    # time.sleep(0.1)
-    # gen.output_enabled(ch,False)
-    # time.sleep(0.1)
-    # gen.get_output_enabled(ch)
+    with Agilent33522A('8967', dummy = True) as gen:
 
-    # # to test FUNCTION waveform
-    # ch = 1
-    # gen.get_function(ch)
-    # gen.set_function(ch,'SQU')
-    # gen.get_function(ch)
+        # initialize
+        gen.initialize()
+        # test idn
+        print('Identification: {}'.format(gen.idn()))
+        print(gen.get_system_error())
 
-    # ## check error
-    # time.sleep(0.1)
-    # print(gen.rsc.query('SYST:ERR?'))
+        # list of tests of the avove functions
 
-    # # check voltage high
-    # ch = 2
-    # print(gen.get_voltage_high(ch))
-    # gen.set_voltage_high(ch,+1.54)
-    # print(gen.get_voltage_high(ch))
+        ## to test output enable for channel ch
+        ch = 1
+        gen.get_enable_output(ch)
+        time.sleep(0.1)
+        gen.enable_output(ch, False)
+        time.sleep(0.1)
+        gen.get_enable_output(ch)
 
-    # # check voltage low
-    # ch = 1
-    # print('The low voltage for channel {} is = {}'.format(ch,gen.get_voltage_low(ch)))
-    # gen.set_voltage_low(ch,0)
-    # print('The low voltage for channel {}  is = {}'.format(ch,gen.get_voltage_low(ch)))
+        # to test FUNCTION waveform
+        ch = 1
+        gen.get_function(ch)
+        gen.set_function(ch,'SQU')
+        gen.get_function(ch)
 
-    # # check voltage (vpp) and offset
-    # ch = 1
-    # # read
-    # print('The voltage for channel {} is = {} V.'.format(ch,gen.get_voltage(ch)))
-    # print('The ofset for channel {}  is = {} V. '.format(ch, gen.get_voltage_offset(ch)))
-    # # set and then read
-    # gen.set_voltage(ch,4)
-    # print('The voltage for channel {}  is = {} V.'.format(ch, gen.get_voltage(ch)))
-    # gen.set_voltage_offset(ch,1)
-    # print('The voltage offset for channel {}  is = {} V.'.format(ch, gen.get_voltage_offset(ch)))
+        ## check error
+        time.sleep(0.1)
+        print(gen.rsc.query('SYST:ERR?'))
 
-    # ## check voltage limit
-    # ch=1
-    # print(gen.get_state_voltage_limits(ch))
-    # time.sleep(0.1)
-    # gen.set_voltage_limits(ch,+5,-5)
-    # time.sleep(0.1)
-    # gen.enable_voltage_limits(ch,True)
+        # check voltage high
+        ch = 2
+        print(gen.get_voltage_high(ch))
+        gen.set_voltage_high(ch,+1.54)
+        print(gen.get_voltage_high(ch))
 
-    # gen.set_voltage_high(ch,4.5) # it gives an error if I ask more than the limit.
+        # check voltage low
+        ch = 1
+        print('The low voltage for channel {} is = {}'.format(ch,gen.get_voltage_low(ch)))
+        gen.set_voltage_low(ch,0)
+        print('The low voltage for channel {}  is = {}'.format(ch,gen.get_voltage_low(ch)))
 
-    # # check output enable
-    # ch = 1
-    # gen.get_enable_output(ch)
-    # gen.enable_output(ch,True)
-    # gen.get_enable_output(ch)
+        # check voltage (vpp) and offset
+        ch = 1
+        # read
+        print('The voltage for channel {} is = {} V.'.format(ch,gen.get_voltage(ch)))
+        print('The ofset for channel {}  is = {} V. '.format(ch, gen.get_voltage_offset(ch)))
+        # set and then read
+        gen.set_voltage(ch,4)
+        print('The voltage for channel {}  is = {} V.'.format(ch, gen.get_voltage(ch)))
+        gen.set_voltage_offset(ch,1)
+        print('The voltage offset for channel {}  is = {} V.'.format(ch, gen.get_voltage_offset(ch)))
 
-    # check the frequency settings
-    # ch =1
-    # gen.get_frequency(ch)
-    # gen.set_frequency(ch,989.65)
-    # gen.get_frequency(ch)
-    gen.finalize()
+        ## check voltage limit
+        ch=1
+        print(gen.get_state_voltage_limits(ch))
+        time.sleep(0.1)
+        gen.set_voltage_limits(ch,+5,-5)
+        time.sleep(0.1)
+        gen.enable_voltage_limits(ch,True)
+
+        gen.set_voltage_high(ch,4.5) # it gives an error if I ask more than the limit.
+
+        # check output enable
+        ch = 1
+        gen.get_enable_output(ch)
+        gen.enable_output(ch,True)
+        gen.get_enable_output(ch)
+
+        # check the frequency settings
+        ch =1
+        gen.get_frequency(ch)
+        gen.set_frequency(ch,989.65)
+        gen.get_frequency(ch)
