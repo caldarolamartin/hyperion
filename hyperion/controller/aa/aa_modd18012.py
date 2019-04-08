@@ -14,7 +14,7 @@ import serial
 from time import sleep
 import logging
 from hyperion.controller.base_controller import BaseController
-from hyperion.controller.dummy_resource import DummyResourceManager
+from hyperion.controller.dummy_resource_manager import DummyResourceManager
 
 
 class AaModd18012(BaseController):

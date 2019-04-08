@@ -1,10 +1,13 @@
 lcc25:
-  _*idn?: LCC25
-  volt1?: 1
-  volt2?: 2
-  freq?: 4
-  _?: list of commands
-  mode?: voltage1
-  enable?: 1
+  port: COM6
+  query:
+    _*idn?: Dummy LCC25
+    volt1?: "volt1?\r1\r"
+    volt2?: "volt2?\r2\r"
+    freq?: "freq2?\r4\r"
+    _?: list of commands
+    mode?: "mode?\r0\r"
+    enable?: "enable?\r0\r"
 agilent33522A:
+  port: USB
   idn?: Agilent33522A

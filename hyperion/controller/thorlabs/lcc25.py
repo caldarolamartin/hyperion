@@ -15,7 +15,7 @@ import logging
 from time import sleep
 from hyperion import ur
 from hyperion.controller.base_controller import BaseController
-from hyperion.controller.dummy_resource import DummyResourceManager
+from hyperion.controller.dummy_resource_manager import DummyResourceManager
 
 
 class Lcc(BaseController):
@@ -28,8 +28,8 @@ class Lcc(BaseController):
                 'read_termination': '\r',
                 'encoding': 'ascii',
                 'baudrate': 115200,
-                'write_timeout': 1,
-                'read_timeout': 1}
+                'write_timeout': 2,
+                'read_timeout': 2}
 
     OUTPUT_MODE = {'Voltage1': 1,
                    'Voltage2': 2,
@@ -46,6 +46,7 @@ class Lcc(BaseController):
         """
 
         self.logger = logging.getLogger(__name__)
+        self.name = 'lcc25'
         self.port = port
         self.dummy = dummy
         self.rsc = None
@@ -58,7 +59,7 @@ class Lcc(BaseController):
 
         """
         if self.dummy:
-            self.rsc = DummyResourceManager(self.port)
+            self.rsc = DummyResourceManager(self.port, self.name)
         else:
             self.rsc = serial.Serial(port=self.port,
                                      baudrate=self.DEFAULTS['baudrate'],
@@ -106,8 +107,10 @@ class Lcc(BaseController):
         """
         if self.rsc is None:
             raise Warning('Trying to read from device before initializing')
-
-        msg = str(self.rsc.readline(), encoding=self.DEFAULTS['encoding'])
+        response = self.rsc.readline()
+        self.logger.debug('Response from readline: {}'.format(response))
+        msg = str(response, encoding=self.DEFAULTS['encoding'])
+        self.logger.debug('Response after decode: {}'.format(msg))
         return msg.split(self.DEFAULTS['read_termination'])[1]
 
     def query(self, message):
@@ -125,7 +128,7 @@ class Lcc(BaseController):
         self.logger.debug('Sent message: {}.'.format(message))
         sleep(0.2)
         ans = self.read()
-        self.logger.debug('Recieved message: {}.'.format(ans))
+        self.logger.debug('Received message: {}.'.format(ans))
         return ans
 
     def finalize(self):
@@ -184,9 +187,6 @@ class Lcc(BaseController):
 
         msg = 'volt' + str(Ch) + '?'
         ans = self.query(msg)
-        if self.dummy:
-            ans = '10000'
-            self.logger.warning('The voltage is nonsense since you are in dummy mode')
         self.logger.debug('"voltage{}"={} Volt'.format(Ch, ans))
         voltage = float(ans) * ur('volt')
         return voltage
@@ -249,11 +249,7 @@ class Lcc(BaseController):
         :rtype: logical
 
         """
-        if self.dummy:
-            ans = 1
-            self.logger.warning('You are in dummy mode!')
-        else:
-            ans = float(self.query('enable?'))
+        ans = float(self.query('enable?'))
 
         if ans == 1:
             return True
@@ -269,32 +265,35 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with Lcc('COM6', dummy=True) as dev:
+    with Lcc('COM8', dummy=True) as dev:
         dev.initialize()
         sleep(0.5)
+        # dev.write('mode?')
+        # sleep(0.5)
+        # print(dev.rsc.read())
 
         # ask mode
         dev.query('mode?')
         # set mode
         dev.set_mode('Voltage1')
-        # ask current voltage
+        # # ask current voltage
         dev.get_voltage(1)
-
-        #### set a new voltage
+        #
+        # #### set a new voltage
         V = 2 * ur('volt')
         dev.set_voltage(V, Ch=1)
-
-        ##### get the frequency of modulation (slow)
-        dev.get_freq()
-
-        # enable or disable the output.
-
-        # print('Output status:{}'.format(dev.output_status()))
-
-        # dev.enable_output(False)
-        # sleep(0.1)
-        # dev.output_status()
-        # dev.enable_output(True)
-        # dev.output_status()
+        #
+        # ##### get the frequency of modulation (slow)
+        # dev.get_freq()
+        #
+        # # enable or disable the output.
+        #
+        # # print('Output status:{}'.format(dev.output_status()))
+        #
+        # # dev.enable_output(False)
+        # # sleep(0.1)
+        # # dev.output_status()
+        # # dev.enable_output(True)
+        # # dev.output_status()
 
     print('Done')
