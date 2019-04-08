@@ -1,0 +1,10 @@
+lcc25:
+  _*idn?: LCC25
+  volt1?: 1
+  volt2?: 2
+  freq?: 4
+  _?: list of commands
+  mode?: voltage1
+  enable?: 1
+agilent33522A:
+  idn?: Agilent33522A

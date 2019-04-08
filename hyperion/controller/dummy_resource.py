@@ -8,6 +8,10 @@ when the controllers are in dummy mode.
 
 """
 import logging
+import os
+import yaml
+from hyperion import root_dir
+
 
 
 class DummyResourceManager():
@@ -28,7 +32,15 @@ class DummyResourceManager():
         self.encoding = encoding
         self.read_termination = read_termination
         self.name = resource
+        self.device_name = None
+        if resource == 'COM6':
+            self.device_name = 'lcc25'
+
         self.logger = logging.getLogger(__name__)
+        self.responses = {}
+        self.load_responses()
+        self._write_buffer = []
+        self._read_buffer = []
 
     def __enter__(self):
         return self
@@ -38,6 +50,23 @@ class DummyResourceManager():
 
     def __str__(self):
         return 'DummyResourceManager'
+
+    def load_responses(self, filename = None):
+        """ This method loads the yml file with the fake responses from devices.
+
+        """
+        if filename is None:
+            filename = os.path.join(root_dir, 'controller', 'dummy', 'device_response.yml')
+
+        with open(filename, 'r') as f:
+            d = yaml.load(f)
+            self.logger.info('Loaded fake responses: {}'.format(filename))
+
+        self.logger.debug('Loaded all responses: {}'.format(d))
+        if self.device_name is not None:
+            self.responses = d[self.device_name]
+            self.logger.debug('Responses for device {}: {}'.format(self.device_name, self.responses))
+
 
     def write(self, msg):
         """ Write in the dummy device.
@@ -49,6 +78,7 @@ class DummyResourceManager():
 
         """
         self.logger.info('Writing to {} message: {}'.format(self.name, msg))
+        self._write_buffer.append(msg)
         return 'some response'
 
     def read(self):
@@ -59,7 +89,10 @@ class DummyResourceManager():
 
         """
         self.logger.info('Reading from: {}'.format(self.name))
-        ans = 'dummy response!'
+        if self._write_buffer[-1] in self.responses:
+            ans = self.responses[self._write_buffer[-1]]
+        else:
+            ans = 'Inteligent response not implemented: this is dummy general response!'
         return ans
 
     def readline(self):
@@ -99,3 +132,15 @@ class DummyResourceManager():
         self.logger.info('Closing dummy resource')
         return 'OK'
 
+
+if __name__ == "__main__":
+    from hyperion import _logger_format
+
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.StreamHandler()])
+
+    with DummyResourceManager('COM6') as rsc:
+        print(rsc.responses)
+        print(rsc.query('volt1?'))
