@@ -58,6 +58,7 @@ class AaModd18012(BaseController):
         It creates the instances of the objects needed to communicate with the device.
         """
         self.port = port
+        self.name = 'AaModd18012'
         self.dummy = dummy
         self.rsc = None
         self.logger = logging.getLogger(__name__)
@@ -72,7 +73,8 @@ class AaModd18012(BaseController):
 
         """
         if self.dummy:
-            self.rsc = DummyResourceManager(self.port)
+            self\
+                .rsc = DummyResourceManager(self.port, self.name)
             self.logger.info('Initialized dummy AOTF at port {}'.format(self.port))
         else:
             self.rsc = serial.Serial(port=self.port,

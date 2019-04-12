@@ -11,3 +11,5 @@ lcc25:
 agilent33522A:
   port: USB
   idn?: Agilent33522A
+AaModd18012:
+  port: COM10

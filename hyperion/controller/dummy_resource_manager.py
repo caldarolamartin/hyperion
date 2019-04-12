@@ -3,8 +3,9 @@
 Dummy Resource Manager
 ======================
 
-This is a class to emulate dummy devices. It provides a fake read, write and query to use
+This is a class to emulate any message based device. It provides a fake read, write and query to use
 when the controllers are in dummy mode.
+It reads the expected answers from devices from the device_response.yml.
 
 """
 import logging
