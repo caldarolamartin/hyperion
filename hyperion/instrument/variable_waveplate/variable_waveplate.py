@@ -237,7 +237,7 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with VariableWaveplate('COM8') as d:
+    with VariableWaveplate('COM8', dummy = True) as d:
         # test idn
         # print(d.idn())
         # test output_state
