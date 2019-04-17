@@ -12,7 +12,7 @@ in another setup.
     :caption: Current Models:
 
     instrument/base_instrument
-    instrument/dummy_output_instrument
+    instrument/example_instrument
     instrument/aa_aotf
     instrument/fun_gen
     instrument/polarimeter

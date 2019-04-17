@@ -18,7 +18,7 @@ class ExampleInstrument(BaseInstrument):
     def __init__(self, settings = {}):
         """ init of the class"""
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Class Dummy_output Instrument created.')
+        self.logger.info('Class ExampleInstrument created.')
         self.controller = ExampleController()
 
     def initialize(self, port):

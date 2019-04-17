@@ -1,5 +1,6 @@
 import os
 from lantz.core import UnitRegistry, Q_
+__version__ = 0.1
 
 # units
 ur = UnitRegistry()
