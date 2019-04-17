@@ -209,7 +209,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test Kentech HRI')
     parser.add_argument('-i', '--interactive', action='store_true',
                         default=False, help='Show interactive GUI')
-    parser.add_argument('-p', '--port', type=str, default='COM4',
+    parser.add_argument('-p', '--port', type=str, default='COM5',
                         help='Serial port to connect to')
 
     args = parser.parse_args()
