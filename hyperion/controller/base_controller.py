@@ -24,15 +24,19 @@ class BaseController():
 
         """
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Class BaseController created.')
-        self.logger.warning('Method used from the BaseController class')
+        self._is_initialized = False
+        #self.logger.info('Class BaseController created.')
+        #self.logger.warning('Method used from the BaseController class')
 
     # the next two methods are needed so the context manager 'with' works.
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.finalize()
+        if self._is_initialized:
+            self.finalize()
+        else:
+            raise Warning('Trying to finalize the device before initializing.')
 
     def initialize(self, port):
         """ Starts the connection to the device in port
@@ -40,6 +44,7 @@ class BaseController():
         :param port: port name to connect to
         :type port: string
         """
+        self._is_initialized = True
         self.logger.warning('Method used from the BaseController class')
         self.logger.info('Opening connection to device.')
 

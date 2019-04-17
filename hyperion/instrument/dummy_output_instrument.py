@@ -8,7 +8,7 @@ This is a dummy device, simulated for developing and testing the code
 """
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.controller.dummy_output_controller import DummyOutputController
+from hyperion.controller.example_controller import DummyOutputController
 from hyperion import ur
 
 class DummyOutputInstrument(BaseInstrument):
@@ -53,7 +53,7 @@ class DummyOutputInstrument(BaseInstrument):
         :rtype: pint quantity
         """
         self.logger.debug('Getting the amplitude.')
-        return self.controller.amplitude*ur('volts')
+        return self.controller.amplitude * ur('volts')
 
     @amplitude.setter
     def amplitude(self, value):
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     with DummyOutputInstrument() as dev:
         dev.initialize('COM10')
         print(dev.amplitude)
-        v = 2*ur('volts')
+        v = 2 * ur('volts')
         dev.amplitude = v
         print(dev.amplitude)
         dev.amplitude = v
