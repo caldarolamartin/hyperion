@@ -66,7 +66,6 @@ class Lcc25(MessageBasedDriver):
 
 if __name__ == '__main__':
     import argparse
-    from lantz.core import Q_
 
     parser = argparse.ArgumentParser(description='Test Kentech HRI')
     parser.add_argument('-p', '--port', type=str, default='6',
