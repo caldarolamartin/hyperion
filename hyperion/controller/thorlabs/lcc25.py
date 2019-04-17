@@ -51,8 +51,6 @@ class Lcc(BaseController):
         self.dummy = dummy
         self.rsc = None
         logging.debug('Created object for the LCC. ')
-        if dummy:
-            self.logger.info('Dummy mode ON')
 
     def initialize(self):
         """ Initialize the device
@@ -60,14 +58,16 @@ class Lcc(BaseController):
         """
         if self.dummy:
             self.rsc = DummyResourceManager(self.port, self.name)
+            self.logger.info('Initialized device dummy LCC at port {}.'.format(self.port))
         else:
             self.rsc = serial.Serial(port=self.port,
                                      baudrate=self.DEFAULTS['baudrate'],
                                      timeout=self.DEFAULTS['read_timeout'],
                                      write_timeout=self.DEFAULTS['write_timeout'])
+            self.logger.info('Initialized device LCC at port {}.'.format(self.port))
             sleep(0.5)
 
-        self.logger.info('Initialized device LCC at port {}.'.format(self.port))
+
 
     def idn(self):
         """ Gets the identification for  the device

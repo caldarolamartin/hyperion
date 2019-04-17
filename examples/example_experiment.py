@@ -9,6 +9,7 @@
 """
 import os
 import logging
+import importlib
 import numpy as np
 import yaml
 import winsound
@@ -61,7 +62,6 @@ class ExampleExperiment(BaseExperiment):
        self.finalize()
 
 
-
     def make_sound(self):
         """ This methods makes a sound to call the attention of humans
 
@@ -103,57 +103,88 @@ class ExampleExperiment(BaseExperiment):
         self.tdata_m_scan = np.zeros(np.size(scan))
         self.tdata_s_scan = np.zeros(np.size(scan))
 
-    def load_lcc(self):
+    def load_instruments(self):
 
-        pass
+        self.vwp = self.load_instrument('VariableWaveplate')
+        self.logger.debug('Class vwp: {}'.format(self.vwp))
+        self.example_instrument = self.load_instrument('ExampleInstrument')
+        self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+
+    def load_instrument(self, name):
+        """ Loads instrument
+
+        :param name: name of the instrument to load
+        :type name: string
+        """
+
+        self.logger.debug('Loading instrument: {}'.format(name))
+
+        for inst in self.properties['Instruments']:
+            self.logger.debug('instrument name: {}'.format(inst))
+
+            if name in inst:
+                module_name, class_name = inst[name]['driver'].split('/')
+                self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+                my_class = getattr(importlib.import_module(module_name), class_name)
+                return my_class(inst[name])
+
+        self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+        return None
 
 
 
 
 if __name__ == '__main__':
 
-    e = ExampleExperiment()
 
-    config_folder = 'D:/mcaldarola/Data/2019-04-17_hyperion/' # this should be your path for the config file you use
-    name = 'example_experiment_config'
-    config_file = os.path.join(config_folder, name)
+    from hyperion import _logger_format
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.StreamHandler()])
 
-    print('Using the config file: {}.yml'.format(config_file))
-    e.load_config(config_file + '.yml')
+    with ExampleExperiment() as e:
 
-    print(e.properties)
-    # print(' -------  ')
+        config_folder = 'D:/mcaldarola/hyperion/examples/' # this should be your path for the config file you use
+        name = 'example_experiment_config'
+        config_file = os.path.join(config_folder, name)
 
-    # remember you can change these values directly here
-    # e.properties['Scan']['delay'] = '20ms'
+        print('Using the config file: {}.yml'.format(config_file))
+        e.load_config(config_file + '.yml')
 
-    # # Initialize devices
-    # Load controllers
-    # print('-------------- LOADING DEVICES ----------------')
-    # # e.load_daq()
-    # # e.load_aotf_controller()
-    # # # e.load_voltage_controller()
-    # # e.load_fun_gen()
-    # print('-------------- DONE LOADING DEVICES ----------------')
-    #
-    # # save metadata
-    # e.save_scan_metadata()
-    #
-    # # got to wavelength
-    # # w = 605*ur('nanometer')
-    # # print('Wavelength = {}'.format(w))
-    # # e.go_to_wavelength(w, 22)
-    #
-    # # perform scan
-    # e.do_wavelength_scan()
-    #
-    # # save data
-    # e.save_scan_data()
-    #
-    # # finalize
-    # e.finalize_aotf()
-    # # e.finalize_analog_voltage_controller()
-    # e.finalize_fun_gen()
+        # read properties just loaded
+        print('\n {} \n'.format(e.properties))
+
+        #  remember you can change these values directly here
+        #e.properties['Scan']['start'] = '0.5V'
+
+
+        # # Initialize devices
+        print('\n-------------- LOADING DEVICES ----------------\n')
+        e.load_instruments()
+        # # e.load_aotf_controller()
+        # # # e.load_voltage_controller()
+        # # e.load_fun_gen()
+        print('-------------- DONE LOADING DEVICES ----------------')
+        #
+        # # save metadata
+        # e.save_scan_metadata()
+        #
+        # # got to wavelength
+        # # w = 605*ur('nanometer')
+        # # print('Wavelength = {}'.format(w))
+        # # e.go_to_wavelength(w, 22)
+        #
+        # # perform scan
+        # e.do_wavelength_scan()
+        #
+        # # save data
+        # e.save_scan_data()
+        #
+        # # finalize
+        # e.finalize_aotf()
+        # # e.finalize_analog_voltage_controller()
+        # e.finalize_fun_gen()
 
     print('--------------------- DONE with the experiment')
 
