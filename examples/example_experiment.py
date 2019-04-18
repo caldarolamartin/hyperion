@@ -124,8 +124,8 @@ if __name__ == '__main__':
 
     with ExampleExperiment() as e:
 
-        config_folder = 'D:/mcaldarola/hyperion/examples/' # this should be your path for the config file you use
         name = 'example_experiment_config'
+        config_folder = os.path.join('c:/hyperion', 'examples')
         config_file = os.path.join(config_folder, name)
 
         print('Using the config file: {}.yml'.format(config_file))

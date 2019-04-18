@@ -1,36 +1,42 @@
 """
 ================
-Dummy Instrument
+Thorlabs motors Instrument
 ================
 
-This is a dummy device, simulated for developing and testing the code
+Connects now to the TDC001 controller.
 
 """
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
+from hyperion.controller.thorlabs.TDC001 import TDC001
 from hyperion import ur
 
-class ExampleInstrument(BaseInstrument):
-    """ Example instrument. it is a fake instrument
+
+class Thorlabsmotor(BaseInstrument):
+    """ Thorlabsmotor instrument
 
     """
-    def __init__(self, settings = {'port':'COM10', 'dummy': True,
-                                   'controller': 'hyperion.controller.example_controller/ExampleController'}):
+    def __init__(self, settings = {}):
         """ init of the class"""
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
+        self.controller = TDC001()
 
-        self._port = settings['port']
-        self.dummy = settings['dummy']
-        self.logger.debug('Creating the instance of the controller')
-        self.controller_class = self.load_controller(settings['controller'])
-        self.controller = self.controller_class(self._port, dummy=self.dummy)
 
-    def initialize(self):
-        """ Starts the connection to the device"
+    def list_devices(self):
+        aptmotorlist=self.controller.list_available_devices()
+        print(str(len(aptmotorlist)) + ' motor boxes found:')
+        print(aptmotorlist)
+    
+    def initialize(self, port):
+        """ Starts the connection to the device in port
+
+        :param port: port name to connect to
+        :type port: string
         """
         self.logger.info('Opening connection to device.')
-        self.controller.initialize()
+        motor=self.controller.initialize(port)
+        return motor
 
     def finalize(self):
         """ this is to close connection to the device."""
@@ -72,13 +78,14 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with ExampleInstrument() as dev:
-        dev.initialize()
-        print(dev.amplitude)
-        v = 2 * ur('volts')
-        dev.amplitude = v
-        print(dev.amplitude)
-        dev.amplitude = v
-        print(dev.amplitude)
+    with Thorlabsmotor() as dev:
+        dev.list_devices()
+#        dev.initialize('COM10')
+#        print(dev.amplitude)
+#        v = 2 * ur('volts')
+#        dev.amplitude = v
+#        print(dev.amplitude)
+#        dev.amplitude = v
+#        print(dev.amplitude)
 
 

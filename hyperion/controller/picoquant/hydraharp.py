@@ -22,6 +22,8 @@ import logging
 c_int_p = ctypes.POINTER(ctypes.c_int)
 
 class Hydraharp(BaseController):
+    """ Hydraharp 400 controller """
+
     def __init__(self, devidx=0, mode='Histogram', clock='Internal'):
         """
         Initialise communication with hydraharp400 device
@@ -165,18 +167,18 @@ class Hydraharp(BaseController):
     @property
     def hardware_info(self):
         """ Information about the device  """
-# =============================================================================
-#                 model, partno, version = hardware_info
-#         
-#         model
-#              Model name of the device
-#              
-#              partno
-#              Serial number (?) of the device
-#              
-#         version      
-#              Hardware version (?) of the device
-# =============================================================================
+        # =============================================================================
+        #                 model, partno, version = hardware_info
+        #
+        #         model
+        #              Model name of the device
+        #
+        #              partno
+        #              Serial number (?) of the device
+        #
+        #         version
+        #              Hardware version (?) of the device
+        # =============================================================================
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
         func = self.hhlib.HH_GetHardwareInfo
