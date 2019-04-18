@@ -11,6 +11,7 @@ dependencies:
  - netcdf4
  - pip>=19
  - pip:
+   - pyyaml>=5.1
    - lantzdev
    - sphinx_rtd_theme
    - lantz_core
