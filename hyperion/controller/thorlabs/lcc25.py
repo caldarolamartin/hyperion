@@ -44,13 +44,13 @@ class Lcc(BaseController):
         :type dummy: logical
 
         """
-
         self.logger = logging.getLogger(__name__)
         self.name = 'lcc25'
         self.port = port
         self.dummy = dummy
         self.rsc = None
-        logging.debug('Created object for the LCC. ')
+        self._is_initialized = False
+        self.logger.debug('Created object for the LCC. ')
 
     def initialize(self):
         """ Initialize the device
@@ -66,6 +66,7 @@ class Lcc(BaseController):
                                      write_timeout=self.DEFAULTS['write_timeout'])
             self.logger.info('Initialized device LCC at port {}.'.format(self.port))
             sleep(0.5)
+        self._is_initialized = True
 
 
 
