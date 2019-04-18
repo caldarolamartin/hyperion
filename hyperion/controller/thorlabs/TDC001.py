@@ -135,6 +135,10 @@ import platform
 
 
 class TDC001(BaseController):
+    """
+    Class TDC001 to control the DC stepper motors from Thorlabs
+    """
+    
     _lib = None
 
 
