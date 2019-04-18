@@ -1,7 +1,7 @@
 """
-================
+====================
 Hydraharp Instrument
-================
+====================
 
 This is the instrument level of the correlator Hydraharp400 from Picoquant
 
