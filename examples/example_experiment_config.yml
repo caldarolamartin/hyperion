@@ -4,14 +4,16 @@ User:
 Instruments:
   - VariableWaveplate:
       port: COM8
-      driver: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
+      instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
+      controller: hyperion.controller.agilent.agilent3352A/Agilent33522A
       dummy: True
       enable: True
       settings:
         output: True
   - ExampleInstrument:
       port: COM0
-      driver: hyperion.instrument.example_instrument/ExampleInstrument
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
       dummy: True
       settings:
         output: True

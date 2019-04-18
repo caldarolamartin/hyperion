@@ -12,6 +12,8 @@ you wrote the driver by hand (not using other library but the communication).
 
 """
 import logging
+import importlib
+import yaml
 from hyperion.controller.base_controller import BaseController
 
 class BaseInstrument():
@@ -43,6 +45,20 @@ class BaseInstrument():
         self.logger.info('Opening connection to device using driver.')
         self.controller.initialize(port)
 
+    def load_config(self, filename):
+        """Loads the configuration file for the instrument. Needs a field called controller
+        to know which controller to load
+
+        :param filename: Path to the filename.
+        :type filename: string
+        """
+        self.logger.debug('Loading configuration file: {}'.format(filename))
+
+        with open(filename, 'r') as f:
+            d = yaml.load(f)
+            self.logger.info('Using configuration file: {}'.format(filename))
+
+        self.config = d
 
     def finalize(self):
         """ this is to close connection to the device."""
@@ -57,6 +73,21 @@ class BaseInstrument():
         self.logger.warning('Method used from the BaseInstrument class')
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
+
+    def load_controller(self, controller_string, ):
+        """ Loads controller
+
+        :param controller_string: dictionary with the field controller
+        :type controller_string: dict
+
+        :return: controller class
+        :rtype: class
+        """
+        self.logger.debug('Loading the controller: {}'.format(controller_string))
+        controller_name, class_name = controller_string.split('/')
+        self.logger.debug('Controller name: {}. Class name: {}'.format(controller_name, class_name))
+        my_class = getattr(importlib.import_module(controller_name), class_name)
+        return my_class
 
 
 if __name__ == "__main__":

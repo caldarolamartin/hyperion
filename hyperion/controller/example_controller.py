@@ -18,22 +18,24 @@ class ExampleController(BaseController):
     FAKE_RESPONSES = {'A': 1,
                      }
 
-    def __init__(self):
-        """ Init of the class. """
+    def __init__(self, port, dummy = True):
+        """ Init of the class.
+
+        :param port: connection port to use
+        :type port: str
+        :param dummy: if the device connects to the real or not. in this case is useless, this is a dummy inivented device
+        :type dummy: logical
+        """
+        self._port = port
+        self.dummy = dummy
         self.logger = logging.getLogger(__name__)
         self._is_initialized = False
         self.logger.info('Class ExampleController created.')
         self._amplitude = []
 
-
-
-    def initialize(self, port):
-        """ Starts the connection to the device in port
-
-        :param port: port name to connect to
-        :type port: string
-        """
-        self.logger.info('Opening connection to device.')
+    def initialize(self):
+        """ Starts the connection to the device in port """
+        self.logger.info('Opening connection to device in port {}.'.format(self._port))
         self._amplitude = self.query('A?')
         self._is_initialized = True     # this is to prevent you to close the device connection if you
                                         # have not initialized it inside a with statement

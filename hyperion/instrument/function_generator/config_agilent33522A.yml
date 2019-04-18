@@ -1,0 +1,18 @@
+controller: hyperion.controller.agilent.agilent33522A/Agilent33522A
+defaults:
+  channel1:
+    output: True
+    waveform: SQU
+    frequency: 0.25Hz
+    high: 0.3V
+    low: -0.3V
+    limit_high: 1V
+    limit_low: -1V
+  channel2:
+    output: False
+    waveform: SQU
+    frequency: 53kHz
+    high: 1V
+    low: 0.1V
+    limit_high: 5V
+    limit_low: 0V

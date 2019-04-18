@@ -8,27 +8,31 @@ This is a dummy device, simulated for developing and testing the code
 """
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.controller.example_controller import ExampleController
 from hyperion import ur
 
 class ExampleInstrument(BaseInstrument):
     """ Example instrument. it is a fake instrument
 
     """
-    def __init__(self, settings = {}):
+    def __init__(self, settings = {'port':'COM10', 'dummy': True,
+                                   'controller': 'hyperion.controller.example_controller/ExampleController'}):
         """ init of the class"""
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
-        self.controller = ExampleController()
 
-    def initialize(self, port):
-        """ Starts the connection to the device in port
+        self.controller = None
+        self.controller_class = None
+        self._port = settings['port']
+        self.dummy = settings['dummy']
+        self.logger.debug('Creating the instance of the controller')
+        self.controller_class = self.load_controller(settings['controller'])
+        self.controller = self.controller_class(self._port, dummy=self.dummy)
 
-        :param port: port name to connect to
-        :type port: string
+    def initialize(self):
+        """ Starts the connection to the device"
         """
         self.logger.info('Opening connection to device.')
-        self.controller.initialize(port)
+        self.controller.initialize()
 
     def finalize(self):
         """ this is to close connection to the device."""
@@ -71,7 +75,7 @@ if __name__ == "__main__":
                   logging.StreamHandler()])
 
     with ExampleInstrument() as dev:
-        dev.initialize('COM10')
+        dev.initialize()
         print(dev.amplitude)
         v = 2 * ur('volts')
         dev.amplitude = v

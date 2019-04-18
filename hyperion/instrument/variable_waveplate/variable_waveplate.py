@@ -10,7 +10,6 @@ It ads the use of units with pint and the wavelength calibration to obtain CPL
 
 """
 import logging
-import sys
 import os
 import numpy as np
 from hyperion.controller.thorlabs.lcc25 import Lcc
@@ -22,7 +21,8 @@ class VariableWaveplate(BaseInstrument):
     """ This class is the model for the LCC25 analog voltage generator for the variable waveplate from thorlabs.
 
     """
-    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : True} ):
+    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : True,
+                                   'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'} ):
         """
         port, enable = True, dummy = False
         Initialize
@@ -42,12 +42,12 @@ class VariableWaveplate(BaseInstrument):
         self.load_calibration(cal_file)
 
         # initialize
-        self.driver = Lcc(self._port, dummy = self.dummy)
-        self.driver.initialize()
+        self.controller = Lcc(self._port, dummy = self.dummy)
+        self.controller.initialize()
         if settings['enable']:
-            self.driver.enable_output(True)
+            self.controller.enable_output(True)
         else:
-            self.driver.enable_output(False)
+            self.controller.enable_output(False)
 
     def __enter__(self):
         return self
@@ -80,7 +80,7 @@ class VariableWaveplate(BaseInstrument):
         Ask for the identification
         """
         self.logger.info('Asking for identification.')
-        return self.driver.idn()
+        return self.controller.idn()
 
     def get_analog_value(self, channel):
         """
@@ -92,7 +92,7 @@ class VariableWaveplate(BaseInstrument):
         :rtype: pint quantity
         """
         self.logger.debug('Asking for analog value at channel {}.'.format(channel))
-        value = self.driver.get_voltage(channel)    # bits has no units
+        value = self.controller.get_voltage(channel)    # bits has no units
         return value
 
     def set_analog_value(self, channel, value):
@@ -107,7 +107,7 @@ class VariableWaveplate(BaseInstrument):
 
         """
         self.logger.debug('Setting analog value {} for channel {}.'.format(value, channel))
-        self.driver.set_voltage(value, channel)
+        self.controller.set_voltage(value, channel)
         return value
 
     def enable_output(self, state):
@@ -117,7 +117,7 @@ class VariableWaveplate(BaseInstrument):
         :type state: logical
          """
         self.logger.debug('Changing the output state to {}.'.format(state))
-        self.driver.enable_output(state)
+        self.controller.enable_output(state)
 
     def output_state(self):
         """ Gets the current state of the output
@@ -126,12 +126,12 @@ class VariableWaveplate(BaseInstrument):
 
          """
         self.logger.debug('Getting the output state')
-        ans = self.driver.output_status()
+        ans = self.controller.output_status()
         return ans
 
     def set_mode(self, mode):
         """
-        This method can set the mode of operation for the driver.
+        This method can set the mode of operation for the controller.
 
         The following modes are available
 
@@ -142,21 +142,21 @@ class VariableWaveplate(BaseInstrument):
               The modulation frequency can be changed with the command 'freq' in the 0.5-150 Hz range.
 
 
-        :param mode: working mode for the driver
+        :param mode: working mode for the controller
         :type mode: int
 
 
         """
         self.logger.debug('Setting mode to {}.'.format(mode))
-        self.driver.set_mode(mode)
+        self.controller.set_mode(mode)
 
     def finalize(self, state=False):
         """ Closes the connection to the device
 
         """
         self.logger.info('Finalizing connection with Variable Waveplate')
-        self.driver.enable_output(state)
-        self.driver.finalize()
+        self.controller.enable_output(state)
+        self.controller.finalize()
 
     def quarter_waveplate_voltage(self, wavelength, method = 'lookup'):
         """
@@ -219,7 +219,7 @@ class VariableWaveplate(BaseInstrument):
         :type ch: int
         :param wavelength: The input wavelength
         :type wavelength: pint Quantity
-        :return: the voltage set to the driver
+        :return: the voltage set to the controller
         :rtype:  pint quantity
 
         """

@@ -12,7 +12,6 @@ import yaml
 import logging
 from time import sleep
 from hyperion import ur, root_dir
-from hyperion.controller.agilent.agilent33522A import Agilent33522A
 from hyperion.instrument.base_instrument import BaseInstrument
 
 
@@ -68,12 +67,12 @@ class FunGen(BaseInstrument):
 
         :param apply: decides weather to apply this settings or not
         :type apply: logical
-        :param filename: location for the config.yml to use. If not given uses
-        :param filename: location for the config.yml to use. If not given uses
+        :param filename: location for the config_agilent33522A.yml to use. If not given uses
+        :param filename: location for the config_agilent33522A.yml to use. If not given uses
         the default config file in the model/function_generator folder
         """
         if filename is None:
-            filename = os.path.join(root_dir, 'instrument', 'function_generator', 'config.yml')
+            filename = os.path.join(root_dir, 'instrument', 'function_generator', 'config_agilent33522A.yml')
 
         with open(filename, 'r') as f:
             d = yaml.load(f)
@@ -413,6 +412,9 @@ class FunGen(BaseInstrument):
         """
 
         return self.driver.get_voltage_limits_state(channel)
+
+
+
 
 
 if __name__ == '__main__':

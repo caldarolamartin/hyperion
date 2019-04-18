@@ -16,3 +16,4 @@ Here we group all the controllers we use for the Hyperion project.
     controller/aa_mod18012
     controller/agilent33522A
     controller/sk_pol_ana
+	controller/hydraharp400
