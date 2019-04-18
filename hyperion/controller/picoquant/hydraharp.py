@@ -1,7 +1,7 @@
 """
-================
+=======================
 Hydraharp400 controller
-================
+=======================
 Taken on Fri Nov 10 15:36:48 2017 from Colin Brosseau
 
 changed by Irina Komen
