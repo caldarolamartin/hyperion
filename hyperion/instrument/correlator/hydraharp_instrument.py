@@ -12,6 +12,7 @@ import yaml           #for the configuration file
 import os             #for playing with files in operation system
 import sys
 import time
+from hyperion import root_dir
 #sys.path.append('D:/TMDmaterials/')
 
 from hyperion.instrument.base_instrument import BaseInstrument
@@ -88,7 +89,7 @@ class HydraInstrument(BaseInstrument):
         
     
     def sync_rate(self):
-        """ 
+        """ Asks the controller the rate of counts on the sync channel
         
         """
         self.sync = self.controller.sync_rate()*ureg('cps')
@@ -96,6 +97,15 @@ class HydraInstrument(BaseInstrument):
         #basically the same as the controller, now adding units maybe?
         
     def count_rate(self,channel):
+        """ Asks the controller the rate of counts on the count channels
+        
+        :param channel: count rate channel 1 or 2 connected to the photon counter
+        :type channel: int
+        
+        :return count: count rate that is read out in counts per second
+        :rtype count: pint quantity
+        
+        """
         self.count = self.controller.count_rate(channel)*ureg('cps')
         return self.count
         
@@ -129,22 +139,25 @@ class HydraInstrument(BaseInstrument):
 
 
 if __name__ == "__main__":
-    
-    q = HydraInstrument()
-    
-    q.initialize()
-    
-    q.configurate()
-    
-    print('The sync rate is: ' , q.sync_rate())
-    
-    print('The count rate is: ' , q.count_rate(0))
-    
-    q.set_histogram(leng = 65536,res = 8.0*ureg('ps'))
+    from hyperion import _logger_format
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
+                  logging.StreamHandler()])
 
-    hist = q.make_histogram(tijd = 5*ureg('s'), count_channel = 0)
+    with HydraInstrument() as q:
+   
+        q.initialize()
+        
+        q.configurate()
+        
+        print('The sync rate is: ' , q.sync_rate())
+        
+        print('The count rate is: ' , q.count_rate(0))
+        
+        q.set_histogram(leng = 65536,res = 8.0*ureg('ps'))
     
-    print(hist)
-    
-     
-    q.finalize()
+        hist = q.make_histogram(tijd = 5*ureg('s'), count_channel = 0)
+        
+        print(hist)
+         
+        q.finalize()
