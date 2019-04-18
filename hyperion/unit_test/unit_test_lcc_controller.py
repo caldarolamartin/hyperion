@@ -13,7 +13,8 @@ a method to test the new methods in the controller, if any.
 """
 import logging
 from time import sleep
-from hyperion.controller.thorlabs.lcc25 import Lcc25
+from hyperion import ur
+from hyperion.controller.thorlabs.lcc25 import Lcc
 
 
 class UTestLcc():
@@ -24,9 +25,8 @@ class UTestLcc():
         """
         self.logger = logging.getLogger(__name__)
         self.logger.info('Created UTestLcc25 class.')
-        self.dev = Fy6800(port='COM6', dummy=True)
+        self.dev = Lcc(port='COM6', dummy=True)
         self.dev.initialize()
-
         sleep(1)
 
     # the next two methods are needed so the context manager 'with' works.
@@ -36,15 +36,22 @@ class UTestLcc():
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.finalize()
 
+    def finalize(self):
+        """ closes connection """
+        self.dev.finalize()
+
+
     def test_voltage(self):
         """ test setter and getter for the voltage1 """
         # # ask current voltage
-        dev.get_voltage(1)
+        self.dev.get_voltage(1)
         #
         # #### set a new voltage
-        V = 2 * ur('volt')
-        dev.set_voltage(V, Ch=1)
-        Vnew = dev.get_voltage(Ch=1)
+        V = 1 * ur('volt')
+        self.logger.info('Voltage to set: {}'.format(V))
+        self.dev.set_voltage(V, Ch=1)
+        Vnew = self.dev.get_voltage(Ch=1)
+        self.logger.info('Voltage read: {}'.format(Vnew))
         assert V == Vnew
 
 if __name__ == "__main__":
