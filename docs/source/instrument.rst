@@ -17,3 +17,4 @@ in another setup.
     instrument/fun_gen
     instrument/polarimeter
     instrument/variable_waveplate
+    instrument/hydraharp_instrument

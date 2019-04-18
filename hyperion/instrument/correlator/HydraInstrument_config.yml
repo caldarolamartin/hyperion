@@ -1,0 +1,13 @@
+name: HydraInstrument
+settings:
+ sync_div: '1'
+ sync_zero: 10mV
+ sync_disc: 50mV
+ sync_offset: 0ps        
+ chan1_zero: 10mV
+ chan1_disc: 50mV
+ chan1_offset: 0ps
+ chan2_zero: 10mV
+ chan2_disc: 50mV
+ chan2_offset: 0ps
+ hist_offset: 0ps
