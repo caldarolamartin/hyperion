@@ -44,7 +44,7 @@ You should see a list of all the packages installed in the environment, includin
 To keep a close track of the version off **all** the packages that were installed, you
 should run
 
-    conda env export > environment_output_pc-YOURPCNAME.yml
+    conda env export > environment_output/pc-YOURPCNAME.yml
 
 replacing YOURPCNAME for the name of your PC.
 
