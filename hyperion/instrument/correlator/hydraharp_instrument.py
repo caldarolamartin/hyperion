@@ -112,15 +112,33 @@ class HydraInstrument(BaseInstrument):
         #basically the same as the controller, now adding units maybe?
     
     def set_histogram(self,leng,res):
+        """ Clears the possible previous histogram, sets the histogram length and resolution
+        
+        :param leng: length of histogram
+        :type leng: int
+        
+        :param res: resolution in the histogram in ps
+        :type res: pint quantity        
+        
+        """
         self.controller.clear_histogram()
         self.controller.histogram_length = leng
         self.controller.resolution = res.m_as('ps')
     
     def make_histogram(self,tijd,count_channel):
+        """ Does the histogram measurement, checking for the status, saving the histogram
+        
+        :param tijd: integration time of histogram (please dont use the English word) in s
+        :type tijd: pint quantity
+        
+        :param count_channel: number of channel that is correlated with the sync channel, 1 or 2
+        :type count_channel: int
+        
+        """
         self.controller.start_measurement(tijd.m_as('s'))
         
         ended = False
-        t = round(tijd.m_as('s')/10)
+        t = round(tijd.m_as('s')/5)
         
         while ended == False:
             ended = self.controller.ctc_status
