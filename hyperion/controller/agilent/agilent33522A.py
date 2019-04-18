@@ -29,11 +29,10 @@ class Agilent33522A(BaseController):
     def __init__(self, instrument_id, dummy=False):
         """ Init for the class
 
-
-
         """
         self.logger = logging.getLogger(__name__)
         self.instrument_id = instrument_id
+        self._is_initialized = False
         self.dummy = dummy
         self.logger.info('Created controller class for Agilent33522A with id: {}'.format(instrument_id))
         self.logger.info('Dummy mode: {}'.format(dummy))
@@ -44,26 +43,30 @@ class Agilent33522A(BaseController):
         """
         self.resource_name = 'USB0::2391::' + self.instrument_id + '::MY50003703::INSTR'
         self.logger.info('Initializing device: {}'.format(self.resource_name))
+
         if self.dummy:
             self.logger.debug('Dummy mode: on')
-            self.rsc = DummyResourceManager(self.resource_name)
+            self.rsc = DummyResourceManager(self.instrument_id, self.resource_name)
         else:
             rm = visa.ResourceManager()
             self.rsc = rm.open_resource(self.resource_name)
             time.sleep(0.5)
 
+        self._is_initialized = True
+
     def finalize(self):
         """ This methods closes the visa connection
 
         """
-        if self.rsc is not None:
-            if self.dummy:
-                self.logger.debug('Close dummy connection.')
+        if self._is_initialized:
+            if self.rsc is not None:
+                if self.dummy:
+                    self.logger.debug('Close dummy connection.')
 
-            else:
-                self.logger.debug('Close real connection')
-                self.rsc.close()
-        self.logger.info('Connection closed.')
+                else:
+                    self.logger.debug('Close real connection')
+                    self.rsc.close()
+            self.logger.info('Connection closed.')
 
     def idn(self):
         """Ask the device for its identification

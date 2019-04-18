@@ -69,7 +69,7 @@ class BaseExperiment():
             self.logger.debug('instrument name: {}'.format(inst))
 
             if name in inst:
-                module_name, class_name = inst[name]['driver'].split('/')
+                module_name, class_name = inst[name]['instrument'].split('/')
                 self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
                 my_class = getattr(importlib.import_module(module_name), class_name)
                 instance = my_class(inst[name])

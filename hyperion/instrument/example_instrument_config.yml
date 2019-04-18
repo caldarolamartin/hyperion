@@ -1,0 +1,4 @@
+controller: hyperion.controller.example_controller/ExampleController
+dummy: True
+settings:
+  output: True

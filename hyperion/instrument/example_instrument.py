@@ -7,8 +7,8 @@ This is a dummy device, simulated for developing and testing the code
 
 """
 import logging
+import yaml
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.controller.example_controller import ExampleController
 from hyperion import ur
 
 class ExampleInstrument(BaseInstrument):
@@ -17,9 +17,11 @@ class ExampleInstrument(BaseInstrument):
     """
     def __init__(self, settings = {}):
         """ init of the class"""
+        self.controller = None
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
-        self.controller = ExampleController()
+        self.load_config('C:/Hyperion/hyperion/instrument/example_instrument_config.yml')
+        self.controller = self.load_controller(self.config['controller'])
 
     def initialize(self, port):
         """ Starts the connection to the device in port
