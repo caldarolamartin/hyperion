@@ -74,18 +74,20 @@ class BaseInstrument():
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
 
-    def load_controller(self, controller_string):
+    def load_controller(self, controller_string, ):
         """ Loads controller
 
         :param controller_string: dictionary with the field controller
         :type controller_string: dict
+
+        :return: controller class
+        :rtype: class
         """
         self.logger.debug('Loading the controller: {}'.format(controller_string))
         controller_name, class_name = controller_string.split('/')
         self.logger.debug('Controller name: {}. Class name: {}'.format(controller_name, class_name))
         my_class = getattr(importlib.import_module(controller_name), class_name)
-        instance = my_class()
-        return instance
+        return my_class
 
 
 if __name__ == "__main__":
