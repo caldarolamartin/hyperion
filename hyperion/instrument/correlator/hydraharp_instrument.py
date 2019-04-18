@@ -41,7 +41,7 @@ class HydraInstrument(BaseInstrument):
         #self.initialize()
 
     def initialize(self):
-        """ Starts the connection to the device"
+        """ Starts the connection to the device
         """        
         self.logger.info('Opening connection to hydraharp.')
         self.controller.initialize()
@@ -51,7 +51,13 @@ class HydraInstrument(BaseInstrument):
 
 
     def configurate(self, filename = None):
-        """ configurate the standard values """
+        """ Loads the yml configuration file of default intrument settings that probably nobody is going to change
+        File in folder \instrument\correlator\HydrahaInstrument_config.yml
+        
+        :param filename: the name of the configuration file
+        :type filename: string
+        
+        """
 
         if filename is None:
             filename = os.path.join(root_dir,'instrument','correlator','HydraInstrument_config.yml')
@@ -82,6 +88,9 @@ class HydraInstrument(BaseInstrument):
         
     
     def sync_rate(self):
+        """ 
+        
+        """
         self.sync = self.controller.sync_rate()*ureg('cps')
         return self.sync
         #basically the same as the controller, now adding units maybe?
@@ -113,6 +122,8 @@ class HydraInstrument(BaseInstrument):
     
     
     def finalize(self):
+        """ this is to close connection to the device."""
+        self.logger.info('Closing connection to device.')
         self.controller.close_device()
         #close the device
 
