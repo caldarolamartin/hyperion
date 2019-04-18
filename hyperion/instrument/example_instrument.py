@@ -20,8 +20,6 @@ class ExampleInstrument(BaseInstrument):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
 
-        self.controller = None
-        self.controller_class = None
         self._port = settings['port']
         self.dummy = settings['dummy']
         self.logger.debug('Creating the instance of the controller')
