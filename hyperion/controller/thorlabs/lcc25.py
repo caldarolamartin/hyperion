@@ -242,7 +242,7 @@ class Lcc(BaseController):
         elif ans == 0:
             self._output = False
 
-        self.logger.info('The output state is: {}'.format(self._output))
+        self.logger.debug('The output state is: {}'.format(self._output))
         return self._output
 
     @output.setter
@@ -410,8 +410,7 @@ class LccDummy(Lcc):
 
 if __name__ == "__main__":
     from hyperion import _logger_format
-
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
@@ -419,61 +418,37 @@ if __name__ == "__main__":
     dummy = True
 
     if dummy:
-        with LccDummy('COM00') as dev:
-            dev.initialize()
-            dev.output
-            dev.output = True
-            dev.output
-            for ch in range(1,2):
-                dev.get_voltage(ch)
-                dev.set_voltage(ch, 1*ur('volts'))
-                dev.get_voltage()
-
-
-            dev.freq
-            Freqs = [1, 10, 20, 60, 100]*ur('Hz')
-
-            for f in Freqs:
-                dev.freq = f
-                dev.freq
-
-            for m in range(3):
-                dev.mode
-                dev.mode = m
-
-            dev.mode
-
-
+        my_class = LccDummy('COM00')
     else:
-        with Lcc('COM8', dummy=dummy) as dev:
-            dev.initialize()
-            sleep(0.5)
-            # dev.write('mode?')
-            # sleep(0.5)
-            # print(dev.rsc.read())
+        my_class =  Lcc('COM8', dummy=dummy)
 
-            # ask mode
-            dev.query('mode?')
-            # set mode
-            dev.set_mode('Voltage1')
-            # # ask current voltage
-            dev.get_voltage(1)
-            #
-            # #### set a new voltage
-            V = 2 * ur('volt')
-            dev.set_voltage(V, Ch=1)
-            #
-            # ##### get the frequency of modulation (slow)
-            # dev.get_freq()
-            #
-            # # enable or disable the output.
-            #
-            # # print('Output status:{}'.format(dev.output_status()))
-            #
-            # # dev.enable_output(False)
-            # # sleep(0.1)
-            # # dev.output_status()
-            # # dev.enable_output(True)
-            # # dev.output_status()
+    with my_class as dev:
+        dev.initialize()
+
+        # output status and set
+        logging.info('The output is: {}'.format(dev.output))
+        dev.output = True
+        logging.info('The output is: {}'.format(dev.output))
+
+        # mode
+        logging.info('The mode is: {}'.format(dev.output))
+        for m in range(3):
+            dev.mode = m
+            logging.info('The mode is: {}'.format(dev.output))
+
+        # set voltage for both channels
+        for ch in range(1,2):
+            logging.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
+            dev.set_voltage(ch, 1*ur('volts'))
+            logging.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
+
+        # test freq
+        logging.info('Current freq: {}'.format(dev.freq))
+        Freqs = [1, 10, 20, 60, 100]*ur('Hz')
+        for f in Freqs:
+            dev.freq = f
+            logging.info('Current freq: {}'.format(dev.freq))
+
+
 
     print('Done')
