@@ -29,6 +29,8 @@ class VariableWaveplate(BaseInstrument):
         """
         self.logger = logging.getLogger(__name__)
         self.dummy = settings['dummy']
+        if self.dummy:
+            settings['controller'] = 'hyperion.controller.thorlabs.lcc25/Lcc'
         self._port = settings['port']
 
         self.logger.info('Initializing Variable Waveplate on port {}'.format(self._port))

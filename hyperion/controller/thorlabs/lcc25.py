@@ -258,6 +258,49 @@ class Lcc(BaseController):
             return False
 
 
+
+class LccDummy(Lcc):
+    """ This is the dummy controller for the LCC25 """
+    COMMANDS = {'enable?' : [0,1], 'enable=0' : [], 'enable=1' : []
+
+                }
+
+    def __init__(self, port, dummy = True):
+        """ init for the dummy LCC
+        :param port: fake port name
+        :type port: str
+        :param dummy: indicates the dummy mode. keept for compatibility
+        :type dummy: logical
+        """
+        self.logger = logging.getLogger(__name__)
+        self.dummy = dummy
+        self.name = 'Dummy LCC25'
+        self.port = port
+        self._buffer = []
+        self._response = []
+        self._is_initialized = False
+        self.logger.debug('Implemented commands: {}'.format(self.COMMANDS))
+
+
+    def write(self, msg):
+        """Dummy write. It will compare the msg with the COMMANDS
+
+        :param msg: Message to write
+        :type msg: str
+
+        """
+        self.logger.debug('Writing to dummy LCC25: {}'.format(msg))
+        if msg in self.COMMANDS:
+            self._buffer.append(msg)
+            self._response.append(self.COMMANDS[msg][-1])
+        else:
+            self.logger.error('The command "{}" is not listed as a valid command for LCC25'.format(msg))
+
+    def read(self):
+        """ Dummy read. Reads the response buffer"""
+        self.logger.debug('Reading from the dummy device')
+        return self._response[-1]
+
 if __name__ == "__main__":
     from hyperion import _logger_format
 
@@ -266,35 +309,47 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with Lcc('COM8', dummy=True) as dev:
-        dev.initialize()
-        sleep(0.5)
-        # dev.write('mode?')
-        # sleep(0.5)
-        # print(dev.rsc.read())
+    dummy = True
 
-        # ask mode
-        dev.query('mode?')
-        # set mode
-        dev.set_mode('Voltage1')
-        # # ask current voltage
-        dev.get_voltage(1)
-        #
-        # #### set a new voltage
-        V = 2 * ur('volt')
-        dev.set_voltage(V, Ch=1)
-        #
-        # ##### get the frequency of modulation (slow)
-        # dev.get_freq()
-        #
-        # # enable or disable the output.
-        #
-        # # print('Output status:{}'.format(dev.output_status()))
-        #
-        # # dev.enable_output(False)
-        # # sleep(0.1)
-        # # dev.output_status()
-        # # dev.enable_output(True)
-        # # dev.output_status()
+    if dummy:
+        with LccDummy('COM00') as dev:
+            dev.initialize()
+            dev.write('enable?')
+            print(dev._buffer)
+            print(dev._response)
+            print(dev.read())
+            print(dev.query('enable?'))
+
+    else:
+        with Lcc('COM8', dummy=True) as dev:
+            dev.initialize()
+            sleep(0.5)
+            # dev.write('mode?')
+            # sleep(0.5)
+            # print(dev.rsc.read())
+
+            # ask mode
+            dev.query('mode?')
+            # set mode
+            dev.set_mode('Voltage1')
+            # # ask current voltage
+            dev.get_voltage(1)
+            #
+            # #### set a new voltage
+            V = 2 * ur('volt')
+            dev.set_voltage(V, Ch=1)
+            #
+            # ##### get the frequency of modulation (slow)
+            # dev.get_freq()
+            #
+            # # enable or disable the output.
+            #
+            # # print('Output status:{}'.format(dev.output_status()))
+            #
+            # # dev.enable_output(False)
+            # # sleep(0.1)
+            # # dev.output_status()
+            # # dev.enable_output(True)
+            # # dev.output_status()
 
     print('Done')

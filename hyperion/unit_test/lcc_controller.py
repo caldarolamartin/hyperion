@@ -19,15 +19,17 @@ from hyperion.controller.thorlabs.lcc25 import Lcc
 
 class UTestLcc():
     """ Class to test the LCC25 controller."""
-    def __init__(self):
+    def __init__(self, dummy=True):
         """ initialize
 
         """
         self.logger = logging.getLogger(__name__)
         self.logger.info('Created UTestLcc25 class.')
-        self.dev = Lcc(port='COM6', dummy=True)
+        self.logger.info('Testing in dummy={}'.format(dummy))
+        self.dev = Lcc(port='COM6', dummy=dummy)
         self.dev.initialize()
         sleep(1)
+        self.dummy = dummy
 
     # the next two methods are needed so the context manager 'with' works.
     def __enter__(self):
