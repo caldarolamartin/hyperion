@@ -10,11 +10,12 @@ Note that this controller also implements units.
 
 
 """
+import os
 import serial
 import yaml
 import logging
 from time import sleep
-from hyperion import ur
+from hyperion import ur, root_dir
 from hyperion.controller.base_controller import BaseController
 from hyperion.controller.dummy_resource_manager import DummyResourceManager
 
@@ -140,31 +141,15 @@ class Lcc(BaseController):
             self.rsc.close()
             self.logger.info('Resource connection closed.')
 
-    def set_mode(self, mode):
-        """ Sets the modes of operation:
 
-        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
 
-        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
-
-        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
-        is one limit and voltage 2 is the second. the modulation frequency can be
-        changed with the command 'freq' in the 0.5-150 Hz range.
-
-        :param mode: type of operation.
-        :type mode: int
-        """
-        self.query('mode={}'.format(self.OUTPUT_MODE[mode]))
-        self.logger.info('Changed to mode "{}" '.format(mode))
-
-    def set_voltage(self, V, Ch=1):
+    def set_voltage(self, Ch, V):
         """ Sets the voltage value for Ch where Ch = 1 or 2 for Voltage1 or Voltage2
 
-        :param V: voltage to set in Volts
-        :type V: pint quantity
         :param Ch: channel to use (default =1)
         :type Ch: int
-
+        :param V: voltage to set in Volts
+        :type V: pint quantity
         """
         if V.m_as('volts') > 25 or V.m_as('volts') < 0:
             raise NameError('Required Voltage outside limits (0,25)V')
@@ -201,12 +186,11 @@ class Lcc(BaseController):
         :type F: pint Quantity
 
         """
-        if F.m_as('hetz') > 150 or F.m_as('hetz') < 0.5:
+        if F.m_as('hertz') > 150 or F.m_as('hertz') < 0.5:
             raise NameError('Required Frequency outside limits (0.5,150)Hz')
 
-        msg = 'freq=' + str(F.m_as('hetz'))
+        msg = 'freq=' + str(F.m_as('hertz'))
         self.query(msg)
-
         self.logger.debug('Changed frequency to {} Hz'.format(F.m_as('hertz')))
 
     def get_freq(self):
@@ -261,6 +245,58 @@ class Lcc(BaseController):
 
         return self._output
 
+    @property
+    def mode(self):
+        """ Operation mode
+
+        The possible modes are:
+
+        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
+
+        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
+
+        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
+        is one limit and voltage 2 is the second. the modulation frequency can be
+        changed with the command 'freq' in the 0.5-150 Hz range.
+
+        : getter :
+
+        Gets the current mode
+
+        : setter :
+
+        Sets the mode
+
+        :param mode: type of operation.
+        :type mode: int
+
+        """
+        self.logger.debug('Getting the mode of operation')
+        self._mode = int(self.query('mode?'))
+        return self._mode
+
+    @mode.setter
+    def mode(self, mode):
+        self.query('mode={}'.format(mode))
+        self.logger.info('Changed to mode "{}" '.format(mode))
+        self._mode = mode
+
+    def set_mode(self, mode):
+        """ Sets the modes of operation:
+
+        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
+
+        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
+
+        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
+        is one limit and voltage 2 is the second. the modulation frequency can be
+        changed with the command 'freq' in the 0.5-150 Hz range.
+
+        :param mode: type of operation.
+        :type mode: int
+        """
+        self.query('mode={}'.format(self.OUTPUT_MODE[mode]))
+        self.logger.info('Changed to mode "{}" '.format(mode))
 
     def enable_output(self, state):
         """ This allows to control if the output to the Variable waveplate is
@@ -294,12 +330,31 @@ class Lcc(BaseController):
             return False
 
 
-
 class LccDummy(Lcc):
-    """ This is the dummy controller for the LCC25 """
-    COMMANDS = {'enable?' : [0,1], 'enable=0' : [], 'enable=1' : []
+    """
+    =========
+    LCC Dummy
+    =========
 
-                }
+    This is the dummy controller for the LCC25. The idea is to load this class instead of the real one
+    to do testing of higher level functions without the need of the real device to be connected or working.
+
+    The logic is that this dummy device will respond as the real device would, with the correct type
+    and size of information is expected.
+
+    This class inherits from the real device and the idea is to re-write only the init, the write
+    and the read, so all the other functions remain the same and functioning.
+
+    The specific way to achieve this will be different for every device, so it has to be done separately.
+
+    To do so, we use a yaml file that tells the dummy class what are the properties of the device. For example,
+    one property for the LCC25 is voltage1, which is the voltage for channel 1. Then from this you can build 2
+    commands: voltage1? to ask what is the value and voltage1=1 to set it to the value 1. So we build a command
+    list using the CHAR ? and = for each of this properties.
+
+    """
+
+    CHAR = {'ask' : '?', 'set' : '='}
 
     def __init__(self, port, dummy = True):
         """ init for the dummy LCC
@@ -315,8 +370,10 @@ class LccDummy(Lcc):
         self._buffer = []
         self._response = []
         self._is_initialized = False
-        self.logger.debug('Implemented commands: {}'.format(self.COMMANDS))
-        self.properties = {}
+        self._properties = {}
+        self._all = {}
+        self._commands = []
+        self.load_properties()
 
     def load_properties(self):
         """ This method loads a yaml file with a dictionary with the available properties for the
@@ -324,6 +381,27 @@ class LccDummy(Lcc):
         when a variable is writen, so the dummy device will respond with the previously set value.
 
         """
+        filename = os.path.join(root_dir,'controller', 'dummy', 'lcc25.yml')
+        self.logger.debug('Loading LCC defaults file: {}'.format(filename))
+
+        with open(filename, 'r') as f:
+            d = yaml.load(f)
+
+        self._properties = d
+        self.logger.debug('_properties dict: {}'.format(self._properties))
+
+        for key in d:
+            self.logger.debug('Adding key: {}'.format(key))
+            self._all[key] = d[key]['default']
+            for command_key in self.CHAR:
+                new_command = key + self.CHAR[command_key]
+                self.logger.debug('Adding to the command list: {}'.format(new_command))
+                self._commands. append(new_command)
+
+        self.logger.debug('_all dict: {}'.format(self._all))
+        self._properties['dummy_yaml_file'] = filename  # add to the class the name of the Config file used.
+        self.logger.debug('Commands list: {}'.format(self._commands))
+
 
     def write(self, msg):
         """Dummy write. It will compare the msg with the COMMANDS
@@ -333,11 +411,33 @@ class LccDummy(Lcc):
 
         """
         self.logger.debug('Writing to dummy LCC25: {}'.format(msg))
-        if msg in self.COMMANDS:
-            self._buffer.append(msg)
-            self._response.append(self.COMMANDS[msg][-1])
+
+        # next is to check that the command exists in the device and to give the proper response
+        if '=' in msg:
+            prop = msg.split('=')[0]
+            value = msg.split('=')[1]
+            command = prop + '='
+        elif msg[-1] == '?':
+            prop = msg[:-1]
+            value = None
+            command = msg
+
+        self.logger.debug('prop: {}, value: {}'.format(prop, value))
+        if command in self._commands:
+            if value is None:
+                self.logger.debug('Reading the property: {}'.format(prop))
+                response = self._all[prop]
+            else:
+                response = 'Setting property: {} to {}'.format(prop, value)
+                self.logger.debug(response)
+                self._buffer.append(msg)
+                self._all[prop] = value
         else:
             self.logger.error('The command "{}" is not listed as a valid command for LCC25'.format(msg))
+
+        self.logger.debug('The response is: {}'.format(response))
+        self._response.append(response)
+
 
     def read(self):
         """ Dummy read. Reads the response buffer"""
@@ -357,10 +457,25 @@ if __name__ == "__main__":
     if dummy:
         with LccDummy('COM00') as dev:
             dev.initialize()
-            print(dev.output)
+            dev.output
+            dev.output = True
+            dev.output
+            for ch in range(1,2):
+                dev.get_voltage(ch)
+                dev.set_voltage(ch, 1*ur('volts'))
+                dev.get_voltage()
+            dev.get_freq()
+            dev.set_freq(10*ur('Hz'))
+
+            for m in range(3):
+                dev.mode
+                dev.mode = m
+
+            dev.mode
+
 
     else:
-        with Lcc('COM8', dummy=True) as dev:
+        with Lcc('COM8', dummy=dummy) as dev:
             dev.initialize()
             sleep(0.5)
             # dev.write('mode?')

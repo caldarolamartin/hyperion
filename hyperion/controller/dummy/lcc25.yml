@@ -3,12 +3,12 @@ enable:
   possible:
     - 0
     - 1
-voltage1:
+volt1:
   default: 0
   limits:
     - 0
     - 25
-voltage2:
+volt2:
   default: 0
   limits:
     - 0
