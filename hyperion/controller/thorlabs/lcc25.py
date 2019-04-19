@@ -11,6 +11,7 @@ Note that this controller also implements units.
 
 """
 import serial
+import yaml
 import logging
 from time import sleep
 from hyperion import ur
@@ -50,6 +51,7 @@ class Lcc(BaseController):
         self.dummy = dummy
         self.rsc = None
         self._is_initialized = False
+        self._output = None
         self.logger.debug('Created object for the LCC. ')
 
     def initialize(self):
@@ -226,6 +228,40 @@ class Lcc(BaseController):
         """
         return self.query('?')
 
+    @property
+    def output(self):
+        """ Tells if the output is enabled or not.
+
+        :getter:
+        :return: output state
+        :rtype: logical
+
+        :setter:
+        :param state: value for the amplitude to set in Volts
+        :type state: logical
+
+        """
+        self.logger.debug('Asking for the output state')
+        ans = float(self.query('enable?'))
+        if ans == 1:
+            self._output = True
+        elif ans == 0:
+            self._output = False
+
+        self.logger.info('The output state is: {}'.format(self._output))
+        return self._output
+
+    @output.setter
+    def output(self, state):
+        self.logger.debug('Setting the output state to {}'.format(state))
+        if state:
+            self.query('enable=1')
+        else:
+            self.query('enable=0')
+
+        return self._output
+
+
     def enable_output(self, state):
         """ This allows to control if the output to the Variable waveplate is
         enabled or not.
@@ -280,7 +316,14 @@ class LccDummy(Lcc):
         self._response = []
         self._is_initialized = False
         self.logger.debug('Implemented commands: {}'.format(self.COMMANDS))
+        self.properties = {}
 
+    def load_properties(self):
+        """ This method loads a yaml file with a dictionary with the available properties for the
+        LCC25 and some defaults values. This dictionary is saved in properties and will be modified
+        when a variable is writen, so the dummy device will respond with the previously set value.
+
+        """
 
     def write(self, msg):
         """Dummy write. It will compare the msg with the COMMANDS
@@ -314,11 +357,7 @@ if __name__ == "__main__":
     if dummy:
         with LccDummy('COM00') as dev:
             dev.initialize()
-            dev.write('enable?')
-            print(dev._buffer)
-            print(dev._response)
-            print(dev.read())
-            print(dev.query('enable?'))
+            print(dev.output)
 
     else:
         with Lcc('COM8', dummy=True) as dev:
