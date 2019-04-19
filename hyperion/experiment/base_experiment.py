@@ -40,7 +40,7 @@ class BaseExperiment():
         self.logger.debug('Loading configuration file: {}'.format(filename))
 
         with open(filename, 'r') as f:
-            d = yaml.load(f)
+            d = yaml.load(f, Loader=yaml.FullLoader)
             self.logger.info('Using configuration file: {}'.format(filename))
 
         self.properties = d

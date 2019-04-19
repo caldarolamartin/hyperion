@@ -54,23 +54,27 @@ class Lcc(BaseController):
         self._is_initialized = False
         self._output = None
         self.logger.debug('Created object for the LCC. ')
+        self._freq = 0
+        self._mode = 0
+        self._output = False
 
     def initialize(self):
         """ Initialize the device
 
         """
         if self.dummy:
-            self.rsc = DummyResourceManager(self.port, self.name)
-            self.logger.info('Initialized device dummy LCC at port {}.'.format(self.port))
+            self.logger.info('Dummy device initialized')
+
+
         else:
             self.rsc = serial.Serial(port=self.port,
                                      baudrate=self.DEFAULTS['baudrate'],
                                      timeout=self.DEFAULTS['read_timeout'],
                                      write_timeout=self.DEFAULTS['write_timeout'])
             self.logger.info('Initialized device LCC at port {}.'.format(self.port))
-            sleep(0.5)
-        self._is_initialized = True
 
+        self._is_initialized = True
+        sleep(0.5)
 
 
     def idn(self):
@@ -95,7 +99,7 @@ class Lcc(BaseController):
         :type message: string
 
         """
-        if self.rsc is None:
+        if not self._is_initialized:
             raise Warning('Trying to write to device before initializing')
 
         msg = message + self.DEFAULTS['write_termination']
@@ -109,7 +113,7 @@ class Lcc(BaseController):
         :type: str
 
         """
-        if self.rsc is None:
+        if not self._is_initialized:
             raise Warning('Trying to read from device before initializing')
         response = self.rsc.readline()
         self.logger.debug('Response from readline: {}'.format(response))
@@ -125,7 +129,7 @@ class Lcc(BaseController):
         :return: response from the device
         :rtype: str
         """
-        if self.rsc is None:
+        if not self._is_initialized:
             raise Warning('Trying to query from device before initializing.')
 
         self.write(message)
@@ -179,31 +183,37 @@ class Lcc(BaseController):
         voltage = float(ans) * ur('volt')
         return voltage
 
-    def set_freq(self, F):
-        """ Sets the frequency to modulate in the modulation mode.
+    @property
+    def freq(self):
+        """ Modulation frequency when the operation mode is 'modulation' (mode = 0)
+
+        : getter :
+
+        Asks for the current frequency
+
+        :return: The frequency value
+        :rtype: pint quantity
+
+        : setter :
 
         :param F: frequency in Hz. It can be any value between 0.5 and 150Hz.
         :type F: pint Quantity
 
         """
+        self.logger.debug('Ask for the current frequency.')
+        ans = self.query('freq?')
+        self._freq = float(ans) * ur('hertz')
+        return self._freq
+
+    @freq.setter
+    def freq(self, F):
         if F.m_as('hertz') > 150 or F.m_as('hertz') < 0.5:
             raise NameError('Required Frequency outside limits (0.5,150)Hz')
 
+        self._freq = F
         msg = 'freq=' + str(F.m_as('hertz'))
         self.query(msg)
-        self.logger.debug('Changed frequency to {} Hz'.format(F.m_as('hertz')))
-
-    def get_freq(self):
-        """ Gets the frequency of (slow) modulation
-
-        :return: The frequency value
-        :rtype: pint quantity
-        """
-        msg = 'freq?'
-        ans = self.query(msg)
-        self.logger.debug('Current frequency = {} Hz'.format(ans))
-        f = float(ans) * ur('hertz')
-        return f
+        self.logger.debug('Changed frequency to {} '.format(F))
 
     def get_commands(self):
         """ Gives a list of all the commands available
@@ -281,53 +291,6 @@ class Lcc(BaseController):
         self.logger.info('Changed to mode "{}" '.format(mode))
         self._mode = mode
 
-    def set_mode(self, mode):
-        """ Sets the modes of operation:
-
-        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
-
-        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
-
-        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
-        is one limit and voltage 2 is the second. the modulation frequency can be
-        changed with the command 'freq' in the 0.5-150 Hz range.
-
-        :param mode: type of operation.
-        :type mode: int
-        """
-        self.query('mode={}'.format(self.OUTPUT_MODE[mode]))
-        self.logger.info('Changed to mode "{}" '.format(mode))
-
-    def enable_output(self, state):
-        """ This allows to control if the output to the Variable waveplate is
-        enabled or not.
-        :param state: enable or disable the output
-        :type state: logical
-
-        """
-
-        if state:
-            self.query('enable=1')
-            self.logger.info('Output enabled.')
-        elif state is False:
-            self.query('enable=0')
-            self.logger.info('Output disabled.')
-        else:
-            raise ErrorName('The state can be True or False')
-
-    def output_status(self):
-        """ Gives the status of the output to the variable waveplate
-
-        :return: State: true if it is on and false if it is off
-        :rtype: logical
-
-        """
-        ans = float(self.query('enable?'))
-
-        if ans == 1:
-            return True
-        elif ans == 0:
-            return False
 
 
 class LccDummy(Lcc):
@@ -363,6 +326,7 @@ class LccDummy(Lcc):
         :param dummy: indicates the dummy mode. keept for compatibility
         :type dummy: logical
         """
+        super().__init__(port, dummy)
         self.logger = logging.getLogger(__name__)
         self.dummy = dummy
         self.name = 'Dummy LCC25'
@@ -385,7 +349,7 @@ class LccDummy(Lcc):
         self.logger.debug('Loading LCC defaults file: {}'.format(filename))
 
         with open(filename, 'r') as f:
-            d = yaml.load(f)
+            d = yaml.load(f, Loader=yaml.FullLoader)
 
         self._properties = d
         self.logger.debug('_properties dict: {}'.format(self._properties))
@@ -464,8 +428,14 @@ if __name__ == "__main__":
                 dev.get_voltage(ch)
                 dev.set_voltage(ch, 1*ur('volts'))
                 dev.get_voltage()
-            dev.get_freq()
-            dev.set_freq(10*ur('Hz'))
+
+
+            dev.freq
+            Freqs = [1, 10, 20, 60, 100]*ur('Hz')
+
+            for f in Freqs:
+                dev.freq = f
+                dev.freq
 
             for m in range(3):
                 dev.mode
