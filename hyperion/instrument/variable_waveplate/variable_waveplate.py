@@ -24,14 +24,25 @@ class VariableWaveplate(BaseInstrument):
     def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : True,
                                    'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'} ):
         """
-        port, enable = True, dummy = False
-        Initialize
+        Init of the class.
+
+        It needs a settings dictionary that contains the following fields (mandatory)
+
+            * port: COM port name where the LCC25 is connected
+            * enable: logical to say if the initialize enables te output
+            * dummy: logical to say if the connection is real or dummy (True means dummy)
+            * controller: this should point to the controller to use and with / add the name of the class to use
+
         """
         self.logger = logging.getLogger(__name__)
         self.dummy = settings['dummy']
+        print(self.dummy)
         if self.dummy:
-            settings['controller'] = 'hyperion.controller.thorlabs.lcc25/Lcc'
+            self.logger.debug('Using dummy mode!')
+            settings['controller'] = 'hyperion.controller.thorlabs.lcc25/LccDummy'
         self._port = settings['port']
+        self._output = False
+        self._mode = 0
 
         self.logger.info('Initializing Variable Waveplate on port {}'.format(self._port))
 
@@ -44,12 +55,10 @@ class VariableWaveplate(BaseInstrument):
         self.load_calibration(cal_file)
 
         # initialize
-        self.controller = Lcc(self._port, dummy = self.dummy)
+        self.controller_class = self.load_controller(settings['controller'])
+        self.controller = self.controller_class(self._port)
         self.controller.initialize()
-        if settings['enable']:
-            self.controller.enable_output(True)
-        else:
-            self.controller.enable_output(False)
+        self.output = settings['enable']
 
     def __enter__(self):
         return self
@@ -109,55 +118,103 @@ class VariableWaveplate(BaseInstrument):
 
         """
         self.logger.debug('Setting analog value {} for channel {}.'.format(value, channel))
-        self.controller.set_voltage(value, channel)
+        self.controller.set_voltage(channel, value)
         return value
 
-    def enable_output(self, state):
-        """ Enables the output to the device
+    @property
+    def freq(self):
+        """ Modulation frequency when the operation mode is 'modulation' (mode = 0)
 
-        :param state: type to set the output on and off (True and False, respectively)
-        :type state: logical
-         """
-        self.logger.debug('Changing the output state to {}.'.format(state))
-        self.controller.enable_output(state)
+        : getter :
 
-    def output_state(self):
-        """ Gets the current state of the output
+        Asks for the current frequency
 
-         Returns a logical value, True for on and False for off.
+        :return: The frequency value
+        :rtype: pint quantity
 
-         """
-        self.logger.debug('Getting the output state')
-        ans = self.controller.output_status()
-        return ans
+        : setter :
 
-    def set_mode(self, mode):
+        :param F: frequency in Hz. It can be any value between 0.5 and 150Hz.
+        :type F: pint Quantity
+
         """
-        This method can set the mode of operation for the controller.
+        self.logger.debug('Ask for the current frequency.')
+        ans = self.controller.freq
+        self._freq = ans
+        return self._freq
 
-        The following modes are available
+    @freq.setter
+    def freq(self, F):
+        self._freq = F
+        self.controller.freq = F
+        self.logger.debug('Changed frequency to {} '.format(F))
 
-            * 1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
-            * 2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
-            * 0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where
-              voltage 1 is one limit and voltage 2 is the second.
-              The modulation frequency can be changed with the command 'freq' in the 0.5-150 Hz range.
+    @property
+    def output(self):
+        """ Tells if the output is enabled or not.
 
+        :getter:
+        :return: output state
+        :rtype: logical
 
-        :param mode: working mode for the controller
+        :setter:
+        :param state: value for the amplitude to set in Volts
+        :type state: logical
+
+        """
+        self.logger.debug('Asking for the output state')
+        self._output = self.controller.output
+        return self._output
+
+    @output.setter
+    def output(self, state):
+        self.logger.debug('Setting the output state to {}'.format(state))
+        self._output = state
+        self.controller.output = state
+        return self._output
+
+    @property
+    def mode(self):
+        """ Operation mode
+
+        The possible modes are:
+
+        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
+
+        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
+
+        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
+        is one limit and voltage 2 is the second. the modulation frequency can be
+        changed with the command 'freq' in the 0.5-150 Hz range.
+
+        : getter :
+
+        Gets the current mode
+
+        : setter :
+
+        Sets the mode
+
+        :param mode: type of operation.
         :type mode: int
 
-
         """
-        self.logger.debug('Setting mode to {}.'.format(mode))
-        self.controller.set_mode(mode)
+        self.logger.debug('Getting the mode of operation')
+        self._mode = self.controller.mode
+        return self._mode
+
+    @mode.setter
+    def mode(self, mode):
+        self.controller.mode = mode
+        self.logger.info('Changed to mode "{}" '.format(mode))
+        self._mode = mode
 
     def finalize(self, state=False):
         """ Closes the connection to the device
 
         """
         self.logger.info('Finalizing connection with Variable Waveplate')
-        self.controller.enable_output(state)
+        self.controller.output = state
         self.controller.finalize()
 
     def quarter_waveplate_voltage(self, wavelength, method = 'lookup'):
@@ -236,28 +293,39 @@ class VariableWaveplate(BaseInstrument):
 
 if __name__ == '__main__':
     from hyperion import _logger_format
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with VariableWaveplate() as d:
-        # test idn
-        # print(d.idn())
-        # test output_state
-        print(d.output_state())
-        # test analog value
-        print(d.get_analog_value(1))
-        # test enable output
-        #d.enable_output(True)
-        print(d.output_state())
+    with VariableWaveplate() as dev:
+        # output status and set
+        logging.info('The output is: {}'.format(dev.output))
+        dev.output = True
+        logging.info('The output is: {}'.format(dev.output))
 
-        # d.set_analog_value(2.5*ur('volt'),1)
+        # mode
+        logging.info('The mode is: {}'.format(dev.output))
+        for m in range(3):
+            dev.mode = m
+            logging.info('The mode is: {}'.format(dev.output))
 
-        # print(d.get_analog_value(1))
+        # set voltage for both channels
+        for ch in range(1, 2):
+            logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+            dev.set_analog_value(ch, 1 * ur('volts'))
+            logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+
+        # test freq
+        logging.info('Current freq: {}'.format(dev.freq))
+        Freqs = [1, 10, 20, 60, 100] * ur('Hz')
+        for f in Freqs:
+            dev.freq = f
+            logging.info('Current freq: {}'.format(dev.freq))
+
 
         wavelength = 700* ur('nanometer')
-        print('The QWP voltage for {} is {}'.format(wavelength, d.quarter_waveplate_voltage(wavelength)))
+        print('The QWP voltage for {} is {}'.format(wavelength, dev.quarter_waveplate_voltage(wavelength)))
         # d.set_quarter_waveplate_voltage(1, wavelength)
         # d.enable_output(False)
         # print(d.output_state())
