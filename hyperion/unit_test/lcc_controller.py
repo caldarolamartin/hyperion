@@ -3,11 +3,11 @@
 Test LCC25 controller
 =====================
 
-This class aims to test the correct behaviour of the controller class: LCC25.py
+This class aims to unit_test the correct behaviour of the controller class: LCC25.py
 
 If you have changed something in the controller layer, you should check that the
 functionalities of if are still running properly by running this class and adding
-a method to test the new methods in the controller, if any.
+a method to unit_test the new methods in the controller, if any.
 
 
 """
@@ -18,7 +18,7 @@ from hyperion.controller.thorlabs.lcc25 import Lcc, LccDummy
 
 
 class UTestLcc():
-    """ Class to test the LCC25 controller."""
+    """ Class to unit_test the LCC25 controller."""
     def __init__(self, port='COM8', dummy=True):
         """ initialize
 
@@ -48,8 +48,8 @@ class UTestLcc():
 
 
     def test_voltage(self):
-        """ test setter and getter for the voltage1 """
-        self.logger.debug('Set and get voltage for both channels into test.')
+        """ unit_test setter and getter for the voltage1 """
+        self.logger.debug('Set and get voltage for both channels into unit_test.')
         CH = [1,2]
         for ch in CH:
             # # ask current voltage
@@ -63,11 +63,11 @@ class UTestLcc():
             assert V == Vnew
             self.logger.info('Voltage assertion passed for channel: {}'.format(ch))
 
-        self.logger.info('Voltage set and read test passed.')
+        self.logger.info('Voltage set and read unit_test passed.')
 
     def test_output(self):
         """ Test the output state"""
-        self.logger.debug('Starting test on output state')
+        self.logger.debug('Starting unit_test on output state')
         for out in [True, False]:
             self.dev.output = out
             assert out == self.dev.output
@@ -77,7 +77,7 @@ class UTestLcc():
 
     def test_freq(self):
         """ Test the freq command"""
-        self.logger.debug('Starting test on freq')
+        self.logger.debug('Starting unit_test on freq')
         for F in [10*ur('Hz'), 3.1416*ur('Hz')]:
             self.dev.freq = F
             assert F == self.dev.freq
@@ -87,13 +87,13 @@ class UTestLcc():
 
     def test_mode(self):
         """ Test the mode methods"""
-        self.logger.debug('Starting test on mode mode')
+        self.logger.debug('Starting unit_test on mode mode')
         for m in [0, 1, 2]:
             self.dev.mode = m
             assert m == self.dev.mode
             self.logger.info('Mode assertion passed for mode: {}'.format(m))
 
-        self.logger.info('Mode test passed')
+        self.logger.info('Mode unit_test passed')
 
 if __name__ == "__main__":
     from hyperion import _logger_format
@@ -102,7 +102,7 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    dummy_mode = [True]  # add false here to also test the real device with connection
+    dummy_mode = [True]  # add false here to also unit_test the real device with connection
     true_port = 'COM8'
     for dummy in dummy_mode:
         print('Running dummy={} tests.'.format(dummy))

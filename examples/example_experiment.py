@@ -1,10 +1,10 @@
 """
-    ===============
-    Base Experiment
-    ===============
+    ==================
+    Example Experiment
+    ==================
 
-    This is a base experiment class. The propose is put all the common methods needed for the experiment
-    classes so they are shared and easily modified.
+    This is an example of an experiment class.
+
 
 """
 import os

@@ -385,12 +385,12 @@ if __name__ == "__main__":
     with AaModd18012('COM10', dummy=True) as dev:
         dev.initialize()
 
-        # test basic for dummy device
+        # unit_test basic for dummy device
         # dev.write('TESTING WRITE')
         # print(dev.read())
         # print(dev.query('hola'))
 
-        # test set all
+        # unit_test set all
         for ch in range(1, 9):
             print(dev.set_all(ch, 0, 22, False, 'internal'))
             sleep(0.1)

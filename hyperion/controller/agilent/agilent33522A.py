@@ -399,13 +399,13 @@ if __name__ == "__main__":
     with Agilent33522A('8967', dummy=True) as gen:
         # initialize
         gen.initialize()
-        # test idn
+        # unit_test idn
         print('Identification: {}'.format(gen.idn()))
         print(gen.get_system_error())
 
         # list of tests of the avove functions
 
-        ## to test output enable for channel ch
+        ## to unit_test output enable for channel ch
         ch = 1
         gen.get_enable_output(ch)
         time.sleep(0.1)
@@ -413,7 +413,7 @@ if __name__ == "__main__":
         time.sleep(0.1)
         gen.get_enable_output(ch)
 
-        # to test FUNCTION waveform
+        # to unit_test FUNCTION waveform
         ch = 1
         gen.get_function(ch)
         gen.set_function(ch, 'SQU')

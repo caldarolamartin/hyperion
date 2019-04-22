@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-================
-Dummy controller
-================
+==================
+Example controller
+==================
 
-This is a fake device, simulated for developing and testing the code.
-It can be used as an example to build your own controller for your device.
+This is an example of a controller with a fake (invented) device. It should help to gide
+developers to create new controllers for real devices.
 
 
 """
@@ -18,18 +18,20 @@ class ExampleController(BaseController):
     FAKE_RESPONSES = {'A': 1,
                      }
 
-    def __init__(self, port, dummy = True):
+    def __init__(self, port, dummy=True):
         """ Init of the class.
 
         :param port: connection port to use
         :type port: str
         :param dummy: if the device connects to the real or not. in this case is useless, this is a dummy inivented device
         :type dummy: logical
+
+        NOTE: this device is only dummy but the setting is here to emulate a real device.
         """
+        super().__init__()
         self._port = port
         self.dummy = dummy
         self.logger = logging.getLogger(__name__)
-        self._is_initialized = False
         self.logger.info('Class ExampleController created.')
         self._amplitude = []
 
@@ -127,9 +129,13 @@ class ExampleController(BaseController):
 
 
 class ExampleControllerDummy(ExampleController):
-    """ A dummy version of the Example Controller.
+    """
+    Example Controller Dummy
+    ========================
 
-    In essence we have the same methods and we re-write the query to answer something meaninfull but
+    A dummy version of the Example Controller.
+
+    In essence we have the same methods and we re-write the query to answer something meaningful but
     without connecting to the real device.
 
     """

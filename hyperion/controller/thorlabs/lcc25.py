@@ -439,7 +439,7 @@ if __name__ == "__main__":
             dev.set_voltage(ch, 1*ur('volts'))
             logging.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
 
-        # test freq
+        # unit_test freq
         logging.info('Current freq: {}'.format(dev.freq))
         Freqs = [1, 10, 20, 60, 100]*ur('Hz')
         for f in Freqs:

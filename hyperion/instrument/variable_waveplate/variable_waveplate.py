@@ -303,7 +303,7 @@ if __name__ == '__main__':
                             logging.StreamHandler()])
 
 
-    dummy_mode = [True] # add here false to test the code with the real device
+    dummy_mode = [True] # add here false to unit_test the code with the real device
 
     for dummy in dummy_mode:
         print('Running in dummy = {}'.format(dummy))
@@ -326,7 +326,7 @@ if __name__ == '__main__':
                 dev.set_analog_value(ch, 1 * ur('volts'))
                 logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
 
-            # test freq
+            # unit_test freq
             logging.info('Current freq: {}'.format(dev.freq))
             Freqs = [1, 10, 20, 60, 100] * ur('Hz')
             for f in Freqs:

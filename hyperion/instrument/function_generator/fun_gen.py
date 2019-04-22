@@ -428,23 +428,23 @@ if __name__ == '__main__':
     with FunGen('8967', defaults=False, dummy=True) as d:
         print('Output state for channels = {}'.format(d.output_state()))
 
-        # #### test idn
+        # #### unit_test idn
         print('Identification = {}.'.format(d.idn()))
-        # ####   test output_state
+        # ####   unit_test output_state
         print('Output state = {}'.format(d.output_state()))
-        # #### test High and low voltage
+        # #### unit_test High and low voltage
         ch = 1
         V = 2.1*ur('volt')
         Vlow = -1.1 * ur('mvolt')
         print('High voltage value = {}.'.format(d.get_voltage_high(ch)))
         d.set_voltage_high(ch, V)
         print('High voltage value = {}.'.format(d.get_voltage_high(ch)))
-        # #### test Low voltage
+        # #### unit_test Low voltage
         print('Low voltage value = {}. '.format(d.get_voltage_low(ch)))
         d.set_voltage_low(ch, Vlow)
         print('Low voltage value = {}. '.format(d.get_voltage_low(ch)))
 
-        # #### test vpp and offset voltage
+        # #### unit_test vpp and offset voltage
 
         V = 0.25 * ur('volt')
         DC = 0.5 * ur('mvolt')
@@ -457,11 +457,11 @@ if __name__ == '__main__':
         # read again
         print('Vpp voltage value = {}. '.format(d.get_voltage_vpp(ch)))
         print('DC offset voltage value = {}. '.format(d.get_voltage_offset(ch)))
-        # test enable output
+        # unit_test enable output
         # d.enable_output(ch,True)
         print('Output state = {}'.format(d.output_state()))
 
-        # #### test frequency
+        # #### unit_test frequency
 
         F = 1 * ur('khertz')
         # read freq
@@ -470,12 +470,12 @@ if __name__ == '__main__':
         d.set_frequency(ch, F)
         # read again
         print('Freq = {}.'.format(d.get_frequency(ch)))
-        # #### test wavefunction change
+        # #### unit_test wavefunction change
         ch = 1
         print(d.get_wave_function(ch))
         d.set_wave_function(ch, 'SQU')
         print(d.get_wave_function(ch))
-        # test limit voltage functions
+        # unit_test limit voltage functions
         ch = 1
         d.enable_voltage_limits(ch, False)
         # #### read state and values
