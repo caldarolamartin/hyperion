@@ -5,20 +5,21 @@ LCC25 (thorlabs) model
 
 This class (variable_waveplate.py) is the model to drive the LCC25 variable waveplate controller.
 
-It ads the use of units with pint and the wavelength calibration to obtain CPL
+It ads the use of units with pint and the wavelength calibration to obtain make the variable
+waveplate a quarter waveplate for a given wavelength.
 
 
 """
 import logging
 import os
 import numpy as np
-from hyperion.controller.thorlabs.lcc25 import Lcc
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, root_dir
 
 
 class VariableWaveplate(BaseInstrument):
     """ This class is the model for the LCC25 analog voltage generator for the variable waveplate from thorlabs.
+
 
     """
     def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : False,
@@ -32,6 +33,9 @@ class VariableWaveplate(BaseInstrument):
             * enable: logical to say if the initialize enables te output
             * dummy: logical to say if the connection is real or dummy (True means dummy)
             * controller: this should point to the controller to use and with / add the name of the class to use
+
+        Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
+        i.e. the class will overwrite the 'controller' with 'hyperion.controller.thorlabs.lcc25/LccDummy'
 
         """
         self.logger = logging.getLogger(__name__)
@@ -286,7 +290,7 @@ class VariableWaveplate(BaseInstrument):
         v = self.quarter_waveplate_voltage(wavelength)
         self.logger.debug('The QWP voltage for {} is {}'.format(wavelength, v))
         self.logger.debug('Setting the voltage to the QWP voltage on channel {}'.format(ch))
-        self.set_analog_value(v, ch)
+        self.set_analog_value(ch, v)
 
         return v
 
@@ -298,38 +302,42 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : True,
-                                   'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as dev:
-        # output status and set
-        logging.info('The output is: {}'.format(dev.output))
-        dev.output = True
-        logging.info('The output is: {}'.format(dev.output))
 
-        # mode
-        logging.info('The mode is: {}'.format(dev.output))
-        for m in range(3):
-            dev.mode = m
+    dummy_mode = [True] # add here false to test the code with the real device
+
+    for dummy in dummy_mode:
+        print('Running in dummy = {}'.format(dummy))
+        with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : dummy,
+                                       'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as dev:
+            # output status and set
+            logging.info('The output is: {}'.format(dev.output))
+            dev.output = True
+            logging.info('The output is: {}'.format(dev.output))
+
+            # mode
             logging.info('The mode is: {}'.format(dev.output))
+            for m in range(3):
+                dev.mode = m
+                logging.info('The mode is: {}'.format(dev.output))
 
-        # set voltage for both channels
-        for ch in range(1, 2):
-            logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
-            dev.set_analog_value(ch, 1 * ur('volts'))
-            logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+            # set voltage for both channels
+            for ch in range(1, 2):
+                logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+                dev.set_analog_value(ch, 1 * ur('volts'))
+                logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
 
-        # test freq
-        logging.info('Current freq: {}'.format(dev.freq))
-        Freqs = [1, 10, 20, 60, 100] * ur('Hz')
-        for f in Freqs:
-            dev.freq = f
+            # test freq
             logging.info('Current freq: {}'.format(dev.freq))
+            Freqs = [1, 10, 20, 60, 100] * ur('Hz')
+            for f in Freqs:
+                dev.freq = f
+                logging.info('Current freq: {}'.format(dev.freq))
 
+            # set the quater waveplate voltage in voltage1
+            wavelength = 700* ur('nanometer')
+            dev.set_quarter_waveplate_voltage(1, wavelength)
 
-        wavelength = 700* ur('nanometer')
-        print('The QWP voltage for {} is {}'.format(wavelength, dev.quarter_waveplate_voltage(wavelength)))
-        # d.set_quarter_waveplate_voltage(1, wavelength)
-        # d.enable_output(False)
-        # print(d.output_state())
+        print('Done with dummy={}'.format(dummy))
 
 
 

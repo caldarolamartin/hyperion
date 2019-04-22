@@ -62,6 +62,7 @@ class UTestLcc():
             self.logger.info('Voltage read: {}'.format(Vnew))
             assert V == Vnew
             self.logger.info('Voltage assertion passed for channel: {}'.format(ch))
+
         self.logger.info('Voltage set and read test passed.')
 
     def test_output(self):
@@ -71,6 +72,7 @@ class UTestLcc():
             self.dev.output = out
             assert out == self.dev.output
             self.logger.info('Output assertion passed for state: {}'.format(out))
+
         self.logger.info('Test output passed.')
 
     def test_freq(self):
@@ -80,8 +82,18 @@ class UTestLcc():
             self.dev.freq = F
             assert F == self.dev.freq
             self.logger.info('Freq assertion passed for freq: {}'.format(F))
+
         self.logger.info('Test Freq passed.')
 
+    def test_mode(self):
+        """ Test the mode methods"""
+        self.logger.debug('Starting test on mode mode')
+        for m in [0, 1, 2]:
+            self.dev.mode = m
+            assert m == self.dev.mode
+            self.logger.info('Mode assertion passed for mode: {}'.format(m))
+
+        self.logger.info('Mode test passed')
 
 if __name__ == "__main__":
     from hyperion import _logger_format
@@ -99,6 +111,7 @@ if __name__ == "__main__":
             t.test_voltage()
             t.test_output()
             t.test_freq()
+            t.test_mode()
 
         print('done with dummy={} tests.'.format(dummy))
 
