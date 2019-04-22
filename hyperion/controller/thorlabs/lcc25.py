@@ -412,7 +412,7 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    dummy = True
+    dummy = True  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = LccDummy('COM00')
