@@ -21,7 +21,7 @@ class VariableWaveplate(BaseInstrument):
     """ This class is the model for the LCC25 analog voltage generator for the variable waveplate from thorlabs.
 
     """
-    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : True,
+    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : False,
                                    'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'} ):
         """
         Init of the class.
@@ -264,7 +264,7 @@ class VariableWaveplate(BaseInstrument):
 
         """
         self.logger.debug('Wavelength to interpolate: {}'.format(w))
-        self.logger.debug('x: {} \n y: {}'.format(x, y))
+        #self.logger.debug('x: {} \n y: {}'.format(x, y))
         value = np.interp(w.m_as('nm'), x.m_as('nm'), y.m_as('volt') )
         self.logger.debug('interpolated value: {}'.format(value))
         return value * ur('volt')
@@ -298,7 +298,8 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with VariableWaveplate() as dev:
+    with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : True,
+                                   'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as dev:
         # output status and set
         logging.info('The output is: {}'.format(dev.output))
         dev.output = True

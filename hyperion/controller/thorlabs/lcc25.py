@@ -46,14 +46,14 @@ class Lcc(BaseController):
         :type dummy: logical
 
         """
-        self.logger = logging.getLogger(__name__)
+        super().__init__()  # runs the init of the base_controller class.
         self.name = 'lcc25'
         self.port = port
         self.dummy = dummy
         self.rsc = None
-        self._is_initialized = False
-        self._output = None
         self.logger.debug('Created object for the LCC. ')
+
+        # these are variables for the @property methods
         self._freq = 0
         self._mode = 0
         self._output = False
@@ -328,12 +328,9 @@ class LccDummy(Lcc):
         """
         super().__init__(port, dummy)
         self.logger = logging.getLogger(__name__)
-        self.dummy = dummy
         self.name = 'Dummy LCC25'
-        self.port = port
         self._buffer = []
         self._response = []
-        self._is_initialized = False
         self._properties = {}
         self._all = {}
         self._commands = []
