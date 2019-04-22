@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 """
-================
-Dummy Instrument
-================
+==================
+Example Instrument
+==================
 
-This is a dummy device, simulated for developing and testing the code
+This is an example instrument, created to give developers a canvas to start their own instruments
+for real devices. This is only a dummy device.
 
 """
 import logging
@@ -17,9 +19,8 @@ class ExampleInstrument(BaseInstrument):
     def __init__(self, settings = {'port':'COM10', 'dummy': True,
                                    'controller': 'hyperion.controller.example_controller/ExampleController'}):
         """ init of the class"""
-        self.logger = logging.getLogger(__name__)
+        super().__init__()
         self.logger.info('Class ExampleInstrument created.')
-
         self._port = settings['port']
         self.dummy = settings['dummy']
         self.logger.debug('Creating the instance of the controller')

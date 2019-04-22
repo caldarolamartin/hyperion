@@ -13,4 +13,9 @@ So far, we have contributed to this project:
 
 * Martin Caldarola (m.caldarola@tudelf.nl)
 * Aron Opheij (a.opheij@tudelft.nl)
+* Thomas Bauer
+* Irina Komen
+* Marc Noordam
+* Thijs Van Gogh
+
 
