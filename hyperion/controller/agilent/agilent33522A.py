@@ -30,7 +30,7 @@ class Agilent33522A(BaseController):
         """ Init for the class
 
         """
-        self.logger = logging.getLogger(__name__)
+        super().__init__()
         self.instrument_id = instrument_id
         self._is_initialized = False
         self.dummy = dummy
