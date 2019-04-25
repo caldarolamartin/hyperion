@@ -13,14 +13,12 @@ import visa
 import time
 import logging
 from hyperion.controller.base_controller import BaseController
-from hyperion.controller.dummy_resource_manager import DummyResourceManager
 
 
 class Agilent33522A(BaseController):
     """Agilent 33522A arbitrary waveform generator, 30MHz, 2 channels.
 
     """
-    rsc = None
     DEFAULTS = {'instrument_id': '8967'
                 }
 
@@ -31,8 +29,8 @@ class Agilent33522A(BaseController):
 
         """
         super().__init__()
+        self.rsc = None
         self.instrument_id = instrument_id
-        self._is_initialized = False
         self.dummy = dummy
         self.logger.info('Created controller class for Agilent33522A with id: {}'.format(instrument_id))
         self.logger.info('Dummy mode: {}'.format(dummy))
@@ -103,7 +101,7 @@ class Agilent33522A(BaseController):
 
 
         """
-        ans = self.rsc.query('*IDN?')
+        ans = self.query('*IDN?')
         time.sleep(0.1)
         return ans
 
@@ -116,7 +114,7 @@ class Agilent33522A(BaseController):
         :rtype: string
         """
         self.check_channel(channel)
-        ans = self.rsc.query('OUTPUT{}?'.format(channel))
+        ans = self.query('OUTPUT{}?'.format(channel))
 
         if not self.dummy:
             if int(ans) == 0:
@@ -137,10 +135,10 @@ class Agilent33522A(BaseController):
         """
         self.check_channel(channel)
         if state:
-            self.rsc.write('OUTPUT{} ON'.format(channel))
+            self.write('OUTPUT{} ON'.format(channel))
             self.logger.debug('Channel {} set on.'.format(channel))
         else:
-            self.rsc.write('OUTPUT{} OFF'.format(channel))
+            self.write('OUTPUT{} OFF'.format(channel))
             self.logger.debug('Channel {} set off.'.format(channel))
 
     def get_function(self, channel):
@@ -155,7 +153,7 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        ans = self.rsc.query('SOUR{}:FUNC?'.format(channel))
+        ans = self.query('SOUR{}:FUNC?'.format(channel))
         self.logger.debug('The function for channel {} is {}'.format(channel, ans))
         return ans
 
@@ -173,7 +171,7 @@ class Agilent33522A(BaseController):
         if fun not in self.FUNCTIONS:
             raise NameError('The function specified is not supported by this model of fun gen. ')
 
-        self.rsc.write('SOUR{}:FUNC {}'.format(channel, fun))
+        self.write('SOUR{}:FUNC {}'.format(channel, fun))
         self.logger.debug('Set for channel {} the function {}'.format(channel, fun))
 
     def check_channel(self, channel):
@@ -201,7 +199,7 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        self.rsc.write('SOUR{}:VOLTage:HIGH {:+f}'.format(channel, voltage))
+        self.write('SOUR{}:VOLTage:HIGH {:+f}'.format(channel, voltage))
 
     def get_voltage_high(self, channel):
         """ This functions sets the high voltage to the channel
@@ -212,7 +210,7 @@ class Agilent33522A(BaseController):
         :rtype: string
         """
         self.check_channel(channel)
-        return self.rsc.query('SOUR{}:VOLTage:HIGH?'.format(channel))[:-1]
+        return self.query('SOUR{}:VOLTage:HIGH?'.format(channel))[:-1]
 
     def set_voltage_low(self, channel, voltage):
         """ This functions sets the low voltage (in volts) to the channel.
@@ -224,7 +222,7 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        self.rsc.write('SOUR{}:VOLTage:LOW {:+f}'.format(channel, voltage))
+        self.write('SOUR{}:VOLTage:LOW {:+f}'.format(channel, voltage))
 
     def get_voltage_low(self, channel):
         """ This functions sets the low voltage to the channel
@@ -235,7 +233,7 @@ class Agilent33522A(BaseController):
         :rtype: string
         """
         self.check_channel(channel)
-        return self.rsc.query('SOUR{}:VOLTage:LOW?'.format(channel))[:-1]
+        return self.query('SOUR{}:VOLTage:LOW?'.format(channel))[:-1]
 
     def set_voltage(self, channel, voltage):
         """ This functions sets the Vpp voltage to the channel
@@ -247,7 +245,7 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        self.rsc.write('SOUR{}:VOLTage {:+f}'.format(channel, voltage))
+        self.write('SOUR{}:VOLTage {:+f}'.format(channel, voltage))
 
     def set_voltage_offset(self, channel, voltage):
         """ This functions sets the DC offset voltage to the channel
@@ -259,7 +257,7 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        self.rsc.write('SOUR{}:VOLTage:OFFset {:+f}'.format(channel, voltage))
+        self.write('SOUR{}:VOLTage:OFFset {:+f}'.format(channel, voltage))
 
     def get_voltage_offset(self, channel):
         """ This functions gets the DC offset voltage to the channel
@@ -272,7 +270,7 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        ans = self.rsc.query('SOUR{}:VOLTage:OFFset?'.format(channel))
+        ans = self.query('SOUR{}:VOLTage:OFFset?'.format(channel))
         self.logger.debug('The offset for channel {} is {} V.'.format(channel, ans))
         return ans[:-1]
 
@@ -285,7 +283,7 @@ class Agilent33522A(BaseController):
         :rtype: string
         """
         self.check_channel(channel)
-        return self.rsc.query('SOUR{}:VOLTage?'.format(channel))[:-1]
+        return self.query('SOUR{}:VOLTage?'.format(channel))[:-1]
 
     def get_system_error(self):
         """ This functions returns the error message
@@ -293,7 +291,7 @@ class Agilent33522A(BaseController):
         :return: error message
         :rtype: string
         """
-        return self.rsc.query('SYSTem:ERRor?')[:-1]
+        return self.query('SYSTem:ERRor?')[:-1]
 
     def set_voltage_limits(self, channel, high, low):
         """ Set a limit to the output values
@@ -314,9 +312,9 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        self.rsc.write('SOUR{}:VOLT:LIM:HIGH {}'.format(channel, high))
+        self.write('SOUR{}:VOLT:LIM:HIGH {}'.format(channel, high))
         self.logger.info('Set the voltage limit HIGH to {} V.'.format(high))
-        self.rsc.write('SOUR{}:VOLT:LIM:LOW {}'.format(channel, low))
+        self.write('SOUR{}:VOLT:LIM:LOW {}'.format(channel, low))
         self.logger.info('Set the voltage limit LOW to {} V.'.format(low))
 
     def get_voltage_limits(self, channel):
@@ -331,8 +329,8 @@ class Agilent33522A(BaseController):
 
         self.check_channel(channel)
         ans = []
-        ans.append(self.rsc.query('SOUR{}:VOLT:LIM:HIGH?'.format(channel))[:-1])
-        ans.append(self.rsc.query('SOUR{}:VOLT:LIM:LOW?'.format(channel))[:-1])
+        ans.append(self.query('SOUR{}:VOLT:LIM:HIGH?'.format(channel))[:-1])
+        ans.append(self.query('SOUR{}:VOLT:LIM:LOW?'.format(channel))[:-1])
         return ans
 
     def enable_voltage_limits(self, channel, state):
@@ -353,10 +351,10 @@ class Agilent33522A(BaseController):
 
         self.check_channel(channel)
         if state:
-            self.rsc.write('SOUR{}:VOLT:LIM:STATe 1'.format(channel))
+            self.write('SOUR{}:VOLT:LIM:STATe 1'.format(channel))
             self.logger.info('Turned on the voltage limit setting for channel {}.'.format(channel))
         else:
-            self.rsc.write('SOUR{}:VOLT:LIM:STATe 0'.format(channel))
+            self.write('SOUR{}:VOLT:LIM:STATe 0'.format(channel))
             self.logger.info('Turned off the voltage limit setting for channel {}.'.format(channel))
 
     def get_voltage_limits_state(self, channel):
@@ -371,7 +369,7 @@ class Agilent33522A(BaseController):
         """
 
         self.check_channel(channel)
-        return self.rsc.query('SOUR{}:VOLT:LIM:STATe?'.format(channel))[:-1]
+        return self.query('SOUR{}:VOLT:LIM:STATe?'.format(channel))[:-1]
 
     def get_state_voltage_limits(self, channel):
         """ This function generator can set a minimum and maximum voltage value that will not be exceeded
@@ -384,7 +382,7 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        ans = self.rsc.query('SOUR{}:VOLT:LIM:STATe?'.format(channel))
+        ans = self.query('SOUR{}:VOLT:LIM:STATe?'.format(channel))
         # print('The "LIMITS" settings for channel {} is = {}'.format(channel,ans))
         return ans[:-1]
 
@@ -398,7 +396,7 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        self.rsc.write('SOUR{}:FREQ {:+f}'.format(channel, freq))
+        self.write('SOUR{}:FREQ {:+f}'.format(channel, freq))
 
     def get_frequency(self, channel):
         """ This functions reads the frequency output for the channel
@@ -410,9 +408,126 @@ class Agilent33522A(BaseController):
 
         """
         self.check_channel(channel)
-        ans = self.rsc.query('SOUR{}:FREQ?'.format(channel))
+        ans = self.query('SOUR{}:FREQ?'.format(channel))
         self.logger.info('Frequency for channel {} is {} Hz. '.format(channel, ans[:-1]))
         return ans[:-1]
+
+
+
+class Agilent33522ADummy(Agilent33522A):
+    """
+    ===================
+    Agilent33522A Dummy
+    ===================
+
+    This is the dummy controller for the Agilent33522A.
+
+    The idea is to load this class instead of the real one
+    to do testing of higher level functions without the need of the real device to be connected or working.
+
+    The logic is that this dummy device will respond as the real device would, with the correct type
+    and size of information is expected.
+
+    This class inherits from the real device and the idea is to re-write only the init, the write
+    and the read, so all the other functions remain the same and functioning.
+
+    The specific way to achieve this will be different for every device, so it has to be done separately.
+
+    To do so, we use a yaml file that tells the dummy class what are the properties of the device. For example,
+    one property for the LCC25 is voltage1, which is the voltage for channel 1. Then from this you can build 2
+    commands: voltage1? to ask what is the value and voltage1=1 to set it to the value 1. So we build a command
+    list using the CHAR ? and = for each of this properties.
+
+    """
+
+    CHAR = {'ask' : '?', 'set' : '='}
+
+    def __init__(self, port, dummy = True):
+        """ init for the dummy LCC
+        :param port: fake port name
+        :type port: str
+        :param dummy: indicates the dummy mode. keept for compatibility
+        :type dummy: logical
+        """
+        super().__init__(port, dummy)
+        self.logger = logging.getLogger(__name__)
+        self.name = 'Dummy LCC25'
+        self._buffer = []
+        self._response = []
+        self._properties = {}
+        self._all = {}
+        self._commands = []
+        self.load_properties()
+
+    def load_properties(self):
+        """ This method loads a yaml file with a dictionary with the available properties for the
+        LCC25 and some defaults values. This dictionary is saved in properties and will be modified
+        when a variable is writen, so the dummy device will respond with the previously set value.
+
+        """
+        filename = os.path.join(root_dir,'controller', 'dummy', 'lcc25.yml')
+        self.logger.debug('Loading LCC defaults file: {}'.format(filename))
+
+        with open(filename, 'r') as f:
+            d = yaml.load(f, Loader=yaml.FullLoader)
+
+        self._properties = d
+        self.logger.debug('_properties dict: {}'.format(self._properties))
+
+        for key in d:
+            self.logger.debug('Adding key: {}'.format(key))
+            self._all[key] = d[key]['default']
+            for command_key in self.CHAR:
+                new_command = key + self.CHAR[command_key]
+                self.logger.debug('Adding to the command list: {}'.format(new_command))
+                self._commands. append(new_command)
+
+        self.logger.debug('_all dict: {}'.format(self._all))
+        self._properties['dummy_yaml_file'] = filename  # add to the class the name of the Config file used.
+        self.logger.debug('Commands list: {}'.format(self._commands))
+
+
+    def write(self, msg):
+        """Dummy write. It will compare the msg with the COMMANDS
+
+        :param msg: Message to write
+        :type msg: str
+
+        """
+        self.logger.debug('Writing to dummy LCC25: {}'.format(msg))
+
+        # next is to check that the command exists in the device and to give the proper response
+        if '=' in msg:
+            prop = msg.split('=')[0]
+            value = msg.split('=')[1]
+            command = prop + '='
+        elif msg[-1] == '?':
+            prop = msg[:-1]
+            value = None
+            command = msg
+
+        self.logger.debug('prop: {}, value: {}'.format(prop, value))
+        if command in self._commands:
+            if value is None:
+                self.logger.debug('Reading the property: {}'.format(prop))
+                response = self._all[prop]
+            else:
+                response = 'Setting property: {} to {}'.format(prop, value)
+                self.logger.debug(response)
+                self._buffer.append(msg)
+                self._all[prop] = value
+        else:
+            self.logger.error('The command "{}" is not listed as a valid command for LCC25'.format(msg))
+
+        self.logger.debug('The response is: {}'.format(response))
+        self._response.append(response)
+
+
+    def read(self):
+        """ Dummy read. Reads the response buffer"""
+        self.logger.debug('Reading from the dummy device')
+        return self._response[-1]
+
 
 
 if __name__ == "__main__":
@@ -448,7 +563,7 @@ if __name__ == "__main__":
 
         ## check error
         time.sleep(0.1)
-        print(gen.rsc.query('SYST:ERR?'))
+        print(gen.query('SYST:ERR?'))
 
         # check voltage high
         ch = 2

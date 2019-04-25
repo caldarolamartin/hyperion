@@ -292,7 +292,6 @@ class Lcc(BaseController):
         self._mode = mode
 
 
-
 class LccDummy(Lcc):
     """
     =========
