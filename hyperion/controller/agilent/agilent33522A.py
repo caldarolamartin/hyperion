@@ -68,6 +68,33 @@ class Agilent33522A(BaseController):
                     self.rsc.close()
             self.logger.info('Connection closed.')
 
+    def write(self, msg):
+        """ Write in the device buffer
+        :param msg: message to write to the device
+        :type msg: string
+        """
+        self.logger.debug('Writing to device: {}'.format(msg))
+        self.rsc.write(msg)
+
+    def read(self):
+        """ Read buffer
+
+        """
+        self.logger.debug('Reading from device')
+        ans = self.rsc.read()
+        self.logger.debug('Response: {}'.format(ans))
+        return ans
+
+    def query(self, msg):
+        """ Sequential read and write
+        :param msg: message to write to the device
+        :type msg: string
+        """
+        self.logger.debug('Query: {}'.format(msg))
+        ans = self.rsc.query(msg)
+        self.logger.debug('Answer from device: {}'.format(ans))
+        return ans
+
     def idn(self):
         """Ask the device for its identification
 
