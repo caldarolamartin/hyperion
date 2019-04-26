@@ -38,8 +38,8 @@ class VariableWaveplate(BaseInstrument):
         i.e. the class will overwrite the 'controller' with 'hyperion.controller.thorlabs.lcc25/LccDummy'
 
         """
-        self.logger = logging.getLogger(__name__)
         super().__init__(settings)
+        self.logger = logging.getLogger(__name__)
         self._port = settings['port']
         self.logger.info('Initializing Variable Waveplate with settings: {}'.format(settings))
 

@@ -13,8 +13,6 @@ you wrote the driver by hand (not using other library but the communication).
 """
 import logging
 import importlib
-import yaml
-
 
 class BaseInstrument():
     """ General class for Instrument
