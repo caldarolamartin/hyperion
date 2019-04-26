@@ -19,14 +19,15 @@ class BaseController():
     """ General class for controller. Use it as parent of your (home-made) controller.
 
     """
-    def __init__(self):
+    def __init__(self, settings = {'port':'COM10', 'dummy': True} ):
         """ Init for the class
 
         """
         self.logger = logging.getLogger(__name__)
         self._is_initialized = False
-        #self.logger.info('Class BaseController created.')
-        #self.logger.warning('Method used from the BaseController class')
+        self._settings = settings
+        if 'dummy' in self._settings:
+            self.logger.info('Dummy mode: {}'.format(self._settings['dummy']))
 
     # the next two methods are needed so the context manager 'with' works.
     def __enter__(self):
@@ -38,13 +39,10 @@ class BaseController():
         else:
             raise Warning('Trying to finalize the device before initializing.')
 
-    def initialize(self, port):
-        """ Starts the connection to the device in port
+    def initialize(self):
+        """ Starts the connection to the device.
 
-        :param port: port name to connect to
-        :type port: string
         """
-        self._is_initialized = True
         self.logger.warning('Method used from the BaseController class')
         self.logger.info('Opening connection to device.')
 
@@ -65,12 +63,4 @@ class BaseController():
         return 'BaseController'
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-            handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                      logging.StreamHandler()])
-
-    with BaseController() as dev:
-        dev.initialize('COM10')
-        dev.idn()
-
+    print('you should not be running this file alone')

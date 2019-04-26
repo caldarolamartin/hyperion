@@ -18,29 +18,25 @@ class ExampleController(BaseController):
     FAKE_RESPONSES = {'A': 1,
                      }
 
-    def __init__(self, port, dummy=True):
+    def __init__(self, settings = {'port':'COM10', 'dummy': False}):
         """ Init of the class.
 
-        :param port: connection port to use
-        :type port: str
-        :param dummy: if the device connects to the real or not. in this case is useless, this is a dummy inivented device
-        :type dummy: logical
+        :param settings: this includes all the settings needed to connect to the device in question.
+        :type settings: dict
 
-        NOTE: this device is only dummy but the setting is here to emulate a real device.
         """
-        super().__init__()
-        self._port = port
-        self.dummy = dummy
+        super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleController created.')
         self._amplitude = []
 
     def initialize(self):
         """ Starts the connection to the device in port """
-        self.logger.info('Opening connection to device in port {}.'.format(self._port))
-        self._amplitude = self.query('A?')
-        self._is_initialized = True     # this is to prevent you to close the device connection if you
+        self.logger.info('Opening connection to device ExampleController (a fake connection)')
+        self._is_initialized = True     # THIS IS MANDATORY!!
+                                        # this is to prevent you to close the device connection if you
                                         # have not initialized it inside a with statement
+        self._amplitude = self.query('A?')
 
     def finalize(self):
         """ This method closes the connection to the device.
@@ -48,6 +44,7 @@ class ExampleController(BaseController):
 
         """
         self.logger.info('Closing connection to device.')
+        self._is_initialized = False
 
     def idn(self):
         """ Identify command
@@ -56,7 +53,7 @@ class ExampleController(BaseController):
         :rtype: string
         """
         self.logger.debug('Ask IDN to device.')
-        return 'Dummy Output controller'
+        return 'ExampleController device'
 
     def query(self, msg):
         """ writes into the device msg
@@ -64,7 +61,7 @@ class ExampleController(BaseController):
         :param msg: command to write into the device port
         :type msg: string
         """
-        self.logger.info('Writing into the example device:{}'.format(msg))
+        self.logger.debug('Writing into the example device:{}'.format(msg))
         self.write(msg)
         ans = self.read()
         return ans
@@ -148,7 +145,7 @@ class ExampleControllerDummy(ExampleController):
         :type msg: string
         """
         self.logger.debug('Writing into the dummy device:{}'.format(msg))
-        ans = 'dummy answer'
+        ans = 'A general dummy answer'
         return ans
 
 
@@ -159,8 +156,15 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with ExampleController() as dev:
-        dev.initialize('COM10')
+    dummy = False  # change this to false to work with the real device in the COM specified below.
+
+    if dummy:
+        my_class = ExampleControllerDummy
+    else:
+        my_class = ExampleController
+
+    with my_class(settings = {'dummy':dummy}) as dev:
+        dev.initialize()
         print(dev.amplitude)
         dev.amplitude = 5
         print(dev.amplitude)

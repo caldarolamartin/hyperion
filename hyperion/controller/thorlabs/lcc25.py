@@ -46,6 +46,7 @@ class Lcc(BaseController):
         :type dummy: logical
 
         """
+        self.logger = logging.getLogger(__name__)
         super().__init__()  # runs the init of the base_controller class.
         self.name = 'lcc25'
         self.port = port
@@ -414,11 +415,11 @@ if __name__ == "__main__":
     dummy = True  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
-        my_class = LccDummy('COM00')
+        my_class = LccDummy
     else:
-        my_class =  Lcc('COM8', dummy=dummy)
+        my_class =  Lcc
 
-    with my_class as dev:
+    with my_class('COM8', dummy=dummy) as dev:
         dev.initialize()
 
         # output status and set

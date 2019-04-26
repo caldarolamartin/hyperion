@@ -19,13 +19,9 @@ class ExampleInstrument(BaseInstrument):
     def __init__(self, settings = {'port':'COM10', 'dummy': True,
                                    'controller': 'hyperion.controller.example_controller/ExampleController'}):
         """ init of the class"""
-        super().__init__()
+        super().__init__(settings)
+        self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
-        self._port = settings['port']
-        self.dummy = settings['dummy']
-        self.logger.debug('Creating the instance of the controller')
-        self.controller_class = self.load_controller(settings['controller'])
-        self.controller = self.controller_class(self._port, dummy=self.dummy)
 
     def initialize(self):
         """ Starts the connection to the device"
@@ -76,10 +72,10 @@ if __name__ == "__main__":
     with ExampleInstrument() as dev:
         dev.initialize()
         print(dev.amplitude)
-        v = 2 * ur('volts')
-        dev.amplitude = v
-        print(dev.amplitude)
-        dev.amplitude = v
-        print(dev.amplitude)
+        # v = 2 * ur('volts')
+        # dev.amplitude = v
+        # print(dev.amplitude)
+        # dev.amplitude = v
+        # print(dev.amplitude)
 
-
+    print('done')
