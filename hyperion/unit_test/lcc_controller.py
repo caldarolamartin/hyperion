@@ -19,18 +19,18 @@ from hyperion.controller.thorlabs.lcc25 import Lcc, LccDummy
 
 class UTestLcc():
     """ Class to unit_test the LCC25 controller."""
-    def __init__(self, port='COM8', dummy=True):
+    def __init__(self, settings):
         """ initialize
 
         """
         self.logger = logging.getLogger(__name__)
         self.logger.info('Created UTestLcc25 class.')
-        self.logger.info('Testing in dummy={}'.format(dummy))
-        self.dummy = dummy
+        self.logger.info('Testing in dummy={}'.format(settings['dummy']))
+        self.dummy = settings['dummy']
         if dummy:
-            self.dev = LccDummy(port)
+            self.dev = LccDummy(settings)
         else:
-            self.dev = Lcc(port=port, dummy=dummy)
+            self.dev = Lcc(settings)
 
         self.dev.initialize()
         sleep(1)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     for dummy in dummy_mode:
         print('Running dummy={} tests.'.format(dummy))
         # run the tests
-        with UTestLcc(port=true_port, dummy=dummy) as t:
+        with UTestLcc(settings={'port':true_port, 'dummy':dummy}) as t:
             t.test_voltage()
             t.test_output()
             t.test_freq()
