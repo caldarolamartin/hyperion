@@ -41,8 +41,11 @@ class VariableWaveplate(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self._port = settings['port']
-        self.logger.info('Initializing Variable Waveplate with settings: {}'.format(settings))
+        # property
+        self._output = False
+        self._mode = 0
 
+        self.logger.info('Initializing Variable Waveplate with settings: {}'.format(settings))
         # this is to load the calibration file
         self.calibration = {}
         self.logger.debug('Get the source path')
@@ -55,9 +58,6 @@ class VariableWaveplate(BaseInstrument):
         self.controller.initialize()
         self.output = settings['enable']
 
-        # property
-        self._output = False
-        self._mode = 0
 
     def __enter__(self):
         return self

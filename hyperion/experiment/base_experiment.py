@@ -62,9 +62,7 @@ class BaseExperiment():
         :param name: name of the instrument to load
         :type name: string
         """
-
         self.logger.debug('Loading instrument: {}'.format(name))
-
         for inst in self.properties['Instruments']:
             self.logger.debug('instrument name: {}'.format(inst))
 

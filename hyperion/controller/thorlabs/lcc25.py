@@ -62,8 +62,6 @@ class Lcc(BaseController):
         """
         if self.dummy:
             self.logger.info('Dummy device initialized')
-
-
         else:
             self.rsc = serial.Serial(port=self._port,
                                      baudrate=self.DEFAULTS['baudrate'],

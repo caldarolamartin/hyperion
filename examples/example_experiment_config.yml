@@ -5,11 +5,13 @@ Instruments:
   - VariableWaveplate:
       port: COM8
       instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
-      controller: hyperion.controller.agilent.agilent3352A/Agilent33522A
-      dummy: True
+      controller: hyperion.controller.thorlabs.lcc25/Lcc
+      dummy: False
       enable: True
-      settings:
+      settings: # not implemented yet
         output: True
+        voltage1: 1V
+        voltage2: 1V
   - ExampleInstrument:
       port: COM0
       instrument: hyperion.instrument.example_instrument/ExampleInstrument
