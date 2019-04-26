@@ -26,6 +26,12 @@ class BaseInstrument():
         """
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class BaseInstrument created with settings: {}'.format(settings))
+
+        if 'dummy' in settings and settings['dummy']==True:
+            if 'controller' in settings:
+                if len(settings['controller']) < 5 or settings['controller'][-4]!='Dummy':
+                    settings['controller'] += 'Dummy'
+
         self.controller_class = self.load_controller(settings)
         self.controller = self.controller_class(settings)
 
@@ -77,4 +83,5 @@ class BaseInstrument():
 
 if __name__ == "__main__":
     print('you should not be running this file alone')
+
 

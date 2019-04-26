@@ -17,7 +17,6 @@ import logging
 from time import sleep
 from hyperion import ur, root_dir
 from hyperion.controller.base_controller import BaseController
-from hyperion.controller.dummy_resource_manager import DummyResourceManager
 
 
 class Lcc(BaseController):

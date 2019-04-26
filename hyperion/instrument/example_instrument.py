@@ -69,13 +69,16 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with ExampleInstrument() as dev:
-        dev.initialize()
-        print(dev.amplitude)
-        # v = 2 * ur('volts')
-        # dev.amplitude = v
-        # print(dev.amplitude)
-        # dev.amplitude = v
-        # print(dev.amplitude)
+    dummy = [True, False]
+    for d in dummy:
+        with ExampleInstrument(settings = {'port':'COM8', 'dummy' : d,
+                                   'controller': 'hyperion.controller.example_controller/ExampleController'}) as dev:
+            dev.initialize()
+            print(dev.amplitude)
+            # v = 2 * ur('volts')
+            # dev.amplitude = v
+            # print(dev.amplitude)
+            # dev.amplitude = v
+            # print(dev.amplitude)
 
     print('done')
