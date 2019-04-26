@@ -48,7 +48,7 @@ class UTestVariableWaveplate():
         CH = [1,2]
         for ch in CH:
             # #### set a new voltage
-            V = 3.1459 * ur('volt')
+            V = 3.146 * ur('volt')
             self.logger.info('Voltage to set: {} in channel {}'.format(V, ch))
             self.inst.set_analog_value(ch, V)
             Vnew = self.inst.get_analog_value(ch)
@@ -71,7 +71,7 @@ class UTestVariableWaveplate():
     def test_freq(self):
         """ Test the freq command"""
         self.logger.debug('Starting unit_test on freq')
-        for F in [10*ur('Hz'), 3.1416*ur('Hz')]:
+        for F in [10*ur('Hz'), 10.50*ur('Hz')]:
             self.inst.freq = F
             assert F == self.inst.freq
             self.logger.info('Freq assertion passed for freq: {}'.format(F))
@@ -95,7 +95,7 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    dummy_mode = [True]  # add false here to also unit_test the real device with connection
+    dummy_mode = [False]  # add false here to also unit_test the real device with connection
     true_port = 'COM8'
     for dummy in dummy_mode:
         print('Running dummy={} tests.'.format(dummy))

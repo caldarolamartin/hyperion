@@ -55,7 +55,7 @@ class UTestLcc():
             # # ask current voltage
             self.dev.get_voltage(ch)
             # #### set a new voltage
-            V = 3.1459 * ur('volt')
+            V = 3.146 * ur('volt')
             self.logger.info('Voltage to set: {}'.format(V))
             self.dev.set_voltage(ch, V)
             Vnew = self.dev.get_voltage(ch)
@@ -78,7 +78,7 @@ class UTestLcc():
     def test_freq(self):
         """ Test the freq command"""
         self.logger.debug('Starting unit_test on freq')
-        for F in [10*ur('Hz'), 3.1416*ur('Hz')]:
+        for F in [10*ur('Hz'), 10.5*ur('Hz')]:
             self.dev.freq = F
             assert F == self.dev.freq
             self.logger.info('Freq assertion passed for freq: {}'.format(F))
@@ -102,16 +102,16 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    dummy_mode = [True]  # add false here to also unit_test the real device with connection
+    dummy_mode = [False]  # add false here to also unit_test the real device with connection
     true_port = 'COM8'
     for dummy in dummy_mode:
         print('Running dummy={} tests.'.format(dummy))
         # run the tests
         with UTestLcc(settings={'port':true_port, 'dummy':dummy}) as t:
-            t.test_voltage()
-            t.test_output()
+            #t.test_voltage()
+            #t.test_output()
+            #t.test_mode()
             t.test_freq()
-            t.test_mode()
 
         print('done with dummy={} tests.'.format(dummy))
 
