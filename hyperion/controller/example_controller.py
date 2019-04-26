@@ -28,6 +28,8 @@ class ExampleController(BaseController):
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleController created.')
+        self.name = 'Example Controller'
+
         self._amplitude = []
 
     def initialize(self):

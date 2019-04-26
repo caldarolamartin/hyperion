@@ -36,20 +36,18 @@ class Lcc(BaseController):
                    'Voltage2': 2,
                    'Modulation': 0}
 
-    def __init__(self, port, dummy=False):
+    def __init__(self, settings):
         """ INIT of the class
 
-        :param port: name of the port where the device is connected. Ex: 'COM5'
-        :type port: str
-        :param dummy: to work in dummy mode
-        :type dummy: logical
+        :param settings: this includes all the settings needed to connect to the device in question.
+        :type settings: dict
 
         """
-        self.logger = logging.getLogger(__name__)
         super().__init__()  # runs the init of the base_controller class.
+        self.logger = logging.getLogger(__name__)
         self.name = 'lcc25'
-        self.port = port
-        self.dummy = dummy
+        self._port = settings['port']
+        self.dummy = settings['dummy']
         self.rsc = None
         self.logger.debug('Created object for the LCC. ')
 
@@ -67,7 +65,7 @@ class Lcc(BaseController):
 
 
         else:
-            self.rsc = serial.Serial(port=self.port,
+            self.rsc = serial.Serial(port=self._port,
                                      baudrate=self.DEFAULTS['baudrate'],
                                      timeout=self.DEFAULTS['read_timeout'],
                                      write_timeout=self.DEFAULTS['write_timeout'])
@@ -318,14 +316,14 @@ class LccDummy(Lcc):
 
     CHAR = {'ask' : '?', 'set' : '='}
 
-    def __init__(self, port, dummy = True):
+    def __init__(self, settings = {'port':'COM00', 'dummy':True}):
         """ init for the dummy LCC
         :param port: fake port name
         :type port: str
         :param dummy: indicates the dummy mode. keept for compatibility
         :type dummy: logical
         """
-        super().__init__(port, dummy)
+        super().__init__(settings=settings)
         self.logger = logging.getLogger(__name__)
         self.name = 'Dummy LCC25'
         self._buffer = []
@@ -411,14 +409,14 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    dummy = True  # change this to false to work with the real device in the COM specified below.
+    dummy = False  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = LccDummy
     else:
-        my_class =  Lcc
+        my_class = Lcc
 
-    with my_class('COM8', dummy=dummy) as dev:
+    with my_class(settings={'port':'COM8', 'dummy':dummy}) as dev:
         dev.initialize()
 
         # output status and set

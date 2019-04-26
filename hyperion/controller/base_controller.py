@@ -37,7 +37,7 @@ class BaseController():
         if self._is_initialized:
             self.finalize()
         else:
-            raise Warning('Trying to finalize the device before initializing.')
+            self.logger.warning('Exiting the with before initializing.')
 
     def initialize(self):
         """ Starts the connection to the device.

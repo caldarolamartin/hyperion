@@ -39,16 +39,9 @@ class VariableWaveplate(BaseInstrument):
 
         """
         self.logger = logging.getLogger(__name__)
-        self.dummy = settings['dummy']
-        print(self.dummy)
-        if self.dummy:
-            self.logger.debug('Using dummy mode!')
-            settings['controller'] = 'hyperion.controller.thorlabs.lcc25/LccDummy'
+        super().__init__(settings)
         self._port = settings['port']
-        self._output = False
-        self._mode = 0
-
-        self.logger.info('Initializing Variable Waveplate on port {}'.format(self._port))
+        self.logger.info('Initializing Variable Waveplate with settings: {}'.format(settings))
 
         # this is to load the calibration file
         self.calibration = {}
@@ -59,10 +52,12 @@ class VariableWaveplate(BaseInstrument):
         self.load_calibration(cal_file)
 
         # initialize
-        self.controller_class = self.load_controller(settings['controller'])
-        self.controller = self.controller_class(self._port)
         self.controller.initialize()
         self.output = settings['enable']
+
+        # property
+        self._output = False
+        self._mode = 0
 
     def __enter__(self):
         return self
