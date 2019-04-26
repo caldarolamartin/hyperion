@@ -8,8 +8,8 @@
 
 from pyvisa import constants
 
-from lantz import Action, Feat
-from lantz import MessageBasedDriver
+from lantz.core import Action, Feat
+from lantz.core import MessageBasedDriver
 
 
 class Cobolt0601(MessageBasedDriver):
@@ -204,7 +204,7 @@ class Cobolt0601(MessageBasedDriver):
 
 if __name__ == '__main__':
     import argparse
-    import lantz.log
+    #import lantz.core.log
 
     parser = argparse.ArgumentParser(description='Test Kentech HRI')
     parser.add_argument('-i', '--interactive', action='store_true',
@@ -213,7 +213,7 @@ if __name__ == '__main__':
                         help='Serial port to connect to')
 
     args = parser.parse_args()
-    lantz.log.log_to_screen(lantz.log.DEBUG)
+    #lantz.core.log.log_to_screen(lantz.log.DEBUG)
     with Cobolt0601.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.qtwidgets import start_test_app
