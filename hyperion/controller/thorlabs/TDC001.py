@@ -4,17 +4,27 @@
 Thorlabs TDC001
 ================
 
-Driver for the Thorlabs motor controllers. Imported from https://github.com/qpit/thorlabs_apt around Dec 2018 and addopted in hyperion by Marc.
-I would recommend to use it with the Thorlabsmotor_instrument file in Hyperion. Altough it will work on its own.
+Driver for the Thorlabs motor controllers. Imported from https://github.com/qpit/thorlabs_apt around Dec 2018.
+
 
 Python package wrapping Thorlabs' APT.dll shared library.
 
+**Installation**
+
+Since this package is based on APT.dll it only works on Windows. For Linux and Mac you can try [thorpy](https://github.com/UniNE-CHYN/thorpy)
+
+1. Install thorlabs_apt using setup.py
+
+2. Check whether your python is a 32 bit or 64 bit version and install the corresponding [Thorlabs' APT software](http://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=APT)
+
+3. Copy APT.dll from the "APT installation path\APT Server" directory to one of the following locations:
+    - Windows\System32
+    - into the "thorlabs_apt" folder
+    - your python application directory
 
 **List of reported working devices**
 
 I have tested thorlabs_apt only with the K10CR1 rotation stage, but it should work with all motor supported by APT. If it works with other motor as well, please let me know and I will add it here. Otherwise file a bug report or fix the problem yourself and open a pull request.
-
-
 
 - BSC101
     - NRT150
@@ -33,7 +43,9 @@ I have tested thorlabs_apt only with the K10CR1 rotation stage, but it should wo
 
 **Example**
 
-The following example checks the available the devices and than connects with a linear motor stage. Afterwards it homes it and moves it by 10 micrometer.
+The following example checks for all connected devices and then connects
+to the one specified by its serial number. The motor is first homed (blocking)
+and then moved relative by 45 degree.
 
 ```python
     >>> from hyperion.controller.thorlabs.TDC001 import TDC001
@@ -292,17 +304,21 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
         return (model.value, swver.value, hwnotes.value)
 
-    def __init__(self, settings):
+    def __init__(self, settings = {}):
         """ Init of the class. """
-        super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
+        self._is_initialized = False
         self.logger.info('Class ExampleController created.')
+        self.settings = settings
         self._amplitude = []
         self._lib = self._load_library()
+        
+        if 'serial' in self.settings:
+            self._serial_number = self.settings['serial']
+        else:
+            self._serial_number = ''
 
-
-
-    def initialize(self, serial_number):
+    def initialize(self, serial_number=None):
         """ Starts the connection to the device in port
 
         :param port: port name to connect to
@@ -312,9 +328,11 @@ class TDC001(BaseController):
 #        self._amplitude = self.query('A?')
         self._is_initialized = True     # this is to prevent you to close the device connection if you
                                             # have not initialized it inside a with statement
-        self._serial_number = serial_number
+
         self._active_channel = 0
         # initialize device
+        if serial_number is None:
+            serial_number = self._serial_number
         err_code = self._lib.InitHWDevice(serial_number)
         if (err_code != 0):
             raise Exception("Could not initialize device: %s" %
@@ -1624,10 +1642,8 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-#    with TDC001() as dev:
-#        dev.initialize('COM10')
-#        print(dev.amplitude)
-#        dev.amplitude = 5
-#        print(dev.amplitude)
+    with TDC001() as dev:
+        print(dev.list_available_devices())
+		
 
 

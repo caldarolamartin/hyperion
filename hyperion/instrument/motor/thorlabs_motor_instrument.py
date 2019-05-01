@@ -32,39 +32,25 @@ class Thorlabsmotor(BaseInstrument):
 
     """
     
-    def __init__(self, settings = {'dummy': True,'port':'COM10',
-                               'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}):
+    def __init__(self, settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001',
+                                    'serial_number' : 81818251}):
         """ init of the class"""
         
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-        self._port = settings['port']
+        
+        if 'serial_number' in settings:
+            self._serial_number = settings['serial_number']
         # property
         self._output = False
         self._mode = 0
 
-        self.logger.info('Initializing Variable Waveplate with settings: {}'.format(settings))
+
+
+        self.logger.info('Initializing Thorlabs motoer settings: {}'.format(settings))
         
         # initialize
-        self.controller.initialize()
-        #self.output = settings['enable']
-        
-#        
-#        self.logger = logging.getLogger(__name__)
-#        self.logger.info('Class ExampleInstrument created.')
-#    
-#        self._port = settings['port']    
-#        self.dummy = settings['dummy']
-#        self.logger.debug('Creating the instance of the controller')
-#        print(settings['controller'])
-#        self.controller_class = self.load_controller(settings['controller'])
-#        self.controller = self.controller_class()
-
-#    def __init__(self, settings = {}):
-#        """ init of the class"""
-#        self.logger = logging.getLogger(__name__)
-#        self.logger.info('Class ExampleInstrument created.')
-#        self.controller = TDC001()
+        #self.controller.initialize()
 
 
     def list_devices(self):
@@ -142,15 +128,8 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with Thorlabsmotor(settings = {'dummy':False,'port':'COM10',
-                               'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}) as dev:
+    with Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}) as dev:
         dev.list_devices()
-#        dev.initialize('COM10')
-#        print(dev.amplitude)
-#        v = 2 * ur('volts')
-#        dev.amplitude = v
-#        print(dev.amplitude)
-#        dev.amplitude = v
-#        print(dev.amplitude)
+
 
 
