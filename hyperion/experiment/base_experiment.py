@@ -46,7 +46,8 @@ class BaseExperiment():
         self.properties = d
         self.properties['config file'] = filename  # add to the class the name of the Config file used.
 
-        self.scan['properties'] = d['Scan']
+        if 'Scan' in d:
+            self.scan['properties'] = d['Scan']
 
     def finalize(self):
         """ Finalizing the experiment class """
