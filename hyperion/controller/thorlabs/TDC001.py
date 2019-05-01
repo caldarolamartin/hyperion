@@ -4,27 +4,17 @@
 Thorlabs TDC001
 ================
 
-Driver for the Thorlabs motor controllers. Imported from https://github.com/qpit/thorlabs_apt around Dec 2018.
-
+Driver for the Thorlabs motor controllers. Imported from https://github.com/qpit/thorlabs_apt around Dec 2018 and addopted in hyperion by Marc.
+I would recommend to use it with the Thorlabsmotor_instrument file in Hyperion. Altough it will work on its own.
 
 Python package wrapping Thorlabs' APT.dll shared library.
 
-**Installation**
-
-Since this package is based on APT.dll it only works on Windows. For Linux and Mac you can try [thorpy](https://github.com/UniNE-CHYN/thorpy)
-
-1. Install thorlabs_apt using setup.py
-
-2. Check whether your python is a 32 bit or 64 bit version and install the corresponding [Thorlabs' APT software](http://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=APT)
-
-3. Copy APT.dll from the "APT installation path\APT Server" directory to one of the following locations:
-    - Windows\System32
-    - into the "thorlabs_apt" folder
-    - your python application directory
 
 **List of reported working devices**
 
 I have tested thorlabs_apt only with the K10CR1 rotation stage, but it should work with all motor supported by APT. If it works with other motor as well, please let me know and I will add it here. Otherwise file a bug report or fix the problem yourself and open a pull request.
+
+
 
 - BSC101
     - NRT150
@@ -43,17 +33,17 @@ I have tested thorlabs_apt only with the K10CR1 rotation stage, but it should wo
 
 **Example**
 
-The following example checks for all connected devices and then connects
-to the one specified by its serial number. The motor is first homed (blocking)
-and then moved relative by 45 degree.
+The following example checks the available the devices and than connects with a linear motor stage. Afterwards it homes it and moves it by 10 micrometer.
 
 ```python
-    >>> import thorlabs_apt as apt
-    >>> apt.list_available_devices()
-    [(50, 55000038)]
-    >>> motor = apt.Motor(55000038)
-    >>> motor.move_home(True)
-    >>> motor.move_by(45)
+    >>> from hyperion.controller.thorlabs.TDC001 import TDC001
+	>>> checkdevices = TDC001()
+	>>> checkdevices.list_available_device()
+	>>> [(31,81818251)]
+    >>> motorx = TDC001()
+	>>> motorx.initialize(81818251)
+    >>> motorx.move_home(True)
+    >>> motorx.move_by(0.01)
 ```
 
 **References**
@@ -302,10 +292,10 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
         return (model.value, swver.value, hwnotes.value)
 
-    def __init__(self):
+    def __init__(self, settings):
         """ Init of the class. """
+        super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
-        self._is_initialized = False
         self.logger.info('Class ExampleController created.')
         self._amplitude = []
         self._lib = self._load_library()
