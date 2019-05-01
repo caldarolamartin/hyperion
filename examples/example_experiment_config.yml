@@ -6,7 +6,7 @@ Instruments:
       port: COM8
       instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
       controller: hyperion.controller.thorlabs.lcc25/Lcc
-      dummy: False
+      dummy: True
       enable: True
       settings: # not implemented yet
         output: True
