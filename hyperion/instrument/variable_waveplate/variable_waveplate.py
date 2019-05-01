@@ -22,27 +22,29 @@ class VariableWaveplate(BaseInstrument):
     """ This class is the model for the LCC25 analog voltage generator for the variable waveplate from thorlabs.
 
     """
-    def __init__(self, port, enable = True, dummy = False):
+    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : True} ):
         """
+        port, enable = True, dummy = False
         Initialize
         """
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Initializing Variable Waveplate on port {}'.format(port))
+        self.dummy = settings['dummy']
+        self._port = settings['port']
+
+        self.logger.info('Initializing Variable Waveplate on port {}'.format(self._port))
 
         # this is to load the calibration file
         self.calibration = {}
         self.logger.debug('Get the source path')
-
         cal_file = os.path.join(root_dir, 'instrument', 'variable_waveplate',
                                 'lookup_table_qwp_voltage_calibration_2019-03-15.txt')
         self.logger.info('Using Variable Waveplate QWP calibration file: {}'.format(cal_file))
         self.load_calibration(cal_file)
 
         # initialize
-        self.dummy = dummy
-        self.driver = Lcc(port, dummy = dummy)
+        self.driver = Lcc(self._port, dummy = self.dummy)
         self.driver.initialize()
-        if enable:
+        if settings['enable']:
             self.driver.enable_output(True)
         else:
             self.driver.enable_output(False)
@@ -70,7 +72,7 @@ class VariableWaveplate(BaseInstrument):
                                                  np.max(self.calibration['wavelength']))
         self.calibration['qwp'] = cal[aux.argsort(), 1] * ur('volt')
         self.calibration['qwp error'] = cal[aux.argsort(), 2] * ur('volt')
-        self.logger.debug('Calibration dictionary: {}'.format(self.calibration))
+        #self.logger.debug('Calibration dictionary: {}'.format(self.calibration))
         self.logger.info('Done loading calibration.')
 
     def idn(self):
@@ -237,7 +239,7 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with VariableWaveplate('COM8', dummy = True) as d:
+    with VariableWaveplate() as d:
         # test idn
         # print(d.idn())
         # test output_state

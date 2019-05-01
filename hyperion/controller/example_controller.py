@@ -4,7 +4,7 @@
 Dummy controller
 ================
 
-This is a dummy device, simulated for developing and testing the code.
+This is a fake device, simulated for developing and testing the code.
 It can be used as an example to build your own controller for your device.
 
 
@@ -12,8 +12,8 @@ It can be used as an example to build your own controller for your device.
 import logging
 from hyperion.controller.base_controller import BaseController
 
-class DummyOutputController(BaseController):
-    """ Dummy output device """
+class ExampleController(BaseController):
+    """ Example output device that does not connect to anything"""
 
     FAKE_RESPONSES = {'A': 1,
                      }
@@ -21,8 +21,11 @@ class DummyOutputController(BaseController):
     def __init__(self):
         """ Init of the class. """
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Class BaseController created.')
+        self._is_initialized = False
+        self.logger.info('Class ExampleController created.')
         self._amplitude = []
+
+
 
     def initialize(self, port):
         """ Starts the connection to the device in port
@@ -32,6 +35,8 @@ class DummyOutputController(BaseController):
         """
         self.logger.info('Opening connection to device.')
         self._amplitude = self.query('A?')
+        self._is_initialized = True     # this is to prevent you to close the device connection if you
+                                        # have not initialized it inside a with statement
 
     def finalize(self):
         """ This method closes the connection to the device.
@@ -55,7 +60,7 @@ class DummyOutputController(BaseController):
         :param msg: command to write into the device port
         :type msg: string
         """
-        self.logger.debug('Writing into the device:{}'.format(msg))
+        self.logger.info('Writing into the example device:{}'.format(msg))
         self.write(msg)
         ans = self.read()
         return ans
@@ -119,13 +124,34 @@ class DummyOutputController(BaseController):
             self.logger.info('The amplitude is already {}. Not changing the value in the device.'.format(value))
 
 
+class ExampleControllerDummy(ExampleController):
+    """ A dummy version of the Example Controller.
+
+    In essence we have the same methods and we re-write the query to answer something meaninfull but
+    without connecting to the real device.
+
+    """
+
+
+    def query(self, msg):
+        """ writes into the device msg
+
+        :param msg: command to write into the device port
+        :type msg: string
+        """
+        self.logger.debug('Writing into the dummy device:{}'.format(msg))
+        ans = 'dummy answer'
+        return ans
+
+
+
 if __name__ == "__main__":
     from hyperion import _logger_format
     logging.basicConfig(level=logging.DEBUG, format=_logger_format,
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with DummyOutputController() as dev:
+    with ExampleController() as dev:
         dev.initialize('COM10')
         print(dev.amplitude)
         dev.amplitude = 5

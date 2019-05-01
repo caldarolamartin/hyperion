@@ -1,0 +1,33 @@
+User:
+  name: Martin
+
+Instruments:
+  - VariableWaveplate:
+      port: COM8
+      instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
+      controller: hyperion.controller.agilent.agilent3352A/Agilent33522A
+      dummy: True
+      enable: True
+      settings:
+        output: True
+  - ExampleInstrument:
+      port: COM0
+      driver: hyperion.instrument.example_instrument/ExampleInstrument
+      dummy: True
+      settings:
+        output: True
+Data:
+  save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
+  data_type: txt
+
+Scan:
+  mode: voltage1
+  sync: automatic
+  channel: 1
+  start: 1V
+  stop: 2V
+  step: 100mV
+  delay: 0.01s
+  detectors:
+    - detector1:
+        channel: 1

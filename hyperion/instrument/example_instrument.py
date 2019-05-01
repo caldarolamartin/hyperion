@@ -8,18 +8,18 @@ This is a dummy device, simulated for developing and testing the code
 """
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.controller.dummy_output_controller import DummyOutputController
+from hyperion.controller.example_controller import ExampleController
 from hyperion import ur
 
-class DummyOutputInstrument(BaseInstrument):
-    """ Dummy output device: Instrument level
+class ExampleInstrument(BaseInstrument):
+    """ Example instrument. it is a fake instrument
 
     """
-    def __init__(self):
+    def __init__(self, settings = {}):
         """ init of the class"""
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Class Dummy_output Instrument created.')
-        self.controller = DummyOutputController()
+        self.logger.info('Class ExampleInstrument created.')
+        self.controller = ExampleController()
 
     def initialize(self, port):
         """ Starts the connection to the device in port
@@ -53,7 +53,7 @@ class DummyOutputInstrument(BaseInstrument):
         :rtype: pint quantity
         """
         self.logger.debug('Getting the amplitude.')
-        return self.controller.amplitude*ur('volts')
+        return self.controller.amplitude * ur('volts')
 
     @amplitude.setter
     def amplitude(self, value):
@@ -70,10 +70,10 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with DummyOutputInstrument() as dev:
+    with ExampleInstrument() as dev:
         dev.initialize('COM10')
         print(dev.amplitude)
-        v = 2*ur('volts')
+        v = 2 * ur('volts')
         dev.amplitude = v
         print(dev.amplitude)
         dev.amplitude = v

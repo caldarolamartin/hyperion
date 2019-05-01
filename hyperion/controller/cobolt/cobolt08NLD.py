@@ -11,6 +11,7 @@ from lantz import Action, Feat
 from lantz import MessageBasedDriver
 import lantz.log
 
+
 class Cobolt08NLD(MessageBasedDriver):
     """Driver for a COBOLT 08-NLD Series laser.
     """
@@ -201,10 +202,8 @@ class Cobolt08NLD(MessageBasedDriver):
         return self.query('gom?')[1:]
 
 if __name__ == '__main__':
-
     lantz.log.log_to_screen(lantz.log.DEBUG)
     with Cobolt08NLD.via_serial('5') as inst:
         print('Non interactive mode')
         print(inst.idn)
-
 
