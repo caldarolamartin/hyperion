@@ -7,19 +7,18 @@
 """
 
 from pyvisa import constants
-
 from lantz import Action, Feat
 from lantz import MessageBasedDriver
+import lantz.log
 
-
-class Cobolt0601(MessageBasedDriver):
-    """Driver for any Cobolt 06-01 Series laser.
+class Cobolt08NLD(MessageBasedDriver):
+    """Driver for a COBOLT 08-NLD Series laser.
     """
 
     DEFAULTS = {'ASRL': {'write_termination': '\r',
                          'read_termination': '\r',
                          'baud_rate': 115200,
-                         'bytesize': 8,
+                         #'databits': 8,
                          'parity': constants.Parity.none,
                          'stop_bits': constants.StopBits.one,
                          'encoding': 'ascii',
@@ -36,9 +35,8 @@ class Cobolt0601(MessageBasedDriver):
         """Get serial number
         """
         ans = self.query('gsn?')[1:]
-        wavel = ans[:3]
-        sn = ans[3:]
-        return dict(manufacturer='COBOLT', model='06-01 Series', serialno=sn, softno='N/A', wavelength=wavel)
+        sn = ans
+        return dict(manufacturer='COBOLT', model='08-NLD', serialno=sn, softno='N/A', wavelength=785)
 
     def initialize(self):
         super().initialize()
@@ -203,23 +201,10 @@ class Cobolt0601(MessageBasedDriver):
         return self.query('gom?')[1:]
 
 if __name__ == '__main__':
-    import argparse
-    import lantz.log
 
-    parser = argparse.ArgumentParser(description='Test Kentech HRI')
-    parser.add_argument('-i', '--interactive', action='store_true',
-                        default=False, help='Show interactive GUI')
-    parser.add_argument('-p', '--port', type=str, default='COM5',
-                        help='Serial port to connect to')
-
-    args = parser.parse_args()
     lantz.log.log_to_screen(lantz.log.DEBUG)
-    with Cobolt0601.from_serial_port(args.port) as inst:
-        if args.interactive:
-            from lantz.ui.qtwidgets import start_test_app
-            start_test_app(inst)
-        else:
-            # Add your test code here
-            print('Non interactive mode')
-            print(inst.idn)
-        print(inst.shg_tuning)
+    with Cobolt08NLD.via_serial('5') as inst:
+        print('Non interactive mode')
+        print(inst.idn)
+
+
