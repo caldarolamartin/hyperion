@@ -24,16 +24,16 @@ class Agilent33522A(BaseController):
 
     FUNCTIONS = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
 
-    def __init__(self, instrument_id, dummy=False):
+    def __init__(self, settings = {'instrument_id':'8967', 'dummy': True}):
         """ Init for the class
 
         """
         super().__init__()
         self.rsc = None
-        self.instrument_id = instrument_id
-        self.dummy = dummy
-        self.logger.info('Created controller class for Agilent33522A with id: {}'.format(instrument_id))
-        self.logger.info('Dummy mode: {}'.format(dummy))
+        self.instrument_id = settings['instrument_id']
+        self.dummy = settings['dummy']
+        self.logger.info('Created controller class for Agilent33522A with id: {}'.format(self.instrument_id))
+        self.logger.info('Dummy mode: {}'.format(self.dummy))
 
     def initialize(self):
         """ This method opens the communication with the device.
@@ -41,10 +41,8 @@ class Agilent33522A(BaseController):
         """
         self.resource_name = 'USB0::2391::' + self.instrument_id + '::MY50003703::INSTR'
         self.logger.info('Initializing device: {}'.format(self.resource_name))
-
         if self.dummy:
-            self.logger.debug('Dummy mode: on')
-            self.rsc = DummyResourceManager(self.instrument_id, self.resource_name)
+            self.logger.info('Dummy device initialized')
         else:
             rm = visa.ResourceManager()
             self.rsc = rm.open_resource(self.resource_name)
@@ -111,7 +109,7 @@ class Agilent33522A(BaseController):
         :param channel: can be 1 or 2 for this model
         :type channel: int
         :return: Status of the output
-        :rtype: string
+        :rtype: logical
         """
         self.check_channel(channel)
         ans = self.query('OUTPUT{}?'.format(channel))
@@ -119,8 +117,10 @@ class Agilent33522A(BaseController):
         if not self.dummy:
             if int(ans) == 0:
                 self.logger.debug('Channel {} output is OFF'.format(channel))
+                ans = False
             elif int(ans) == 1:
                 self.logger.debug('Channel {} output is ON'.format(channel))
+                ans = True
 
         return ans
 
@@ -439,19 +439,19 @@ class Agilent33522ADummy(Agilent33522A):
     list using the CHAR ? and = for each of this properties.
 
     """
+    ask = '?'
+    write = ' '
 
-    CHAR = {'ask' : '?', 'set' : '='}
-
-    def __init__(self, port, dummy = True):
-        """ init for the dummy LCC
+    def __init__(self, settings):
+        """ init for the dummy Agilent33522A
         :param port: fake port name
         :type port: str
         :param dummy: indicates the dummy mode. keept for compatibility
         :type dummy: logical
         """
-        super().__init__(port, dummy)
+        super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-        self.name = 'Dummy LCC25'
+        self.name = 'Dummy Agilent33522A'
         self._buffer = []
         self._response = []
         self._properties = {}
@@ -465,8 +465,8 @@ class Agilent33522ADummy(Agilent33522A):
         when a variable is writen, so the dummy device will respond with the previously set value.
 
         """
-        filename = os.path.join(root_dir,'controller', 'dummy', 'lcc25.yml')
-        self.logger.debug('Loading LCC defaults file: {}'.format(filename))
+        filename = os.path.join(root_dir,'controller', 'dummy', 'agilent33522A.yml')
+        self.logger.debug('Loading Agilent33522A defaults file: {}'.format(filename))
 
         with open(filename, 'r') as f:
             d = yaml.load(f, Loader=yaml.FullLoader)
@@ -538,14 +538,14 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with Agilent33522A('8967', dummy=True) as gen:
+    with Agilent33522A(settings = {'instrument_id':'8967', 'dummy': False}) as gen:
         # initialize
         gen.initialize()
         # unit_test idn
         print('Identification: {}'.format(gen.idn()))
         print(gen.get_system_error())
 
-        # list of tests of the avove functions
+        # list of tests of the above functions
 
         ## to unit_test output enable for channel ch
         ch = 1
