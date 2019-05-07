@@ -10,9 +10,15 @@ written so it can be used to ensure the correct behaivour of the code.
 We have some basic unit tests in the folder unit_tests. So far we
 have the following tests
 
+Unit tests
+==========
+
 .. toctree::
     :maxdepth: 2
     :caption: Current unit tests:
 
 
     unit_test/lcc_controller
+    unit_test/agilent33522A_controller
+    unit_test/variable_waveplate_instrument
+    unit_test/fun_gen_instrument
