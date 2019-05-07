@@ -215,6 +215,8 @@ if __name__ == '__main__':
         print('Power setpoint: {}'.format(inst.power_sp))
         inst.power_sp = Q_(150,'milliwatt')
         print('Power setpoint: {}'.format(inst.power_sp))
+        inst.power_sp = 200
+        print('Power setpoint: {}'.format(inst.power_sp))
         print('Output power now: {}'.format(inst.power))
 
 

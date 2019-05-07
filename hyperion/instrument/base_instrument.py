@@ -31,7 +31,20 @@ class BaseInstrument():
                     settings['controller'] += 'Dummy'
 
         self.controller_class = self.load_controller(settings)
-        self.controller = self.controller_class(settings)
+
+        if 'via_serial' in settings:
+            port = settings['via_serial'].split('COM')[-1]
+            self.controller = self.controller_class.via_serial(port)
+        elif 'via_gpib' in settings:
+            self.logger.warning('NOT TESTED')
+            port = settings['via_gpib'].split('COM')[-1]
+            self.controller = self.controller_class.via_gpib(port) # to do
+        elif 'via_usb' in settings:
+            self.logger.warning('NOT TESTED')
+            port = settings['via_usb'].split('COM')[-1]
+            self.controller = self.controller_class.via_usb(port)  # to do
+        else:
+            self.controller = self.controller_class(settings)
 
     def __enter__(self):
         return self
