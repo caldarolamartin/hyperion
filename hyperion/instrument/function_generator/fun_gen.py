@@ -19,20 +19,22 @@ class FunGen(BaseInstrument):
     """ This class is to control the function generator.
 
     """
-    def __init__(self, instrument_id, defaults=False, dummy=True):
+    def __init__(self, settings = {'instrument_id':'8967', 'dummy' : False,
+                                   'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A'}):
         """
-        Initialize the fun gen class
+         It needs a settings dictionary that contains the following fields (mandatory)
 
-        :param instrument_id: name of the port where the aotf is connected, like 'COM10'
-        :type instrument_id: str
-        :param defaults: used to load the default values in the config.ylm
-        :type defaults: logical
-        :param dummy: logical value to allow testing without connection
-        :type logical
+            * instrument_id: COM port name where the LCC25 is connected
+            * dummy: logical to say if the connection is real or dummy (True means dummy)
+            * controller: this should point to the controller to use and with / add the name of the class to use
+
+        Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
+        i.e. the class will overwrite the 'controller' with 'hyperion.controller.agilent.agilent33522a/agilent33522aDummy'
+
         """
         self.logger = logging.getLogger(__name__)
 
-        self.dummy = dummy
+        self.dummy = settings['dummy']
         self.CHANNELS = [1, 2]
         self.FUN = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
         self.logger.info('Initializing device Agilent33522A number = {}'.format(instrument_id))

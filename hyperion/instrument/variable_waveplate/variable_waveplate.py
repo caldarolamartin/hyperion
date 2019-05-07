@@ -30,7 +30,7 @@ class VariableWaveplate(BaseInstrument):
         It needs a settings dictionary that contains the following fields (mandatory)
 
             * port: COM port name where the LCC25 is connected
-            * enable: logical to say if the initialize enables te output
+            * enable: logical to say if the initialize enables the output
             * dummy: logical to say if the connection is real or dummy (True means dummy)
             * controller: this should point to the controller to use and with / add the name of the class to use
 

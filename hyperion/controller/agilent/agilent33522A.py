@@ -25,7 +25,12 @@ class Agilent33522A(BaseController):
     FUNCTIONS = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
 
     def __init__(self, settings = {'instrument_id':'8967', 'dummy': True}):
-        """ Init for the class
+        """ Init for the class. It takes a dictionary that passes the settings needed. In this case
+        it needs
+
+        instrument_id : '8967' # instrument id for the device you have
+        dummy : False
+
 
         """
         super().__init__()
