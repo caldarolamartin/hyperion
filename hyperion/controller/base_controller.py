@@ -26,8 +26,6 @@ class BaseController():
         self.logger = logging.getLogger(__name__)
         self._is_initialized = False
         self._settings = settings
-        if 'dummy' in self._settings:
-            self.logger.info('Dummy mode: {}'.format(self._settings['dummy']))
 
     # the next two methods are needed so the context manager 'with' works.
     def __enter__(self):

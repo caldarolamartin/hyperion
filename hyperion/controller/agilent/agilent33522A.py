@@ -22,10 +22,16 @@ class Agilent33522A(BaseController):
     DEFAULTS = {'instrument_id': '8967'
                 }
 
+    CHANNELS = [1,2]
     FUNCTIONS = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
 
     def __init__(self, settings = {'instrument_id':'8967', 'dummy': True}):
-        """ Init for the class
+        """ Init for the class. It takes a dictionary that passes the settings needed. In this case
+        it needs
+
+        instrument_id : '8967' # instrument id for the device you have
+        dummy : False
+
 
         """
         super().__init__()
@@ -141,7 +147,7 @@ class Agilent33522A(BaseController):
             self.write('OUTPUT{} OFF'.format(channel))
             self.logger.debug('Channel {} set off.'.format(channel))
 
-    def get_function(self, channel):
+    def get_waveform(self, channel):
         """ Get the function set for the output.
         The available functions are stored at FUNCTIONS = ['SIN','SQU','TRI','RAMP','PULS','PRBS','NOIS','ARB','DC']
 
@@ -157,7 +163,7 @@ class Agilent33522A(BaseController):
         self.logger.debug('The function for channel {} is {}'.format(channel, ans))
         return ans
 
-    def set_function(self, channel, fun):
+    def set_waveform(self, channel, fun):
         """ Get the function set for the output. The available functions are stored at
         FUNCTIONS = ['SIN','SQU','TRI','RAMP','PULS','PRBS','NOIS','ARB','DC']
 
@@ -329,8 +335,8 @@ class Agilent33522A(BaseController):
 
         self.check_channel(channel)
         ans = []
-        ans.append(self.query('SOUR{}:VOLT:LIM:HIGH?'.format(channel))[:-1])
-        ans.append(self.query('SOUR{}:VOLT:LIM:LOW?'.format(channel))[:-1])
+        ans.append(float(self.query('SOUR{}:VOLT:LIM:HIGH?'.format(channel))[:-1]))
+        ans.append(float(self.query('SOUR{}:VOLT:LIM:LOW?'.format(channel))[:-1]))
         return ans
 
     def enable_voltage_limits(self, channel, state):
@@ -557,9 +563,9 @@ if __name__ == "__main__":
 
         # to unit_test FUNCTION waveform
         ch = 1
-        gen.get_function(ch)
-        gen.set_function(ch, 'SQU')
-        gen.get_function(ch)
+        gen.get_waveform(ch)
+        gen.set_waveform(ch, 'SQU')
+        gen.get_waveform(ch)
 
         ## check error
         time.sleep(0.1)

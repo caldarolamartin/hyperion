@@ -1,7 +1,7 @@
 """
-=====================
-Test LCC25 instrument
-=====================
+==================================
+Test variable waveplate instrument
+==================================
 
 This class aims to unit_test the correct behaviour of the instrument class: variable_waveplate
 
@@ -25,8 +25,8 @@ class UTestVariableWaveplate():
         """
         self.logger = logging.getLogger(__name__)
         self.logger.info('Created UTestVariableWaveplate class.')
-        self.logger.info('Testing in dummy={}'.format(dummy))
-        self.dummy = dummy
+        self.logger.info('Testing in dummy={}'.format(settings['dummy']))
+        self.dummy = settings['dummy']
         self.inst = VariableWaveplate(settings)
         sleep(1)
 
@@ -95,19 +95,19 @@ if __name__ == "__main__":
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    dummy_mode = [False]  # add false here to also unit_test the real device with connection
+    dummy_mode = [True]  # add false here to also unit_test the real device with connection
     true_port = 'COM8'
-    for dummy in dummy_mode:
-        print('Running dummy={} tests.'.format(dummy))
+    for d in dummy_mode:
+        print('Running dummy={} tests.'.format(d))
         # run the tests
-        with UTestVariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : dummy,
+        with UTestVariableWaveplate(settings = {'port':true_port, 'enable': False, 'dummy' : d,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as t:
             t.test_voltage()
             t.test_output()
             t.test_freq()
             t.test_mode()
 
-        print('done with dummy={} tests.'.format(dummy))
+        print('done with dummy={} tests.'.format(d))
 
 
 
