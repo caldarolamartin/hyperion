@@ -47,7 +47,7 @@ class CoboltLaser(BaseInstrument):
     def power_sp(self, value):
         self.query('p {:.5f}'.format(value / 1000))
 
-    power_setpoint = power_sp
+
 
 if __name__ == '__main__':
     from hyperion import _logger_format

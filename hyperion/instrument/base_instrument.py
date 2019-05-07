@@ -24,6 +24,7 @@ class BaseInstrument():
         """
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class BaseInstrument created with settings: {}'.format(settings))
+        self.settings = settings
 
         if 'dummy' in settings and settings['dummy']==True:
             if 'controller' in settings:
@@ -56,7 +57,7 @@ class BaseInstrument():
         """ Starts the connection to the device """
         self.logger.warning('Method used from the BaseInstrument class')
         self.logger.info('Opening connection to device using driver.')
-        self.controller.initialize(self._port)
+        self.controller.initialize(self.settings)
 
     def finalize(self):
         """ this is to close connection to the device."""

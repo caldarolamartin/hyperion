@@ -55,15 +55,13 @@ class VariableWaveplate(BaseInstrument):
         self.load_calibration(cal_file)
 
         # initialize
-        self.controller.initialize()
+        self.initialize()
         self.output = settings['enable']
 
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.finalize()
+    def initialize(self):
+        """ initializes the connection with the controller """
+        self.logger.debug('Initializing')
+        self.controller.initialize()
 
     def load_calibration(self, cal_file):
         """ This method loads the calibration file cal_file

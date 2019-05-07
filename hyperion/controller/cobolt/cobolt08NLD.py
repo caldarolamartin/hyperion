@@ -40,7 +40,6 @@ class Cobolt08NLD(MessageBasedDriver):
         self.mode = 'PC'
         self.ctl_mode = self.mode
 
-
     # ENABLE LASER METHODS
     @Feat(values={True: '1', False: '0'})
     def enabled(self):
