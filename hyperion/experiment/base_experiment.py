@@ -18,7 +18,6 @@ class BaseExperiment():
 
     def __init__(self):
         """ initialize the class"""
-
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the BaseExperiment class.')
         self.properties = {}

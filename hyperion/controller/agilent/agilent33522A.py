@@ -45,7 +45,7 @@ class Agilent33522A(BaseController):
         """ This method opens the communication with the device.
 
         """
-        self.resource_name = 'USB0::2391::' + self.instrument_id + '::MY50003703::INSTR'
+        self.resource_name = 'USB0::2391::' + str(self.instrument_id) + '::MY50003703::INSTR'
         self.logger.info('Initializing device: {}'.format(self.resource_name))
         if self.dummy:
             self.logger.info('Dummy device initialized')
