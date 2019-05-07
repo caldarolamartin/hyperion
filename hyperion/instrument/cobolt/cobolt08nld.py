@@ -14,43 +14,21 @@ from hyperion.controller.agilent.agilent33522A import Agilent33522A
 from hyperion.instrument.base_instrument import BaseInstrument
 
 
-class Cobolt08NLD(BaseInstrument):
+class CoboltLaser(BaseInstrument):
     """ This class is to control the laser.
 
     """
-    def __init__(self, instrument_id, dummy=True):
-        """
-        Initialize the fun gen class
-
-        :param instrument_id: name of the port where the aotf is connected, like 'COM10'
-        :type instrument_id: str
-        :param defaults: used to load the default values in the config.ylm
-        :type defaults: logical
-        :param dummy: logical value to allow testing without connection
-        :type logical
-        """
+    def __init__(self, settings={'port': 'COM5', 'dummy': False,
+                                 'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD',
+                                 'via': 'via_serial'}):
+        """ init of the class"""
+        super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-        parser = argparse.ArgumentParser(description='Test Kentech HRI')
-        parser.add_argument('-i', '--interactive', action='store_true',
-                            default=False, help='Show interactive GUI')
-        parser.add_argument('-p', '--port', type=str, default='COM5',
-                            help='Serial port to connect to')
+        self.logger.info('Class ExampleInstrument created.')
 
-        args = parser.parse_args()
-
-        self.dummy = dummy
-        self.CHANNELS = [1, 2]
-        self.FUN = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
-        self.logger.info('Initializing device Agilent33522A number = {}'.format(instrument_id))
-        self.instrument_id = instrument_id
-        self.name = 'Cobolt06NLD'
-        self.driver = Cobolt0601(instrument_id, dummy=dummy)
-        if dummy:
-            self.logger.info('Working in dummy mode')
-
-        self.driver.initialize()
+        self.controller.initialize()
         self.DEFAULTS = {}
-        self.load_defaults(defaults)
+        #self.load_defaults(defaults)
 
     def __enter__(self):
         return self
@@ -65,7 +43,8 @@ class Cobolt08NLD(BaseInstrument):
         :return: message with identification from the device
         :rtype: string
         """
-        return self.driver.idn()
+        return self.controller.idn()
+
 
 
 if __name__ == '__main__':
@@ -76,8 +55,8 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with FunGen('8967', defaults=False, dummy=True) as d:
-        print('Output state for channels = {}'.format(d.output_state()))
+    with CoboltLaser(settings={'port': 'COM5', 'dummy': False,
+                                 'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD'}) as d:
 
         # #### test idn
         print('Identification = {}.'.format(d.idn()))
