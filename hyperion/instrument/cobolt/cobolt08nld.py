@@ -8,10 +8,12 @@ This class is the instrument layer to control the Cobolt laser model 08-NLD
 It ads the use of units with pint
 """
 import logging
+from hyperion import ur, Q_
+from hyperion.controller.cobolt.cobolt08NLD import Cobolt08NLD
 from hyperion.instrument.base_instrument import BaseInstrument
 
 
-class CoboltLaser(BaseInstrument):
+class CoboltLaser(BaseInstrument, Cobolt08NLD):
     """ This class is to control the laser.
 
     """
@@ -38,15 +40,26 @@ class CoboltLaser(BaseInstrument):
 
     @property
     def power_sp(self):
-        """ o handle output power set point (mW) in constant power mode
+        """ Power set point for the laser, when used in constant power mode
+
+        : getter :
+        Asks for the current power set point
+
+        :return: The power set point
+        :rtype: pint quantity
+
+        : setter :
+        Sets the power setpoint
+
+        :param value: power to set
+        :type value: pint Quantity
+
         """
-        ans = self.controller.power_sp
-        return ans * ur('mW')
+        return self.controller.power_sp
 
     @power_sp.setter
     def power_sp(self, value):
         self.controller.power_sp = value
-
 
 
 if __name__ == '__main__':
@@ -63,3 +76,6 @@ if __name__ == '__main__':
 
         # #### test idn
         print('Identification = {}.'.format(d.idn()))
+        print('power {}'.format(d.power_sp))
+        d.power_sp = Q_(110,'mW')
+        print('power {}'.format(d.controller.power_sp))
