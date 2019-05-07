@@ -23,7 +23,7 @@ class CoboltLaser(BaseInstrument):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class CoboltLaser Instrument created.')
 
-        self.controller.initialize()
+        self.initialize()
         self.DEFAULTS = {}
         #self.load_defaults(defaults)
 
@@ -45,7 +45,7 @@ class CoboltLaser(BaseInstrument):
 
     @power_sp.setter
     def power_sp(self, value):
-        self.query('p {:.5f}'.format(value / 1000))
+        self.controller.power_sp = value
 
 
 

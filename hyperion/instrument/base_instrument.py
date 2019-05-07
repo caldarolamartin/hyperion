@@ -54,14 +54,21 @@ class BaseInstrument():
         self.finalize()
 
     def initialize(self):
-        """ Starts the connection to the device """
-        self.logger.warning('Method used from the BaseInstrument class')
-        self.logger.info('Opening connection to device using driver.')
-        self.controller.initialize(self.settings)
+        """ Starts the connection to the device.
+
+        If you need to parse arguments to the initialize, make your own initialize method in
+        your instrument class.
+        """
+        self.logger.warning('Initialization done from the BaseInstrument class.')
+        self.controller.initialize()
 
     def finalize(self):
-        """ this is to close connection to the device."""
-        self.logger.warning('Method used from the BaseInstrument class')
+        """ This is to close connection to the device.
+
+        If you need to parse arguments to the finalize, make your own finalize method in
+        your instrument class.
+        """
+        self.logger.warning('Finalization done from the BaseInstrument class.')
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
