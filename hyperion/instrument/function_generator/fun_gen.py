@@ -19,8 +19,9 @@ class FunGen(BaseInstrument):
     """ This class is to control the function generator.
 
     """
-    def __init__(self, settings = {'instrument_id':'8967', 'dummy' : False,
-                                   'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A'}):
+    def __init__(self, settings = {'instrument_id' : '8967', 'dummy' : False,
+                                   'controller' : 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
+                                   'apply_defaults' : False}):
         """
          It needs a settings dictionary that contains the following fields (mandatory)
 
@@ -32,21 +33,24 @@ class FunGen(BaseInstrument):
         i.e. the class will overwrite the 'controller' with 'hyperion.controller.agilent.agilent33522a/agilent33522aDummy'
 
         """
+        super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-
+        self.apply_defaults = settings['apply_defaults']
         self.dummy = settings['dummy']
-        self.CHANNELS = [1, 2]
-        self.FUN = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
-        self.logger.info('Initializing device Agilent33522A number = {}'.format(instrument_id))
-        self.instrument_id = instrument_id
-        self.name = 'Agilent33522A'
-        self.driver = Agilent33522A(instrument_id, dummy=dummy)
-        if dummy:
+        if self.dummy:
             self.logger.info('Working in dummy mode')
 
-        self.driver.initialize()
+        self.instrument_id = settings['instrument_id']
+        self.name = 'Agilent Fun Gen'
+
+
+        self.logger.info('Initializing device Agilent33522A number = {}'.format(self.instrument_id))
+
+        self.controller.initialize()
+        self.CHANNELS = self.controller.CHANNELS
+        self.FUN = self.controller.FUNCTIONS
         self.DEFAULTS = {}
-        self.load_defaults(defaults)
+        self.load_defaults(self.apply_defaults)
 
     def __enter__(self):
         return self
@@ -61,7 +65,7 @@ class FunGen(BaseInstrument):
         :return: message with identification from the device
         :rtype: string
         """
-        return self.driver.idn()
+        return self.controller.idn()
 
     def load_defaults(self, apply, filename=None):
         """ This loads the default configuration and applies it, depending on the
@@ -77,51 +81,50 @@ class FunGen(BaseInstrument):
             filename = os.path.join(root_dir, 'instrument', 'function_generator', 'config_agilent33522A.yml')
 
         with open(filename, 'r') as f:
-            d = yaml.load(f)
+            d = yaml.load(f, Loader=yaml.FullLoader)
             self.logger.info('Loaded fun_gen configuration file: {}'.format(filename))
 
         self.DEFAULTS = d
 
         if apply:
             self.logger.info('Applying defaults from the configuration file.')
-            for key in d:
-                if key == 'channel1':
-                    ch = 1
-                elif key == 'channel2':
-                    ch = 2
-                else:
-                    raise Warning('The specified channel in the config file is not known by the driver.')
+            self.logger.debug('Dict to use: {}'.format(self.DEFAULTS['defaults']))
 
-                self.logger.info('Applying defaults to {}'.format(key))
+            for di in self.DEFAULTS['defaults']:
+                ch = di['channel']
+                self.logger.info('Applying defaults to channel {}'.format(ch))
 
-                self.logger.debug('Applying waveform = {}'.format(d[key]['waveform']))
-                self.set_wave_function(ch, d[key]['waveform'])
+                if ch not in self.CHANNELS:
+                    raise Warning('The channel "{}" is not recognized by this instrument.'.format(ch))
+
+                self.logger.debug('Applying waveform = {}'.format(di['waveform']))
+                self.set_waveform(ch, di['waveform']['function'])
                 sleep(0.1)
 
-                self.logger.debug('Applying Frequency = {}'.format(d[key]['frequency']))
-                self.set_frequency(ch, ur(d[key]['frequency']))
+                self.logger.debug('Applying Frequency = {}'.format(di['waveform']['frequency']))
+                self.set_frequency(ch, ur(di['waveform']['frequency']))
                 sleep(0.1)
 
-                self.logger.debug('Applying Voltage limit high={} and low={}'.format(d[key]['limit_high'],
-                                                                                     d[key]['limit_low']))
-                self.set_voltage_limits(ch, ur(d[key]['limit_high']), ur(d[key]['limit_low']))
+                self.logger.debug('Applying Voltage limit high={} and low={}'.format(di['limit_high'],
+                                                                                     di['limit_low']))
+                self.set_voltage_limits(ch, ur(di['limit_high']), ur(di['limit_low']))
                 self.logger.debug('Turning on voltage limits')
                 self.enable_voltage_limits(ch, True)
                 sleep(0.1)
 
-                self.logger.debug('Applying High Voltage {}'.format(d[key]['high']))
-                self.set_voltage_high(ch, ur(d[key]['high']))
+                self.logger.debug('Applying High Voltage {}'.format(di['waveform']['high']))
+                self.set_voltage_high(ch, ur(di['waveform']['high']))
                 sleep(0.1)
 
-                self.logger.debug('Applying Low Voltage {}'.format(d[key]['low']))
-                self.set_voltage_low(ch, ur(d[key]['low']))
+                self.logger.debug('Applying Low Voltage {}'.format(di['waveform']['low']))
+                self.set_voltage_low(ch, ur(di['waveform']['low']))
                 sleep(0.1)
 
-                self.logger.debug('Setting status {} for channel.'.format(d[key]['output']))
-                self.enable_output(ch, d[key]['output'])
+                self.logger.debug('Setting status {} for channel.'.format(di['output']))
+                self.enable_output(ch, di['output'])
                 sleep(0.1)
 
-                self.logger.debug('Error info: {}.'.format(self.get_system_error()))
+                self.logger.info('Error info: {}.'.format(self.get_system_error()))
         else:
             self.logger.info('The default settings were not applied.')
 
@@ -132,7 +135,7 @@ class FunGen(BaseInstrument):
         :rtype: string
 
         """
-        error = self.driver.get_system_error()
+        error = self.controller.get_system_error()
         return error
 
     def get_voltage_vpp(self, channel):
@@ -145,7 +148,7 @@ class FunGen(BaseInstrument):
         :return: current peak to peak voltage
         :rtype: pint quantity
         """
-        value = self.driver.get_voltage(channel)
+        value = self.controller.get_voltage(channel)
         value = value * ur('volt')
         return value
 
@@ -163,7 +166,7 @@ class FunGen(BaseInstrument):
 
         """
 
-        self.driver.set_voltage(channel, value.m_as('volt'))
+        self.controller.set_voltage(channel, value.m_as('volt'))
         return value
 
     def get_voltage_offset(self, channel):
@@ -176,7 +179,7 @@ class FunGen(BaseInstrument):
         :return: current offset for the channel
         :rtype: pint quantity
         """
-        value = self.driver.get_voltage_offset(channel)
+        value = self.controller.get_voltage_offset(channel)
         value = value * ur('volt')
         return value
 
@@ -193,7 +196,7 @@ class FunGen(BaseInstrument):
         :rtype: pint quantity
         """
 
-        self.driver.set_voltage_offset(channel, value.m_as('volt'))
+        self.controller.set_voltage_offset(channel, value.m_as('volt'))
         return value
 
     def get_voltage_high(self, channel):
@@ -206,7 +209,7 @@ class FunGen(BaseInstrument):
         :return: current high voltage for the channel
         :rtype: pint quantity
         """
-        value = self.driver.get_voltage_high(channel)
+        value = self.controller.get_voltage_high(channel)
         return value
 
     def set_voltage_high(self, channel, value):
@@ -222,7 +225,7 @@ class FunGen(BaseInstrument):
         :rtype: pint quantity
         """
 
-        self.driver.set_voltage_high(channel, value.m_as('volt'))
+        self.controller.set_voltage_high(channel, value.m_as('volt'))
         return value
 
     def get_voltage_low(self, channel):
@@ -235,7 +238,7 @@ class FunGen(BaseInstrument):
         :return: current low voltage for the channel
         :rtype: pint quantity
         """
-        value = self.driver.get_voltage_low(channel)
+        value = self.controller.get_voltage_low(channel)
         value = value * ur('volt')
         return value
 
@@ -253,7 +256,7 @@ class FunGen(BaseInstrument):
 
 
         """
-        self.driver.set_voltage_low(channel, value.m_as('volt'))
+        self.controller.set_voltage_low(channel, value.m_as('volt'))
         return value
 
     def enable_output(self, ch, state):
@@ -266,7 +269,7 @@ class FunGen(BaseInstrument):
 
         """
         self.logger.debug('Setting output state {} for channel {}'.format(state, ch))
-        self.driver.enable_output(ch, state)
+        self.controller.enable_output(ch, state)
 
     def output_state(self):
         """ Gets the current state of the output
@@ -277,10 +280,10 @@ class FunGen(BaseInstrument):
          """
         ans = []
         for ch in self.CHANNELS:
-            ans.append(self.driver.get_enable_output(ch)[:-1])
+            ans.append(self.controller.get_enable_output(ch))
         return ans
 
-    def set_wave_function(self, channel, fun):
+    def set_waveform(self, channel, fun):
         """ Sets the waveform to be generated. The functions available are
         FUNCTIONS = ['SIN','SQU','TRI','RAMP','PULS','PRBS','NOIS','ARB','DC']
 
@@ -293,11 +296,12 @@ class FunGen(BaseInstrument):
         self.logger.debug('trying to apply to channel {} the waveform: "{}". '.format(channel, fun))
 
         if fun not in self.FUN:
-            raise Warning('The selected function is not in the supported functions of the fun gen')
+            raise Warning('The waveform {} is not in the supported waveforms of the fun gen. Supported'
+                          'waveforms are: {}'.format(fun, self.FUN))
 
-        self.driver.set_function(channel, fun)
+        self.controller.set_waveform(channel, fun)
 
-    def get_wave_function(self, channel):
+    def get_waveform(self, channel):
         """ Sets the waveform to be generated. The functions available are
         FUNCTIONS = ['SIN','SQU','TRI','RAMP','PULS','PRBS','NOIS','ARB','DC']
 
@@ -306,7 +310,7 @@ class FunGen(BaseInstrument):
         :return: One of the FUNCTIONS
 
         """
-        return self.driver.get_function(channel)
+        return self.controller.get_waveform(channel)
 
     def finalize(self, state=True):
         """ Closes the connection to the device
@@ -317,12 +321,12 @@ class FunGen(BaseInstrument):
         if not state:
             self.logger.info('The output will be turned off for both channels.')
             for ch in self.CHANNELS:
-                self.driver.enable_output(ch, False)
+                self.controller.enable_output(ch, False)
                 sleep(0.1)
         else:
             self.logger.info('The output will be kept on.')
 
-        self.driver.finalize()
+        self.controller.finalize()
         self.logger.info('Connection to fun_gen finalized.')
 
     def set_frequency(self, channel, freq):
@@ -334,7 +338,7 @@ class FunGen(BaseInstrument):
         :type freq: pint quantity
 
         """
-        self.driver.set_frequency(channel, freq.m_as('hertz'))
+        self.controller.set_frequency(channel, freq.m_as('hertz'))
 
     def get_frequency(self, channel):
         """ This functions gets the frequency output for the channel
@@ -346,7 +350,7 @@ class FunGen(BaseInstrument):
         :rtype: pint quantity
 
         """
-        f = self.driver.get_frequency(channel)
+        f = self.controller.get_frequency(channel)
         f = f * ur('hertz')
         return f
 
@@ -365,7 +369,7 @@ class FunGen(BaseInstrument):
         :param low: lower voltage limit
         :type low: pint quantity
         """
-        self.driver.set_voltage_limits(channel, high.m_as('volt'), low.m_as('volt'))
+        self.controller.set_voltage_limits(channel, high.m_as('volt'), low.m_as('volt'))
 
     def get_voltage_limits(self, channel):
         """ Gets the set values for the voltage limits, high and low.
@@ -377,12 +381,15 @@ class FunGen(BaseInstrument):
         :rtype: pint quantity array
 
         """
-        value = self.driver.get_voltage_limits(channel)
+        values = self.controller.get_voltage_limits(channel)
+        self.logger.debug('Received value from the controller: {}'.format(values))
+
         if not self.dummy:
-            value = value * ur('volt')
+            value = values * ur('volt')
         else:
             value = 10000 * ur('volt')
             self.logger.warning('The voltage is invented since your are in dummy mode')
+
         return value
 
     def enable_voltage_limits(self, channel, state):
@@ -399,7 +406,7 @@ class FunGen(BaseInstrument):
             :param state: True to turn on, False to turn of
             :type state: logical
         """
-        self.driver.enable_voltage_limits(channel, state)
+        self.controller.enable_voltage_limits(channel, state)
 
     def get_voltage_limits_state(self, channel):
         """ This function gets the state of the voltage limits for the
@@ -413,7 +420,7 @@ class FunGen(BaseInstrument):
 
         """
 
-        return self.driver.get_voltage_limits_state(channel)
+        return self.controller.get_voltage_limits_state(channel)
 
 
 
@@ -427,13 +434,16 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with FunGen('8967', defaults=False, dummy=True) as d:
+    with FunGen(settings={'instrument_id' : '8967', 'dummy' : False,
+                          'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
+                          'apply_defaults': True }) as d:
         print('Output state for channels = {}'.format(d.output_state()))
 
         # #### unit_test idn
         print('Identification = {}.'.format(d.idn()))
         # ####   unit_test output_state
         print('Output state = {}'.format(d.output_state()))
+
         # #### unit_test High and low voltage
         ch = 1
         V = 2.1*ur('volt')
@@ -474,9 +484,9 @@ if __name__ == '__main__':
         print('Freq = {}.'.format(d.get_frequency(ch)))
         # #### unit_test wavefunction change
         ch = 1
-        print(d.get_wave_function(ch))
-        d.set_wave_function(ch, 'SQU')
-        print(d.get_wave_function(ch))
+        print(d.get_waveform(ch))
+        d.set_waveform(ch, 'SQU')
+        print(d.get_waveform(ch))
         # unit_test limit voltage functions
         ch = 1
         d.enable_voltage_limits(ch, False)
@@ -494,6 +504,6 @@ if __name__ == '__main__':
         print(d.get_voltage_limits(ch))
         sleep(1)
 
-    print('Done')
+    print(' \n \n Done ! \n \n')
 
 
