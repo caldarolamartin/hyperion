@@ -1,0 +1,35 @@
+Data:
+  data_type: txt
+  save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
+Instruments:
+- VariableWaveplate:
+    controller: hyperion.controller.thorlabs.lcc25/LccDummy
+    dummy: true
+    enable: true
+    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
+    port: COM8
+    settings:
+      output: true
+      voltage1: 1V
+      voltage2: 1V
+- ExampleInstrument:
+    controller: hyperion.controller.example_controller/ExampleControllerDummy
+    dummy: true
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    port: COM0
+    settings:
+      output: true
+Scan:
+  channel: 1
+  delay: 0.01s
+  detectors:
+  - detector1:
+      channel: 1
+  mode: voltage1
+  start: 1V
+  step: 100mV
+  stop: 2V
+  sync: automatic
+User:
+  name: Martin
+config file: D:\labsoftware\hyperion\examples\example_experiment_config.yml
