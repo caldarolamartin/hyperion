@@ -537,11 +537,13 @@ class Agilent33522ADummy(Agilent33522A):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
+    from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
     with Agilent33522A(settings = {'instrument_id':'8967', 'dummy': False}) as gen:
