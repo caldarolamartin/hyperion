@@ -35,7 +35,7 @@ class VariableWaveplate(BaseInstrument):
             * controller: this should point to the controller to use and with / add the name of the class to use
 
         Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
-        i.e. the class will overwrite the 'controller' with 'hyperion.controller.thorlabs.lcc25/LccDummy'
+        i.e. the class will automatically overwrite the 'controller' with 'hyperion.controller.thorlabs.lcc25/LccDummy'
 
         """
         super().__init__(settings)

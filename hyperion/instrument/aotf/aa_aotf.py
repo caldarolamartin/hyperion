@@ -36,29 +36,36 @@ class AaAotf(BaseInstrument):
                         'mode': 'internal',
                         }
 
-    def __init__(self, port, dummy=False):
+    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : False,
+                                   'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012'} ):
         """
-        Initialize the Model for Aa_aotf class.
+        Init of the class.
 
-        :param port: name of the port where the aotf is connected, like 'COM10'
-        :type port: str
-        :param dummy: logical value to allow testing without connection
-        :type logical
+        It needs a settings dictionary that contains the following fields (mandatory)
+
+            * port: COM port name where the LCC25 is connected
+            * enable: logical to say if the initialize enables the output
+            * dummy: logical to say if the connection is real or dummy (True means dummy)
+            * controller: this should point to the controller to use and with / add the name of the class to use
+
+        Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
+        i.e. the class will overwrite the 'controller' with 'hyperion.controller.aa.aa_modd18012/AaModd18012Dummy'
 
         """
-        self.dummy = dummy
-        self.channel_in_use = None
+        super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Initializing device AOTF with Aotf_model at port = {}'.format(port))
-        self.driver = AaModd18012(port, dummy=dummy)
-        self.driver.initialize()
+        self._port = settings['port']
+        self.dummy = settings['dummy']
+
+        #
+        self.channel_in_use = None
+        self.logger.info('Initializing device AOTF with Aotf_model at port = {}'.format(self._port))
+        self.controller = AaModd18012(settings)
+        self.controller.initialize()
 
         # loads the calibration file to transform freq to wavelength.
         cal_file = os.path.join(root_dir, 'instrument', 'aotf', 'lookup_table_cal_aotf_2019-02-05.txt')
-
-        self.logger.info('Using freq to wavelength calibration for aotf from file {}'
-                         .format(cal_file))
-
+        self.logger.info('Using freq to wavelength calibration for aotf from file {}'.format(cal_file))
         self.load_calibration(cal_file)
 
     def load_calibration(self, cal_file):
@@ -146,7 +153,7 @@ class AaAotf(BaseInstrument):
         :rtype: string
     """
         self.logger.debug('Setting all parameters.')
-        ans = self.driver.set_all(channel, freq.m_as('megahertz'), power, state, mode)
+        ans = self.controller.set_all(channel, freq.m_as('megahertz'), power, state, mode)
         return ans
 
     def set_defaults(self, channel):
@@ -163,7 +170,7 @@ class AaAotf(BaseInstrument):
         self.logger.debug('State: {}'.format(self.DEFAULT_SETTINGS['state']))
         self.logger.debug('Mode: {}'.format(self.DEFAULT_SETTINGS['mode']))
 
-        self.driver.set_all(channel, self.DEFAULT_SETTINGS['frequency'][channel - 1],
+        self.controller.set_all(channel, self.DEFAULT_SETTINGS['frequency'][channel - 1],
                             self.DEFAULT_SETTINGS['power'][channel - 1],
                             self.DEFAULT_SETTINGS['state'], self.DEFAULT_SETTINGS['mode'])
 
@@ -188,9 +195,9 @@ class AaAotf(BaseInstrument):
             self.logger.info('Changed from channel {} to channel {}.'.format(self.channel_in_use, ch))
             self.logger.debug('Turn off channel {}.'.format(self.channel_in_use))
             if self.channel_in_use is not None:
-                self.driver.enable(self.channel_in_use, False)
+                self.controller.enable(self.channel_in_use, False)
                 sleep(1)
-                self.driver.enable(ch, True)
+                self.controller.enable(ch, True)
 
         ans = self.set_all_values(ch, freq, power, state, mode)
         self.channel_in_use = ch
@@ -224,20 +231,34 @@ class AaAotf(BaseInstrument):
         """ To close the connection to the device
 
         """
-        self.driver.finalize()
+        self.controller.finalize()
 
+    def blanking(self, state, mode='internal'):
+        """ Define the blanking state. If True (False), all channels are on (off).
+        It can be set to 'internal' or 'external', where external means that the modulation voltage
+        of the channel will be used to define the channel output.
+
+        :param state: State of the blanking
+        :type state: logical
+        :param mode: external or internal. external is used to follow TTL external modulation
+        :type mode: string
+        """
+        self.controller.blanking(state, mode)
 
 if __name__ == '__main__':
-    from hyperion import _logger_format
+    from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
-    with  AaAotf('COM10', dummy=True) as d:
+    with  AaAotf(settings={'port':'COM10', 'dummy':False,
+                           'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012'}) as d:
 
-        d.driver.blanking(True, 'internal')
+        d.blanking(True, mode='internal')
 
         # get status
         # d.get_states())
@@ -272,7 +293,7 @@ if __name__ == '__main__':
         # print(d.driver.get_states())
 
         # # check set wavelength
-        wl = [490, 532, 630, 750] * ur('nanometer')
+        wl = [490, 670] * ur('nanometer')
         for value in wl:
             print(value)
             # d.set_frequency_all_range(d.wavelength_to_frequency(value), 22, True, 'internal')

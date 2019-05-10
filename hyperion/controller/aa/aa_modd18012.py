@@ -66,24 +66,21 @@ class AaModd18012(BaseController):
         self.rsc = None
         self.logger.info('Class Aa_modd18012 init. Created object.')
 
-
     def initialize(self):
         """ Initialize the device.
-
-        It actually connects to the device using the default settings.
-
-
+        It actually connects to the device.
         """
         if self.dummy:
             self.logger.info('Dummy device initialized')
         else:
-            self.rsc = serial.Serial(port=self.port,
+            self.rsc = serial.Serial(port=self._port,
                                      baudrate=self.DEFAULTS['baudrate'],
                                      timeout=self.DEFAULTS['read_timeout'],
                                      write_timeout=self.DEFAULTS['write_timeout']
                                      )
 
-            self.logger.info('Initialized device AOTF at port {}.'.format(self.port))
+            self.logger.info('Initialized device AOTF at port {}.'.format(self._port))
+        self._is_initialized = True
 
     def finalize(self):
         """ Closes the connection to the device
@@ -298,7 +295,7 @@ class AaModd18012(BaseController):
 
     def blanking(self, state, mode):
         """ Define the blanking state. If True (False), all channels are on (off).
-        It can also be 'internal' or 'external', where external means that the modulation voltage
+        It can be set to 'internal' or 'external', where external means that the modulation voltage
         of the channel will be used to define the channel output.
 
         :param state: State of the blanking
@@ -488,15 +485,16 @@ class AaModd18012Dummy(AaModd18012):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
+    from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5),
-                                                                 backupCount=7),
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
-    with AaModd18012(settings={'port':'COM10', 'dummy': True}) as dev:
+    with AaModd18012(settings={'port':'COM10', 'dummy': False}) as dev:
         dev.initialize()
 
         # unit_test basic for dummy device
@@ -505,10 +503,10 @@ if __name__ == "__main__":
         # print(dev.query('hola'))
 
         # unit_test set all
-        for ch in range(1, 9):
-            print(dev.set_all(ch, 0, 22, False, 'internal'))
-            sleep(0.1)
-        dev.store()
+        # for ch in range(1, 9):
+        #     print(dev.set_all(ch, 0, 22, False, 'internal'))
+        #     sleep(0.1)
+        # dev.store()
         print(dev.get_states())
 
-        print('DONE.')
+    print('DONE.')
