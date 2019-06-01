@@ -299,38 +299,38 @@ if __name__ == '__main__':
                             logging.StreamHandler()])
 
 
-    dummy_mode = [True] # add here false to unit_test the code with the real device
+    dummy_mode = [False] # add here false to unit_test the code with the real device
 
     for dummy in dummy_mode:
         print('Running in dummy = {}'.format(dummy))
         with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : dummy,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as dev:
             # output status and set
-            logging.info('The output is: {}'.format(dev.output))
-            dev.output = True
-            logging.info('The output is: {}'.format(dev.output))
-
-            # mode
-            logging.info('The mode is: {}'.format(dev.output))
-            for m in range(3):
-                dev.mode = m
-                logging.info('The mode is: {}'.format(dev.output))
-
-            # set voltage for both channels
-            for ch in range(1, 2):
-                logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
-                dev.set_analog_value(ch, 1 * ur('volts'))
-                logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
-
-            # unit_test freq
-            logging.info('Current freq: {}'.format(dev.freq))
-            Freqs = [1, 10, 20, 60, 100] * ur('Hz')
-            for f in Freqs:
-                dev.freq = f
-                logging.info('Current freq: {}'.format(dev.freq))
+            # logging.info('The output is: {}'.format(dev.output))
+            # dev.output = True
+            # logging.info('The output is: {}'.format(dev.output))
+            #
+            # # mode
+            # logging.info('The mode is: {}'.format(dev.output))
+            # for m in range(3):
+            #     dev.mode = m
+            #     logging.info('The mode is: {}'.format(dev.output))
+            #
+            # # set voltage for both channels
+            # for ch in range(1, 2):
+            #     logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+            #     dev.set_analog_value(ch, 1 * ur('volts'))
+            #     logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+            #
+            # # unit_test freq
+            # logging.info('Current freq: {}'.format(dev.freq))
+            # Freqs = [1, 10, 20, 60, 100] * ur('Hz')
+            # for f in Freqs:
+            #     dev.freq = f
+            #     logging.info('Current freq: {}'.format(dev.freq))
 
             # set the quater waveplate voltage in voltage1
-            wavelength = 700* ur('nanometer')
+            wavelength = 536.7* ur('nanometer')
             dev.set_quarter_waveplate_voltage(1, wavelength)
 
         print('Done with dummy={}'.format(dummy))
