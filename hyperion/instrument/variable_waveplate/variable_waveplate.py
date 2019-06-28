@@ -330,7 +330,7 @@ if __name__ == '__main__':
             #     logging.info('Current freq: {}'.format(dev.freq))
 
             # set the quater waveplate voltage in voltage1
-            wavelength = 536.7* ur('nanometer')
+            wavelength = 633* ur('nanometer')
             dev.set_quarter_waveplate_voltage(1, wavelength)
 
         print('Done with dummy={}'.format(dummy))
