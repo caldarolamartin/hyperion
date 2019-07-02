@@ -4,8 +4,8 @@
 Osa controller
 ==================
 
-This is an example of a controller with a fake (invented) device. It should help to guide
-developers to create new controllers for real devices.
+This controller (osa_2.py) supplies one class with several methods to communicate
+with the osa machine from ando AQ6317B model: ?
 
 
 """
@@ -44,6 +44,7 @@ class Osa(BaseController):
         self.__optical_resolution = None
         self.__sample_points = None
         self.__settings = settings
+
         if 'port' in self.__settings:
             self.__port = self.__settings['port']
         else:
