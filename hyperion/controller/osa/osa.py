@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 ==================
-Example controller
+Osa controller
 ==================
 
-This is an example of a controller with a fake (invented) device. It should help to gide
+This is an example of a controller with a fake (invented) device. It should help to guide
 developers to create new controllers for real devices.
 
 
@@ -49,7 +49,6 @@ class Osa(BaseController):
         else:
             self.__port = 'AUTO'
 
-
     def initialize(self):
         """ Starts the connection to the device in port """
         self.logger.info('Opening connection to OSA')
@@ -67,7 +66,7 @@ class Osa(BaseController):
 
         self.__osa.read_termination = '\r\n'
 
-        self.__osa.write('SRQ1')    # This seems to be necessary in order to poll whether device is done with self.__osa.read_stb())
+        self.__osa.write('SRQ1')     # This seems to be necessary in order to poll whether device is done with self.__osa.read_stb())
         self._is_initialized = True  # THIS IS MANDATORY!!
         # this is to prevent you to close the device connection if you
         # have not initialized it inside a with statement
@@ -77,6 +76,7 @@ class Osa(BaseController):
     def wait_for_osa(self, timeout):
         start_time = time.time()
         while (time.time() - start_time) < timeout:
+            #TODO the status byte does not turn from 0 to 1, so... later someone should look at this.
             if ((self.__osa.read_stb()) % 2) == 1:
                 return
             time.sleep(.01)
@@ -163,6 +163,7 @@ class Osa(BaseController):
         self.__osa.close()
         self._is_initialized = False
 
+    @property
     def idn(self):
         """ Identify command
 
@@ -273,15 +274,10 @@ def set_settings_for_osa(dev):
     :param dev: the osa device.
     :return:
     """
-
-
     dev.start_wav = 600.00
-
     dev.end_wav = 900.00
-
     # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
     dev.optical_resolution = 1.00
-
     dev.sample_points = get_recommended_sample_points(dev)
 
 if __name__ == "__main__":
@@ -307,12 +303,10 @@ if __name__ == "__main__":
     with my_class(settings={'dummy': dummy}) as dev:
 
         dev.initialize()
-        #TODO fix bug, normally running the program does not work and via the debugger it does, how? 
+        dev.wait_for_osa(5)
         set_settings_for_osa(dev)
 
-        dev.wait_for_osa(5)
         dev.perform_single_sweep()
-
         #dev.get_data()
 
 
