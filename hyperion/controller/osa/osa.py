@@ -92,40 +92,52 @@ class Osa(BaseController):
     def start_wav(self, start_wav):
         # note that OSA works from 600 to 1750 nm
         if start_wav != self.__start_wav:
-             print('STAWL{:1.2f}'.format(self.__start_wav))
-            self.__osa.write('STAWL{:1.2f}'.format(self.__start_wav))
             self.__start_wav = start_wav
+            self.__osa.write('STAWL{:1.2f}'.format(start_wav))
+            self.__start_wav = self.__osa.query_ascii_values('STAWL')[0]
+
+            #print('STAWL{:1.2f}'.format(self.__start_wav))
+            #self.__osa.write('STAWL{:1.2f}'.format(self.__start_wav))
 
     @property
     def end_wav(self):
         self.__end_wav = self.__osa.query_ascii_values('STpWL?')[0]
-        self.__osa.write('STpWL{:1.2f}'.format(self.__end_wav))
         return self.__end_wav
 
     @end_wav.setter
     def end_wav(self, end_wav):
         if end_wav != self.__end_wav:
-            print('STpWL{:1.2f}'.format(self.__end_wav))
-            self.__osa.write('STpWL{:1.2f}'.format(self.__end_wav))
             self.__end_wav = end_wav
+            self.__osa.write('STpWL{:1.2f}'.format(end_wav))
+            self.__end_wav = self.__osa.query_ascii_values('STpWL')[0]
+
+            #print('STpWL{:1.2f}'.format(self.__end_wav))
+            #self.__end_wav = end_wav
 
     @property
     def optical_resolution(self):
+        self.__optical_resolution = self.__osa.query_ascii_values('RESLN?')[0]
         return self.__optical_resolution
 
     @optical_resolution.setter
     def optical_resolution(self, optical_resolution):
-        # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
-        self.__optical_resolution = optical_resolution
+        if optical_resolution != self.__optical_resolution:
+            self.__optical_resolution = optical_resolution
+            self.__osa.write('RESLN{:1.2f}'.format(optical_resolution))
+            self.__optical_resolution = self.__osa.query_ascii_values('RESLN')[0]
+
 
     @property
     def sample_points(self):
+        self.__sample_points = self.__osa.query_ascii_values('SMPL?')[0]
         return self.__sample_points
 
     @sample_points.setter
     def sample_points(self, sample_points):
-        # recommend at the very least 1 + 2*(end_wav-start_wav)/optical_resolution
-        self.__sample_points = sample_points
+        if sample_points != self.__sample_points:
+            self.__sample_points = sample_points
+            self.__osa.write('SMPL{:1.2f}'.format(sample_points))
+            self.__sample_points = self.__osa.query_ascii_values('SMPL')[0]
 
     def set_settings_for_osa(self):
         #TODO create parameters in self object
@@ -279,14 +291,23 @@ if __name__ == "__main__":
 
         dev.initialize()
 
+        dev.end_wav = 1200
         print(dev.end_wav)
-        dev.end_wav = 1000
-        print(dev.end_wav)
+
         print("-"*40)
-        print(dev.start_wav)
+
         dev.start_wav = 900.00
         print(dev.start_wav)
 
+        print("-" * 40)
+        # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
+        dev.optical_resolution = 1.00
+        print(dev.optical_resolution)
+
+        print("-" * 40)
+        # recommend at the very least 1 + 2*(end_wav-start_wav)/optical_resolution
+        dev.sample_points = 601
+        print(dev.sample_points)
         #dev.set_the_settings_in_osa_object()
         #dev.perform_single_sweep()
         #dev.get_data()
