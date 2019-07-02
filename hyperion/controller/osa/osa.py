@@ -74,7 +74,6 @@ class Osa(BaseController):
         #self._amplitude = self.query('A?')
         self.start_wav
 
-
     def wait_for_osa(self, timeout):
         start_time = time.time()
         while (time.time() - start_time) < timeout:
@@ -148,7 +147,12 @@ class Osa(BaseController):
 
         wav = self.__osa.query_ascii_values('WDATA')[1:]
         spec = self.__osa.query_ascii_values('LDATA')[1:]
+        
         plt.plot(wav, spec, '.-')
+        plt.xlabel("the wavelength")
+        plt.ylabel("the spectrometer data")
+        plt.title("the wavelength plotted the spectrometer")
+        plt.show()
 
     def finalize(self):
         """ This method closes the connection to the device.
@@ -259,29 +263,28 @@ class OsaDummy(Osa):
         ans = 'A general dummy answer'
         return ans
 
-
 def get_recommended_sample_points(dev):
     # recommend at the very least 1 + 2*(end_wav-start_wav)/optical_resolution
     return 1 + 2*((dev.end_wav - dev.start_wav)/dev.optical_resolution)
 
-
 def set_settings_for_osa(dev):
     #in this method the parameters for the osa machine are set
-    dev.end_wav = 1200
-    print(dev.end_wav)
-    print("-" * 40)
 
-    dev.start_wav = 900.00
-    print(dev.start_wav)
-    print("-" * 40)
+    dev.start_wav = 600.00
+    #print(dev.start_wav)
+    #print("-" * 40)
+
+    dev.end_wav = 900.00
+    #print(dev.end_wav)
+    #print("-" * 40)
 
     # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
     dev.optical_resolution = 1.00
-    print(dev.optical_resolution)
-    print("-" * 40)
+    #print(dev.optical_resolution)
+    #print("-" * 40)
 
     dev.sample_points = get_recommended_sample_points(dev)
-    print(dev.sample_points)
+    #print(dev.sample_points)
 
 
 if __name__ == "__main__":
@@ -308,9 +311,10 @@ if __name__ == "__main__":
 
         dev.initialize()
         set_settings_for_osa(dev)
-        
-        #dev.perform_single_sweep()
-        #dev.get_data()
+
+        dev.perform_single_sweep()
+        dev.wait_for_osa(5)
+        dev.get_data()
 
 
 
