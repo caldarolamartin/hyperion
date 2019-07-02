@@ -139,13 +139,6 @@ class Osa(BaseController):
             self.__osa.write('SMPL{:1.2f}'.format(sample_points))
             self.__sample_points = self.__osa.query_ascii_values('SMPL')[0]
 
-    def set_settings_for_osa(self):
-        #TODO create parameters in self object
-        self.__osa.write('RESLN{:1.2f}'.format(self.__optical_resolution))
-
-
-        self.__osa.write('SMPL{}'.format(self.__sample_points))
-
     def perform_single_sweep(self):
         self.__osa.write('SGL')
 
@@ -267,6 +260,30 @@ class OsaDummy(Osa):
         return ans
 
 
+def get_recommended_sample_points(dev):
+    # recommend at the very least 1 + 2*(end_wav-start_wav)/optical_resolution
+    return 1 + 2*((dev.end_wav - dev.start_wav)/dev.optical_resolution)
+
+
+def set_settings_for_osa(dev):
+    #in this method the parameters for the osa machine are set
+    dev.end_wav = 1200
+    print(dev.end_wav)
+    print("-" * 40)
+
+    dev.start_wav = 900.00
+    print(dev.start_wav)
+    print("-" * 40)
+
+    # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
+    dev.optical_resolution = 1.00
+    print(dev.optical_resolution)
+    print("-" * 40)
+
+    dev.sample_points = get_recommended_sample_points(dev)
+    print(dev.sample_points)
+
+
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings
 
@@ -290,25 +307,8 @@ if __name__ == "__main__":
     with my_class(settings={'dummy': dummy}) as dev:
 
         dev.initialize()
-
-        dev.end_wav = 1200
-        print(dev.end_wav)
-
-        print("-"*40)
-
-        dev.start_wav = 900.00
-        print(dev.start_wav)
-
-        print("-" * 40)
-        # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
-        dev.optical_resolution = 1.00
-        print(dev.optical_resolution)
-
-        print("-" * 40)
-        # recommend at the very least 1 + 2*(end_wav-start_wav)/optical_resolution
-        dev.sample_points = 601
-        print(dev.sample_points)
-        #dev.set_the_settings_in_osa_object()
+        set_settings_for_osa(dev)
+        
         #dev.perform_single_sweep()
         #dev.get_data()
 
