@@ -11,6 +11,7 @@ the controller can get the data the view want's to show. so data flows controlle
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion.controller.osa.osa import Osa
+from hyperion.view.osa import osa_view
 from hyperion import ur
 
 class OsaInstrument(BaseInstrument):
@@ -45,7 +46,43 @@ class OsaInstrument(BaseInstrument):
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn
 
+    def is_end_wav_bigger_than_start_wav(self, end_wav, start_wav):
+        if float(end_wav) > float(start_wav):
+            # end_wav is groter dan start_wav wat je verwacht. dit is goed
+            pass
+        else:
+            print("start_wav is groter dan end_wav, dit is niet de bedoeling!")
 
+            return
+
+    def is_optical_resolution_correct(self, optical_resolution):
+        if float(optical_resolution) in get_list_with_possible_optical_resolution():
+            # de waarde zit in de lijst, dus dat is goed
+            pass
+        else:
+            print("de opgegeven waarde van optische resolutie is niet mogelijk.\n "
+                  "Zie deze lijst voor opties:"+ str(get_list_with_possible_optical_resolution()))
+            return
+
+    def is_end_wav_value_correct(self, end_wav):
+        if float(end_wav) > 600.00 and float(end_wav) < 1750.00:
+            # de opgegeven waarde is goed
+            pass
+        else:
+            print("end_wav is groter of kleiner dan hij mag zijn.\n De waarde mag zitten tussen de 600.00 en 1750.00")
+            return
+
+    def is_start_wav_value_correct(self, start_wav):
+        if float(start_wav) > 600.00 and float(start_wav) < 1750.00:
+            # de opgegeven waarde is goed
+            pass
+        else:
+            print("start_wav is groter of kleiner dan hij mag zijn.\n De waarde mag zitten tussen 600.00 en 1750.00")
+            return
+
+
+def get_list_with_possible_optical_resolution():
+    return [0.01,0.02,0.05,0.1,0.2,0.5,1.0,2.0,5.0]
 
 def set_settings_for_osa(dev):
     """
