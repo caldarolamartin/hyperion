@@ -4,8 +4,8 @@
 Osa controller
 ==================
 
-This controller (osa_2.py) supplies one class with several methods to communicate
-with the osa machine from ando AQ6317B model: ?
+This controller (osa.py) supplies one class with several methods to communicate
+    with the osa machine from ando AQ6317B model: ?
 
 
 """
@@ -44,7 +44,6 @@ class Osa(BaseController):
         self.__optical_resolution = None
         self.__sample_points = None
         self.__settings = settings
-
         if 'port' in self.__settings:
             self.__port = self.__settings['port']
         else:
@@ -80,7 +79,7 @@ class Osa(BaseController):
             #TODO the status byte does not turn from 0 to 1, so... later someone should look at this.
             if ((self.__osa.read_stb()) % 2) == 1:
                 return
-            time.sleep(.01)
+            time.sleep(.1)
 
     @property
     def start_wav(self):
@@ -94,7 +93,7 @@ class Osa(BaseController):
         if start_wav != self.__start_wav:
             self.__start_wav = start_wav
             self.__osa.write('STAWL{:1.2f}'.format(start_wav))
-            self.__start_wav = self.__osa.query_ascii_values('STAWL')[0]
+            self.__start_wav = self.__osa.query_ascii_values('STAWL?')[0]
 
             #print('STAWL{:1.2f}'.format(self.__start_wav))
             #self.__osa.write('STAWL{:1.2f}'.format(self.__start_wav))
@@ -109,7 +108,7 @@ class Osa(BaseController):
         if end_wav != self.__end_wav:
             self.__end_wav = end_wav
             self.__osa.write('STpWL{:1.2f}'.format(end_wav))
-            self.__end_wav = self.__osa.query_ascii_values('STpWL')[0]
+            self.__end_wav = self.__osa.query_ascii_values('STpWL?')[0]
 
             #print('STpWL{:1.2f}'.format(self.__end_wav))
             #self.__end_wav = end_wav
@@ -124,7 +123,7 @@ class Osa(BaseController):
         if optical_resolution != self.__optical_resolution:
             self.__optical_resolution = optical_resolution
             self.__osa.write('RESLN{:1.2f}'.format(optical_resolution))
-            self.__optical_resolution = self.__osa.query_ascii_values('RESLN')[0]
+            self.__optical_resolution = self.__osa.query_ascii_values('RESLN?')[0]
 
 
     @property
@@ -137,7 +136,7 @@ class Osa(BaseController):
         if sample_points != self.__sample_points:
             self.__sample_points = sample_points
             self.__osa.write('SMPL{:1.2f}'.format(sample_points))
-            self.__sample_points = self.__osa.query_ascii_values('SMPL')[0]
+            self.__sample_points = self.__osa.query_ascii_values('SMPL?')[0]
 
     def perform_single_sweep(self):
         self.__osa.write('SGL')
@@ -265,21 +264,7 @@ class OsaDummy(Osa):
         ans = 'A general dummy answer'
         return ans
 
-def get_recommended_sample_points(dev):
-    # recommend at the very least 1 + 2*(end_wav-start_wav)/optical_resolution
-    return 1 + 2*((dev.end_wav - dev.start_wav)/dev.optical_resolution)
 
-def set_settings_for_osa(dev):
-    """
-    in this method the parameters for the osa machine are set
-    :param dev: the osa device.
-    :return:
-    """
-    dev.start_wav = 600.00
-    dev.end_wav = 900.00
-    # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
-    dev.optical_resolution = 1.00
-    dev.sample_points = get_recommended_sample_points(dev)
 
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings
@@ -293,7 +278,7 @@ if __name__ == "__main__":
 
 
 
-
+    """
     dummy = False  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
@@ -309,6 +294,6 @@ if __name__ == "__main__":
 
         dev.perform_single_sweep()
         #dev.get_data()
-
+    """
 
 
