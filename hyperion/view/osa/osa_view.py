@@ -1,9 +1,8 @@
 import sys
-from typing import List
-
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox
-from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
+from hyperion.instrument.osa import osa_instrument
+
 
 class App(QMainWindow):
 
@@ -118,16 +117,16 @@ class App(QMainWindow):
 
     @pyqtSlot()
     def on_click_recommended(self):
-        #when the recommended_sample_points button is clicked something happens
         print("the recommended sample points will be calculated ")
         self.textbox_sample_points.setText("")
 
         #check if the textboxs are not empty
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty() and self.is_optical_resolution_not_empty():
-            #alle velden zijn ingevuld
+            #all fields are filled
+            osa_instrument.get_recommended_sample_points(self)
             self.get_recommended_sample_points()
         else:
-            #er is iets nog niet ingevuld
+            #some parameter is missing in one of the textboxs
             self.error_message_not_all_fields_are_filled()
 
     def is_sample_points_not_empty(self):
@@ -171,27 +170,28 @@ class App(QMainWindow):
                              QMessageBox.Ok,
                              QMessageBox.Ok)
 
-    def get_recommended_sample_points(self):
-        self.textbox_sample_points.setText(
-            str(1 + (2 * (float(self.textbox_end_wav.text()) - float(self.textbox_start_wav.text())) / float(
-                self.textbox_optical_resolution.text()))))
-
     @pyqtSlot()
     def on_click_submit(self):
         self.get_submit_button_status()
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty() and self.is_optical_resolution_not_empty() and self.is_sample_points_not_empty():
             end_wav, optical_resolution, sample_points, start_wav = self.get_values_from_textboxs()
+            #check if conditions for a single sweep are met
+            osa_instrument.is_start_wav_value_correct(self,start_wav)
+            osa_instrument.is_end_wav_value_correct(self,end_wav)
+            osa_instrument.is_optical_resolution_correct(self,optical_resolution)
+            osa_instrument.is_end_wav_bigger_than_start_wav(self,start_wav,end_wav)
 
-            self.is_start_wav_value_correct(start_wav)
-            self.is_end_wav_value_correct(end_wav)
-            self.is_optical_resolution_correct(optical_resolution)
-            self.is_end_wav_bigger_than_start_wav(end_wav, start_wav)
+            #set the settings of the osa machine
+            osa_instrument.set_settings_for_osa()
 
+            #perform the sweep
+            osa_instrument.dev.perform_single_sweep()
+            osa_instrument.dev.wait_for_osa(5)
+            osa_instrument.dev.get_data()
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
             self.set_textboxs_to_empty_value()
 
         else:
-            #er is een veld nog niet ingevuld, ik weet niet welke
             self.error_message_not_all_fields_are_filled()
 
     def set_textboxs_to_empty_value(self):
