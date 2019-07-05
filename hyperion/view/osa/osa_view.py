@@ -124,7 +124,6 @@ class App(QMainWindow):
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty() and self.is_optical_resolution_not_empty():
             #all fields are filled
             osa_instrument.get_recommended_sample_points(self)
-            self.get_recommended_sample_points()
         else:
             #some parameter is missing in one of the textboxs
             self.error_message_not_all_fields_are_filled()
@@ -174,25 +173,33 @@ class App(QMainWindow):
     def on_click_submit(self):
         self.get_submit_button_status()
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty() and self.is_optical_resolution_not_empty() and self.is_sample_points_not_empty():
-            end_wav, optical_resolution, sample_points, start_wav = self.get_values_from_textboxs()
+            end_wav, optical_resolution, sample_points, start_wav = osa_instrument.get_values_from_textboxs(self)
+
             #check if conditions for a single sweep are met
-            osa_instrument.is_start_wav_value_correct(self,start_wav)
-            osa_instrument.is_end_wav_value_correct(self,end_wav)
-            osa_instrument.is_optical_resolution_correct(self,optical_resolution)
-            osa_instrument.is_end_wav_bigger_than_start_wav(self,start_wav,end_wav)
+            if osa_instrument.is_start_wav_value_correct(start_wav) and osa_instrument.is_end_wav_value_correct(end_wav) and osa_instrument.is_optical_resolution_correct(optical_resolution) and osa_instrument.is_end_wav_bigger_than_start_wav(start_wav,end_wav):
+                #all tests are succesfull. now the rest of the code may be executed.
 
-            #set the settings of the osa machine
-            osa_instrument.set_settings_for_osa()
+                # set the settings of the osa machine
+                self.set_parameters_for_osa_machine(end_wav, optical_resolution, sample_points, start_wav)
 
-            #perform the sweep
-            osa_instrument.dev.perform_single_sweep()
-            osa_instrument.dev.wait_for_osa(5)
-            osa_instrument.dev.get_data()
+                #perform the sweep
+                osa_instrument.dev.perform_single_sweep()
+                osa_instrument.dev.wait_for_osa(5)
+                osa_instrument.dev.get_data()
+
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
             self.set_textboxs_to_empty_value()
 
         else:
             self.error_message_not_all_fields_are_filled()
+
+
+
+    def set_parameters_for_osa_machine(self, end_wav, optical_resolution, sample_points, start_wav):
+        osa_instrument.dev.start_wav = start_wav
+        osa_instrument.dev.end_wav = end_wav
+        osa_instrument.dev.optical_resolution = optical_resolution
+        osa_instrument.dev.sample_points = sample_points
 
     def set_textboxs_to_empty_value(self):
         # set the textboxs to a specified value
@@ -207,13 +214,6 @@ class App(QMainWindow):
                              "\n" + optical_resolution + "\n" + sample_points, QMessageBox.Ok,
                              QMessageBox.Ok)
 
-    def get_values_from_textboxs(self):
-        # get all the values from the textfields
-        start_wav = self.textbox_start_wav.text()
-        end_wav = self.textbox_end_wav.text()
-        optical_resolution = self.textbox_optical_resolution.text()
-        sample_points = self.textbox_sample_points.text()
-        return end_wav, optical_resolution, sample_points, start_wav
 
     def get_submit_button_status(self):
         # when the button is clicked this method will be executed
