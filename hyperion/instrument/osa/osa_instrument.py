@@ -55,14 +55,6 @@ def is_end_wav_bigger_than_start_wav(end_wav, start_wav):
         print("start_wav value is bigger than the end_wav value, that is not what you want!")
         return False
 
-def is_optical_resolution_correct(optical_resolution):
-    if float(optical_resolution) in get_list_with_possible_optical_resolution():
-        return True
-    else:
-        print("de opgegeven waarde van optische resolutie is niet mogelijk.\n "
-              "Zie deze lijst voor opties:"+ str(get_list_with_possible_optical_resolution()) + "\n")
-        return False
-
 def is_end_wav_value_correct(end_wav):
     if float(end_wav) >= 600.00 and float(end_wav) <= 1750.00:
         return True
@@ -77,9 +69,6 @@ def is_start_wav_value_correct(start_wav):
         print("the start_wav value is bigger than or smaller than it should be.\n The value must be between 600.00 and 1750.00.")
         return False
 
-def get_list_with_possible_optical_resolution():
-    return [0.01,0.02,0.05,0.1,0.2,0.5,1.0,2.0,5.0]
-
 def get_values_from_textboxs(self):
     # get all the values from the textfields
     start_wav = get_start_wav(self)
@@ -93,7 +82,7 @@ def get_sample_points(self):
     return sample_points
 
 def get_optical_resolution(self):
-    optical_resolution = self.textbox_optical_resolution.text()
+    optical_resolution = self.dropdown_optical_resolution.currentText()
     return optical_resolution
 
 def get_end_wav(self):
@@ -108,7 +97,7 @@ def get_start_wav(self):
 def get_recommended_sample_points(self):
     self.textbox_sample_points.setText(
         str(1 + (2 * (float(self.textbox_end_wav.text()) - float(self.textbox_start_wav.text())) / float(
-            self.textbox_optical_resolution.text()))))
+            self.dropdown_optical_resolution.currentText()))))
 
 def set_settings_for_osa(dev):
     """
