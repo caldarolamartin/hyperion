@@ -14,9 +14,10 @@ import visa
 import time
 import matplotlib.pyplot as plt
 from hyperion.controller.base_controller import BaseController
+from hyperion import ur
 
 
-class Osa(BaseController):
+class OsaController(BaseController):
     """ Example output device that does not connect to anything"""
 
     FAKE_RESPONSES = {'A': 1,
@@ -92,7 +93,7 @@ class Osa(BaseController):
         # note that OSA works from 600 to 1750 nm
         if start_wav != self.__start_wav:
             self.__start_wav = start_wav
-            self.__osa.write('STAWL{:1.2f}'.format(start_wav))
+            self.__osa.write('STAWL{:1.2f}'.format(start_wav * ur("nm")))
             self.__start_wav = self.__osa.query_ascii_values('STAWL?')[0]
 
             #print('STAWL{:1.2f}'.format(self.__start_wav))
@@ -107,7 +108,7 @@ class Osa(BaseController):
     def end_wav(self, end_wav):
         if end_wav != self.__end_wav:
             self.__end_wav = end_wav
-            self.__osa.write('STpWL{:1.2f}'.format(end_wav))
+            self.__osa.write('STpWL{:1.2f}'.format(end_wav * ur("nm")))
             self.__end_wav = self.__osa.query_ascii_values('STpWL?')[0]
 
             #print('STpWL{:1.2f}'.format(self.__end_wav))
@@ -122,7 +123,7 @@ class Osa(BaseController):
     def optical_resolution(self, optical_resolution):
         if optical_resolution != self.__optical_resolution:
             self.__optical_resolution = optical_resolution
-            self.__osa.write('RESLN{:1.2f}'.format(optical_resolution))
+            self.__osa.write('RESLN{:1.2f}'.format(optical_resolution * ur("nm")))
             self.__optical_resolution = self.__osa.query_ascii_values('RESLN?')[0]
 
 
@@ -135,7 +136,7 @@ class Osa(BaseController):
     def sample_points(self, sample_points):
         if sample_points != self.__sample_points:
             self.__sample_points = sample_points
-            self.__osa.write('SMPL{:1.2f}'.format(sample_points))
+            self.__osa.write('SMPL{:1.2f}'.format(sample_points * ur("nm")))
             self.__sample_points = self.__osa.query_ascii_values('SMPL?')[0]
 
     def perform_single_sweep(self):
@@ -242,7 +243,7 @@ class Osa(BaseController):
             self.logger.info('The amplitude is already {}. Not changing the value in the device.'.format(value))
 
 
-class OsaDummy(Osa):
+class OsaControllerDummy(OsaController):
     """
     Example Controller Dummy
     ========================

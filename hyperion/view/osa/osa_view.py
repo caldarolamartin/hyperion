@@ -3,11 +3,11 @@ import sys
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox
 from PyQt5.QtCore import pyqtSlot
+
+from hyperion.controller.osa.osacontroller import OsaController
 from hyperion.instrument.osa import osa_instrument
 
-#todo add sensitivity box(should be a dropdown menu with the options: HIGH, MEDIUM, LOW)
 #todo add labels which tell the user the current value of the osa machine
-#todo add unit registration to the labels. This is necessary to know the right unit.
 
 class App(QMainWindow):
 
@@ -32,6 +32,11 @@ class App(QMainWindow):
         self.set_recommended_sample_points_button()
 
         self.show()
+    def set_gui_constructor(self):
+        # a constructor to set the properties of  the GUI in
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.statusBar().showMessage("Just some text")
 
     def set_recommended_sample_points_button(self):
         # calculate the recommended sample_points
@@ -41,7 +46,6 @@ class App(QMainWindow):
         # button.move() sets the button on the given position you specify.
         button_calculate_recommended_sample_points.move(100, 200)
         button_calculate_recommended_sample_points.clicked.connect(self.on_click_recommended)
-
     def set_submit_button(self):
         # submit button code
         button_submit = QPushButton('submit', self)
@@ -56,35 +60,30 @@ class App(QMainWindow):
         self.set_optical_resolution_label()
         self.set_sample_points_label()
         self.set_sensitivity_label()
-
     def set_sensitivity_label(self):
         #set the sensitivity label
         self.label_sensitivity = QLabel(self)
         self.label_sensitivity.move(20, 130)
         self.label_sensitivity.setText("the sensitivity")
         self.label_sensitivity.adjustSize()
-
     def set_sample_points_label(self):
         # the sample points label
         self.label_sample_points = QLabel(self)
         self.label_sample_points.move(20, 100)
         self.label_sample_points.setText("the amount of sample points")
         self.label_sample_points.adjustSize()
-
     def set_optical_resolution_label(self):
         # the optical resolution label
         self.label_optical_resolution = QLabel(self)
         self.label_optical_resolution.move(20, 70)
         self.label_optical_resolution.setText("the optical resolution in stepvalue of nm")
         self.label_optical_resolution.adjustSize()
-
     def set_end_wav_label(self):
         # the end_wav label
         self.label_end_wav = QLabel(self)
         self.label_end_wav.move(20, 40)
         self.label_end_wav.setText("the end wavelength, from 600.00 nm to 1750.00 nm")
         self.label_end_wav.adjustSize()
-
     def set_start_wav_label(self):
         # the start_wav label
         self.label_start_wav = QLabel(self)
@@ -92,56 +91,45 @@ class App(QMainWindow):
         self.label_start_wav.setText("the start wavelength, from 600.00 nm to 1750.00 nm")
         self.label_start_wav.adjustSize()
 
-    def set_gui_constructor(self):
-        # a constructor to set the properties of  the GUI in
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.statusBar().showMessage("Just some text")
-
     def set_textboxs(self):
         self.set_start_wav_textbox()
         self.set_end_wav_text_box()
         self.set_optical_resolution_textbox()
         self.set_sample_points_textbox()
         self.set_sensitivity_dropdown()
-
     def set_sensitivity_dropdown(self):
         #this is the sensitivity_dropdown
         self.dropdown_sensitivity = QComboBox(self)
         self.dropdown_sensitivity.addItems(["sensitivity normal range","sensitivity normal range automatic","sensitivity medium range","sensitivity high 1 range","sensitivity high 2 range","sensitivity high 3 range"])
         self.dropdown_sensitivity.move(20, 142)
         self.dropdown_sensitivity.resize(175, 20)
-
     def set_sample_points_textbox(self):
         # this is the sample_points_textbox
         self.textbox_sample_points = QLineEdit(self)
         self.textbox_sample_points.move(20, 112)
         self.textbox_sample_points.resize(50, 20)
-
     def set_optical_resolution_textbox(self):
         # this is the optical_resolution_dropdown
         self.dropdown_optical_resolution = QComboBox(self)
         self.dropdown_optical_resolution.addItems(["0.01","0.02","0.05","0.1","0.2","0.5","1.0","2.0","5.0"])
         self.dropdown_optical_resolution.move(20, 82)
         self.dropdown_optical_resolution.resize(75, 20)
-
-    def get_chosen_optical_resolution(self):
-        return self.dropdown_optical_resolution.currentText()
-
-    def get_chosen_sensitivity(self):
-        return self.dropdown_sensitivity.currentText()
-
     def set_end_wav_text_box(self):
         # this is the end_wav_textbox
         self.textbox_end_wav = QLineEdit(self)
         self.textbox_end_wav.move(20, 52)
         self.textbox_end_wav.resize(50, 20)
-
     def set_start_wav_textbox(self):
         # this is the start_wav_textbox
         self.textbox_start_wav = QLineEdit(self)
         self.textbox_start_wav.move(20, 22)
         self.textbox_start_wav.resize(50, 20)
+
+    def get_chosen_optical_resolution(self):
+        return self.dropdown_optical_resolution.currentText()
+    def get_chosen_sensitivity(self):
+        return self.dropdown_sensitivity.currentText()
+
 
     @pyqtSlot()
     def on_click_recommended(self):
@@ -161,13 +149,11 @@ class App(QMainWindow):
             return True
         else:
             return False
-
     def is_end_wav_not_empty(self):
         if self.textbox_end_wav.text() != "":
             return True
         else:
             return False
-
     def is_start_wav_not_empty(self):
         if self.textbox_start_wav.text() != "":
             return True
@@ -206,9 +192,9 @@ class App(QMainWindow):
 
                 #perform the sweep
                 # TODO Hij vind de self van de GUI, maar niet de connectie, hoe kan deze in view bekend zijn.
-                osa_instrument.dev.perform_single_sweep()
-                osa_instrument.dev.write(5)
-                osa_instrument.dev.get_data()
+                dev.perform_single_sweep()
+                dev.wait_for_osa(5)
+                dev.get_data()
 
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
             self.set_textboxs_to_empty_value()
@@ -217,10 +203,15 @@ class App(QMainWindow):
             self.error_message_not_all_fields_are_filled()
 
     def set_parameters_for_osa_machine(self, end_wav, optical_resolution, sample_points, start_wav):
-        osa_instrument.Osa.start_wav = float(start_wav)
-        osa_instrument.Osa.end_wav = float(end_wav)
-        osa_instrument.Osa.optical_resolution = float(optical_resolution)
-        osa_instrument.Osa.sample_points = float(sample_points)
+        #todo het gaat hier mis, dat komt omdat er op een of andere manier geen controller object is dat de view kan invullen.
+        print(dev.start_wav)
+        print(dev.end_wav)
+        print(dev.optical_resolution)
+        print(dev.sample_points)
+        dev.start_wav = float(start_wav)
+        dev.end_wav = float(end_wav)
+        dev.optical_resolution = float(optical_resolution)
+        dev.sample_points = float(sample_points)
 
     def set_textboxs_to_empty_value(self):
         # set the textboxs to a specified value
@@ -242,6 +233,16 @@ class App(QMainWindow):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = App()
-    sys.exit(app.exec_())
+    dummy = False
+
+    with OsaController(settings={'dummy': dummy}) as dev:
+        dev.initialize()
+        # set_settings_for_osa(dev)
+        app = QApplication(sys.argv)
+        ex = App()
+
+        # dev.wait_for_osa(5)
+        # dev.perform_single_sweep()
+        # dev.get_data()
+        dev.finalize()
+        sys.exit(app.exec_())

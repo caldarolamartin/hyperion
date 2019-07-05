@@ -12,9 +12,8 @@ import logging
 import sys
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.controller.osa.osa import Osa
+from hyperion.controller.osa.osacontroller import OsaController
 from hyperion.view.osa import osa_view
-from hyperion import ur
 
 class OsaInstrument(BaseInstrument):
     """ Example instrument. it is a fake instrument
@@ -47,6 +46,19 @@ class OsaInstrument(BaseInstrument):
         """
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn
+
+    @property
+    def start_wav(self):
+        return self.controller.start_wav * ur('nm')
+
+    @start_wav.setter
+    def start_wav(self, start_wav):
+        if not self.__wav_in_range(self, wav):
+            self.controller.start_wav = start_wav.m_as('nm')
+
+    def __wav_in_range(self,wav):
+        return (wav<1750.0 and wav>600.0)
+
 
 def is_end_wav_bigger_than_start_wav(end_wav, start_wav):
     if float(end_wav) < float(start_wav):
@@ -121,9 +133,9 @@ if __name__ == "__main__":
                                                                  maxBytes=_logger_settings['maxBytes'],
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
+    """
     dummy = False
-
-    with Osa(settings={'dummy': dummy}) as dev:
+    with OsaController(settings={'dummy': dummy}) as dev:
         dev.initialize()
         #set_settings_for_osa(dev)
         app = osa_view.QApplication(sys.argv)
@@ -134,7 +146,7 @@ if __name__ == "__main__":
         #dev.get_data()
         dev.finalize()
         sys.exit(app.exec_())
-
+    """
 
 
 
