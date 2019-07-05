@@ -49,8 +49,7 @@ class OsaInstrument(BaseInstrument):
         return self.controller.idn
 
 def is_end_wav_bigger_than_start_wav(end_wav, start_wav):
-    if float(end_wav) > float(start_wav):
-        # the end_wav value is bigger than the start_wav value
+    if float(end_wav) < float(start_wav):
         return True
     else:
         print("start_wav value is bigger than the end_wav value, that is not what you want!")
@@ -58,7 +57,6 @@ def is_end_wav_bigger_than_start_wav(end_wav, start_wav):
 
 def is_optical_resolution_correct(optical_resolution):
     if float(optical_resolution) in get_list_with_possible_optical_resolution():
-        # de value is in the list, which is good
         return True
     else:
         print("de opgegeven waarde van optische resolutie is niet mogelijk.\n "
@@ -66,16 +64,14 @@ def is_optical_resolution_correct(optical_resolution):
         return False
 
 def is_end_wav_value_correct(end_wav):
-    if float(end_wav) > 600.00 and float(end_wav) < 1750.00:
-        # the given value is good
+    if float(end_wav) >= 600.00 and float(end_wav) <= 1750.00:
         return True
     else:
         print("end_wav value is bigger or smaller than it must be.\n De value must be between 600.00 and 1750.00.")
         return False
 
 def is_start_wav_value_correct(start_wav):
-    if float(start_wav) > 600.00 and float(start_wav) < 1750.00:
-        # the given value is good
+    if float(start_wav) >= 600.00 and float(start_wav) <= 1750.00:
         return True
     else:
         print("the start_wav value is bigger than or smaller than it should be.\n The value must be between 600.00 and 1750.00.")
@@ -86,10 +82,10 @@ def get_list_with_possible_optical_resolution():
 
 def get_values_from_textboxs(self):
     # get all the values from the textfields
-    start_wav = self.get_start_wav()
-    end_wav = self.get_end_wav()
-    optical_resolution = self.get_optical_resolution()
-    sample_points = self.get_sample_points()
+    start_wav = get_start_wav(self)
+    end_wav = get_end_wav(self)
+    optical_resolution = get_optical_resolution(self)
+    sample_points = get_sample_points(self)
     return end_wav, optical_resolution, sample_points, start_wav
 
 def get_sample_points(self):
