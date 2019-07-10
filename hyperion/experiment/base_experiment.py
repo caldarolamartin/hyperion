@@ -59,7 +59,7 @@ class BaseExperiment():
     def load_instrument(self, name):
         """ Loads instrument
 
-        :param name: name of the instrument to load
+        :param name: name of the instrument to load. It has to be specified in the config file under Instruments
         :type name: string
         """
         self.logger.debug('Loading instrument: {}'.format(name))
