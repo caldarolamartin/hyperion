@@ -299,7 +299,7 @@ if __name__ == '__main__':
         #     print('This wavelength: {}'.format(value))
         #     # d.set_frequency_all_range(d.wavelength_to_frequency(value), 22, True, 'internal')
         #     d.set_wavelength(value, 22, True, 'internal')
-        #     
+        #
         # print('done')
 
 
