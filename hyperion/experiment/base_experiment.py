@@ -23,6 +23,7 @@ class BaseExperiment():
         self.properties = {}
         self.instruments= []
         self.instruments_instances = []
+        self.filename = ''
 
     def __enter__(self):
         return self
@@ -54,8 +55,6 @@ class BaseExperiment():
         for inst in self.instruments_instances:
             inst.finalize()
 
-
-
     def load_instrument(self, name):
         """ Loads instrument
 
@@ -64,7 +63,7 @@ class BaseExperiment():
         """
         self.logger.debug('Loading instrument: {}'.format(name))
         for inst in self.properties['Instruments']:
-            self.logger.debug('instrument name: {}'.format(inst))
+            self.logger.debug('instrument information: {}'.format(inst))
 
             if name in inst:
                 module_name, class_name = inst[name]['instrument'].split('/')
