@@ -1,0 +1,325 @@
+# -*- coding: utf-8 -*-
+"""
+==================
+Osa controller
+==================
+
+This controller (osa.py) supplies one class with several methods to communicate
+    with the osa machine from ando AQ6317B model: ?
+
+
+"""
+import logging
+import visa
+import time
+import matplotlib.pyplot as plt
+from hyperion.controller.base_controller import BaseController
+from hyperion import ur
+
+#todo add other parameters like start_wav + sensitivity
+
+class OsaController(BaseController):
+    """ Example output device that does not connect to anything"""
+
+    FAKE_RESPONSES = {'A': 1,
+                      }
+
+    def __init__(self, settings={'port': 'AUTO', 'dummy': False}):
+        """ Init of the class.
+
+        :param settings: this includes all the settings needed to connect to the device in question.
+        :type settings: dict
+
+        """
+        super().__init__(settings)  # mandatory line
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Class Osa created.')
+        self.name = 'OSA Controller'
+
+        self._rm = visa.ResourceManager()
+        self._resource_list = self._rm.list_resources()
+        self._osa = None
+        self._start_wav = None
+        self._end_wav = None
+        self._optical_resolution = None
+        self._sample_points = None
+        self._settings = settings
+        self._sensitivity = None
+        if 'port' in self._settings:
+            self._port = self._settings['port']
+        else:
+            self._port = 'AUTO'
+        self._sensitivities = ['high1', 'high2', 'high3', 'norm_hold', 'norm_auto', 'mid']
+        self._sens_commands = ['SH1', 'SH2', 'SH3', 'SNHD', 'SNAT', 'SMID']
+        #self.sensitivities = [['high1',1],['high2',2],['high3',3],['norm_hold',4],['norm_auto',5],['mid',6]]
+        #self.sensitivities = {'norm_auto':5, 'norm_hold':4, 'mid':6, 'high1':1, 'high2':2, 'high3':3 }
+
+    def initialize(self):
+        """ Starts the connection to the device in port """
+        self.logger.info('Opening connection to OSA')
+
+        if self._port == 'AUTO':
+            for dev in self._resource_list:
+                if dev[:4] == 'GPIB':
+                    self._osa = self._rm.open_resource(dev)
+                    if self._osa.query("*IDN?")[:11] == 'ANDO,AQ6317':
+                        break
+                    self._osa.close()
+                    logging.error('OSA not found')
+        else:
+            self._osa = self._rm.open_resource(self._port)
+
+        self._osa.read_termination = '\r\n'
+
+        self._osa.write('SRQ1')     # This seems to be necessary in order to poll whether device is done with self._osa.read_stb())
+        self._is_initialized = True  # THIS IS MANDATORY!!
+        # this is to prevent you to close the device connection if you
+        # have not initialized it inside a with statement
+        #self._amplitude = self.query('A?')
+        self.start_wav      # make sure self._start_wav is the same as on machine
+        self.end_wav       # make sure ...
+        self.sample_points  # make sure ...
+        self.sensitivity    # make sure ...
+        self.optical_resolution
+
+    def wait_for_osa(self, timeout):
+        start_time = time.time()
+        while (time.time() - start_time) < timeout:
+            if ((self._osa.read_stb()) % 2) == 1:
+                return
+            time.sleep(.1)
+        self.logger.info('Timout expired')
+
+
+    @property
+    def sensitivity(self):
+        self._sensitivity = int(self._osa.query_ascii_values('SENS?')[0])
+        return self._sensitivities[self._sensitivity-1]
+
+    @sensitivity.setter
+    def sensitivity(self, sensitivity_string):
+        if sensitivity_string in self._sensitivities:
+            sensitivity_number = self._sensitivities.index(sensitivity_string)
+        else:
+            self.logger.warning("the sensitivity string is not right")
+            return
+        if sensitivity_number != self._sensitivity:
+            self._sensitivity = sensitivity_number
+            self._osa.write(self._sens_commands[self._sensitivity-1])
+            if sensitivity_number != self._sensitivity:
+                self.logger.warning('Value not set in OSA')
+
+            #print('STAWL{:1.2f}'.format(self._start_wav))
+            #self._osa.write('STAWL{:1.2f}'.format(self._start_wav))
+
+
+    @property
+    def start_wav(self):
+        self._start_wav = self._osa.query_ascii_values('STAWL?')[0]
+        return self._start_wav
+
+
+    @start_wav.setter
+    def start_wav(self, start_wav):
+        # note that OSA works from 600 to 1750 nm
+        start_wav = float(start_wav)
+        if start_wav < 600 or start_wav > 1750:
+            self.logger.warning('Invalid start_wav value')
+        if start_wav != self._start_wav:
+            self._start_wav = start_wav
+            self._osa.write('STAWL{:1.2f}'.format(start_wav))
+            self._start_wav = self._osa.query_ascii_values('STAWL?')[0]
+            if start_wav != self._start_wav:
+                self.logger.warning('Start_wav value not set in OSA')
+
+            #print('STAWL{:1.2f}'.format(self._start_wav))
+            #self._osa.write('STAWL{:1.2f}'.format(self._start_wav))
+
+    @property
+    def end_wav(self):
+        self._end_wav = self._osa.query_ascii_values('STpWL?')[0]
+        return self._end_wav
+
+    @end_wav.setter
+    def end_wav(self, end_wav):
+        end_wav = float(end_wav)
+        if end_wav <600 or end_wav > 1750:
+            self.logger.warning("invalid end_wav value")
+        if end_wav != self._end_wav:
+            self._end_wav = end_wav
+            self._osa.write('STpWL{:1.2f}'.format(end_wav))
+            self._end_wav = self._osa.query_ascii_values('STpWL?')[0]
+            if end_wav != self._end_wav:
+                self.logger.warning("End_wav value not set in OSA")
+            #print('STpWL{:1.2f}'.format(self._end_wav))
+            #self._end_wav = end_wav
+
+    @property
+    def optical_resolution(self):
+        self._optical_resolution = self._osa.query_ascii_values('RESLN?')[0]
+        return self._optical_resolution
+
+    @optical_resolution.setter
+    def optical_resolution(self, optical_resolution):
+        optical_resolution = float(optical_resolution)
+        if not optical_resolution in [0.01,0.02,0.05,0.1,0.2,0.5,1.0,2.0,5.0]:
+            self.logger.warning("invalid optical resolution value")
+        if optical_resolution != self._optical_resolution:
+            self._optical_resolution = optical_resolution
+            self._osa.write('RESLN{:1.2f}'.format(optical_resolution))
+            self._optical_resolution = self._osa.query_ascii_values('RESLN?')[0]
+            if optical_resolution != self._optical_resolution:
+                self.logger.warning("The optical resolution value did not set in OSA")
+
+
+    @property
+    def sample_points(self):
+        self._sample_points = self._osa.query_ascii_values('SMPL?')[0]
+        return self._sample_points
+
+    @sample_points.setter
+    def sample_points(self, sample_points):
+        if sample_points != self._sample_points:
+            self._sample_points = sample_points
+            self._osa.write('SMPL{:1.2f}'.format(sample_points))
+            self._sample_points = self._osa.query_ascii_values('SMPL?')[0]
+            if sample_points != self._sample_points:
+                self.logger.warning("The sample points value did not set in OSA")
+
+    def perform_single_sweep(self):
+        self._osa.write('SGL')
+        self.wait_for_osa(5)
+
+    def get_data(self):
+        # wait for OSA to finish before grabbing data
+        time.sleep(5)
+
+        wav = self._osa.query_ascii_values('WDATA')[1:]
+        spec = self._osa.query_ascii_values('LDATA')[1:]
+
+        plt.plot(wav, spec, '.-')
+        plt.xlabel("the wavelength")
+        plt.ylabel("the spectrometer data")
+        plt.title("the wavelength plotted the spectrometer")
+        plt.show()
+
+    def finalize(self):
+        """ This method closes the connection to the device.
+        It is ran automatically if you use a with block
+
+        """
+        self.logger.info('Closing connection to device.')
+        self._osa.close()
+        self._is_initialized = False
+
+    @property
+    def idn(self):
+        """ Identify command
+
+        :return: identification for the device
+        :rtype: string
+        """
+        self.logger.debug('Ask IDN to device.')
+        return 'ExampleController device'
+
+    def query(self, msg):
+        """ writes into the device msg
+
+        :param msg: command to write into the device port
+        :type msg: string
+        """
+        self.logger.debug('Writing into the example device:{}'.format(msg))
+        self.write(msg)
+        ans = self.read()
+        return ans
+
+    def read(self):
+        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
+
+        :return: fake result
+        :rtype: string
+        """
+        return self.FAKE_RESPONSES['A']
+
+    def write(self, msg):
+        """ Writes into the device
+        :param msg: message to be written in the device port
+        :type msg: string
+        """
+        self.logger.debug('Writing into the device:{}'.format(msg))
+
+
+    def set_settings_for_osa(self):
+        """
+        in this method the parameters for the osa machine are set with
+        hand in order to quickly get results.
+        :param dev: the osa device object.
+        :return: -
+        """
+        # start and end between 600.00 and 1750.00
+        self.start_wav = 900.00
+        self.end_wav = 1200.00
+        # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
+        self.optical_resolution = 1.00
+        self.sample_points = 601.00
+
+
+class OsaControllerDummy(OsaController):
+    """
+    Example Controller Dummy
+    ========================
+
+    A dummy version of the Example Controller.
+
+    In essence we have the same methods and we re-write the query to answer something meaningful but
+    without connecting to the real device.
+
+    """
+
+    def query(self, msg):
+        """ writes into the device msg
+
+        :param msg: command to write into the device port
+        :type msg: string
+        """
+        self.logger.debug('Writing into the dummy device:{}'.format(msg))
+        ans = 'A general dummy answer'
+        return ans
+
+
+
+if __name__ == "__main__":
+    from hyperion import _logger_format, _logger_settings
+
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
+                            logging.StreamHandler()])
+
+
+
+
+    dummy = False  # change this to false to work with the real device in the COM specified below.
+
+    if dummy:
+        my_class = OsaControllerDummy
+    else:
+        my_class = OsaController
+
+    with my_class(settings={'dummy': dummy}) as dev:
+
+
+        dev.initialize()
+        print('OSA start wav is {}'.format(dev._start_wav))
+        dev.start_wav = 750.00
+        print('OSA start wav is {}'.format(dev._start_wav))
+        dev.stop_wav = 800.00
+        #dev.set_settings_for_osa()
+
+        dev.perform_single_sweep()
+        dev.wait_for_osa(5)
+        #dev.get_data()
+
+

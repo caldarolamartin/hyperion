@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLi
 from PyQt5.QtCore import pyqtSlot
 
 from hyperion.instrument.osa import osa_instrument
-from hyperion.controller.osa import OsaController
+from hyperion.controller.osa import osacontroller
 
 #todo add the sensitivity parameter in osa_controller and osa_instrument
 #todo add labels which tell the user the current value of the osa machine
@@ -220,13 +220,11 @@ class App(QMainWindow):
         self.textbox_end_wav.setText("")
         self.textbox_optical_resolution.setText("")
         self.textbox_sample_points.setText("")
-
     def get_output_message(self, end_wav, optical_resolution, sample_points, start_wav):
         # make a textbox to display given values.
         QMessageBox.question(self, 'What is this, a response?', "You typed: " + start_wav + "\n" + end_wav +
                              "\n" + optical_resolution + "\n" + sample_points, QMessageBox.Ok,
                              QMessageBox.Ok)
-
     def get_submit_button_status(self):
         # when the button is clicked this method will be executed
         print('button says something')
@@ -234,10 +232,9 @@ class App(QMainWindow):
 
 
 if __name__ == '__main__':
-    dummy = False
     # , 'controller':'hyperion.controller.osa/osacontroller', 'port':'AUTO'
 
-    with osa_instrument.OsaInstrument(settings={'dummy': dummy, 'controller':'hyperion.controller.osa/OsaController'}) as instr:
+    with osa_instrument.OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osacontroller/OsaController'}) as instr:
         instr.initialize()
 
         app = QApplication(sys.argv)

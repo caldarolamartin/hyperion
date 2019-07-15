@@ -8,12 +8,14 @@ This is the osa instrument, created to have a place where the view can send requ
 the controller can get the data the view want's to show. so data flows controller > instrument > view
 
 """
+#todo parameters ook hier neerzetten
 import logging
 import sys
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.controller.osa.OsaController import OsaController
+#from hyperion.controller.osa.OsaController import OsaController
 from hyperion.view.osa import osa_view
+from hyperion import ur, root_dir
 
 class OsaInstrument(BaseInstrument):
     """ OsaInstrument
@@ -25,21 +27,18 @@ class OsaInstrument(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
-        self.__osacontroller = OsaController(settings)
+
 
     def initialize(self):
         """ Starts the connection to the device"
         """
         self.logger.info('Opening connection to device.')
-        OsaController.initialize(self.__osacontroller)
-
-        #self.controller.initialize()
+        self.controller.initialize()
 
     def finalize(self):
         """ this is to close connection to the device."""
         self.logger.info('Closing connection to device.')
-        OsaController.finalize(self.__osacontroller)
-        #self.controller.finalize()
+        self.controller.finalize()
 
     def idn(self):
         """ Identify command
@@ -51,19 +50,19 @@ class OsaInstrument(BaseInstrument):
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn
 
-    """
+
     @property
     def start_wav(self):
         return self.controller.start_wav * ur('nm')
 
     @start_wav.setter
     def start_wav(self, start_wav):
-        if not self.__wav_in_range(self, wav):
+        if not self.__wav_in_range(start_wav.m_as('nm')):
             self.controller.start_wav = start_wav.m_as('nm')
 
-    def __wav_in_range(self,wav):
+    def __wav_in_range(self, wav):
         return (wav<1750.0 and wav>600.0)
-    """
+
 
 def is_end_wav_bigger_than_start_wav(end_wav, start_wav):
     if float(end_wav) < float(start_wav):
@@ -116,19 +115,6 @@ def get_recommended_sample_points(self):
         str(1 + (2 * (float(self.textbox_end_wav.text()) - float(self.textbox_start_wav.text())) / float(
             self.dropdown_optical_resolution.currentText()))))
 
-def set_settings_for_osa(dev):
-    """
-    in this method the parameters for the osa machine are set with
-    hand in order to quickly get results.
-    :param dev: the osa device object.
-    :return: -
-    """
-    # start and end between 600.00 and 1750.00
-    dev.start_wav = 900.00
-    dev.end_wav = 1200.00
-    # allowed are 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0
-    dev.optical_resolution = 1.00
-    dev.sample_points = 601.00
 
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings
@@ -138,20 +124,23 @@ if __name__ == "__main__":
                                                                  maxBytes=_logger_settings['maxBytes'],
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
-    """
+
     dummy = False
-    with OsaController(settings={'dummy': dummy}) as dev:
+    with OsaInstrument(settings={'dummy': dummy, 'controller':'hyperion.controller.osa.osacontroller/OsaController'}) as dev:
         dev.initialize()
+        dev.start_wav = 0.8 * ur('um')
         #set_settings_for_osa(dev)
-        app = osa_view.QApplication(sys.argv)
-        ex = osa_view.App()
+        #app = osa_view.QApplication(sys.argv)
+        #ex = osa_view.App()
 
         #dev.wait_for_osa(5)
         #dev.perform_single_sweep()
         #dev.get_data()
         dev.finalize()
-        sys.exit(app.exec_())
-    """
+
+
+        #sys.exit(app.exec_())
+
 
 
 
