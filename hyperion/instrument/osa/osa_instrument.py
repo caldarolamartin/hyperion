@@ -12,30 +12,34 @@ import logging
 import sys
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.controller.osa.osacontroller import OsaController
+from hyperion.controller.osa.OsaController import OsaController
 from hyperion.view.osa import osa_view
 
 class OsaInstrument(BaseInstrument):
-    """ Example instrument. it is a fake instrument
+    """ OsaInstrument
 
     """
-    def __init__(self, settings = {'port':'COM10', 'dummy': True,
-                                   'controller': 'hyperion.controller.example_controller/ExampleController'}):
+    def __init__(self, settings = {'port':'COM10', 'dummy': False,
+                                   'controller': 'hyperion.controller.osa/OsaController'}):
         """ init of the class"""
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
+        self.__osacontroller = OsaController(settings)
 
     def initialize(self):
         """ Starts the connection to the device"
         """
         self.logger.info('Opening connection to device.')
-        self.controller.initialize()
+        OsaController.initialize(self.__osacontroller)
+
+        #self.controller.initialize()
 
     def finalize(self):
         """ this is to close connection to the device."""
         self.logger.info('Closing connection to device.')
-        self.controller.finalize()
+        OsaController.finalize(self.__osacontroller)
+        #self.controller.finalize()
 
     def idn(self):
         """ Identify command
@@ -47,6 +51,7 @@ class OsaInstrument(BaseInstrument):
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn
 
+    """
     @property
     def start_wav(self):
         return self.controller.start_wav * ur('nm')
@@ -58,7 +63,7 @@ class OsaInstrument(BaseInstrument):
 
     def __wav_in_range(self,wav):
         return (wav<1750.0 and wav>600.0)
-
+    """
 
 def is_end_wav_bigger_than_start_wav(end_wav, start_wav):
     if float(end_wav) < float(start_wav):

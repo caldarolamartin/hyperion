@@ -4,20 +4,22 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox
 from PyQt5.QtCore import pyqtSlot
 
-from hyperion.controller.osa.osacontroller import OsaController
 from hyperion.instrument.osa import osa_instrument
+from hyperion.controller.osa import OsaController
 
+#todo add the sensitivity parameter in osa_controller and osa_instrument
 #todo add labels which tell the user the current value of the osa machine
 
 class App(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, instr):
         super().__init__()
         self.title = 'PyQt5 just a window'
         self.left = 50 #how many pixels are away from the left of the GUI
         self.top = 50 #how many pixels are away form the top of the GUI
         self.width = 340 # how many pixels in width the GUI is
         self.height = 280 # how many pixels in height the GUI is
+        self.instr = instr
         self.initUI()
 
     def initUI(self):
@@ -191,10 +193,9 @@ class App(QMainWindow):
                 self.set_parameters_for_osa_machine(end_wav, optical_resolution, sample_points, start_wav)
 
                 #perform the sweep
-                # TODO Hij vind de self van de GUI, maar niet de connectie, hoe kan deze in view bekend zijn.
-                dev.perform_single_sweep()
-                dev.wait_for_osa(5)
-                dev.get_data()
+                self.instr.perform_single_sweep()
+                self.instr.wait_for_osa(5)
+                self.instr.get_data()
 
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
             self.set_textboxs_to_empty_value()
@@ -203,15 +204,15 @@ class App(QMainWindow):
             self.error_message_not_all_fields_are_filled()
 
     def set_parameters_for_osa_machine(self, end_wav, optical_resolution, sample_points, start_wav):
-        #todo het gaat hier mis, dat komt omdat er op een of andere manier geen controller object is dat de view kan invullen.
-        print(dev.start_wav)
-        print(dev.end_wav)
-        print(dev.optical_resolution)
-        print(dev.sample_points)
-        dev.start_wav = float(start_wav)
-        dev.end_wav = float(end_wav)
-        dev.optical_resolution = float(optical_resolution)
-        dev.sample_points = float(sample_points)
+        #print(self.dev.start_wav)
+        #print(self.dev.end_wav)
+        #print(self.dev.optical_resolution)
+        #print(self.dev.sample_points)
+        self.instr.start_wav = float(start_wav)
+        self.instr.end_wav = float(end_wav)
+        self.instr.optical_resolution = float(optical_resolution)
+        self.instr.sample_points = float(sample_points)
+
 
     def set_textboxs_to_empty_value(self):
         # set the textboxs to a specified value
@@ -234,15 +235,14 @@ class App(QMainWindow):
 
 if __name__ == '__main__':
     dummy = False
+    # , 'controller':'hyperion.controller.osa/osacontroller', 'port':'AUTO'
 
-    with OsaController(settings={'dummy': dummy}) as dev:
-        dev.initialize()
-        # set_settings_for_osa(dev)
+    with osa_instrument.OsaInstrument(settings={'dummy': dummy, 'controller':'hyperion.controller.osa/OsaController'}) as instr:
+        instr.initialize()
+
         app = QApplication(sys.argv)
-        ex = App()
+        ex = App(instr) #mandatory in order to call osacontroller in osa_view class
 
-        # dev.wait_for_osa(5)
-        # dev.perform_single_sweep()
-        # dev.get_data()
-        dev.finalize()
+        instr.finalize()
         sys.exit(app.exec_())
+

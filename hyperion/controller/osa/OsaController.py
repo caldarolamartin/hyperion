@@ -77,7 +77,6 @@ class OsaController(BaseController):
     def wait_for_osa(self, timeout):
         start_time = time.time()
         while (time.time() - start_time) < timeout:
-            #TODO the status byte does not turn from 0 to 1, so... later someone should look at this.
             if ((self.__osa.read_stb()) % 2) == 1:
                 return
             time.sleep(.1)
@@ -285,7 +284,7 @@ if __name__ == "__main__":
     if dummy:
         my_class = OsaDummy
     else:
-        my_class = Osa
+        my_class = OsaController
 
     with my_class(settings={'dummy': dummy}) as dev:
 
