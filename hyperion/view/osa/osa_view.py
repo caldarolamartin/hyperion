@@ -6,8 +6,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from hyperion.instrument.osa import osa_instrument
 from hyperion.controller.osa import osacontroller
-
-#todo add the sensitivity parameter in osa_controller and osa_instrument
+#todo figure out what goes wrong with the instr. in the view. Why cannot a value be set?
 #todo add labels which tell the user the current value of the osa machine
 
 class App(QMainWindow):
@@ -204,14 +203,14 @@ class App(QMainWindow):
             self.error_message_not_all_fields_are_filled()
 
     def set_parameters_for_osa_machine(self, end_wav, optical_resolution, sample_points, start_wav):
-        #print(self.dev.start_wav)
-        #print(self.dev.end_wav)
-        #print(self.dev.optical_resolution)
-        #print(self.dev.sample_points)
-        self.instr.start_wav = float(start_wav)
-        self.instr.end_wav = float(end_wav)
-        self.instr.optical_resolution = float(optical_resolution)
-        self.instr.sample_points = float(sample_points)
+        #print(self.instr.start_wav)
+        #print(self.instr.end_wav)
+        #print(self.instr.optical_resolution)
+        #print(self.instr.sample_points)
+        self.instr.start_wav = str(start_wav)
+        self.instr.end_wav = str(end_wav)
+        self.instr.optical_resolution = str(optical_resolution)
+        self.instr.sample_points = str(sample_points)
 
 
     def set_textboxs_to_empty_value(self):
@@ -237,8 +236,9 @@ if __name__ == '__main__':
     with osa_instrument.OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osacontroller/OsaController'}) as instr:
         instr.initialize()
 
+
         app = QApplication(sys.argv)
-        ex = App(instr) #mandatory in order to call osacontroller in osa_view class
+        ex = App(instr) #mandatory in order to call osainstrument in osa_view class
 
         instr.finalize()
         sys.exit(app.exec_())

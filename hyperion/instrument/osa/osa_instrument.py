@@ -8,12 +8,12 @@ This is the osa instrument, created to have a place where the view can send requ
 the controller can get the data the view want's to show. so data flows controller > instrument > view
 
 """
-#todo parameters ook hier neerzetten
+#TODO is de optical resolution(en sample points misschien) in nanometers of in iets anders?
 import logging
 import sys
 
 from hyperion.instrument.base_instrument import BaseInstrument
-#from hyperion.controller.osa.OsaController import OsaController
+from hyperion.controller.osa.osacontroller import OsaController
 from hyperion.view.osa import osa_view
 from hyperion import ur, root_dir
 
@@ -26,18 +26,18 @@ class OsaInstrument(BaseInstrument):
         """ init of the class"""
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Class ExampleInstrument created.')
+        self.logger.info('Class OsaInstrument has been created.')
 
 
     def initialize(self):
         """ Starts the connection to the device"
         """
-        self.logger.info('Opening connection to device.')
+        self.logger.info('Opening connection to OSA machine.')
         self.controller.initialize()
 
     def finalize(self):
         """ this is to close connection to the device."""
-        self.logger.info('Closing connection to device.')
+        self.logger.info('Closing connection to OSA machine.')
         self.controller.finalize()
 
     def idn(self):
@@ -59,6 +59,41 @@ class OsaInstrument(BaseInstrument):
     def start_wav(self, start_wav):
         if not self.__wav_in_range(start_wav.m_as('nm')):
             self.controller.start_wav = start_wav.m_as('nm')
+    @property
+    def end_wav(self):
+        return self.controller.end_wav * ur('nm')
+
+    @end_wav.setter
+    def end_wav(self, end_wav):
+        if not self.__wav_in_range(end_wav.m_as('nm')):
+            self.controller.end_wav = end_wav.m_as('nm')
+
+    @property
+    def optical_resolution(self):
+        #is de optical resolution in nanometers of in iets anders?
+        return self.controller.optical_resolution
+
+    @optical_resolution.setter
+    def optical_resolution(self, optical_resolution):
+        if optical_resolution in [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0]:
+            self.controller.optical_resolution = optical_resolution
+
+    @property
+    def sample_points(self):
+        return self.controller.sample_points
+
+    @sample_points.setter
+    def sample_points(self, sample_points):
+        self.controller.sample_points = sample_points
+
+    @property
+    def sensitivity(self):
+        return self.controller.sensitivity
+
+    @sensitivity.setter
+    def sensitivity(self, sensitivity_string):
+        if sensitivity_string in ['high1', 'high2', 'high3', 'norm_hold', 'norm_auto', 'mid']:
+            self.controller.sensitivity = sensitivity_string
 
     def __wav_in_range(self, wav):
         return (wav<1750.0 and wav>600.0)

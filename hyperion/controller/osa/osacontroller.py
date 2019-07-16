@@ -14,9 +14,6 @@ import visa
 import time
 import matplotlib.pyplot as plt
 from hyperion.controller.base_controller import BaseController
-from hyperion import ur
-
-#todo add other parameters like start_wav + sensitivity
 
 class OsaController(BaseController):
     """ Example output device that does not connect to anything"""
@@ -309,17 +306,34 @@ if __name__ == "__main__":
         my_class = OsaController
 
     with my_class(settings={'dummy': dummy}) as dev:
-
-
         dev.initialize()
+
         print('OSA start wav is {}'.format(dev._start_wav))
         dev.start_wav = 750.00
         print('OSA start wav is {}'.format(dev._start_wav))
-        dev.stop_wav = 800.00
+        print("-"*40)
+        print('OSA end wav is {}'.format(dev._end_wav))
+        dev.end_wav = 800.00
+        print('OSA start wav is {}'.format(dev._end_wav))
+        print("-" * 40)
+        print('OSA optical resolution is {}'.format(dev._optical_resolution))
+        dev.optical_resolution = 1.0
+        print('OSA optical resolution is {}'.format(dev._optical_resolution))
+        print("-" * 40)
+        print('OSA sample points is {}'.format(dev._sample_points))
+        dev.sample_points = 161
+        print('OSA sample points is {}'.format(dev._sample_points))
+        print("-" * 40)
+        print('OSA sensitivity is {}'.format(dev._sensitivity))
+        dev._sensitivity = "high1"
+        print('OSA sensitivity is {}'.format(dev._sensitivity))
+
         #dev.set_settings_for_osa()
 
         dev.perform_single_sweep()
         dev.wait_for_osa(5)
         #dev.get_data()
+        dev.finalize()
+
 
 
