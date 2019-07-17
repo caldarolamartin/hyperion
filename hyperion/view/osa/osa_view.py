@@ -3,11 +3,14 @@ import sys
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox
 from PyQt5.QtCore import pyqtSlot
+import logging
+import time
 
-from hyperion.instrument.osa import osa_instrument
-from hyperion.controller.osa import osacontroller
-#todo figure out what goes wrong with the instr. in the view. Why cannot a value be set?
-#todo add labels which tell the user the current value of the osa machine
+from hyperion.instrument.osa.osa_instrument import OsaInstrument
+from hyperion import ur, Q_
+import matplotlib.pyplot as plt
+#todo figure out what goes wrong with the instr. in the view. Why cannot a value be set? Because the instrument does not communicate with the controller
+#todo add labels which tell the user the current value of the osa machine(can be done when above todo has been fixed)
 
 class App(QMainWindow):
 
@@ -18,6 +21,8 @@ class App(QMainWindow):
         self.top = 50 #how many pixels are away form the top of the GUI
         self.width = 340 # how many pixels in width the GUI is
         self.height = 280 # how many pixels in height the GUI is
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Class App created')
         self.instr = instr
         self.initUI()
 
@@ -107,6 +112,7 @@ class App(QMainWindow):
     def set_sample_points_textbox(self):
         # this is the sample_points_textbox
         self.textbox_sample_points = QLineEdit(self)
+        self.textbox_sample_points.setText("{}".format(int(self.instr.sample_points)))
         self.textbox_sample_points.move(20, 112)
         self.textbox_sample_points.resize(50, 20)
     def set_optical_resolution_textbox(self):
@@ -118,13 +124,15 @@ class App(QMainWindow):
     def set_end_wav_text_box(self):
         # this is the end_wav_textbox
         self.textbox_end_wav = QLineEdit(self)
+        self.textbox_end_wav.setText("{} nm".format(self.instr.end_wav.m_as('nm')))
         self.textbox_end_wav.move(20, 52)
-        self.textbox_end_wav.resize(50, 20)
+        self.textbox_end_wav.resize(60, 20)
     def set_start_wav_textbox(self):
         # this is the start_wav_textbox
         self.textbox_start_wav = QLineEdit(self)
+        self.textbox_start_wav.setText("{} nm".format(self.instr.start_wav.m_as('nm')))
         self.textbox_start_wav.move(20, 22)
-        self.textbox_start_wav.resize(50, 20)
+        self.textbox_start_wav.resize(60, 20)
 
     def get_chosen_optical_resolution(self):
         return self.dropdown_optical_resolution.currentText()
@@ -132,7 +140,6 @@ class App(QMainWindow):
         return self.dropdown_sensitivity.currentText()
 
 
-    @pyqtSlot()
     def on_click_recommended(self):
         print("the recommended sample points will be calculated ")
         self.textbox_sample_points.setText("")
@@ -140,7 +147,7 @@ class App(QMainWindow):
         #check if the textboxs are not empty
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty():
             #all fields are filled
-            osa_instrument.get_recommended_sample_points(self)
+            self.get_recommended_sample_points()
         else:
             #some parameter is missing in one of the textboxs
             self.error_message_not_all_fields_are_filled()
@@ -178,51 +185,92 @@ class App(QMainWindow):
                              QMessageBox.Ok,
                              QMessageBox.Ok)
 
-    @pyqtSlot()
+    def get_values_from_textboxs(self):
+        # get all the values from the textfields
+        start_wav = self.get_start_wav()
+        end_wav = self.get_end_wav()
+        optical_resolution = self.get_optical_resolution()
+        sample_points = self.get_sample_points()
+        return end_wav, optical_resolution, sample_points, start_wav
+    def get_sample_points(self):
+        sample_points = self.textbox_sample_points.text()
+        return Q_(sample_points)
+    def get_optical_resolution(self):
+        optical_resolution = self.dropdown_optical_resolution.currentText()
+        return float(optical_resolution)
+    def get_end_wav(self):
+        end_wav = self.textbox_end_wav.text()
+        return Q_(end_wav)
+    def get_start_wav(self):
+        start_wav = self.textbox_start_wav.text()
+        return Q_(start_wav)
+
+    def get_recommended_sample_points(self):
+        self.textbox_sample_points.setText(
+            str(int(1 + (2 * (Q_(self.textbox_end_wav.text()) - Q_(self.textbox_start_wav.text())).m_as('nm') / float(
+                self.dropdown_optical_resolution.currentText())))))
+
     def on_click_submit(self):
+        if self.instr.controller._is_initialized:
+            self.instr.controller.perform_single_sweep()
+        else:
+            print("pyvisa does not work like intended")
+        """
+        self.logger.info('submit button clicked')
+
         self.get_submit_button_status()
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty() and self.is_sample_points_not_empty():
-            end_wav, optical_resolution, sample_points, start_wav = osa_instrument.get_values_from_textboxs(self)
+            self.logger.info('fields not empty, grabbing fields')
+            end_wav, optical_resolution, sample_points, start_wav = self.get_values_from_textboxs()
+
 
             #check if conditions for a single sweep are met
-            if osa_instrument.is_start_wav_value_correct(start_wav) and osa_instrument.is_end_wav_value_correct(end_wav) and osa_instrument.is_end_wav_bigger_than_start_wav(start_wav,end_wav):
+            if self.instr.is_start_wav_value_correct(start_wav) and self.instr.is_end_wav_value_correct(end_wav) and self.instr.is_end_wav_bigger_than_start_wav(start_wav,end_wav):
                 #all tests are succesfull. now the rest of the code may be executed.
-
                 # set the settings of the osa machine
+
+                print('setting parameters in instrument')
+                print('set_parameters_for_osa_machine( ... )')
                 self.set_parameters_for_osa_machine(end_wav, optical_resolution, sample_points, start_wav)
 
                 #perform the sweep
-                self.instr.perform_single_sweep()
-                self.instr.wait_for_osa(5)
-                self.instr.get_data()
-
+                #try:
+                print('starting sweep')
+                print(id(self.instr.controller._osa))
+                wav, spec = self.instr.take_spectrum()
+                print('waiting after sweep')
+                plt.plot(wav, spec)
+                plt.show()
+                #except:
+                #    print("exception occured: "+str(sys.exc_info()[0]))
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
             self.set_textboxs_to_empty_value()
 
         else:
             self.error_message_not_all_fields_are_filled()
+        """
 
     def set_parameters_for_osa_machine(self, end_wav, optical_resolution, sample_points, start_wav):
         #print(self.instr.start_wav)
         #print(self.instr.end_wav)
         #print(self.instr.optical_resolution)
         #print(self.instr.sample_points)
-        self.instr.start_wav = str(start_wav)
-        self.instr.end_wav = str(end_wav)
-        self.instr.optical_resolution = str(optical_resolution)
-        self.instr.sample_points = str(sample_points)
+
+        self.instr.start_wav = Q_(start_wav)
+        self.instr.end_wav = Q_(end_wav)
+        self.instr.optical_resolution = float(optical_resolution)
+        self.instr.sample_points = int(sample_points)
 
 
     def set_textboxs_to_empty_value(self):
         # set the textboxs to a specified value
         self.textbox_start_wav.setText("")
         self.textbox_end_wav.setText("")
-        self.textbox_optical_resolution.setText("")
         self.textbox_sample_points.setText("")
     def get_output_message(self, end_wav, optical_resolution, sample_points, start_wav):
         # make a textbox to display given values.
-        QMessageBox.question(self, 'What is this, a response?', "You typed: " + start_wav + "\n" + end_wav +
-                             "\n" + optical_resolution + "\n" + sample_points, QMessageBox.Ok,
+        QMessageBox.question(self, 'What is this, a response?', "You typed: " + str(start_wav) + "\n" + str(end_wav) +
+                             "\n" + str(optical_resolution) + "\n" + str(sample_points), QMessageBox.Ok,
                              QMessageBox.Ok)
     def get_submit_button_status(self):
         # when the button is clicked this method will be executed
@@ -232,10 +280,16 @@ class App(QMainWindow):
 
 if __name__ == '__main__':
     # , 'controller':'hyperion.controller.osa/osacontroller', 'port':'AUTO'
+    from hyperion import _logger_format, _logger_settings
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
+                            logging.StreamHandler()])
 
-    with osa_instrument.OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osacontroller/OsaController'}) as instr:
+    with OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osacontroller/OsaController'}) as instr:
         instr.initialize()
-
 
         app = QApplication(sys.argv)
         ex = App(instr) #mandatory in order to call osainstrument in osa_view class

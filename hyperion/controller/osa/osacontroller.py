@@ -12,7 +12,7 @@ This controller (osa.py) supplies one class with several methods to communicate
 import logging
 import visa
 import time
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from hyperion.controller.base_controller import BaseController
 
 class OsaController(BaseController):
@@ -41,12 +41,13 @@ class OsaController(BaseController):
         self._optical_resolution = None
         self._sample_points = None
         self._settings = settings
-        self._sensitivity = None
+        self._sensitivity = None                # will match value of OSA (1-6)
         if 'port' in self._settings:
             self._port = self._settings['port']
         else:
             self._port = 'AUTO'
         self._sensitivities = ['high1', 'high2', 'high3', 'norm_hold', 'norm_auto', 'mid']
+        self._time_constants = [0.02, 0.12, 1.125, 0.001, 0.001, 0.002]
         self._sens_commands = ['SH1', 'SH2', 'SH3', 'SNHD', 'SNAT', 'SMID']
         #self.sensitivities = [['high1',1],['high2',2],['high3',3],['norm_hold',4],['norm_auto',5],['mid',6]]
         #self.sensitivities = {'norm_auto':5, 'norm_hold':4, 'mid':6, 'high1':1, 'high2':2, 'high3':3 }
@@ -79,7 +80,9 @@ class OsaController(BaseController):
         self.sensitivity    # make sure ...
         self.optical_resolution
 
-    def wait_for_osa(self, timeout):
+    def wait_for_osa(self, timeout=None):
+        if timeout==None:
+            timeout = 4.0 + 1.05 * self._sample_points * self._time_constants[self._sensitivity-1]
         start_time = time.time()
         while (time.time() - start_time) < timeout:
             if ((self._osa.read_stb()) % 2) == 1:
@@ -119,7 +122,7 @@ class OsaController(BaseController):
     @start_wav.setter
     def start_wav(self, start_wav):
         # note that OSA works from 600 to 1750 nm
-        start_wav = float(start_wav)
+        start_wav = round(start_wav, 2)
         if start_wav < 600 or start_wav > 1750:
             self.logger.warning('Invalid start_wav value')
         if start_wav != self._start_wav:
@@ -134,18 +137,18 @@ class OsaController(BaseController):
 
     @property
     def end_wav(self):
-        self._end_wav = self._osa.query_ascii_values('STpWL?')[0]
+        self._end_wav = self._osa.query_ascii_values('STPWL?')[0]
         return self._end_wav
 
     @end_wav.setter
     def end_wav(self, end_wav):
-        end_wav = float(end_wav)
+        end_wav = round(end_wav, 2)
         if end_wav <600 or end_wav > 1750:
             self.logger.warning("invalid end_wav value")
         if end_wav != self._end_wav:
             self._end_wav = end_wav
-            self._osa.write('STpWL{:1.2f}'.format(end_wav))
-            self._end_wav = self._osa.query_ascii_values('STpWL?')[0]
+            self._osa.write('STPWL{:1.2f}'.format(end_wav))
+            self._end_wav = self._osa.query_ascii_values('STPWL?')[0]
             if end_wav != self._end_wav:
                 self.logger.warning("End_wav value not set in OSA")
             #print('STpWL{:1.2f}'.format(self._end_wav))
@@ -158,7 +161,7 @@ class OsaController(BaseController):
 
     @optical_resolution.setter
     def optical_resolution(self, optical_resolution):
-        optical_resolution = float(optical_resolution)
+        optical_resolution = round(optical_resolution, 2)
         if not optical_resolution in [0.01,0.02,0.05,0.1,0.2,0.5,1.0,2.0,5.0]:
             self.logger.warning("invalid optical resolution value")
         if optical_resolution != self._optical_resolution:
@@ -185,20 +188,14 @@ class OsaController(BaseController):
 
     def perform_single_sweep(self):
         self._osa.write('SGL')
-        self.wait_for_osa(5)
 
     def get_data(self):
         # wait for OSA to finish before grabbing data
-        time.sleep(5)
 
         wav = self._osa.query_ascii_values('WDATA')[1:]
         spec = self._osa.query_ascii_values('LDATA')[1:]
 
-        plt.plot(wav, spec, '.-')
-        plt.xlabel("the wavelength")
-        plt.ylabel("the spectrometer data")
-        plt.title("the wavelength plotted the spectrometer")
-        plt.show()
+        return wav, spec
 
     def finalize(self):
         """ This method closes the connection to the device.
@@ -225,6 +222,7 @@ class OsaController(BaseController):
         :param msg: command to write into the device port
         :type msg: string
         """
+        print(self._osa.session)
         self.logger.debug('Writing into the example device:{}'.format(msg))
         self.write(msg)
         ans = self.read()
@@ -309,11 +307,11 @@ if __name__ == "__main__":
         dev.initialize()
 
         print('OSA start wav is {}'.format(dev._start_wav))
-        dev.start_wav = 750.00
+        dev.start_wav = 800.00
         print('OSA start wav is {}'.format(dev._start_wav))
         print("-"*40)
         print('OSA end wav is {}'.format(dev._end_wav))
-        dev.end_wav = 800.00
+        dev.end_wav = 900.00
         print('OSA start wav is {}'.format(dev._end_wav))
         print("-" * 40)
         print('OSA optical resolution is {}'.format(dev._optical_resolution))

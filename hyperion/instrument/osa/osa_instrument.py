@@ -9,13 +9,20 @@ the controller can get the data the view want's to show. so data flows controlle
 
 """
 #TODO is de optical resolution(en sample points misschien) in nanometers of in iets anders?
+"""
+TODO de osa_instrument maak geen gebruik van de osaController. Dit zorgt ervoor dat er geen functies van
+de osacontroller in de osa_instrument gebruikt kunnen worden wat niet handig is. 
+"""
+
+
 import logging
 import sys
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.controller.osa.osacontroller import OsaController
-from hyperion.view.osa import osa_view
-from hyperion import ur, root_dir
+#from hyperion.controller.osa.osacontroller import OsaController
+#from hyperion.view.osa import osa_view
+from hyperion import ur, root_dir, Q_
+
 
 class OsaInstrument(BaseInstrument):
     """ OsaInstrument
@@ -27,7 +34,6 @@ class OsaInstrument(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class OsaInstrument has been created.')
-
 
     def initialize(self):
         """ Starts the connection to the device"
@@ -57,7 +63,7 @@ class OsaInstrument(BaseInstrument):
 
     @start_wav.setter
     def start_wav(self, start_wav):
-        if not self.__wav_in_range(start_wav.m_as('nm')):
+        if self.__wav_in_range(start_wav.m_as('nm')):
             self.controller.start_wav = start_wav.m_as('nm')
     @property
     def end_wav(self):
@@ -65,7 +71,7 @@ class OsaInstrument(BaseInstrument):
 
     @end_wav.setter
     def end_wav(self, end_wav):
-        if not self.__wav_in_range(end_wav.m_as('nm')):
+        if self.__wav_in_range(end_wav.m_as('nm')):
             self.controller.end_wav = end_wav.m_as('nm')
 
     @property
@@ -99,59 +105,40 @@ class OsaInstrument(BaseInstrument):
         return (wav<1750.0 and wav>600.0)
 
 
-def is_end_wav_bigger_than_start_wav(end_wav, start_wav):
-    if float(end_wav) < float(start_wav):
-        return True
-    else:
-        print("start_wav value is bigger than the end_wav value, that is not what you want!")
-        return False
+    def is_end_wav_bigger_than_start_wav(self, end_wav, start_wav):
+        if end_wav.m_as('nm') < start_wav.m_as('nm'):
+            return True
+        else:
+            print("start_wav value is bigger than the end_wav value, that is not what you want!")
+            return False
 
-def is_end_wav_value_correct(end_wav):
-    if float(end_wav) >= 600.00 and float(end_wav) <= 1750.00:
-        return True
-    else:
-        print("end_wav value is bigger or smaller than it must be.\n De value must be between 600.00 and 1750.00.")
-        return False
+    def is_end_wav_value_correct(self, end_wav):
+        if end_wav.m_as('nm') >= 600 and end_wav.m_as('nm') <= 1750:
+            return True
+        else:
+            print("end_wav value is bigger or smaller than it must be.\n De value must be between 600.00 and 1750.00.")
+            return False
 
-def is_start_wav_value_correct(start_wav):
-    if float(start_wav) >= 600.00 and float(start_wav) <= 1750.00:
-        return True
-    else:
-        print("the start_wav value is bigger than or smaller than it should be.\n The value must be between 600.00 and 1750.00.")
-        return False
+    def is_start_wav_value_correct(self, start_wav):
+        if start_wav.m_as('nm') >= 600 and start_wav.m_as('nm') <= 1750:
+            return True
+        else:
+            print("the start_wav value is bigger than or smaller than it should be.\n The value must be between 600.00 and 1750.00.")
+            return False
+    def take_spectrum(self):
+        print('inside instrument: take_spectrum()')
+        #self.logging.info('taking spectrum')
+        self.controller.perform_single_sweep()
+        self.controller.wait_for_osa()
 
-def get_values_from_textboxs(self):
-    # get all the values from the textfields
-    start_wav = get_start_wav(self)
-    end_wav = get_end_wav(self)
-    optical_resolution = get_optical_resolution(self)
-    sample_points = get_sample_points(self)
-    return end_wav, optical_resolution, sample_points, start_wav
+        wav, spec = self.controller.get_data()
+        self.logger.info("spectrum retrieved")
+        return wav,spec
 
-def get_sample_points(self):
-    sample_points = self.textbox_sample_points.text()
-    return sample_points
-
-def get_optical_resolution(self):
-    optical_resolution = self.dropdown_optical_resolution.currentText()
-    return optical_resolution
-
-def get_end_wav(self):
-    end_wav = self.textbox_end_wav.text()
-    return end_wav
-
-def get_start_wav(self):
-    start_wav = self.textbox_start_wav.text()
-    return start_wav
-
-
-def get_recommended_sample_points(self):
-    self.textbox_sample_points.setText(
-        str(1 + (2 * (float(self.textbox_end_wav.text()) - float(self.textbox_start_wav.text())) / float(
-            self.dropdown_optical_resolution.currentText()))))
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     from hyperion import _logger_format, _logger_settings
     logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
@@ -163,17 +150,24 @@ if __name__ == "__main__":
     dummy = False
     with OsaInstrument(settings={'dummy': dummy, 'controller':'hyperion.controller.osa.osacontroller/OsaController'}) as dev:
         dev.initialize()
-        dev.start_wav = 0.8 * ur('um')
-        #set_settings_for_osa(dev)
+
+        print(dev.start_wav)
+        print(dev.end_wav)
+
+        dev.start_wav = 0.9 * ur('um')
+        dev.end_wav = 1.0 * ur('um')
+        dev.sample_points = 201.0
+        dev.optical_resolution = 1.0
+        dev.sensitivity = "mid"
         #app = osa_view.QApplication(sys.argv)
         #ex = osa_view.App()
 
-        #dev.wait_for_osa(5)
-        #dev.perform_single_sweep()
-        #dev.get_data()
+        wav, spec = dev.take_spectrum()
+        plt.plot(wav, spec)
+        plt.show()
+
+
         dev.finalize()
-
-
         #sys.exit(app.exec_())
 
 
