@@ -413,7 +413,7 @@ if __name__ == "__main__":
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
-    dummy = False  # change this to false to work with the real device in the COM specified below.
+    dummy = True  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = LccDummy
