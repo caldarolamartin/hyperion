@@ -1,29 +1,32 @@
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, QSizePolicy
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
 
 import logging
 import sys
 import time
 import random
+
 from hyperion.instrument.osa.osa_instrument import OsaInstrument
 from hyperion import ur, Q_
 from hyperion.view.general_worker import WorkThread
 import matplotlib.pyplot as plt
+
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 #todo figure out what goes wrong with the instr. in the view.
-
+# An idea is that something with the signal goes wrong which causes the pyvisa things to go invalid
+#Something with the connection to the osa goes bad. This may be an underground problem or the code needs to get restructred.
 class App(QMainWindow):
 
     def __init__(self, instr):
         super().__init__()
         self.title = 'PyQt5 just a window'
-        self.left = 50 #how many pixels are away from the left of the GUI
-        self.top = 50 #how many pixels are away form the top of the GUI
-        self.width = 700 # how many pixels in width the GUI is
-        self.height = 350 # how many pixels in height the GUI is
+        self.left = 50          #how many pixels are away from the left of the GUI
+        self.top = 50           #how many pixels are away form the top of the GUI
+        self.width = 700        #how many pixels in width the GUI is
+        self.height = 350       #how many pixels in height the GUI is
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class App created')
         self.instr = instr
@@ -156,13 +159,6 @@ class App(QMainWindow):
             #some parameter are missing in one of the textboxs
             self.error_message_not_all_fields_are_filled()
 
-
-    def plot_data(self):
-        wav = [random.random() for i in range(25)]
-        spec = 'r-'
-        PlotCanvas.plot(self.m, spec, wav)
-        self.plot_data()
-
     def is_sample_points_not_empty(self):
         if self.textbox_sample_points.text() != "":
             return True
@@ -205,7 +201,7 @@ class App(QMainWindow):
         return end_wav, optical_resolution, sample_points, start_wav
     def get_sample_points(self):
         sample_points = self.textbox_sample_points.text()
-        return Q_(sample_points)
+        return int(sample_points)
     def get_optical_resolution(self):
         optical_resolution = self.dropdown_optical_resolution.currentText()
         return float(optical_resolution)
@@ -221,6 +217,7 @@ class App(QMainWindow):
             str(int(1 + (2 * (Q_(self.textbox_end_wav.text()) - Q_(self.textbox_start_wav.text())).m_as('nm') / float(
                 self.dropdown_optical_resolution.currentText())))))
 
+    @pyqtSlot()
     def on_click_submit(self):
         if self.instr.controller._is_initialized:
             self.instr.controller.perform_single_sweep()
@@ -243,9 +240,7 @@ class App(QMainWindow):
                 self.set_parameters_for_osa_machine(end_wav, optical_resolution, sample_points, start_wav)
 
                 #try:
-                #hier ga ik proberen een thread aan te maken
                 self.start_thread()
-                #hier een thread dan laten afsluiten.
                 #except:
                 #    print("exception occured: "+str(sys.exc_info()[0]))
                 self.plot_data()
@@ -261,11 +256,11 @@ class App(QMainWindow):
         #print(self.instr.end_wav)
         #print(self.instr.optical_resolution)
         #print(self.instr.sample_points)
-
         self.instr.start_wav = Q_(start_wav)
         self.instr.end_wav = Q_(end_wav)
         self.instr.optical_resolution = float(optical_resolution)
         self.instr.sample_points = int(sample_points)
+
     def start_thread(self):
         print('starting sweep')
         print(id(self.instr.controller._osa))
@@ -278,6 +273,12 @@ class App(QMainWindow):
             time.sleep(2)
             print('waiting after sweep')
         print("proces finished")
+
+    def plot_data(self):
+        wav = [random.random() for i in range(25)]
+        spec = 'r-'
+        PlotCanvas.plot(self.m, spec, wav)
+        self.plot_data()
 
     def set_textboxs_to_osa_machine_values(self):
         # set the textboxs to the value from the osa machine

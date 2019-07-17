@@ -91,49 +91,12 @@ class OsaController(BaseController):
 
 
     @property
-    def sensitivity(self):
-        """
-        Get the sensitivity from the osa machine
-        :return:
-        """
-        self._sensitivity = int(self._osa.query_ascii_values('SENS?')[0])
-        return self._sensitivities[self._sensitivity-1]
-
-    @sensitivity.setter
-    def sensitivity(self, sensitivity_string):
-        """
-        Set the sensitivity for the osa machine.
-        :param sensitivity_string: a string with what sensitivity should be used.
-        :return: -
-        """
-        if sensitivity_string in self._sensitivities:
-            sensitivity_number = self._sensitivities.index(sensitivity_string)
-        else:
-            self.logger.warning("the sensitivity string is not right")
-            return
-        if sensitivity_number != self._sensitivity:
-            self._sensitivity = sensitivity_number
-            self._osa.write(self._sens_commands[self._sensitivity-1])
-            if sensitivity_number != self._sensitivity:
-                self.logger.warning('Value not set in OSA')
-
-    @property
     def start_wav(self):
-        """
-        Get the start wavelength
-        :return:
-        """
         self._start_wav = self._osa.query_ascii_values('STAWL?')[0]
         return self._start_wav
 
-
     @start_wav.setter
     def start_wav(self, start_wav):
-        """
-        Set the start wavelength
-        :param start_wav: a pint quantity
-        :return:
-        """
         start_wav = round(start_wav, 2)
         if start_wav < 600 or start_wav > 1750:
             self.logger.warning('Invalid start_wav value')
@@ -146,20 +109,11 @@ class OsaController(BaseController):
 
     @property
     def end_wav(self):
-        """
-        Get the end wavelength
-        :return:
-        """
         self._end_wav = self._osa.query_ascii_values('STPWL?')[0]
         return self._end_wav
 
     @end_wav.setter
     def end_wav(self, end_wav):
-        """
-        Set the end wavelength
-        :param end_wav: a float
-        :return:
-        """
         end_wav = round(end_wav, 2)
         if end_wav <600 or end_wav > 1750:
             self.logger.warning("invalid end_wav value")
@@ -172,20 +126,11 @@ class OsaController(BaseController):
 
     @property
     def optical_resolution(self):
-        """
-        Get the optical resolution
-        :return:
-        """
         self._optical_resolution = self._osa.query_ascii_values('RESLN?')[0]
         return self._optical_resolution
 
     @optical_resolution.setter
     def optical_resolution(self, optical_resolution):
-        """
-        Set the optical resolution
-        :param optical_resolution:
-        :return:
-        """
         optical_resolution = round(optical_resolution, 2)
         if not optical_resolution in [0.01,0.02,0.05,0.1,0.2,0.5,1.0,2.0,5.0]:
             self.logger.warning("invalid optical resolution value")
@@ -199,27 +144,35 @@ class OsaController(BaseController):
 
     @property
     def sample_points(self):
-        """
-        Get the sample points
-        :return:
-        """
         self._sample_points = self._osa.query_ascii_values('SMPL?')[0]
         return self._sample_points
 
     @sample_points.setter
     def sample_points(self, sample_points):
-        """
-        Set the sample points
-        :param sample_points: an int. The recommended sample points are:
-        1+(2 *(end_wav-start_wav)/ optical_resolution)
-        :return:
-        """
         if sample_points != self._sample_points:
             self._sample_points = sample_points
             self._osa.write('SMPL{:1.2f}'.format(sample_points))
             self._sample_points = self._osa.query_ascii_values('SMPL?')[0]
             if sample_points != self._sample_points:
                 self.logger.warning("The sample points value did not set in OSA")
+
+    @property
+    def sensitivity(self):
+        self._sensitivity = int(self._osa.query_ascii_values('SENS?')[0])
+        return self._sensitivities[self._sensitivity - 1]
+
+    @sensitivity.setter
+    def sensitivity(self, sensitivity_string):
+        if sensitivity_string in self._sensitivities:
+            sensitivity_number = self._sensitivities.index(sensitivity_string)
+        else:
+            self.logger.warning("the sensitivity string is not right")
+            return
+        if sensitivity_number != self._sensitivity:
+            self._sensitivity = sensitivity_number
+            self._osa.write(self._sens_commands[self._sensitivity - 1])
+            if sensitivity_number != self._sensitivity:
+                self.logger.warning('Value not set in OSA')
 
     def perform_single_sweep(self):
         """
