@@ -4,7 +4,6 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox
 from PyQt5.QtCore import pyqtSlot
 import logging
-import time
 
 from hyperion.instrument.osa.osa_instrument import OsaInstrument
 from hyperion import ur, Q_
@@ -30,6 +29,7 @@ class App(QMainWindow):
         self.set_gui_constructor()
 
         self.set_textboxs()
+        self.set_textboxs_to_osa_machine_values()
 
         self.set_labels()
 
@@ -112,7 +112,6 @@ class App(QMainWindow):
     def set_sample_points_textbox(self):
         # this is the sample_points_textbox
         self.textbox_sample_points = QLineEdit(self)
-        self.textbox_sample_points.setText("{}".format(int(self.instr.sample_points)))
         self.textbox_sample_points.move(20, 112)
         self.textbox_sample_points.resize(50, 20)
     def set_optical_resolution_textbox(self):
@@ -124,13 +123,11 @@ class App(QMainWindow):
     def set_end_wav_text_box(self):
         # this is the end_wav_textbox
         self.textbox_end_wav = QLineEdit(self)
-        self.textbox_end_wav.setText("{} nm".format(self.instr.end_wav.m_as('nm')))
         self.textbox_end_wav.move(20, 52)
         self.textbox_end_wav.resize(60, 20)
     def set_start_wav_textbox(self):
         # this is the start_wav_textbox
         self.textbox_start_wav = QLineEdit(self)
-        self.textbox_start_wav.setText("{} nm".format(self.instr.start_wav.m_as('nm')))
         self.textbox_start_wav.move(20, 22)
         self.textbox_start_wav.resize(60, 20)
 
@@ -149,7 +146,7 @@ class App(QMainWindow):
             #all fields are filled
             self.get_recommended_sample_points()
         else:
-            #some parameter is missing in one of the textboxs
+            #some parameter are missing in one of the textboxs
             self.error_message_not_all_fields_are_filled()
 
     def is_sample_points_not_empty(self):
@@ -215,9 +212,9 @@ class App(QMainWindow):
             self.instr.controller.perform_single_sweep()
         else:
             print("pyvisa does not work like intended")
-        """
-        self.logger.info('submit button clicked')
 
+        self.logger.info('submit button clicked')
+        """
         self.get_submit_button_status()
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty() and self.is_sample_points_not_empty():
             self.logger.info('fields not empty, grabbing fields')
@@ -244,7 +241,7 @@ class App(QMainWindow):
                 #except:
                 #    print("exception occured: "+str(sys.exc_info()[0]))
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
-            self.set_textboxs_to_empty_value()
+            self.set_textboxs_to_osa_machine_values()
 
         else:
             self.error_message_not_all_fields_are_filled()
@@ -262,11 +259,11 @@ class App(QMainWindow):
         self.instr.sample_points = int(sample_points)
 
 
-    def set_textboxs_to_empty_value(self):
-        # set the textboxs to a specified value
-        self.textbox_start_wav.setText("")
-        self.textbox_end_wav.setText("")
-        self.textbox_sample_points.setText("")
+    def set_textboxs_to_osa_machine_values(self):
+        # set the textboxs to the value from the osa machine
+        self.textbox_start_wav.setText("{} nm".format(self.instr.start_wav.m_as('nm')))
+        self.textbox_end_wav.setText("{} nm".format(self.instr.end_wav.m_as('nm')))
+        self.textbox_sample_points.setText("{}".format(int(self.instr.sample_points)))
     def get_output_message(self, end_wav, optical_resolution, sample_points, start_wav):
         # make a textbox to display given values.
         QMessageBox.question(self, 'What is this, a response?', "You typed: " + str(start_wav) + "\n" + str(end_wav) +
