@@ -23,6 +23,7 @@ class BaseExperiment():
         self.properties = {}
         self.instruments= []
         self.instruments_instances = []
+        self.filename = ''
 
     def __enter__(self):
         return self
@@ -54,8 +55,6 @@ class BaseExperiment():
         for inst in self.instruments_instances:
             inst.finalize()
 
-
-
     def load_instrument(self, name):
         """ Loads instrument
 
@@ -63,20 +62,34 @@ class BaseExperiment():
         :type name: string
         """
         self.logger.debug('Loading instrument: {}'.format(name))
-        for inst in self.properties['Instruments']:
-            self.logger.debug('instrument name: {}'.format(inst))
 
-            if name in inst:
-                module_name, class_name = inst[name]['instrument'].split('/')
-                self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
-                my_class = getattr(importlib.import_module(module_name), class_name)
-                instance = my_class(inst[name])
-                self.instruments.append(inst)
-                self.instruments_instances.append(instance)
-                return instance
+        try:
+            di = self.properties['Instruments'][name]
+            module_name, class_name = di['instrument'].split('/')
+            self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+            my_class = getattr(importlib.import_module(module_name), class_name)
+            instance = my_class(di)
+            self.instruments.append(name)
+            self.instruments_instances.append(instance)
+            return instance
+        except KeyError:
+            self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+            return None
 
-        self.logger.warning('The name "{}" does not exist in the config file'.format(name))
-        return None
+        # for inst in self.properties['Instruments']:
+        #     self.logger.debug('Current instrument information: {}'.format(self.properties['Instruments'][inst]))
+        #
+        #     if name == inst:
+        #         module_name, class_name = self.properties['Instruments']['instrument'].split('/')
+        #         self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+        #         my_class = getattr(importlib.import_module(module_name), class_name)
+        #         instance = my_class(inst)
+        #         self.instruments.append(inst)
+        #         self.instruments_instances.append(instance)
+        #         return instance
+        #
+        # self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+        # return None
 
     # this next two methods should be moved to tools
     def create_filename(self, file_path):

@@ -245,6 +245,15 @@ class AaAotf(BaseInstrument):
         """
         self.controller.blanking(state, mode)
 
+    def get_status(self):
+        """ Gets the status of all channels in the controller
+
+        """
+        ans = self.controller.get_states()
+        self.logger.info('Current state: {}'.format(ans))
+        return ans
+
+
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings
 
