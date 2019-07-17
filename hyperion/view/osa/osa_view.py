@@ -41,6 +41,9 @@ class App(QMainWindow):
 
         self.set_recommended_sample_points_button()
 
+        self.m = PlotCanvas(self, width=4, height=3)
+        self.m.move(310, 15)
+
         self.show()
     def set_gui_constructor(self):
         # a constructor to set the properties of  the GUI in
@@ -153,6 +156,13 @@ class App(QMainWindow):
             #some parameter are missing in one of the textboxs
             self.error_message_not_all_fields_are_filled()
 
+
+    def plot_data(self):
+        wav = [random.random() for i in range(25)]
+        spec = 'r-'
+        PlotCanvas.plot(self.m, spec, wav)
+        self.plot_data()
+
     def is_sample_points_not_empty(self):
         if self.textbox_sample_points.text() != "":
             return True
@@ -238,16 +248,13 @@ class App(QMainWindow):
                 #hier een thread dan laten afsluiten.
                 #except:
                 #    print("exception occured: "+str(sys.exc_info()[0]))
+                self.plot_data()
 
-                #make the plot
-                m = PlotCanvas(self, width=4, height=3)
-                m.move(310, 15)
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
             self.set_textboxs_to_osa_machine_values()
 
         else:
             self.error_message_not_all_fields_are_filled()
-
 
     def set_parameters_for_osa_machine(self, end_wav, optical_resolution, sample_points, start_wav):
         #print(self.instr.start_wav)
@@ -272,12 +279,6 @@ class App(QMainWindow):
             print('waiting after sweep')
         print("proces finished")
 
-        # set the results in the self object
-        self.wav = wav
-        self.spec = spec
-        return
-
-
     def set_textboxs_to_osa_machine_values(self):
         # set the textboxs to the value from the osa machine
         self.textbox_start_wav.setText("{} nm".format(self.instr.start_wav.m_as('nm')))
@@ -293,6 +294,7 @@ class App(QMainWindow):
         print('button says something')
         self.statusBar().showMessage("you have clicked the button, nothing happens(yet)")
 
+
 class PlotCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
@@ -305,14 +307,15 @@ class PlotCanvas(FigureCanvas):
                                    QSizePolicy.Expanding,
                                    QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.plot()
 
-    def plot(self):
-        data = self.wav
+    def plot(self, spec, wav):
+        data = wav
         ax = self.figure.add_subplot(111)
-        ax.plot(data, self.spec)
-        ax.set_title('PyQt Matplotlib Example')
+        ax.plot(data, spec)
+        ax.set_title('spectrum of light')
         self.draw()
+        #ax.cla() causes the axes to clear it self from the data given. THIS IS mandatory
+        ax.cla()
 
 
 if __name__ == '__main__':
