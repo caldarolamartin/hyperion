@@ -1,14 +1,18 @@
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, QSizePolicy
 from PyQt5.QtCore import pyqtSlot
+
 
 import logging
 import sys
 import time
+import random
 from hyperion.instrument.osa.osa_instrument import OsaInstrument
 from hyperion import ur, Q_
 from hyperion.view.general_worker import WorkThread
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 #todo figure out what goes wrong with the instr. in the view.
 
 class App(QMainWindow):
@@ -18,8 +22,8 @@ class App(QMainWindow):
         self.title = 'PyQt5 just a window'
         self.left = 50 #how many pixels are away from the left of the GUI
         self.top = 50 #how many pixels are away form the top of the GUI
-        self.width = 340 # how many pixels in width the GUI is
-        self.height = 280 # how many pixels in height the GUI is
+        self.width = 700 # how many pixels in width the GUI is
+        self.height = 350 # how many pixels in height the GUI is
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class App created')
         self.instr = instr
@@ -219,8 +223,6 @@ class App(QMainWindow):
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty() and self.is_sample_points_not_empty():
             #self.logger.info('fields not empty, grabbing fields')
             end_wav, optical_resolution, sample_points, start_wav = self.get_values_from_textboxs()
-
-
             #check if conditions for a single sweep are met
             if self.instr.is_start_wav_value_correct(start_wav) and self.instr.is_end_wav_value_correct(end_wav) and self.instr.is_end_wav_bigger_than_start_wav(start_wav,end_wav):
                 #all tests are succesfull. now the rest of the code may be executed.
@@ -230,13 +232,16 @@ class App(QMainWindow):
                 print('set_parameters_for_osa_machine( ... )')
                 self.set_parameters_for_osa_machine(end_wav, optical_resolution, sample_points, start_wav)
 
-                #perform the sweep
                 #try:
                 #hier ga ik proberen een thread aan te maken
                 self.start_thread()
                 #hier een thread dan laten afsluiten.
                 #except:
                 #    print("exception occured: "+str(sys.exc_info()[0]))
+
+                #make the plot
+                m = PlotCanvas(self, width=4, height=3)
+                m.move(310, 15)
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
             self.set_textboxs_to_osa_machine_values()
 
@@ -258,17 +263,19 @@ class App(QMainWindow):
         print('starting sweep')
         print(id(self.instr.controller._osa))
 
-        self.worker_thread = WorkThread(self.instr.take_spectrum)
+        wav, spec = self.worker_thread = WorkThread(self.instr.take_spectrum)
         self.worker_thread.finished.connect(self.worker_thread.deleteLater)
         self.worker_thread.start()
-
         print("starting")
         while self.worker_thread.is_running:
             time.sleep(2)
             print('waiting after sweep')
         print("proces finished")
-        #plt.plot(wav, spec)
-        #plt.show()
+
+        # set the results in the self object
+        self.wav = wav
+        self.spec = spec
+        return
 
 
     def set_textboxs_to_osa_machine_values(self):
@@ -285,6 +292,27 @@ class App(QMainWindow):
         # when the button is clicked this method will be executed
         print('button says something')
         self.statusBar().showMessage("you have clicked the button, nothing happens(yet)")
+
+class PlotCanvas(FigureCanvas):
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+
+        FigureCanvas.__init__(self, fig)
+        self.setParent(parent)
+
+        FigureCanvas.setSizePolicy(self,
+                                   QSizePolicy.Expanding,
+                                   QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+        self.plot()
+
+    def plot(self):
+        data = self.wav
+        ax = self.figure.add_subplot(111)
+        ax.plot(data, self.spec)
+        ax.set_title('PyQt Matplotlib Example')
+        self.draw()
 
 
 if __name__ == '__main__':
