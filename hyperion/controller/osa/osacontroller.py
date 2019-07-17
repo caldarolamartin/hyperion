@@ -12,7 +12,6 @@ This controller (osa.py) supplies one class with several methods to communicate
 import logging
 import visa
 import time
-#import matplotlib.pyplot as plt
 from hyperion.controller.base_controller import BaseController
 
 class OsaController(BaseController):

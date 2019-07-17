@@ -1,15 +1,15 @@
-import sys
-
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox
 from PyQt5.QtCore import pyqtSlot
-import logging
 
+import logging
+import sys
+import time
 from hyperion.instrument.osa.osa_instrument import OsaInstrument
 from hyperion import ur, Q_
+from hyperion.view.general_worker import WorkThread
 import matplotlib.pyplot as plt
-#todo figure out what goes wrong with the instr. in the view. Why cannot a value be set? Because the instrument does not communicate with the controller
-#todo add labels which tell the user the current value of the osa machine(can be done when above todo has been fixed)
+#todo figure out what goes wrong with the instr. in the view.
 
 class App(QMainWindow):
 
@@ -214,10 +214,10 @@ class App(QMainWindow):
             print("pyvisa does not work like intended")
 
         self.logger.info('submit button clicked')
-        """
+
         self.get_submit_button_status()
         if self.is_start_wav_not_empty() and self.is_end_wav_not_empty() and self.is_sample_points_not_empty():
-            self.logger.info('fields not empty, grabbing fields')
+            #self.logger.info('fields not empty, grabbing fields')
             end_wav, optical_resolution, sample_points, start_wav = self.get_values_from_textboxs()
 
 
@@ -232,12 +232,9 @@ class App(QMainWindow):
 
                 #perform the sweep
                 #try:
-                print('starting sweep')
-                print(id(self.instr.controller._osa))
-                wav, spec = self.instr.take_spectrum()
-                print('waiting after sweep')
-                plt.plot(wav, spec)
-                plt.show()
+                #hier ga ik proberen een thread aan te maken
+                self.start_thread()
+                #hier een thread dan laten afsluiten.
                 #except:
                 #    print("exception occured: "+str(sys.exc_info()[0]))
             self.get_output_message(end_wav, optical_resolution, sample_points, start_wav)
@@ -245,7 +242,7 @@ class App(QMainWindow):
 
         else:
             self.error_message_not_all_fields_are_filled()
-        """
+
 
     def set_parameters_for_osa_machine(self, end_wav, optical_resolution, sample_points, start_wav):
         #print(self.instr.start_wav)
@@ -257,6 +254,21 @@ class App(QMainWindow):
         self.instr.end_wav = Q_(end_wav)
         self.instr.optical_resolution = float(optical_resolution)
         self.instr.sample_points = int(sample_points)
+    def start_thread(self):
+        print('starting sweep')
+        print(id(self.instr.controller._osa))
+
+        self.worker_thread = WorkThread(self.instr.take_spectrum)
+        self.worker_thread.finished.connect(self.worker_thread.deleteLater)
+        self.worker_thread.start()
+
+        print("starting")
+        while self.worker_thread.is_running:
+            time.sleep(2)
+            print('waiting after sweep')
+        print("proces finished")
+        #plt.plot(wav, spec)
+        #plt.show()
 
 
     def set_textboxs_to_osa_machine_values(self):

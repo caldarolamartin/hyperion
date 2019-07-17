@@ -8,18 +8,12 @@ This is the osa instrument, created to have a place where the view can send requ
 the controller can get the data the view want's to show. so data flows controller > instrument > view
 
 """
-#TODO is de optical resolution(en sample points misschien) in nanometers of in iets anders?
-"""
-TODO de osa_instrument maak geen gebruik van de osaController. Dit zorgt ervoor dat er geen functies van
-de osacontroller in de osa_instrument gebruikt kunnen worden wat niet handig is. 
-"""
 
 
 import logging
 import sys
 
 from hyperion.instrument.base_instrument import BaseInstrument
-#from hyperion.controller.osa.osacontroller import OsaController
 #from hyperion.view.osa import osa_view
 from hyperion import ur, root_dir, Q_
 

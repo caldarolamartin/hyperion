@@ -14,16 +14,20 @@ class WorkThread(QtCore.QThread):
         :param function: this is the function the thread is going to run.
         :param args: a way of notation to get any number of variables(with the *args)
         :param kwargs: a way of notation to get any number of variables(with the *kwargs)
+        :param is_running: a parameter to see if the function is still running. 
         """
         super().__init__()
         self.function = function
         self.args = args
         self.kwargs = kwargs
+        self.is_running = False
 
     def __del__(self):
+        self.is_running = False
         self.wait()
 
     def run(self):
+        self.is_running = True
         self.function(*self.args,**self.kwargs)
         return
 
