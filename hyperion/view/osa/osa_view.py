@@ -1,5 +1,6 @@
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, \
+    QSizePolicy, QDockWidget
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 
@@ -19,12 +20,12 @@ from matplotlib.figure import Figure
 #todo figure out what goes wrong with the instr. in the view.
 """
 An idea is that something with the signal goes wrong which causes the pyvisa things to go invalid. 
-This is true, I think I confirmed this. when the signal gets emitted(I do not know what that means) the code will be done as intended
-but, the gui will not show up because an error occures(because the gui is not initialized). How to solve this is still beyond me. 
+This is true, I think I confirmed this, maybe it is just a concidence, I am not really sure.  
 What goes wrong is that at some point after the gui is initialized the connection becomes invalid. But why would this be?  
-An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. Never shot is always mis
+An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. 
+Never shot is always mis
 """
-class App(QMainWindow):
+class App(QDockWidget):
 
     some_signal = pyqtSignal()
 
@@ -37,27 +38,25 @@ class App(QMainWindow):
         self.height = 350       #how many pixels in height the GUI is
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class App created')
-        self.instr = instr
         self.initUI()
+        self.instr = instr
 
     def initUI(self):
         self.set_gui_constructor()
 
         self.set_textboxs()
-        self.set_textboxs_to_osa_machine_values()
+        #self.set_textboxs_to_osa_machine_values()
 
         self.set_labels()
 
-
+        self.set_submit_button()
 
         self.set_recommended_sample_points_button()
 
         self.m = PlotCanvas(self, width=4, height=3)
         self.m.move(310, 15)
 
-        self.set_submit_button()
-
-        self.show()
+        #self.show()
     def set_gui_constructor(self):
         # a constructor to set the properties of  the GUI in
         self.setWindowTitle(self.title)
@@ -74,13 +73,13 @@ class App(QMainWindow):
         button_calculate_recommended_sample_points.clicked.connect(self.on_click_recommended)
     def set_submit_button(self):
         # submit button code
-        button_submit = QPushButton('submit', self)
-        button_submit.setToolTip('You are hovering over the button, \n what do you expect?')
+        self.button_submit = QPushButton('submit', self)
+        self.button_submit.setToolTip('You are hovering over the button, \n what do you expect?')
         # button.move() sets the button on the given position you specify.
-        button_submit.move(200, 200)
-        self.some_signal.connect(self.on_click_submit)
-        self.some_signal.emit()
-        #button_submit.clicked.connect(self.on_click_submit)
+        self.button_submit.move(200, 200)
+        #self.some_signal.connect(self.on_click_submit)
+        #self.some_signal.emit()
+        self.button_submit.clicked.connect(self.on_click_submit)
 
     def set_labels(self):
         self.set_start_wav_label()
@@ -161,6 +160,12 @@ class App(QMainWindow):
 
     def on_click_recommended(self):
         print("the recommended sample points will be calculated ")
+        if self.instr.controller._is_initialized:
+            self.instr.controller.perform_single_sweep()
+        else:
+            print("pyvisa does not work like intended")
+            print(id(self.instr.controller._osa))
+
         self.textbox_sample_points.setText("")
 
         #check if the textboxs are not empty
@@ -229,13 +234,13 @@ class App(QMainWindow):
             str(int(1 + (2 * (Q_(self.textbox_end_wav.text()) - Q_(self.textbox_start_wav.text())).m_as('nm') / float(
                 self.dropdown_optical_resolution.currentText())))))
 
-    @pyqtSlot()
+    ###########################################################################################
     def on_click_submit(self):
-
         if self.instr.controller._is_initialized:
             self.instr.controller.perform_single_sweep()
         else:
             print("pyvisa does not work like intended")
+            print(id(self.instr.controller._osa))
 
         self.logger.info('submit button clicked')
 
@@ -253,7 +258,7 @@ class App(QMainWindow):
                 self.set_parameters_for_osa_machine(end_wav, optical_resolution, sample_points, start_wav)
 
                 #try:
-                self.start_thread()
+                self.make_thread()
                 #except:
                 #    print("exception occured: "+str(sys.exc_info()[0]))
                 self.plot_data()
@@ -274,15 +279,15 @@ class App(QMainWindow):
         self.instr.optical_resolution = float(optical_resolution)
         self.instr.sample_points = int(sample_points)
 
-    def start_thread(self):
+    def make_thread(self):
         print('starting sweep')
         print(id(self.instr.controller._osa))
 
         self.worker_thread = WorkThread(self.instr.take_spectrum)
-        self.worker_thread.finished.connect(self.worker_thread.deleteLater)
+        #self.worker_thread.finished.connect(self.worker_thread.deleteLater)
         print("starting")
         self.worker_thread.start()
-        self.worker_thread.quit()
+        #self.worker_thread.quit()
         """
         while self.worker_thread.is_running:
             time.sleep(2)
@@ -291,8 +296,8 @@ class App(QMainWindow):
         """
 
     def plot_data(self):
-        wav = [random.random() for i in range(25)]
-        spec = 'r-'
+        wav = self.instr.wav
+        spec = self.instr.spec
         PlotCanvas.plot(self.m, spec, wav)
 
     def set_textboxs_to_osa_machine_values(self):
@@ -343,12 +348,21 @@ if __name__ == '__main__':
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
-    with OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osacontroller/OsaController'}) as instr:
+    
+
+    with OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as instr:
         instr.initialize()
 
-        app = QApplication(sys.argv)
+        app = QApplication([])
         ex = App(instr) #mandatory in order to call osainstrument in osa_view class
+        ex.show()
 
         instr.finalize()
         sys.exit(app.exec_())
 
+""""
+app = QApplication([])
+    win = MainWindow(exp)
+    win.show()
+    app.exit(app.exec_())
+"""

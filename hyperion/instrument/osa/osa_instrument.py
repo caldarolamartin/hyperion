@@ -13,7 +13,7 @@ import sys
 
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, root_dir, Q_
-
+import yaml     # TEMPORARILY ADDED TO TEST pftl_example view
 
 class OsaInstrument(BaseInstrument):
     """
@@ -25,12 +25,32 @@ class OsaInstrument(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class OsaInstrument has been created.')
+        self.is_busy = None
+        self.wav = None
+        self.spec = None
+
+    # TEMPORARILY ADDED TO TEST pftl_example view
+    def load_config(self, filename=None):
+        """Loads the configuration file to generate the properties of the Scan and Monitor.
+
+        :param str filename: Path to the filename. Defaults to Config/experiment.yml if not specified.
+        """
+        if filename is None:
+            filename = 'Config/experiment.yml'
+
+        with open(filename, 'r') as f:
+            params = yaml.load(f)
+
+        self.properties = params
+        self.properties['config_file'] = filename
+        self.properties['User'] = self.properties['User']['name']
 
     def initialize(self):
         """ Starts the connection to the osa machine
         """
         self.logger.info('Opening connection to OSA machine.')
         self.controller.initialize()
+        self.is_busy = False
 
     def finalize(self):
         """ this is to close connection to the osa machine
@@ -131,17 +151,18 @@ class OsaInstrument(BaseInstrument):
 
     def take_spectrum(self):
         """
-        Method where a spectrum will be made using the osa machine.
-        :return:
+        Method where a spectrum will be taken using the osa machine.
+        :return: wav, spec: two list containing the data from the taken spectrum.
         """
         print('inside instrument: take_spectrum()')
         #self.logging.info('taking spectrum')
+        self.is_busy = True
         self.controller.perform_single_sweep()
         self.controller.wait_for_osa()
 
-        wav, spec = self.controller.get_data()
+        self.wav, self.spec = self.controller.get_data()
         self.logger.info("spectrum retrieved")
-        return wav,spec
+        self.is_busy = False
 
 
 
@@ -156,7 +177,7 @@ if __name__ == "__main__":
                             logging.StreamHandler()])
 
     dummy = False
-    with OsaInstrument(settings={'dummy': dummy, 'controller':'hyperion.controller.osa.osacontroller/OsaController'}) as dev:
+    with OsaInstrument(settings={'dummy': dummy, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as dev:
         dev.initialize()
 
         print(dev.start_wav)
