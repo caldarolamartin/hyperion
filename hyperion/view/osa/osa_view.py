@@ -71,14 +71,12 @@ class App(QMainWindow):
     def set_submit_button(self):
         # submit button code
         button_submit = QPushButton('submit', self)
-
-
         button_submit.setToolTip('You are hovering over the button, \n what do you expect?')
         # button.move() sets the button on the given position you specify.
         button_submit.move(200, 200)
-        self.some_signal.connect(self.on_click_submit)
-        self.some_signal.emit()
-        #button_submit.clicked.connect(self.on_click_submit)
+        #self.some_signal.connect(self.on_click_submit)
+        #self.some_signal.emit()
+        button_submit.clicked.connect(self.on_click_submit)
 
     def set_labels(self):
         self.set_start_wav_label()
@@ -229,6 +227,7 @@ class App(QMainWindow):
 
     @pyqtSlot()
     def on_click_submit(self):
+
         if self.instr.controller._is_initialized:
             self.instr.controller.perform_single_sweep()
         else:
@@ -275,14 +274,17 @@ class App(QMainWindow):
         print('starting sweep')
         print(id(self.instr.controller._osa))
 
-        wav, spec = self.worker_thread = WorkThread(self.instr.take_spectrum)
+        self.worker_thread = WorkThread(self.instr.take_spectrum)
         self.worker_thread.finished.connect(self.worker_thread.deleteLater)
-        self.worker_thread.start()
         print("starting")
+        self.worker_thread.start()
+        self.worker_thread.quit()
+        """
         while self.worker_thread.is_running:
             time.sleep(2)
             print('waiting after sweep')
         print("proces finished")
+        """
 
     def plot_data(self):
         wav = [random.random() for i in range(25)]
