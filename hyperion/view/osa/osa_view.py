@@ -1,6 +1,7 @@
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+
 
 
 import logging
@@ -16,9 +17,14 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 #todo figure out what goes wrong with the instr. in the view.
-# An idea is that something with the signal goes wrong which causes the pyvisa things to go invalid
-#Something with the connection to the osa goes bad. This may be an underground problem or the code needs to get restructred.
+"""
+An idea is that something with the signal goes wrong which causes the pyvisa things to go invalid
+Something with the connection to the osa goes bad. This may be an underground problem or the code needs to get restructred.
+An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. Never shot is always mis
+"""
 class App(QMainWindow):
+
+    some_signal = pyqtSignal()
 
     def __init__(self, instr):
         super().__init__()
@@ -65,10 +71,14 @@ class App(QMainWindow):
     def set_submit_button(self):
         # submit button code
         button_submit = QPushButton('submit', self)
+
+
         button_submit.setToolTip('You are hovering over the button, \n what do you expect?')
         # button.move() sets the button on the given position you specify.
         button_submit.move(200, 200)
-        button_submit.clicked.connect(self.on_click_submit)
+        self.some_signal.connect(self.on_click_submit)
+        self.some_signal.emit()
+        #button_submit.clicked.connect(self.on_click_submit)
 
     def set_labels(self):
         self.set_start_wav_label()
@@ -308,7 +318,6 @@ class PlotCanvas(FigureCanvas):
                                    QSizePolicy.Expanding,
                                    QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-
     def plot(self, spec, wav):
         data = wav
         ax = self.figure.add_subplot(111)
