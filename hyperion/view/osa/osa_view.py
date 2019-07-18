@@ -18,8 +18,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 #todo figure out what goes wrong with the instr. in the view.
 """
-An idea is that something with the signal goes wrong which causes the pyvisa things to go invalid
-Something with the connection to the osa goes bad. This may be an underground problem or the code needs to get restructred.
+An idea is that something with the signal goes wrong which causes the pyvisa things to go invalid. 
+This is true, I think I confirmed this. when the signal gets emitted(I do not know what that means) the code will be done as intended
+but, the gui will not show up because an error occures(because the gui is not initialized). How to solve this is still beyond me. 
+What goes wrong is that at some point after the gui is initialized the connection becomes invalid. But why would this be?  
 An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. Never shot is always mis
 """
 class App(QMainWindow):
@@ -46,12 +48,14 @@ class App(QMainWindow):
 
         self.set_labels()
 
-        self.set_submit_button()
+
 
         self.set_recommended_sample_points_button()
 
         self.m = PlotCanvas(self, width=4, height=3)
         self.m.move(310, 15)
+
+        self.set_submit_button()
 
         self.show()
     def set_gui_constructor(self):
@@ -74,9 +78,9 @@ class App(QMainWindow):
         button_submit.setToolTip('You are hovering over the button, \n what do you expect?')
         # button.move() sets the button on the given position you specify.
         button_submit.move(200, 200)
-        #self.some_signal.connect(self.on_click_submit)
-        #self.some_signal.emit()
-        button_submit.clicked.connect(self.on_click_submit)
+        self.some_signal.connect(self.on_click_submit)
+        self.some_signal.emit()
+        #button_submit.clicked.connect(self.on_click_submit)
 
     def set_labels(self):
         self.set_start_wav_label()
@@ -290,7 +294,6 @@ class App(QMainWindow):
         wav = [random.random() for i in range(25)]
         spec = 'r-'
         PlotCanvas.plot(self.m, spec, wav)
-        self.plot_data()
 
     def set_textboxs_to_osa_machine_values(self):
         # set the textboxs to the value from the osa machine
