@@ -67,7 +67,6 @@ class OsaController(BaseController):
         self._is_initialized = True  # THIS IS MANDATORY!!
         # this is to prevent you to close the device connection if you
         # have not initialized it inside a with statement
-        #self._amplitude = self.query('A?')
         self.start_wav; self.end_wav; self.sample_points; self.sensitivity; self.optical_resolution
         # make sure self._start_wav/end_wav/sample_points/optical_resolution is the same as on the osa machine.
         #This is mandatory

@@ -49,85 +49,40 @@ class OsaInstrument(BaseInstrument):
 
     @property
     def start_wav(self):
-        """
-        Get the start wavelength value
-        :return:
-        """
         return self.controller.start_wav * ur('nm')
     @start_wav.setter
     def start_wav(self, start_wav):
-        """
-        Set the start wavelength value
-        :param start_wav: a pint quantity between 600 and 1750 nm
-        :return:
-        """
         if self.__wav_in_range(start_wav.m_as('nm')):
             self.controller.start_wav = start_wav.m_as('nm')
 
     @property
     def end_wav(self):
-        """
-        Get the end wavelength value
-        :return:
-        """
         return self.controller.end_wav * ur('nm')
     @end_wav.setter
     def end_wav(self, end_wav):
-        """
-        Set the end wavelength value
-        :param end_wav: an pint quatity between 600 and 1750 nm
-        :return:
-        """
         if self.__wav_in_range(end_wav.m_as('nm')):
             self.controller.end_wav = end_wav.m_as('nm')
 
     @property
     def optical_resolution(self):
-        """
-        Get the optical resolution value
-        :return:
-        """
         return self.controller.optical_resolution
     @optical_resolution.setter
     def optical_resolution(self, optical_resolution):
-        """
-        Set the optical resolution
-        :param optical_resolution:
-        :return:
-        """
         if optical_resolution in [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0]:
             self.controller.optical_resolution = optical_resolution
 
     @property
     def sample_points(self):
-        """
-        Get the sample points
-        :return:
-        """
         return self.controller.sample_points
     @sample_points.setter
     def sample_points(self, sample_points):
-        """
-        Set the sample points.
-        :param sample_points:
-        :return:
-        """
         self.controller.sample_points = sample_points
 
     @property
     def sensitivity(self):
-        """
-        Get the sensitivity, should be a string
-        :return:
-        """
         return self.controller.sensitivity
     @sensitivity.setter
     def sensitivity(self, sensitivity_string):
-        """
-        Set the sensitivity.
-        :param sensitivity_string: it is a string
-        :return:
-        """
         if sensitivity_string in ['high1', 'high2', 'high3', 'norm_hold', 'norm_auto', 'mid']:
             self.controller.sensitivity = sensitivity_string
 
