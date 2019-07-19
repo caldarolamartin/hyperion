@@ -112,6 +112,7 @@ if __name__ == '__main__':
         #
         # save metadata
         e.save_scan_metadata()
+        e.vwp.set_analog_value(1,2.25*ur('volt'))
 
         # perform scan
         # e.set_scan()

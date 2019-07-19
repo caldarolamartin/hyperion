@@ -245,6 +245,15 @@ class AaAotf(BaseInstrument):
         """
         self.controller.blanking(state, mode)
 
+    def get_status(self):
+        """ Gets the status of all channels in the controller
+
+        """
+        ans = self.controller.get_states()
+        self.logger.info('Current state: {}'.format(ans))
+        return ans
+
+
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings
 
@@ -293,8 +302,26 @@ if __name__ == '__main__':
         # print(d.driver.get_states())
 
         # # check set wavelength
-        wl = [490, 670] * ur('nanometer')
+        # wl = np.linspace(500,700,4)* ur('nanometer')
+        # print(wl)
+        # for value in wl:
+        #     print('This wavelength: {}'.format(value))
+        #     # d.set_frequency_all_range(d.wavelength_to_frequency(value), 22, True, 'internal')
+        #     d.set_wavelength(value, 22, True, 'internal')
+        #
+        # print('done')
+
+
+        # to do a manual-saving wavelength scan with photothermal
+        wl = np.linspace(625,700,4)* ur('nanometer')
+        print(wl)
         for value in wl:
-            print(value)
+            print('This wavelength: {}'.format(value))
             # d.set_frequency_all_range(d.wavelength_to_frequency(value), 22, True, 'internal')
-            d.set_wavelength(value, 22, True, 'internal')
+            d.set_wavelength(value, 22, True, 'external')
+            ans = input('The wavelength is {}. Press enter for the next or press q for quiting... '.format(value))
+            if ans=='q':
+                print('Quiting')
+                break
+
+        print('done')
