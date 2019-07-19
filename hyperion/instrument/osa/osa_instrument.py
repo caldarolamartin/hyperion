@@ -189,8 +189,8 @@ if __name__ == "__main__":
         dev.optical_resolution = 1.0
         dev.sensitivity = "mid"
 
-        wav, spec = dev.take_spectrum()
-        plt.plot(wav, spec)
+        dev.take_spectrum()
+        plt.plot(dev.wav, dev.spec)
         plt.show()
 
         dev.finalize()

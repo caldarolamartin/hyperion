@@ -156,7 +156,7 @@ class OsaController(BaseController):
                 self.logger.warning("The sample points value did not set in OSA")
 
     @property
-    def sensitivity(self):
+    def sensitivity(self):          # this is a string
         self._sensitivity = int(self._osa.query_ascii_values('SENS?')[0])
         return self._sensitivities[self._sensitivity - 1]
 
@@ -315,7 +315,7 @@ if __name__ == "__main__":
         print('OSA sample points is {}'.format(dev._sample_points))
         print("-" * 40)
         print('OSA sensitivity is {}'.format(dev._sensitivity))
-        dev._sensitivity = "high1"
+        dev.sensitivity = "high1"
         print('OSA sensitivity is {}'.format(dev._sensitivity))
 
         #dev.set_settings_for_osa()
