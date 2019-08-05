@@ -24,25 +24,52 @@ class App(QMainWindow):
 
         self.initUI()
     def set_menu_bar(self):
-        self.mainMenu = self.menuBar()
-        self.fileMenu = self.mainMenu.addMenu('File')
-        self.dock_widget_1 = self.mainMenu.addMenu('dock_widget_1')
-        self.dock_widget_2 = self.mainMenu.addMenu('dock_widget_2')
-        self.searchMenu = self.mainMenu.addMenu('Search')
-        self.toolsMenu = self.mainMenu.addMenu('Tools')
-        self.helpMenu = self.mainMenu.addMenu('Help')
+        """
+         menubar = self.menuBar()
+        file = menubar.addMenu("File")
+        file.addAction("New")
+        file.addAction("Save")
+        file.addAction("Close")
+        """
+        mainMenu = self.menuBar()
+        """
+        exitAct = QAction(QIcon('exit.png'), '&Exit', self)        
+        exitAct.triggered.connect(qApp.quit)
+
+        """
+        self.fileMenu = mainMenu.addMenu('File')
+        self.dock_widget_1_file_item = mainMenu.addMenu('float dock widget 1')
+        self.dock_widget_2_file_item = mainMenu.addMenu('dock_widget_2')
+        self.draw_something = mainMenu.addMenu('draw')
+        self.toolsMenu = mainMenu.addMenu('Tools')
+        self.helpMenu = mainMenu.addMenu('Help')
 
     def set_exit_button(self):
         exitButton = QAction('Exit', self)
         exitButton.setStatusTip('Exit application')
         exitButton.triggered.connect(self.close)
         self.fileMenu.addAction(exitButton)
+    def set_draw_graph(self):
+        some_action_button = QAction('drawing', self)
+        some_action_button.setStatusTip('this will draw something')
+        some_action_button.triggered.connect(self.on_click_submit)
+        self.draw_something.addAction(some_action_button)
+    def make_widget_1_loose_from_gui(self):
+        action_button = QAction('widget 1 loose', self)
+        action_button.setStatusTip('makes widget 1 loose from the gui')
+        action_button.triggered.connect(self.make_widget_loose)
+        self.dock_widget_1_file_item.addAction(action_button)
+
+    def make_widget_loose(self):
+        #makes widget 1 loose from the gui
+        self.dock_widget_1.setFloating(True)
 
     def get_status_open_or_closed(self):
         show_or_hide = QAction('show or hide', self)
         show_or_hide.setStatusTip("does it show, or hide?")
-        show_or_hide.triggered().connect(self.dock_widget_1.toggleViewAction())
-        self.fileMenu.addAction(show_or_hide)
+        #TODO deze code hieronder werkt niet, dus dat kan nog verbeterd worden.
+        show_or_hide.triggered.connect(self.dock_widget_1.toggleViewAction())
+        self.toolsMenu.addAction(show_or_hide)
 
     def on_click_submit(self):
         self.ydata = [random.random() for i in range(25)]
@@ -54,7 +81,7 @@ class App(QMainWindow):
 
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setWidgetResizable(False)
 
         self.widget_scroll_area_1 = QWidget()
         self.widget_scroll_area_2 = QWidget()
@@ -95,9 +122,6 @@ class App(QMainWindow):
         self.vbox_1_scroll_area.addWidget(self.textbox)
         self.vbox_1_scroll_area.addWidget(self.listWidget_right)
         self.dock_widget_1_content.setLayout(self.vbox_1_scroll_area)
-        #self.dock_widget_1.setWidget(self.some_button)
-        #self.dock_widget_1.setWidget(self.textbox)
-        #self.dock_widget_1.setWidget(self.listWidget_right)
         self.dock_widget_1.setWidget(self.dock_widget_1_content)
 
         self.dock_widget_1.setFloating(False)
@@ -107,15 +131,12 @@ class App(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_1)
 
     def set_dock_widget_2(self):
+        self.dock_widget_2 = QDockWidget("dock_widget_2", self)
         self.dock_widget_2_content = QWidget()
         self.dock_widget_2_content.setObjectName('de content voor de dock_widget')
 
         self.button_obey = QPushButton('obey', self)
         self.button_obey.setToolTip('You are hovering over the button, \n what do you expect?')
-
-        self.dock_widget_2 = QDockWidget("dock_widget_2", self)
-        #self.list_widget_left = QListWidget()
-        #self.list_widget_left.addItems(["item 4", "item 5", "item 6"])
 
         self.main_plot = pg.PlotWidget()
 
@@ -128,7 +149,7 @@ class App(QMainWindow):
         self.dock_widget_2.setFloating(False)
         self.dock_widget_2.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
 
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_2)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_widget_2)
         self.dock_widget_2.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
     def set_all_in_some_layout(self):
@@ -142,11 +163,6 @@ class App(QMainWindow):
         grid_layout.addWidget(self.dock_widget_2, 0, 1, 1, 1)
 
         self.central_widget = PyQt5.QtWidgets.QWidget()
-        #self.all_in_this_hbox = QHBoxLayout()
-        #self.all_in_this_hbox.addStretch(1)
-        #self.all_in_this_hbox.addWidget(self.scroll_area)
-        #self.all_in_this_hbox.addWidget(self.dock_widget_1)
-        #self.all_in_this_hbox.addWidget(self.dock_widget_2)
         self.central_widget.setLayout(grid_layout)
         self.setCentralWidget(self.central_widget)
 
@@ -154,9 +170,13 @@ class App(QMainWindow):
         self.set_dock_widget_1()
         self.set_dock_widget_2()
         self.set_scroll_area()
+
         self.set_menu_bar()
-        self.set_exit_button()
+        #self.set_exit_button()
+        #self.set_draw_graph()
+        #self.make_widget_1_loose_from_gui()
         #self.get_status_open_or_closed()
+
         self.set_all_in_some_layout()
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
