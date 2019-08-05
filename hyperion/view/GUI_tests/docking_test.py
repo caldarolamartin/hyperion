@@ -26,8 +26,8 @@ class App(QMainWindow):
     def set_menu_bar(self):
         mainMenu = self.menuBar()
         self.fileMenu = mainMenu.addMenu('File')
-        self.dock_widget_1 = mainMenu.addMenu('float dock widget 1')
-        self.dock_widget_2 = mainMenu.addMenu('dock_widget_2')
+        self.dock_widget_1_file_item = mainMenu.addMenu('float dock widget 1')
+        self.dock_widget_2_file_item = mainMenu.addMenu('dock_widget_2')
         self.draw_something = mainMenu.addMenu('draw')
         self.toolsMenu = mainMenu.addMenu('Tools')
         self.helpMenu = mainMenu.addMenu('Help')
@@ -42,15 +42,25 @@ class App(QMainWindow):
         some_action_button.setStatusTip('this will draw something')
         some_action_button.triggered.connect(self.on_click_submit)
         self.draw_something.addAction(some_action_button)
+
     def make_widget_1_loose_from_gui(self):
         action_button = QAction('widget 1 loose', self)
         action_button.setStatusTip('makes widget 1 loose from the gui')
-        action_button.triggered.connect(self.make_widget_loose)
-        self.dock_widget_1.addAction(action_button)
+        action_button.triggered.connect(self.make_widget_1_loose)
+        self.dock_widget_1_file_item.addAction(action_button)
 
-    def make_widget_loose(self):
-        #makes widget 1 loose from the gui
+    def make_widget_1_loose(self):
         self.dock_widget_1.setFloating(True)
+
+    def make_widget_2_loose_from_gui(self):
+        action_button = QAction('widget 2 loose', self)
+        action_button.setStatusTip('makes widget 2 loose from the gui')
+        action_button.triggered.connect(self.make_widget_2_loose)
+        self.dock_widget_2_file_item.addAction(action_button)
+
+    def make_widget_2_loose(self):
+        self.dock_widget_2.setFloating(True)
+
 
     def get_status_open_or_closed(self):
         show_or_hide = QAction('show or hide', self)
@@ -58,7 +68,6 @@ class App(QMainWindow):
         #TODO deze code hieronder werkt niet, dus dat kan nog verbeterd worden.
         show_or_hide.triggered.connect(self.dock_widget_1.toggleViewAction())
         self.toolsMenu.addAction(show_or_hide)
-
     def on_click_submit(self):
         self.ydata = [random.random() for i in range(25)]
         self.xdata = [random.random() for i in range(25)]
@@ -132,38 +141,39 @@ class App(QMainWindow):
         self.vbox_2.addWidget(self.button_obey)
         self.vbox_2.addWidget(self.main_plot)
         self.dock_widget_2_content.setLayout(self.vbox_2)
-
         self.dock_widget_2.setWidget(self.dock_widget_2_content)
+
         self.dock_widget_2.setFloating(False)
         self.dock_widget_2.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
+        self.dock_widget_2.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_widget_2)
-        self.dock_widget_2.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
     def set_all_in_some_layout(self):
         #addWidget (self, QWidget, row, column, rowSpan, columnSpan, Qt.Alignment alignment = 0)
         grid_layout = QGridLayout()
 
         grid_layout.addWidget(self.scroll_area, 0, 0, 1, 1)
+        #todo setting widgets in a way to set other widgets too in the GUI
+        #enable code and the dockable widgets will not move.
+        #grid_layout.addWidget(self.dock_widget_1, 0, 1, 1, 1)
 
-        grid_layout.addWidget(self.dock_widget_1, 0, 1, 1, 1)
-
-        grid_layout.addWidget(self.dock_widget_2, 0, 1, 1, 1)
+        #grid_layout.addWidget(self.dock_widget_2, 0, 1, 1, 1)
 
         self.central_widget = PyQt5.QtWidgets.QWidget()
         self.central_widget.setLayout(grid_layout)
         self.setCentralWidget(self.central_widget)
 
     def initUI(self):
-        self.set_menu_bar()
-        #self.set_exit_button()
-        #self.set_draw_graph()
-        #self.make_widget_1_loose_from_gui()
-        #self.get_status_open_or_closed()
-
         self.set_dock_widget_1()
         self.set_dock_widget_2()
         self.set_scroll_area()
+
+        self.set_menu_bar()
+        self.set_exit_button()
+        self.set_draw_graph()
+        self.make_widget_1_loose_from_gui()
+        #self.get_status_open_or_closed()
 
         self.set_all_in_some_layout()
         self.setWindowTitle(self.title)
