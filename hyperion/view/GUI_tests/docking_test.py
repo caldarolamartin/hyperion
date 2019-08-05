@@ -26,48 +26,28 @@ class App(QMainWindow):
     def set_menu_bar(self):
         mainMenu = self.menuBar()
         self.fileMenu = mainMenu.addMenu('File')
+        self.fileMenu.addAction("Exit NOW", self.close)
         self.dock_widget_1_file_item = mainMenu.addMenu('float dock widget 1')
+        self.dock_widget_1_file_item.addAction("widget 1 loose", self.make_widget_1_loose)
         self.dock_widget_2_file_item = mainMenu.addMenu('dock_widget_2')
+        self.dock_widget_2_file_item.addAction("widget 2 loose", self.make_widget_2_loose)
+
         self.draw_something = mainMenu.addMenu('draw')
+        self.draw_something.addAction("Draw", self.on_click_submit)
+
         self.toolsMenu = mainMenu.addMenu('Tools')
+        self.toolsMenu.addAction("Let widget 1 disappear", self.get_status_open_or_closed)
         self.helpMenu = mainMenu.addMenu('Help')
-
-    def set_exit_button(self):
-        exitButton = QAction('Exit', self)
-        exitButton.setStatusTip('Exit application')
-        exitButton.triggered.connect(self.close)
-        self.fileMenu.addAction(exitButton)
-    def set_draw_graph(self):
-        some_action_button = QAction('drawing', self)
-        some_action_button.setStatusTip('this will draw something')
-        some_action_button.triggered.connect(self.on_click_submit)
-        self.draw_something.addAction(some_action_button)
-
-    def make_widget_1_loose_from_gui(self):
-        action_button = QAction('widget 1 loose', self)
-        action_button.setStatusTip('makes widget 1 loose from the gui')
-        action_button.triggered.connect(self.make_widget_1_loose)
-        self.dock_widget_1_file_item.addAction(action_button)
 
     def make_widget_1_loose(self):
         self.dock_widget_1.setFloating(True)
-
-    def make_widget_2_loose_from_gui(self):
-        action_button = QAction('widget 2 loose', self)
-        action_button.setStatusTip('makes widget 2 loose from the gui')
-        action_button.triggered.connect(self.make_widget_2_loose)
-        self.dock_widget_2_file_item.addAction(action_button)
-
     def make_widget_2_loose(self):
         self.dock_widget_2.setFloating(True)
 
 
     def get_status_open_or_closed(self):
-        show_or_hide = QAction('show or hide', self)
-        show_or_hide.setStatusTip("does it show, or hide?")
-        #TODO deze code hieronder werkt niet, dus dat kan nog verbeterd worden.
-        show_or_hide.triggered.connect(self.dock_widget_1.toggleViewAction())
-        self.toolsMenu.addAction(show_or_hide)
+        self.dock_widget_1.setVisible(not self.dock_widget_1.isVisible())
+
     def on_click_submit(self):
         self.ydata = [random.random() for i in range(25)]
         self.xdata = [random.random() for i in range(25)]
@@ -170,9 +150,6 @@ class App(QMainWindow):
         self.set_scroll_area()
 
         self.set_menu_bar()
-        self.set_exit_button()
-        self.set_draw_graph()
-        self.make_widget_1_loose_from_gui()
         #self.get_status_open_or_closed()
 
         self.set_all_in_some_layout()
