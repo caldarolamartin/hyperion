@@ -24,22 +24,10 @@ class App(QMainWindow):
 
         self.initUI()
     def set_menu_bar(self):
-        """
-         menubar = self.menuBar()
-        file = menubar.addMenu("File")
-        file.addAction("New")
-        file.addAction("Save")
-        file.addAction("Close")
-        """
         mainMenu = self.menuBar()
-        """
-        exitAct = QAction(QIcon('exit.png'), '&Exit', self)        
-        exitAct.triggered.connect(qApp.quit)
-
-        """
         self.fileMenu = mainMenu.addMenu('File')
-        self.dock_widget_1_file_item = mainMenu.addMenu('float dock widget 1')
-        self.dock_widget_2_file_item = mainMenu.addMenu('dock_widget_2')
+        self.dock_widget_1 = mainMenu.addMenu('float dock widget 1')
+        self.dock_widget_2 = mainMenu.addMenu('dock_widget_2')
         self.draw_something = mainMenu.addMenu('draw')
         self.toolsMenu = mainMenu.addMenu('Tools')
         self.helpMenu = mainMenu.addMenu('Help')
@@ -58,7 +46,7 @@ class App(QMainWindow):
         action_button = QAction('widget 1 loose', self)
         action_button.setStatusTip('makes widget 1 loose from the gui')
         action_button.triggered.connect(self.make_widget_loose)
-        self.dock_widget_1_file_item.addAction(action_button)
+        self.dock_widget_1.addAction(action_button)
 
     def make_widget_loose(self):
         #makes widget 1 loose from the gui
@@ -167,15 +155,15 @@ class App(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
     def initUI(self):
-        self.set_dock_widget_1()
-        self.set_dock_widget_2()
-        self.set_scroll_area()
-
         self.set_menu_bar()
         #self.set_exit_button()
         #self.set_draw_graph()
         #self.make_widget_1_loose_from_gui()
         #self.get_status_open_or_closed()
+
+        self.set_dock_widget_1()
+        self.set_dock_widget_2()
+        self.set_scroll_area()
 
         self.set_all_in_some_layout()
         self.setWindowTitle(self.title)
