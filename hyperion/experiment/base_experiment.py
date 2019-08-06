@@ -21,6 +21,7 @@ class BaseExperiment():
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the BaseExperiment class.')
         self.properties = {}
+        self.view_instances = []
         self.instruments= []
         self.instruments_instances = []
         self.filename = ''
@@ -67,8 +68,8 @@ class BaseExperiment():
             di = self.properties['Instruments'][name]
             module_name, class_name = di['instrument'].split('/')
             self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
-            my_class = getattr(importlib.import_module(module_name), class_name)
-            instance = my_class(di)
+            MyClass = getattr(importlib.import_module(module_name), class_name)
+            instance = MyClass(di)
             self.instruments.append(name)
             self.instruments_instances.append(instance)
             return instance
@@ -90,6 +91,27 @@ class BaseExperiment():
         #
         # self.logger.warning('The name "{}" does not exist in the config file'.format(name))
         # return None
+    def load_gui(self, name):
+        """
+        In this method an instance of a gui will be loaded in self.
+        :param name: name of the App/view to load
+        :return: instance, an instance of the App class in the simple_test_gui.py file
+        """
+        self.logger.debug("loading view {}".format(name))
+        #try:
+        di = self.properties['Instruments'][name]
+        module_name, class_name = di['view'].split('/')
+        self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+        MyClass = getattr(importlib.import_module(module_name), class_name)
+        #dit genereert een error en ik snap gewoon niet waarom dat gebeurt.
+        instance = MyClass(di)
+        self.view_instances.append(instance)
+        return instance
+        # except KeyError:
+        #     self.logger.debug("The name {} does not exist in the config file".format(name))
+        # except:
+        #     self.logger.debug("something went wrong with loading the view")
+
 
     # this next two methods should be moved to tools
     def create_filename(self, file_path):

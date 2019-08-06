@@ -32,6 +32,7 @@ class ExampleExperiment(BaseExperiment):
         self.properties = {}
         self.instruments = []
         self.instruments_instances = []
+        self.view_instances = []
 
         # scanning variables
         self.scan = {}
@@ -74,11 +75,27 @@ class ExampleExperiment(BaseExperiment):
         sleep(0.1)
 
     def load_instruments(self):
+        #rewriting this code:
+        for instrument in self.properties['Instruments']:
+            if not instrument == 'VariableWaveplate':
+                instrument_name = instrument
+                self.instrument_name = self.load_instrument(instrument_name)
+                self.logger.debug('Class'+instrument_name+": {}".format(self.instrument_name))
 
-        self.vwp = self.load_instrument('VariableWaveplate')
-        self.logger.debug('Class vwp: {}'.format(self.vwp))
-        self.example_instrument = self.load_instrument('ExampleInstrument')
-        self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+        # self.vwp = self.load_instrument('VariableWaveplate')
+        # self.logger.debug('Class vwp: {}'.format(self.vwp))
+        # self.example_instrument = self.load_instrument('ExampleInstrument')
+        # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+
+    def load_interfaces(self):
+        #method to get an instance of a grafical interface to set in the master gui.
+        for instrument in self.properties['Instruments']:
+            if not instrument == 'VariableWaveplate':
+                #get the right name
+                instrument_name = instrument
+                self.gui_app  = self.load_gui(instrument_name)
+
+
 
 
 if __name__ == '__main__':
@@ -110,9 +127,11 @@ if __name__ == '__main__':
         print(e.instruments)
         print('-------------- DONE LOADING DEVICES ----------------')
         #
+        e.load_interfaces()
+
         # save metadata
-        e.save_scan_metadata()
-        e.vwp.set_analog_value(1,2.25*ur('volt'))
+        #e.save_scan_metadata()
+        #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
 
         # perform scan
         # e.set_scan()

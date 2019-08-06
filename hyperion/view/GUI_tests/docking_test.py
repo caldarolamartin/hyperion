@@ -43,11 +43,8 @@ class App(QMainWindow):
         self.dock_widget_1.setFloating(True)
     def make_widget_2_loose(self):
         self.dock_widget_2.setFloating(True)
-
-
     def get_status_open_or_closed(self):
         self.dock_widget_1.setVisible(not self.dock_widget_1.isVisible())
-
     def on_click_submit(self):
         self.ydata = [random.random() for i in range(25)]
         self.xdata = [random.random() for i in range(25)]
@@ -150,7 +147,6 @@ class App(QMainWindow):
         self.set_scroll_area()
 
         self.set_menu_bar()
-        #self.get_status_open_or_closed()
 
         self.set_all_in_some_layout()
         self.setWindowTitle(self.title)
