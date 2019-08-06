@@ -39,7 +39,7 @@ class App(QMainWindow):
 
         self.toolsMenu = mainMenu.addMenu('Tools')
         self.toolsMenu.addAction("Let widget 1 disappear", self.get_status_open_or_closed)
-        self.toolsMenu.addAction("Make widget", self.create_widget)
+        self.toolsMenu.addAction("Make widget", self.create_single_qdockwidget)
 
         self.helpMenu = mainMenu.addMenu('Help')
 
@@ -49,7 +49,7 @@ class App(QMainWindow):
         self.dock_widget_2.setFloating(True)
     def get_status_open_or_closed(self):
         self.dock_widget_1.setVisible(not self.dock_widget_1.isVisible())
-    def create_widget(self):
+    def create_single_qdockwidget(self):
         #in this method the goal is to create a blank QDockwidget and set in the main_gui
         if self.button_pressed == False:
             self.random_widget = QDockWidget("some_widget",self)
