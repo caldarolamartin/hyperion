@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QLi
     QGraphicsView, QAction, QLineEdit, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout
 from lantz.qt import QtCore
 import pyqtgraph as pg
+from hyperion.view.GUI_tests.simple_test_gui import SimpleGui
 
 class App(QMainWindow):
 
@@ -78,6 +79,7 @@ class App(QMainWindow):
         """
 
         self.dock_widget_1 = QDockWidget("dock_widget_1", self)
+        """
         self.dock_widget_1_content = QWidget()
         self.dock_widget_1_content.setObjectName('de content voor de dock_widget')
 
@@ -97,12 +99,20 @@ class App(QMainWindow):
         self.vbox_1_scroll_area.addWidget(self.listWidget_right)
         self.dock_widget_1_content.setLayout(self.vbox_1_scroll_area)
         self.dock_widget_1.setWidget(self.dock_widget_1_content)
+        """
+        self.get_widget_from_other_file()
+        self.dock_widget_1.setWidget(self.simple_gui)
+
 
         self.dock_widget_1.setFloating(False)
         self.dock_widget_1.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
         self.dock_widget_1.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_1)
+    def get_widget_from_other_file(self):
+        self.simple_gui = SimpleGui()
+        self.simple_gui.initUI()
+
 
     def set_dock_widget_2(self):
         self.dock_widget_2 = QDockWidget("dock_widget_2", self)
@@ -155,5 +165,6 @@ class App(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = App()
+    main_gui = App()
+
     sys.exit(app.exec_())

@@ -16,7 +16,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.GUI_tests.simple_test_gui/App
+    view: hyperion.view.GUI_tests.docking_test/App
     dummy: True
     settings:
       output: True
