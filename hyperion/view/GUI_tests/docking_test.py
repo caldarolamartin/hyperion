@@ -20,6 +20,7 @@ class App(QMainWindow):
         self.top = 40
         self.width = 800
         self.height = 500
+        self.button_pressed = False
 
         self.setWindowTitle("Dock demo")
 
@@ -38,6 +39,8 @@ class App(QMainWindow):
 
         self.toolsMenu = mainMenu.addMenu('Tools')
         self.toolsMenu.addAction("Let widget 1 disappear", self.get_status_open_or_closed)
+        self.toolsMenu.addAction("Make widget", self.create_widget)
+
         self.helpMenu = mainMenu.addMenu('Help')
 
     def make_widget_1_loose(self):
@@ -46,6 +49,20 @@ class App(QMainWindow):
         self.dock_widget_2.setFloating(True)
     def get_status_open_or_closed(self):
         self.dock_widget_1.setVisible(not self.dock_widget_1.isVisible())
+    def create_widget(self):
+        #in this method the goal is to create a blank QDockwidget and set in the main_gui
+        if self.button_pressed == False:
+            self.random_widget = QDockWidget("some_widget",self)
+
+            self.random_widget.setFloating(False)
+
+            self.random_widget.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
+            self.random_widget.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
+
+            self.addDockWidget(Qt.TopDockWidgetArea, self.random_widget)
+
+            self.button_pressed = True
+
     def on_click_submit(self):
         self.ydata = [random.random() for i in range(25)]
         self.xdata = [random.random() for i in range(25)]
