@@ -103,7 +103,6 @@ class BaseExperiment():
         module_name, class_name = di['view'].split('/')
         self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
         MyClass = getattr(importlib.import_module(module_name), class_name)
-        #dit genereert een error en ik snap gewoon niet waarom dat gebeurt.
         instance = MyClass(di)
         self.view_instances.append(instance)
         return instance
