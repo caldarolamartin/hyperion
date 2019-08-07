@@ -117,7 +117,6 @@ if __name__ == '__main__':
         print(e.instruments_instances.keys())
         print('-------------- DONE LOADING DEVICES ----------------')
         #
-        e.load_interfaces()
 
         # save metadata
         #e.save_scan_metadata()

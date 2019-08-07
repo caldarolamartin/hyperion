@@ -11,8 +11,9 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QLi
     QGraphicsView, QAction, QLineEdit, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout
 from lantz.qt import QtCore
 import pyqtgraph as pg
-from hyperion.view.GUI_tests.simple_test_gui import SimpleGui
+from hyperion.view.GUI_tests.example_gui import ExampleGui
 from examples.example_experiment import ExampleExperiment
+
 #todo setting widgets in a way to set other widgets too in the GUI in the layout function.
 #TODO the load_interfaces method does not work as intended. So, it should be fixed
 
@@ -135,9 +136,10 @@ class App(QMainWindow):
     def get_widget_from_other_file(self):
         # self.simple_gui = SimpleGui()
         # self.simple_gui.initUI()
-        name = 'example_experiment_config'
-        config_folder = os.path.dirname(os.path.abspath(__file__))
-        config_file = os.path.join(config_folder, name)
+
+        # name = 'example_experiment_config'
+        # config_folder = os.path.dirname(os.path.abspath(__file__))
+        # config_file = os.path.join(config_folder, name)
 
 
         self.experiment.load_config('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml')
@@ -187,6 +189,7 @@ class App(QMainWindow):
                 #get the right name
                 instrument_name = instrument
                 self.gui_app  = self.load_gui(instrument_name)
+
     def load_gui(self, name):
         """ Loads gui's
 
@@ -197,13 +200,28 @@ class App(QMainWindow):
             dictionairy = self.experiment.properties['Instruments'][name]
             module_name, class_name = dictionairy['view'].split('/')
             MyClass = getattr(importlib.import_module(module_name), class_name)
-            instance = MyClass(dictionairy)
+            instr = ((dictionairy['instrument']).split('/')[1])
+            instance = MyClass(self.experiment.instruments_instances[instr])
             self.experiment.view_instances[name] = instance
         except KeyError:
             print("the key(aka, your instrument) does not exist in properties, meaning that it is not in the .yml file.")
             return None
 
+    def test_code(self):
+        instrumenten = ["trompet", "piano", "gitaar"]
+        self.ins_bag = {}
+        opteller = 0
+        for instrument in instrumenten:
+            self.ins_bag[instrument] = opteller
+            #self.instrument_naam = instrument
+            print(self.ins_bag.items())
+            print("-"*40)
+            opteller +=1
+
+        print(self.ins_bag.items())
+
     def initUI(self):
+        #self.test_code()
         self.set_dock_widget_1()
         self.set_dock_widget_2()
         self.set_scroll_area()
