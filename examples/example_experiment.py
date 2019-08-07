@@ -30,8 +30,7 @@ class ExampleExperiment(BaseExperiment):
 
         self.devices = {}
         self.properties = {}
-        self.instruments = []
-        self.instruments_instances = []
+        self.instruments_instances = {}
         self.view_instances = []
 
         # scanning variables
@@ -88,6 +87,7 @@ class ExampleExperiment(BaseExperiment):
         # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
 
     def load_interfaces(self):
+        #TODO this method does not work yet. So, it should be fixed
         #method to get an instance of a grafical interface to set in the master gui.
         for instrument in self.properties['Instruments']:
             if not instrument == 'VariableWaveplate':
@@ -124,10 +124,10 @@ if __name__ == '__main__':
         # # Initialize devices
         print('\n-------------- LOADING DEVICES ----------------\n')
         e.load_instruments()
-        print(e.instruments)
+        print(e.instruments_instances.keys())
         print('-------------- DONE LOADING DEVICES ----------------')
         #
-        e.load_interfaces()
+        #e.load_interfaces()
 
         # save metadata
         #e.save_scan_metadata()

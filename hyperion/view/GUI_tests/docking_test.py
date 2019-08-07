@@ -1,3 +1,4 @@
+import importlib
 import random
 
 import PyQt5
@@ -10,10 +11,11 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QLi
 from lantz.qt import QtCore
 import pyqtgraph as pg
 from hyperion.view.GUI_tests.simple_test_gui import SimpleGui
+from examples.example_experiment import ExampleExperiment
 
 class App(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, experiment):
         super().__init__()
         self.title = 'PyQt5 simple window'
         self.left = 40
@@ -21,6 +23,7 @@ class App(QMainWindow):
         self.width = 800
         self.height = 500
         self.button_pressed = False
+        self.experiment = experiment
 
         self.setWindowTitle("Dock demo")
 
@@ -168,6 +171,27 @@ class App(QMainWindow):
         self.central_widget.setLayout(grid_layout)
         self.setCentralWidget(self.central_widget)
 
+    def load_interfaces(self, name):
+        """ Loads instrument
+
+        :param name: name of the instrument to load. It has to be specified in the config file under Instruments
+        :type name: string
+        """
+        self.logger.debug('Loading instrument: {}'.format(name))
+
+        try:
+            di = self.properties['Instruments'][name]
+            module_name, class_name = di['view'].split('/')
+            self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+            MyClass = getattr(importlib.import_module(module_name), class_name)
+            instance = MyClass(di)
+            self.instruments.append(name)
+            self.instruments_instances.append(instance)
+            return instance
+        except KeyError:
+            self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+            return None
+
     def initUI(self):
         self.set_dock_widget_1()
         self.set_dock_widget_2()
@@ -181,7 +205,10 @@ class App(QMainWindow):
         self.show()
 
 if __name__ == '__main__':
+    experiment = ExampleExperiment()
+
     app = QApplication(sys.argv)
-    main_gui = App()
+
+    main_gui = App(experiment)
 
     sys.exit(app.exec_())

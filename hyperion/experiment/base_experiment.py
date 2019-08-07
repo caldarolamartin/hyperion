@@ -24,8 +24,7 @@ class BaseExperiment():
         self.logger.info('Initializing the BaseExperiment class.')
         self.properties = {}
         self.view_instances = []
-        self.instruments= []
-        self.instruments_instances = []
+        self.instruments_instances = {}
         self.filename = ''
 
     def __enter__(self):
@@ -55,7 +54,7 @@ class BaseExperiment():
     def finalize(self):
         """ Finalizing the experiment class """
         self.logger.info('Finalizing the experiment base class')
-        for inst in self.instruments_instances:
+        for inst in self.instruments_instances.values():
             inst.finalize()
 
     def load_instrument(self, name):
@@ -63,6 +62,7 @@ class BaseExperiment():
 
         :param name: name of the instrument to load. It has to be specified in the config file under Instruments
         :type name: string
+        :return: instance of instrument class and adds this instrument object to a dictionary.
         """
         self.logger.debug('Loading instrument: {}'.format(name))
 
@@ -72,8 +72,8 @@ class BaseExperiment():
             self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
             MyClass = getattr(importlib.import_module(module_name), class_name)
             instance = MyClass(di)
-            self.instruments.append(name)
-            self.instruments_instances.append(instance)
+            #self.instruments.append(name)
+            self.instruments_instances[name] = instance
             return instance
         except KeyError:
             self.logger.warning('The name "{}" does not exist in the config file'.format(name))
@@ -93,7 +93,6 @@ class BaseExperiment():
         #
         # self.logger.warning('The name "{}" does not exist in the config file'.format(name))
         # return None
-
     # this next two methods should be moved to tools
     def create_filename(self, file_path):
         """ creates the filename property in the class, so all the methods point to the same folder
