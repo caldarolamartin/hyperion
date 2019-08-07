@@ -61,7 +61,7 @@ class App(QDockWidget):
         # a constructor to set the properties of  the GUI in
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-        self.statusBar().showMessage("Just some text")
+        #self.statusBar().showMessage("Just some text")
 
     def set_recommended_sample_points_button(self):
         # calculate the recommended sample_points

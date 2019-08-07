@@ -20,6 +20,13 @@ Instruments:
     dummy: True
     settings:
       output: True
+  OsaInstrument:
+    port: AUTO
+    instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
+    controller: hyperion.controller.osa.osa_controller/OsaController
+    view: hyperion.view.osa.osa_view/App
+    dummy: False
+
 Data:
   save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
   data_type: txt

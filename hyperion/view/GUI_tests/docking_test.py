@@ -15,7 +15,6 @@ from hyperion.view.GUI_tests.example_gui import ExampleGui
 from examples.example_experiment import ExampleExperiment
 
 #todo setting widgets in a way to set other widgets too in the GUI in the layout function.
-#TODO the load_interfaces method does not work as intended. So, it should be fixed
 
 class App(QMainWindow):
 
@@ -124,7 +123,7 @@ class App(QMainWindow):
         self.dock_widget_1_content.setLayout(self.vbox_1_scroll_area)
         self.dock_widget_1.setWidget(self.dock_widget_1_content)
         """
-        self.get_widget_from_other_file()
+        self.get_view_instances()
         self.dock_widget_1.setWidget(self.experiment.view_instances["ExampleInstrument"])
 
 
@@ -133,14 +132,20 @@ class App(QMainWindow):
         self.dock_widget_1.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_1)
-    def get_widget_from_other_file(self):
-        # self.simple_gui = SimpleGui()
-        # self.simple_gui.initUI()
+    def set_osa_dock_widget(self):
+        self.osa_dock_widget = QDockWidget("osa dock widget", self)
 
+        self.osa_dock_widget.setWidget(self.experiment.view_instances["OsaInstrument"])
+
+        self.osa_dock_widget.setFloating(False)
+        self.osa_dock_widget.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
+        self.osa_dock_widget.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
+
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.osa_dock_widget)
+    def get_view_instances(self):
         # name = 'example_experiment_config'
         # config_folder = os.path.dirname(os.path.abspath(__file__))
         # config_file = os.path.join(config_folder, name)
-
 
         self.experiment.load_config('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml')
         self.experiment.load_instruments()
@@ -182,20 +187,6 @@ class App(QMainWindow):
         self.central_widget.setLayout(grid_layout)
         self.setCentralWidget(self.central_widget)
 
-    def test_code(self):
-        pass
-        # instrumenten = ["trompet", "piano", "gitaar"]
-        # self.ins_bag = {}
-        # opteller = 0
-        # for instrument in instrumenten:
-        #     self.ins_bag[instrument] = opteller
-        #     #self.instrument_naam = instrument
-        #     print(self.ins_bag.items())
-        #     print("-"*40)
-        #     opteller +=1
-        #
-        # print(self.ins_bag.items())
-
     def load_interfaces(self):
         #method to get an instance of a grafical interface to set in the master gui.
         self.ins_bag = {}
@@ -204,7 +195,6 @@ class App(QMainWindow):
             if not instrument == 'VariableWaveplate':
                 #get the right name
                 self.ins_bag[instrument] = self.load_gui(instrument)
-
     def load_gui(self, name):
         """ Loads gui's
 
@@ -225,6 +215,7 @@ class App(QMainWindow):
     def initUI(self):
         self.set_dock_widget_1()
         self.set_dock_widget_2()
+        self.set_osa_dock_widget()
         self.set_scroll_area()
 
         self.set_menu_bar()
