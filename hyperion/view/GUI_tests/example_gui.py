@@ -3,6 +3,8 @@ import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
+
+
 from hyperion.instrument.example_instrument import ExampleInstrument
 
 class ExampleGui(QWidget):
@@ -25,16 +27,14 @@ class ExampleGui(QWidget):
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.red)
         self.setPalette(p)
-
         button = QPushButton('PyQt5 button', self)
         button.setToolTip('This is an example button')
         button.move(100, 70)
         button.clicked.connect(self.on_click)
-        self.show()
 
+        self.show()
     def on_click(self):
         print('PyQt5 button click')
-
 
 if __name__ == '__main__':
     example_ins = ExampleInstrument()

@@ -1,14 +1,10 @@
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, \
-    QSizePolicy, QDockWidget
+    QSizePolicy, QDockWidget, QGridLayout
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
-
-
 
 import logging
 import sys
-import time
-import random
 
 from hyperion.instrument.osa.osa_instrument import OsaInstrument
 from hyperion import ur, Q_
@@ -38,14 +34,16 @@ class App(QDockWidget):
         self.height = 350       #how many pixels in height the GUI is
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class App created')
-        self.initUI()
+        self.layout = QGridLayout()
+        self.setLayout(self.layout)
         self.instr = instr
+        self.initUI()
 
     def initUI(self):
         self.set_gui_constructor()
 
         self.set_textboxs()
-        #self.set_textboxs_to_osa_machine_values()
+        # self.set_textboxs_to_osa_machine_values()
 
         self.set_labels()
 
@@ -53,10 +51,11 @@ class App(QDockWidget):
 
         self.set_recommended_sample_points_button()
 
-        self.m = PlotCanvas(self, width=4, height=3)
-        self.m.move(310, 15)
+        # self.m = PlotCanvas(self, width=4, height=3)
+        # self.layout.addWidget(self.m,0,1)
 
-        #self.show()
+        self.show()
+
     def set_gui_constructor(self):
         # a constructor to set the properties of  the GUI in
         self.setWindowTitle(self.title)
@@ -68,18 +67,14 @@ class App(QDockWidget):
         button_calculate_recommended_sample_points = QPushButton('get recommended sample_points', self)
         button_calculate_recommended_sample_points.setToolTip(
             "click this button to \n get the recommended sample_points")
-        # button.move() sets the button on the given position you specify.
-        button_calculate_recommended_sample_points.move(100, 200)
-        button_calculate_recommended_sample_points.clicked.connect(self.on_click_recommended)
+        self.layout.addWidget(button_calculate_recommended_sample_points, 11, 0)
+        # button_calculate_recommended_sample_points.clicked.connect(self.on_click_recommended)
     def set_submit_button(self):
         # submit button code
         self.button_submit = QPushButton('submit', self)
         self.button_submit.setToolTip('You are hovering over the button, \n what do you expect?')
-        # button.move() sets the button on the given position you specify.
-        self.button_submit.move(200, 200)
-        #self.some_signal.connect(self.on_click_submit)
-        #self.some_signal.emit()
-        self.button_submit.clicked.connect(self.on_click_submit)
+        self.layout.addWidget(self.button_submit, 12, 0)
+        # self.button_submit.clicked.connect(self.on_click_submit)
 
     def set_labels(self):
         self.set_start_wav_label()
@@ -88,35 +83,20 @@ class App(QDockWidget):
         self.set_sample_points_label()
         self.set_sensitivity_label()
     def set_sensitivity_label(self):
-        #set the sensitivity label
-        self.label_sensitivity = QLabel(self)
-        self.label_sensitivity.move(20, 130)
-        self.label_sensitivity.setText("the sensitivity")
-        self.label_sensitivity.adjustSize()
+        # set the sensitivity label
+        self.layout.addWidget(QLabel("the sensitivity"), 8, 0)
     def set_sample_points_label(self):
         # the sample points label
-        self.label_sample_points = QLabel(self)
-        self.label_sample_points.move(20, 100)
-        self.label_sample_points.setText("the amount of sample points")
-        self.label_sample_points.adjustSize()
+        self.layout.addWidget(QLabel("the amount of sample points"), 6, 0)
     def set_optical_resolution_label(self):
         # the optical resolution label
-        self.label_optical_resolution = QLabel(self)
-        self.label_optical_resolution.move(20, 70)
-        self.label_optical_resolution.setText("the optical resolution in stepvalue of nm")
-        self.label_optical_resolution.adjustSize()
+        self.layout.addWidget(QLabel("the optical resolution in stepvalue of nm"), 4, 0)
     def set_end_wav_label(self):
         # the end_wav label
-        self.label_end_wav = QLabel(self)
-        self.label_end_wav.move(20, 40)
-        self.label_end_wav.setText("the end wavelength, from 600.00 nm to 1750.00 nm")
-        self.label_end_wav.adjustSize()
+        self.layout.addWidget(QLabel("the end wavelength, from 600.00 nm to 1750.00 nm"), 2, 0)
     def set_start_wav_label(self):
         # the start_wav label
-        self.label_start_wav = QLabel(self)
-        self.label_start_wav.move(20, 10)
-        self.label_start_wav.setText("the start wavelength, from 600.00 nm to 1750.00 nm")
-        self.label_start_wav.adjustSize()
+        self.layout.addWidget(QLabel("the start wavelength, from 600.00 nm to 1750.00 nm"), 0, 0)
 
     def set_textboxs(self):
         self.set_start_wav_textbox()
@@ -125,32 +105,29 @@ class App(QDockWidget):
         self.set_sample_points_textbox()
         self.set_sensitivity_dropdown()
     def set_sensitivity_dropdown(self):
-        #this is the sensitivity_dropdown
+        # this is the sensitivity_dropdown
         self.dropdown_sensitivity = QComboBox(self)
-        self.dropdown_sensitivity.addItems(["sensitivity normal range","sensitivity normal range automatic","sensitivity medium range","sensitivity high 1 range","sensitivity high 2 range","sensitivity high 3 range"])
-        self.dropdown_sensitivity.move(20, 142)
-        self.dropdown_sensitivity.resize(175, 20)
+        self.dropdown_sensitivity.addItems(
+            ["sensitivity normal range", "sensitivity normal range automatic", "sensitivity medium range",
+             "sensitivity high 1 range", "sensitivity high 2 range", "sensitivity high 3 range"])
+        self.layout.addWidget(self.dropdown_sensitivity, 9, 0)
     def set_sample_points_textbox(self):
         # this is the sample_points_textbox
         self.textbox_sample_points = QLineEdit(self)
-        self.textbox_sample_points.move(20, 112)
-        self.textbox_sample_points.resize(50, 20)
+        self.layout.addWidget(self.textbox_sample_points, 7, 0)
     def set_optical_resolution_textbox(self):
         # this is the optical_resolution_dropdown
         self.dropdown_optical_resolution = QComboBox(self)
-        self.dropdown_optical_resolution.addItems(["0.01","0.02","0.05","0.1","0.2","0.5","1.0","2.0","5.0"])
-        self.dropdown_optical_resolution.move(20, 82)
-        self.dropdown_optical_resolution.resize(75, 20)
+        self.dropdown_optical_resolution.addItems(["0.01", "0.02", "0.05", "0.1", "0.2", "0.5", "1.0", "2.0", "5.0"])
+        self.layout.addWidget(self.dropdown_optical_resolution, 5, 0)
     def set_end_wav_text_box(self):
         # this is the end_wav_textbox
         self.textbox_end_wav = QLineEdit(self)
-        self.textbox_end_wav.move(20, 52)
-        self.textbox_end_wav.resize(60, 20)
+        self.layout.addWidget(self.textbox_end_wav, 3, 0)
     def set_start_wav_textbox(self):
         # this is the start_wav_textbox
         self.textbox_start_wav = QLineEdit(self)
-        self.textbox_start_wav.move(20, 22)
-        self.textbox_start_wav.resize(60, 20)
+        self.layout.addWidget(self.textbox_start_wav, 1, 0)
 
     def get_chosen_optical_resolution(self):
         return self.dropdown_optical_resolution.currentText()
@@ -359,10 +336,3 @@ if __name__ == '__main__':
 
         instr.finalize()
         sys.exit(app.exec_())
-
-""""
-app = QApplication([])
-    win = MainWindow(exp)
-    win.show()
-    app.exit(app.exec_())
-"""

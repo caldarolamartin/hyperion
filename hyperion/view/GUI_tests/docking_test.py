@@ -123,7 +123,6 @@ class App(QMainWindow):
         self.dock_widget_1_content.setLayout(self.vbox_1_scroll_area)
         self.dock_widget_1.setWidget(self.dock_widget_1_content)
         """
-        self.get_view_instances()
         self.dock_widget_1.setWidget(self.experiment.view_instances["ExampleInstrument"])
 
 
@@ -142,7 +141,7 @@ class App(QMainWindow):
         self.osa_dock_widget.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.addDockWidget(Qt.LeftDockWidgetArea, self.osa_dock_widget)
-    def get_view_instances(self):
+    def get_view_instances_and_load_instruments(self):
         # name = 'example_experiment_config'
         # config_folder = os.path.dirname(os.path.abspath(__file__))
         # config_file = os.path.join(config_folder, name)
@@ -205,7 +204,10 @@ class App(QMainWindow):
             dictionairy = self.experiment.properties['Instruments'][name]
             module_name, class_name = dictionairy['view'].split('/')
             MyClass = getattr(importlib.import_module(module_name), class_name)
+            #instr is variable that will be the instrument name of a device. For example: OsaInstrument.
             instr = ((dictionairy['instrument']).split('/')[1])
+            #self.experiment.instruments_instances[instr] = the name of the instrument for a device. This is necessary
+            #to communicate between instrument and view. Instance is still an instance of for example OsaView.
             instance = MyClass(self.experiment.instruments_instances[instr])
             self.experiment.view_instances[name] = instance
         except KeyError:
@@ -213,6 +215,8 @@ class App(QMainWindow):
             return None
 
     def initUI(self):
+        self.get_view_instances_and_load_instruments()
+
         self.set_dock_widget_1()
         self.set_dock_widget_2()
         self.set_osa_dock_widget()
