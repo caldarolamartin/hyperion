@@ -23,7 +23,7 @@ class BaseExperiment():
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the BaseExperiment class.')
         self.properties = {}
-        self.view_instances = []
+        self.view_instances = {}
         self.instruments_instances = {}
         self.filename = ''
 

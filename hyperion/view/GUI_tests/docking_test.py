@@ -1,4 +1,5 @@
 import importlib
+import os
 import random
 
 import PyQt5
@@ -12,6 +13,8 @@ from lantz.qt import QtCore
 import pyqtgraph as pg
 from hyperion.view.GUI_tests.simple_test_gui import SimpleGui
 from examples.example_experiment import ExampleExperiment
+#todo setting widgets in a way to set other widgets too in the GUI in the layout function.
+#TODO the load_interfaces method does not work as intended. So, it should be fixed
 
 class App(QMainWindow):
 
@@ -121,7 +124,7 @@ class App(QMainWindow):
         self.dock_widget_1.setWidget(self.dock_widget_1_content)
         """
         self.get_widget_from_other_file()
-        self.dock_widget_1.setWidget(self.simple_gui)
+        self.dock_widget_1.setWidget(self.experiment.view_instances["ExampleInstrument"])
 
 
         self.dock_widget_1.setFloating(False)
@@ -130,9 +133,16 @@ class App(QMainWindow):
 
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_1)
     def get_widget_from_other_file(self):
-        self.simple_gui = SimpleGui()
-        self.simple_gui.initUI()
+        # self.simple_gui = SimpleGui()
+        # self.simple_gui.initUI()
+        name = 'example_experiment_config'
+        config_folder = os.path.dirname(os.path.abspath(__file__))
+        config_file = os.path.join(config_folder, name)
 
+
+        self.experiment.load_config('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml')
+        self.experiment.load_instruments()
+        self.load_interfaces()
 
     def set_dock_widget_2(self):
         self.dock_widget_2 = QDockWidget("dock_widget_2", self)
@@ -161,7 +171,6 @@ class App(QMainWindow):
         grid_layout = QGridLayout()
 
         grid_layout.addWidget(self.scroll_area, 0, 0, 1, 1)
-        #todo setting widgets in a way to set other widgets too in the GUI
         #enable code and the dockable widgets will not move.
         #grid_layout.addWidget(self.dock_widget_1, 0, 1, 1, 1)
 
@@ -171,25 +180,27 @@ class App(QMainWindow):
         self.central_widget.setLayout(grid_layout)
         self.setCentralWidget(self.central_widget)
 
-    def load_interfaces(self, name):
-        """ Loads instrument
+    def load_interfaces(self):
+        #method to get an instance of a grafical interface to set in the master gui.
+        for instrument in self.experiment.properties['Instruments']:
+            if not instrument == 'VariableWaveplate':
+                #get the right name
+                instrument_name = instrument
+                self.gui_app  = self.load_gui(instrument_name)
+    def load_gui(self, name):
+        """ Loads gui's
 
         :param name: name of the instrument to load. It has to be specified in the config file under Instruments
         :type name: string
         """
-        self.logger.debug('Loading instrument: {}'.format(name))
-
         try:
-            di = self.properties['Instruments'][name]
-            module_name, class_name = di['view'].split('/')
-            self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+            dictionairy = self.experiment.properties['Instruments'][name]
+            module_name, class_name = dictionairy['view'].split('/')
             MyClass = getattr(importlib.import_module(module_name), class_name)
-            instance = MyClass(di)
-            self.instruments.append(name)
-            self.instruments_instances.append(instance)
-            return instance
+            instance = MyClass(dictionairy)
+            self.experiment.view_instances[name] = instance
         except KeyError:
-            self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+            print("the key(aka, your instrument) does not exist in properties, meaning that it is not in the .yml file.")
             return None
 
     def initUI(self):
