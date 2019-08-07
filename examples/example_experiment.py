@@ -74,12 +74,12 @@ class ExampleExperiment(BaseExperiment):
         sleep(0.1)
 
     def load_instruments(self):
-        #rewriting this code:
+        self.ins_bag = {}
+
         for instrument in self.properties['Instruments']:
             if not instrument == 'VariableWaveplate':
-                instrument_name = instrument
-                self.instrument_name = self.load_instrument(instrument_name)
-                self.logger.debug('Class'+instrument_name+": {}".format(self.instrument_name))
+                self.ins_bag[instrument] = self.load_instrument(instrument)
+                self.logger.debug('Class'+instrument+": {}".format(self.ins_bag[instrument]))
 
         # self.vwp = self.load_instrument('VariableWaveplate')
         # self.logger.debug('Class vwp: {}'.format(self.vwp))

@@ -182,13 +182,28 @@ class App(QMainWindow):
         self.central_widget.setLayout(grid_layout)
         self.setCentralWidget(self.central_widget)
 
+    def test_code(self):
+        pass
+        # instrumenten = ["trompet", "piano", "gitaar"]
+        # self.ins_bag = {}
+        # opteller = 0
+        # for instrument in instrumenten:
+        #     self.ins_bag[instrument] = opteller
+        #     #self.instrument_naam = instrument
+        #     print(self.ins_bag.items())
+        #     print("-"*40)
+        #     opteller +=1
+        #
+        # print(self.ins_bag.items())
+
     def load_interfaces(self):
         #method to get an instance of a grafical interface to set in the master gui.
+        self.ins_bag = {}
+
         for instrument in self.experiment.properties['Instruments']:
             if not instrument == 'VariableWaveplate':
                 #get the right name
-                instrument_name = instrument
-                self.gui_app  = self.load_gui(instrument_name)
+                self.ins_bag[instrument] = self.load_gui(instrument)
 
     def load_gui(self, name):
         """ Loads gui's
@@ -204,24 +219,10 @@ class App(QMainWindow):
             instance = MyClass(self.experiment.instruments_instances[instr])
             self.experiment.view_instances[name] = instance
         except KeyError:
-            print("the key(aka, your instrument) does not exist in properties, meaning that it is not in the .yml file.")
+            print("the key(aka, your view/gui) does not exist in properties,\n meaning that it is not in the .yml file.")
             return None
 
-    def test_code(self):
-        instrumenten = ["trompet", "piano", "gitaar"]
-        self.ins_bag = {}
-        opteller = 0
-        for instrument in instrumenten:
-            self.ins_bag[instrument] = opteller
-            #self.instrument_naam = instrument
-            print(self.ins_bag.items())
-            print("-"*40)
-            opteller +=1
-
-        print(self.ins_bag.items())
-
     def initUI(self):
-        #self.test_code()
         self.set_dock_widget_1()
         self.set_dock_widget_2()
         self.set_scroll_area()
