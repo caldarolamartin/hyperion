@@ -1,7 +1,5 @@
-from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, \
     QSizePolicy, QDockWidget, QGridLayout
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 import logging
 import sys
@@ -21,9 +19,7 @@ What goes wrong is that at some point after the gui is initialized the connectio
 An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. 
 Never shot is always mis
 """
-class App(QDockWidget):
-
-    some_signal = pyqtSignal()
+class App(QWidget):
 
     def __init__(self, instr):
         super().__init__()
@@ -51,8 +47,8 @@ class App(QDockWidget):
 
         self.set_recommended_sample_points_button()
 
-        # self.m = PlotCanvas(self, width=4, height=3)
-        # self.layout.addWidget(self.m,0,1)
+        self.m = PlotCanvas(self, width=4, height=3)
+        self.layout.addWidget(self.m,0,1)
 
         self.show()
 
@@ -265,12 +261,6 @@ class App(QDockWidget):
         print("starting")
         self.worker_thread.start()
         #self.worker_thread.quit()
-        """
-        while self.worker_thread.is_running:
-            time.sleep(2)
-            print('waiting after sweep')
-        print("proces finished")
-        """
 
     def plot_data(self):
         wav = self.instr.wav
