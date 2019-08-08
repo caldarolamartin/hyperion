@@ -80,7 +80,6 @@ class Window(QMainWindow):
             self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
 
     def dock2_menu(self):
-        #self.dock2.toggleViewAction()
         self.dock2.setVisible(not self.dock2.isVisible())
 
     def randomString(selfself, N):

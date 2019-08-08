@@ -12,8 +12,6 @@ import logging
 import yaml
 import importlib
 
-from PyQt5.QtWidgets import QWidget
-
 
 class BaseExperiment():
     """ Example class with basic functions """

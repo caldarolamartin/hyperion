@@ -74,6 +74,11 @@ class ExampleExperiment(BaseExperiment):
         sleep(0.1)
 
     def load_instruments(self):
+        """"
+        This method gets the instance of every instrument and sets this instance
+        in the self.ins_bag. This way they are approachable via self.
+        The option to set the instruments by hand is still possible. 
+        """
         self.ins_bag = {}
 
         for instrument in self.properties['Instruments']:
