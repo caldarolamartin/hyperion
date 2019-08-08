@@ -91,13 +91,13 @@ class Window(QMainWindow):
             name = self.randomString(7)
         dock = QDockWidget(name, self)
         dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.collapsed = False
+        dock.collapsed_height = 22
+        dock.uncollapsed_height = 200
         string_list = [self.randomString(5) for n in range(5)]
         listwidget = QListWidget(dock)
         listwidget.addItems(string_list)
         dock.setWidget(listwidget)
-        dock.collapsed = False
-        dock.collapsed_height = 22
-        dock.uncollapsed_height = 200
         def toggle_visibility():
             dock.setVisible(not dock.isVisible())
         def toggle_collapsed():

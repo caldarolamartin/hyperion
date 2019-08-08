@@ -29,6 +29,10 @@ class App(QMainWindow):
         self.initUI()
 
     def set_gui_specifics(self):
+        """"
+        In this function the specifics of the gui are set.
+        Such as the Geometry and the ability to have more docking options.
+        """
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
@@ -43,11 +47,16 @@ class App(QMainWindow):
         self.setCentralWidget(self.central)
 
     def set_menu_bar(self):
+        """"
+        In this method the menubar of the gui is created and filled with
+        menu's and menu's are filled with actions. The actions of edgeDockMenu and centralDockMenu
+        are filled in randomDockWindow method.
+        """
         mainMenu = self.menuBar()
         self.fileMenu = mainMenu.addMenu('File')
         self.fileMenu.addAction("Exit NOW", self.close)
-        self.edgeDockMenu = mainMenu.addMenu('Edge Dock windows')
-        self.centralDockMenu = mainMenu.addMenu('Central Dock Windows')
+        self.edge_dock_menu = mainMenu.addMenu('Edge Dock windows')
+        self.central_dock_menu = mainMenu.addMenu('Central Dock Windows')
 
         self.draw_something = mainMenu.addMenu('draw')
         self.draw_something.addAction("Draw", self.draw_random_graph)
@@ -58,11 +67,18 @@ class App(QMainWindow):
 
         self.helpMenu = mainMenu.addMenu('Help')
 
-
     def get_status_open_or_closed(self):
+        """"
+        An example of how to make a widget visible and not visible.
+        Can be automated as menuaction in RandomDockWidget, with additional code(ofcourse).
+        """
         self.dock_widget_dict["dock_1_ariel"].setVisible(not self.dock_widget_dict["dock_1_ariel"].isVisible())
     def create_single_qdockwidget(self):
-        #in this method the goal is to create a blank QDockwidget and set in the main_gui
+        """"
+        In this method the goal is to create a blank QDockwidget and set this widget in the main_gui.
+        It must be done only once because else errors will be created.
+        This is example code of how to do this.
+        """
         if self.button_pressed == False:
             self.random_widget = QDockWidget("some_widget",self)
 
@@ -76,11 +92,20 @@ class App(QMainWindow):
             self.button_pressed = True
 
     def draw_random_graph(self):
+        """"
+        Simple code to make a literal random graph using pyqt5 stuff.
+        """
         self.ydata = [random.random() for i in range(25)]
         self.xdata = [random.random() for i in range(25)]
         self.random_plot.plot(self.xdata, self.ydata, clear=True)
 
     def make_automatic_dock_widgets(self):
+        """"
+        In this method there will be made automatically QDockWidgets using the lijst_met_dock_widget.
+        The widget's are saved in the self.dock_widget_dict, through this way the widgets are approachable via self.
+        Each QDockWidget will be given it's specifics in the make_dock_widgets left and right + central left and right.
+        The rest of the things will be filled in at the RandomDockWidget method.
+        """
         lijst_met_dock_widget = ["dock_1_ariel", "dock_2_ariel", "dock_3_ariel", "dock_4_ariel", "dock_5_ariel", "dock_6_ariel",
                                  "central_dock_1_ariel", "central_dock_2_ariel", "central_dock_3_ariel", "central_dock_4_ariel"]
         self.dock_widget_dict = {}
@@ -96,7 +121,7 @@ class App(QMainWindow):
                 self.make_central_left_dock_widgets(dock_widget, opteller)
             opteller += 1
     def make_left_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edgeDockMenu, dock_widget)
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edge_dock_menu, dock_widget)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
         if opteller == 0:
             self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
@@ -104,7 +129,7 @@ class App(QMainWindow):
             self.dock_widget_dict[dock_widget].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetClosable)
     def make_right_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edgeDockMenu, dock_widget)
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edge_dock_menu, dock_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
         if opteller == 3:
             self.dock_widget_dict[dock_widget].setFeatures(
@@ -113,12 +138,12 @@ class App(QMainWindow):
             self.dock_widget_dict[dock_widget].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetFloatable)
     def make_central_right_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.centralDockMenu, dock_widget)
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.central_dock_menu, dock_widget)
         self.central.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
         if opteller == 6:
             self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
     def make_central_left_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.centralDockMenu, dock_widget)
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.central_dock_menu, dock_widget)
         self.central.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
         if opteller == 8:
             self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
@@ -126,6 +151,11 @@ class App(QMainWindow):
     def randomString(self, N):
         return ''.join([random.choice(string.ascii_lowercase) for n in range(N)])
     def randomDockWindow(self, menu, name=None):
+        """"
+        In this method the widget will be made a QDockWidget.
+        There are some nested functions in this method with which
+        the action to toggle the widget will be available in the given menu.
+        """
         dock, name = self.setting_standard_dock_settings(name)
 
         self.setting_dock_content(dock, name)
@@ -145,6 +175,10 @@ class App(QMainWindow):
         menu.addAction(name, toggle_collapsed)
         return dock
     def setting_dock_content(self, dock, name):
+        """"
+        Setting some widgets with gui's from different files and
+        setting the 'normal' gui's with some content so that they are not empty.
+        """
         if name == "dock_1_ariel":
             dock.setWidget(self.experiment.view_instances["ExampleInstrument"])
         elif name == "dock_2_ariel":
@@ -162,6 +196,9 @@ class App(QMainWindow):
             listwidget.addItems(string_list)
             dock.setWidget(listwidget)
     def setting_standard_dock_settings(self, name):
+        """"
+        Setting standard functionality of a QDockWidget.
+        """
         if name == None:
             name = self.randomString(7)
         dock = QDockWidget(name, self)
@@ -227,6 +264,12 @@ class App(QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_widget_2)
 
     def get_view_instances_and_load_instruments(self):
+        """"
+        In this function with functions found in the ExampleExperiment class
+        Instruments and interfaces will be loaded via the .yml file.
+        The .yml file should be in the same folder as this python file in order to not hardcode the
+        path to the .yml file.
+        """
         # name = 'example_experiment_config'
         # config_folder = os.path.dirname(os.path.abspath(__file__))
         # config_file = os.path.join(config_folder, name)
@@ -235,7 +278,10 @@ class App(QMainWindow):
         self.experiment.load_instruments()
         self.load_interfaces()
     def load_interfaces(self):
-        #method to get an instance of a grafical interface to set in the master gui.
+        """"
+        Method to get instances of gui's through load_gui and set these in self.ins_bag.
+        Through this way they can later be retrieved in the self object.
+        """
         self.ins_bag = {}
 
         for instrument in self.experiment.properties['Instruments']:
@@ -243,9 +289,9 @@ class App(QMainWindow):
                 #get the right name
                 self.ins_bag[instrument] = self.load_gui(instrument)
     def load_gui(self, name):
-        """ Loads gui's
-
-        :param name: name of the instrument to load. It has to be specified in the config file under Instruments
+        """
+        Create instances of gui's and returns these to the load_intefaces.
+        :param name: name of view to load. It has to be specified in the config file under Instruments
         :type name: string
         """
         try:
