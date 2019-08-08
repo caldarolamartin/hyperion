@@ -83,15 +83,15 @@ class Window(QMainWindow):
         #self.dock2.toggleViewAction()
         self.dock2.setVisible(not self.dock2.isVisible())
 
-    def randString(selfself,N):
+    def randomString(selfself, N):
         return ''.join([random.choice(string.ascii_lowercase) for n in range(N)])
 
     def randomDockWindow(self, menu, name=None):
         if name == None:
-            name = self.randString(7)
+            name = self.randomString(7)
         dock = QDockWidget(name, self)
         dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        string_list = [self.randString(5) for n in range(5)]
+        string_list = [self.randomString(5) for n in range(5)]
         listwidget = QListWidget(dock)
         listwidget.addItems(string_list)
         dock.setWidget(listwidget)

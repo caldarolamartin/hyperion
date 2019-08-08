@@ -1,20 +1,14 @@
 import importlib
-import os
 import random
 
-import PyQt5
 import sys
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QListWidget, QTextEdit, QPushButton, \
     QGraphicsView, QAction, QLineEdit, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout
-from lantz.qt import QtCore
 import pyqtgraph as pg
-from hyperion.view.GUI_tests.example_gui import ExampleGui
 from examples.example_experiment import ExampleExperiment
-
-#todo setting widgets in a way to set other widgets too in the GUI in the layout function.
 
 class App(QMainWindow):
 
@@ -41,7 +35,7 @@ class App(QMainWindow):
         self.dock_widget_2_file_item.addAction("widget 2 loose", self.make_widget_2_loose)
 
         self.draw_something = mainMenu.addMenu('draw')
-        self.draw_something.addAction("Draw", self.on_click_submit)
+        self.draw_something.addAction("Draw", self.draw_random_graph)
 
         self.toolsMenu = mainMenu.addMenu('Tools')
         self.toolsMenu.addAction("Let widget 1 disappear", self.get_status_open_or_closed)
@@ -69,27 +63,10 @@ class App(QMainWindow):
 
             self.button_pressed = True
 
-    def on_click_submit(self):
+    def draw_random_graph(self):
         self.ydata = [random.random() for i in range(25)]
         self.xdata = [random.random() for i in range(25)]
         self.main_plot.plot(self.xdata, self.ydata, clear=True)
-
-    def set_scroll_area(self):
-        self.scroll_area = QScrollArea()
-
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scroll_area.setWidgetResizable(False)
-
-        self.widget_scroll_area_1 = QWidget()
-        self.widget_scroll_area_2 = QWidget()
-
-        self.vbox_scroll_area = QVBoxLayout()
-        self.vbox_scroll_area.addWidget(self.widget_scroll_area_1)
-        self.vbox_scroll_area.addWidget(self.widget_scroll_area_2)
-        self.scroll_area.setLayout(self.vbox_scroll_area)
-
-        self.scroll_area.setWidget(self.widget_scroll_area_1)
 
     def set_dock_widget_1(self):
         """
@@ -131,25 +108,6 @@ class App(QMainWindow):
         self.dock_widget_1.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_1)
-    def set_osa_dock_widget(self):
-        self.osa_dock_widget = QDockWidget("osa dock widget", self)
-
-        self.osa_dock_widget.setWidget(self.experiment.view_instances["OsaInstrument"])
-
-        self.osa_dock_widget.setFloating(False)
-        self.osa_dock_widget.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
-        self.osa_dock_widget.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
-
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.osa_dock_widget)
-    def get_view_instances_and_load_instruments(self):
-        # name = 'example_experiment_config'
-        # config_folder = os.path.dirname(os.path.abspath(__file__))
-        # config_file = os.path.join(config_folder, name)
-
-        self.experiment.load_config('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml')
-        self.experiment.load_instruments()
-        self.load_interfaces()
-
     def set_dock_widget_2(self):
         self.dock_widget_2 = QDockWidget("dock_widget_2", self)
         self.dock_widget_2_content = QWidget()
@@ -171,21 +129,25 @@ class App(QMainWindow):
         self.dock_widget_2.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_widget_2)
+    def set_osa_dock_widget(self):
+        self.osa_dock_widget = QDockWidget("osa dock widget", self)
 
-    def set_all_in_some_layout(self):
-        #addWidget (self, QWidget, row, column, rowSpan, columnSpan, Qt.Alignment alignment = 0)
-        grid_layout = QGridLayout()
+        self.osa_dock_widget.setWidget(self.experiment.view_instances["OsaInstrument"])
 
-        grid_layout.addWidget(self.scroll_area, 0, 0, 1, 1)
-        #enable code and the dockable widgets will not move.
-        #grid_layout.addWidget(self.dock_widget_1, 0, 1, 1, 1)
+        self.osa_dock_widget.setFloating(False)
+        self.osa_dock_widget.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
+        self.osa_dock_widget.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
-        #grid_layout.addWidget(self.dock_widget_2, 0, 1, 1, 1)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.osa_dock_widget)
 
-        self.central_widget = PyQt5.QtWidgets.QWidget()
-        self.central_widget.setLayout(grid_layout)
-        self.setCentralWidget(self.central_widget)
+    def get_view_instances_and_load_instruments(self):
+        # name = 'example_experiment_config'
+        # config_folder = os.path.dirname(os.path.abspath(__file__))
+        # config_file = os.path.join(config_folder, name)
 
+        self.experiment.load_config('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml')
+        self.experiment.load_instruments()
+        self.load_interfaces()
     def load_interfaces(self):
         #method to get an instance of a grafical interface to set in the master gui.
         self.ins_bag = {}
@@ -220,11 +182,9 @@ class App(QMainWindow):
         self.set_dock_widget_1()
         self.set_dock_widget_2()
         self.set_osa_dock_widget()
-        self.set_scroll_area()
 
         self.set_menu_bar()
 
-        self.set_all_in_some_layout()
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.show()
