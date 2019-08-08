@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QLi
 import pyqtgraph as pg
 from examples.example_experiment import ExampleExperiment
 
+
 class App(QMainWindow):
 
     def __init__(self, experiment):
@@ -35,7 +36,7 @@ class App(QMainWindow):
         # _DOCK_OPTS |= QMainWindow.AllowNestedDocks         # Dit kan evt aan
         # _DOCK_OPTS |= QMainWindow.AnimatedDocks            # Ik weet niet wat dit toevoegt
 
-        # Turn the central widget into a QMainWindow with more docking
+        # Turn the central widget into a QMainWindow which gives more docking possibilities
         self.central = QMainWindow()
         self.central.setWindowFlags(Qt.Widget)
         self.central.setDockOptions(_DOCK_OPTS)
@@ -125,32 +126,10 @@ class App(QMainWindow):
     def randomString(self, N):
         return ''.join([random.choice(string.ascii_lowercase) for n in range(N)])
     def randomDockWindow(self, menu, name=None):
-        if name == None:
-            name = self.randomString(7)
-        dock = QDockWidget(name, self)
-        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock, name = self.setting_standard_dock_settings(name)
 
-        if name == "dock_1_ariel":
-            dock.setWidget(self.experiment.view_instances["ExampleInstrument"])
-        elif name == "dock_2_ariel":
-            dock.setWidget(self.experiment.view_instances["OsaInstrument"])
-        elif name == "dock_3_ariel":
-            dock_widget_content = QWidget()
-            vbox = QVBoxLayout()
-            self.random_plot = pg.PlotWidget()
-            vbox.addWidget(self.random_plot)
-            dock_widget_content.setLayout(vbox)
-            dock.setWidget(dock_widget_content)
+        self.setting_dock_content(dock, name)
 
-        else:
-            string_list = [self.randomString(5) for n in range(5)]
-            listwidget = QListWidget(dock)
-            listwidget.addItems(string_list)
-            dock.setWidget(listwidget)
-
-        dock.collapsed = False
-        dock.collapsed_height = 22
-        dock.uncollapsed_height = 200
         def toggle_visibility():
             dock.setVisible(not dock.isVisible())
         def toggle_collapsed():
@@ -165,7 +144,32 @@ class App(QMainWindow):
 
         menu.addAction(name, toggle_collapsed)
         return dock
-
+    def setting_dock_content(self, dock, name):
+        if name == "dock_1_ariel":
+            dock.setWidget(self.experiment.view_instances["ExampleInstrument"])
+        elif name == "dock_2_ariel":
+            dock.setWidget(self.experiment.view_instances["OsaInstrument"])
+        elif name == "dock_3_ariel":
+            dock_widget_content = QWidget()
+            vbox = QVBoxLayout()
+            self.random_plot = pg.PlotWidget()
+            vbox.addWidget(self.random_plot)
+            dock_widget_content.setLayout(vbox)
+            dock.setWidget(dock_widget_content)
+        else:
+            string_list = [self.randomString(5) for n in range(5)]
+            listwidget = QListWidget(dock)
+            listwidget.addItems(string_list)
+            dock.setWidget(listwidget)
+    def setting_standard_dock_settings(self, name):
+        if name == None:
+            name = self.randomString(7)
+        dock = QDockWidget(name, self)
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.collapsed = False
+        dock.collapsed_height = 22
+        dock.uncollapsed_height = 200
+        return dock, name
 
     def set_dock_widget_2(self):
         """
@@ -271,7 +275,6 @@ class App(QMainWindow):
 
 if __name__ == '__main__':
     experiment = ExampleExperiment()
-
     app = QApplication(sys.argv)
 
     main_gui = App(experiment)
