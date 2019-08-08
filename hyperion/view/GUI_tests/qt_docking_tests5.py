@@ -5,9 +5,6 @@ import sys
 import random
 import string
 
-
-
-
 class Window(QMainWindow):
 
     def __init__(self):
@@ -31,86 +28,56 @@ class Window(QMainWindow):
         self.central.setWindowFlags(Qt.Widget)
         self.central.setDockOptions(_DOCK_OPTS)
         self.setCentralWidget(self.central)
-        
 
         self.mainMenu = self.menuBar()
         self.fileMenu = self.mainMenu.addMenu('File')
         self.edgeDockMenu = self.mainMenu.addMenu('Edge Dock windows')
         self.centralDockMenu = self.mainMenu.addMenu('Central Dock Windows')
 
-        #self.make_automatic_dock_widgets()
-
-        self.dock1 = self.randomDockWindow(self.edgeDockMenu, 'Dock 1')
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock1)
-        self.dock1.setFeatures(QDockWidget.NoDockWidgetFeatures)
-
-        self.dock2 = self.randomDockWindow(self.edgeDockMenu, 'Dock 2')
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock2)
-        self.dock2.setFeatures(QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetClosable )
-
-        self.dock3 = self.randomDockWindow(self.edgeDockMenu, 'Dock 3')
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock3)
-
-        self.dock4 = self.randomDockWindow(self.edgeDockMenu, 'Dock 4')
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock4)
-        self.dock4.setFeatures(QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetMovable)
-
-        self.dock5 = self.randomDockWindow(self.edgeDockMenu, 'Dock 5')
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock5)
-        self.dock5.setFeatures(QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetFloatable)
-
-        self.dock6 = self.randomDockWindow(self.edgeDockMenu, 'Dock 6')
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock6)
-
-        self.central_dock1 = self.randomDockWindow(self.centralDockMenu, 'Central Dock 1')
-        self.central.addDockWidget(Qt.LeftDockWidgetArea, self.central_dock1)
-
-        self.central_dock2 = self.randomDockWindow(self.centralDockMenu, 'Central Dock 2')
-        self.central.addDockWidget(Qt.LeftDockWidgetArea, self.central_dock2)
-
-        self.central_dock3 = self.randomDockWindow(self.centralDockMenu, 'Central Dock 3')
-        self.central.addDockWidget(Qt.RightDockWidgetArea, self.central_dock3)
-
-        self.central_dock4 = self.randomDockWindow(self.centralDockMenu, 'Central Dock 4')
-        self.central.addDockWidget(Qt.RightDockWidgetArea, self.central_dock4)
+        self.make_automatic_dock_widgets()
 
     def make_automatic_dock_widgets(self):
-        """
-        instrumenten = ["trompet", "piano", "gitaar"]
-        self.ins_bag = {}
-        opteller = 0
-        for instrument in instrumenten:
-            self.ins_bag[instrument] = opteller
-            #self.instrument_naam = instrument
-            print(self.ins_bag.items())
-            print("-"*40)
-            opteller +=1
-
-        print(self.ins_bag.items())
-        """
-        lijst_met_dock_widget = ["dock_1","dock_2","dock_3","dock_4","dock_5","dock_6","dock_7","dock_8","dock_9","dock_10"]
+        lijst_met_dock_widget = ["dock_1_ariel","dock_2_ariel","dock_3_ariel","dock_4_ariel","dock_5_ariel","dock_6_ariel",
+                                 "central_dock_1_ariel","central_dock_2_ariel","central_dock_3_ariel","central_dock_4_ariel"]
         self.dock_widget_dict = {}
         opteller = 0
         for dock_widget in lijst_met_dock_widget:
             if opteller <=2:
-                self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edgeDockMenu, dock_widget)
-                self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
-                #self.dock_widget = self.randomDockWindow(self.edgeDockMenu, dock_widget)
-                #self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
+                self.make_left_dock_widgets(dock_widget, opteller)
             elif opteller > 2 and opteller <=5:
-                self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edgeDockMenu, dock_widget)
-                self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
-                #self.dock_widget = self.randomDockWindow(self.edgeDockMenu, dock_widget)
-                #self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
-            elif opteller > 5 and opteller <= 6:
-                self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.centralDockMenu, dock_widget)
-                self.central.addDockWidget(Qt.RightDockWidgetArea, dock_widget)
-                #self.dock_widget = self.randomDockWindow(self.centralDockMenu, dock_widget)
-                #self.central.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
-            elif opteller > 6 and opteller <= 9:
-                self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.centralDockMenu, dock_widget)
-                self.central.addDockWidget(Qt.LeftDockWidgetArea, dock_widget)
+                self.make_right_dock_widgets(dock_widget, opteller)
+            elif opteller > 5 and opteller <= 7:
+                self.make_central_right_dock_widgets(dock_widget, opteller)
+            elif opteller > 7 and opteller <= 9:
+                self.make_central_left_dock_widgets(dock_widget, opteller)
             opteller += 1
+    def make_central_left_dock_widgets(self, dock_widget, opteller):
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.centralDockMenu, dock_widget)
+        self.central.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
+        if opteller == 8:
+            self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
+    def make_central_right_dock_widgets(self, dock_widget, opteller):
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.centralDockMenu, dock_widget)
+        self.central.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
+        if opteller == 6:
+            self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
+    def make_right_dock_widgets(self, dock_widget, opteller):
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edgeDockMenu, dock_widget)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
+        if opteller == 3:
+            self.dock_widget_dict[dock_widget].setFeatures(
+                QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetMovable)
+        elif opteller == 4:
+            self.dock_widget_dict[dock_widget].setFeatures(
+                QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetFloatable)
+    def make_left_dock_widgets(self, dock_widget, opteller):
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edgeDockMenu, dock_widget)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
+        if opteller == 0:
+            self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
+        elif opteller == 1:
+            self.dock_widget_dict[dock_widget].setFeatures(
+                QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetClosable)
 
     def dock2_menu(self):
         #self.dock2.toggleViewAction()

@@ -1,10 +1,7 @@
 #this is a simple gui to load in a QdockWidget
 import sys
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
-
-
 from hyperion.instrument.example_instrument import ExampleInstrument
 
 class ExampleGui(QWidget):
