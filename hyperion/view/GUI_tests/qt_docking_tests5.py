@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDockWidget, QListWidget, QTextEdit, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDockWidget, QListWidget, QTextEdit, QPushButton, QLabel
 from PyQt5.QtCore import Qt
 import sys
 
@@ -96,7 +96,6 @@ class Window(QMainWindow):
         string_list = [self.randomString(5) for n in range(5)]
         listwidget = QListWidget(dock)
         listwidget.addItems(string_list)
-        dock.setWidget(listwidget)
         def toggle_visibility():
             dock.setVisible(not dock.isVisible())
         def toggle_collapsed():

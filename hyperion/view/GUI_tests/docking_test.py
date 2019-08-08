@@ -37,8 +37,8 @@ class App(QMainWindow):
         self.setGeometry(self.left, self.top, self.width, self.height)
 
         _DOCK_OPTS = QMainWindow.AllowTabbedDocks
-        # _DOCK_OPTS |= QMainWindow.AllowNestedDocks         # Dit kan evt aan
-        # _DOCK_OPTS |= QMainWindow.AnimatedDocks            # Ik weet niet wat dit toevoegt
+        # _DOCK_OPTS |= QMainWindow.AllowNestedDocks         # This has no impact on the code if switched on
+        # _DOCK_OPTS |= QMainWindow.AnimatedDocks            # I don't know what this does
 
         # Turn the central widget into a QMainWindow which gives more docking possibilities
         self.central = QMainWindow()
@@ -215,12 +215,12 @@ class App(QMainWindow):
         :return:
         """
         """
-                how to add Qobjects to a dockable goes as follows.
-                First you make a Qwidget where the content will be placed in. Call this things something with content in the name
-                Then define the Qobjects you want to make
-                Finally, you choose a layout((maybe absolute positioning is possible,
-                haven't seen it in examples so it is not implemented in this code)QVBoxLayout, QHBoxLayout and QGridLayout)
-                then you add the layout to the content widget and lastly you set the beginning Qwhatever as the widget of the dockwidget.
+                # how to add Qobjects to a dockable goes as follows.
+                # First you make a Qwidget where the content will be placed in. Call this things something with content in the name
+                # Then define the Qobjects you want to make
+                # Finally, you choose a layout((maybe absolute positioning is possible,
+                # haven't seen it in examples so it is not implemented in this code)QVBoxLayout, QHBoxLayout and QGridLayout)
+                # then you add the layout to the content widget and lastly you set the beginning Qwhatever as the widget of the dockwidget.
 
                 self.dock_widget_1_content = QWidget()
                 self.dock_widget_1_content.setObjectName('de content voor de dock_widget')
