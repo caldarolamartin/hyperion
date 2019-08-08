@@ -48,11 +48,6 @@ class App(QMainWindow):
         self.edgeDockMenu = mainMenu.addMenu('Edge Dock windows')
         self.centralDockMenu = mainMenu.addMenu('Central Dock Windows')
 
-        self.dock_widget_1_file_item = mainMenu.addMenu('float dock widget 1')
-        self.dock_widget_1_file_item.addAction("widget 1 loose", self.make_widget_1_loose)
-        self.dock_widget_2_file_item = mainMenu.addMenu('dock_widget_2')
-        self.dock_widget_2_file_item.addAction("widget 2 loose", self.make_widget_2_loose)
-
         self.draw_something = mainMenu.addMenu('draw')
         self.draw_something.addAction("Draw", self.draw_random_graph)
 
@@ -62,12 +57,9 @@ class App(QMainWindow):
 
         self.helpMenu = mainMenu.addMenu('Help')
 
-    def make_widget_1_loose(self):
-        self.dock_widget_1.setFloating(True)
-    def make_widget_2_loose(self):
-        self.dock_widget_2.setFloating(True)
+
     def get_status_open_or_closed(self):
-        self.dock_widget_1.setVisible(not self.dock_widget_1.isVisible())
+        self.dock_widget_dict["dock_1_ariel"].setVisible(not self.dock_widget_dict["dock_1_ariel"].isVisible())
     def create_single_qdockwidget(self):
         #in this method the goal is to create a blank QDockwidget and set in the main_gui
         if self.button_pressed == False:
@@ -85,7 +77,7 @@ class App(QMainWindow):
     def draw_random_graph(self):
         self.ydata = [random.random() for i in range(25)]
         self.xdata = [random.random() for i in range(25)]
-        self.main_plot.plot(self.xdata, self.ydata, clear=True)
+        self.random_plot.plot(self.xdata, self.ydata, clear=True)
 
     def make_automatic_dock_widgets(self):
         lijst_met_dock_widget = ["dock_1_ariel", "dock_2_ariel", "dock_3_ariel", "dock_4_ariel", "dock_5_ariel", "dock_6_ariel",
@@ -130,7 +122,7 @@ class App(QMainWindow):
         if opteller == 8:
             self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
 
-    def randomString(selfself, N):
+    def randomString(self, N):
         return ''.join([random.choice(string.ascii_lowercase) for n in range(N)])
     def randomDockWindow(self, menu, name=None):
         if name == None:
@@ -145,7 +137,8 @@ class App(QMainWindow):
         elif name == "dock_3_ariel":
             dock_widget_content = QWidget()
             vbox = QVBoxLayout()
-            vbox.addWidget(pg.PlotWidget())
+            self.random_plot = pg.PlotWidget()
+            vbox.addWidget(self.random_plot)
             dock_widget_content.setLayout(vbox)
             dock.setWidget(dock_widget_content)
 
@@ -174,46 +167,40 @@ class App(QMainWindow):
         return dock
 
 
-    def set_dock_widget_1(self):
-        """
-        how to add Qobjects to a dockable goes as follows.
-        First you make a Qwidget where the content will be placed in. Call this things something with content in the name
-        Then define the Qobjects you want to make
-        Finally, you choose a layout((maybe absolute positioning is possible,
-        haven't seen it in examples so it is not implemented in this code)QVBoxLayout, QHBoxLayout and QGridLayout)
-        then you add the layout to the content widget and lastly you set the beginning Qwhatever as the widget of the dockwidget.
-        """
-
-        self.dock_widget_1 = QDockWidget("dock_widget_1", self)
-        """
-        self.dock_widget_1_content = QWidget()
-        self.dock_widget_1_content.setObjectName('de content voor de dock_widget')
-
-        self.listWidget_right = QListWidget()
-        self.listWidget_right.addItems(["item 1", "item 2", "item 3"])
-
-        self.some_button = QPushButton('test', self)
-        self.some_button.setToolTip('You are hovering over the button, \n what do you expect?')
-        self.some_button.clicked.connect(self.on_click_submit)
-
-        self.textbox = QLineEdit(self)
-        self.textbox.setText('this is a test')
-
-        self.vbox_1_scroll_area = QVBoxLayout()
-        self.vbox_1_scroll_area.addWidget(self.some_button)
-        self.vbox_1_scroll_area.addWidget(self.textbox)
-        self.vbox_1_scroll_area.addWidget(self.listWidget_right)
-        self.dock_widget_1_content.setLayout(self.vbox_1_scroll_area)
-        self.dock_widget_1.setWidget(self.dock_widget_1_content)
-        """
-        self.dock_widget_1.setWidget(self.experiment.view_instances["ExampleInstrument"])
-
-        self.dock_widget_1.setFloating(False)
-        self.dock_widget_1.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
-        self.dock_widget_1.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
-
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_1)
     def set_dock_widget_2(self):
+        """
+        Old code needed to have an example of how to add a QdockWidget by hand.
+        For the rest, it is not needed.
+        :return:
+        """
+        """
+                how to add Qobjects to a dockable goes as follows.
+                First you make a Qwidget where the content will be placed in. Call this things something with content in the name
+                Then define the Qobjects you want to make
+                Finally, you choose a layout((maybe absolute positioning is possible,
+                haven't seen it in examples so it is not implemented in this code)QVBoxLayout, QHBoxLayout and QGridLayout)
+                then you add the layout to the content widget and lastly you set the beginning Qwhatever as the widget of the dockwidget.
+
+                self.dock_widget_1_content = QWidget()
+                self.dock_widget_1_content.setObjectName('de content voor de dock_widget')
+
+                self.listWidget_right = QListWidget()
+                self.listWidget_right.addItems(["item 1", "item 2", "item 3"])
+
+                self.some_button = QPushButton('test', self)
+                self.some_button.setToolTip('You are hovering over the button, \n what do you expect?')
+                self.some_button.clicked.connect(self.on_click_submit)
+
+                self.textbox = QLineEdit(self)
+                self.textbox.setText('this is a test')
+
+                self.vbox_1_scroll_area = QVBoxLayout()
+                self.vbox_1_scroll_area.addWidget(self.some_button)
+                self.vbox_1_scroll_area.addWidget(self.textbox)
+                self.vbox_1_scroll_area.addWidget(self.listWidget_right)
+                self.dock_widget_1_content.setLayout(self.vbox_1_scroll_area)
+                self.dock_widget_1.setWidget(self.dock_widget_1_content)
+                """
         self.dock_widget_2 = QDockWidget("dock_widget_2", self)
         self.dock_widget_2_content = QWidget()
         self.dock_widget_2_content.setObjectName('de content voor de dock_widget')
@@ -234,16 +221,6 @@ class App(QMainWindow):
         self.dock_widget_2.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_widget_2)
-    def set_osa_dock_widget(self):
-        self.osa_dock_widget = QDockWidget("osa dock widget", self)
-
-        self.osa_dock_widget.setWidget(self.experiment.view_instances["OsaInstrument"])
-
-        self.osa_dock_widget.setFloating(False)
-        self.osa_dock_widget.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
-        self.osa_dock_widget.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
-
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.osa_dock_widget)
 
     def get_view_instances_and_load_instruments(self):
         # name = 'example_experiment_config'
@@ -285,10 +262,6 @@ class App(QMainWindow):
         self.set_gui_specifics()
 
         self.get_view_instances_and_load_instruments()
-
-        #self.set_dock_widget_1()
-        #self.set_dock_widget_2()
-        #self.set_osa_dock_widget()
 
         self.set_menu_bar()
 
