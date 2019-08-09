@@ -49,19 +49,19 @@ class VariableWaveplateGui(QWidget):
         self.set_output_label()
     def set_frequency_label(self):
         self.frequency_label = QLabel(self)
-        self.frequency_label.setText("freq:")
+        self.frequency_label.setText("freq in Hz:")
         self.grid_layout.addWidget(self.frequency_label, 0, 2)
     def set_quater_waveplate_label(self):
         self.quater_waveplate_label = QLabel(self)
-        self.quater_waveplate_label.setText("qw:")
+        self.quater_waveplate_label.setText("qw in Hz:")
         self.grid_layout.addWidget(self.quater_waveplate_label, 3, 0)
     def set_voltage_2_label(self):
         self.voltage_2_label = QLabel(self)
-        self.voltage_2_label.setText("V 2:")
+        self.voltage_2_label.setText("V 2, from 0 to 25 V:")
         self.grid_layout.addWidget(self.voltage_2_label, 2, 0)
     def set_voltage_1_label(self):
         self.voltage_1_label = QLabel(self)
-        self.voltage_1_label.setText("V 1:")
+        self.voltage_1_label.setText("V 1, from 0 to 25 V:")
         self.grid_layout.addWidget(self.voltage_1_label, 1, 0)
     def set_mode_label(self):
         self.mode_label = QLabel(self)
@@ -83,7 +83,7 @@ class VariableWaveplateGui(QWidget):
         self.grid_layout.addWidget(self.frequency_textfield, 0, 3)
     def set_quater_waveplate_textfield(self):
         self.quater_waveplate_textfield = QLineEdit(self)
-        self.quater_waveplate_textfield.setText("I don't know, as Martin")
+        self.quater_waveplate_textfield.setText("Idk, as Martin")
         self.grid_layout.addWidget(self.quater_waveplate_textfield, 3, 1)
     def set_voltage_2_textfield(self):
         self.voltage_2_textfield = QLineEdit(self)
