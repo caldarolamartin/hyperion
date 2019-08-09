@@ -118,102 +118,6 @@ class VariableWaveplate(BaseInstrument):
         self.controller.set_voltage(channel, value)
         return value
 
-    @property
-    def freq(self):
-        """ Modulation frequency when the operation mode is 'modulation' (mode = 0)
-
-        : getter :
-
-        Asks for the current frequency
-
-        :return: The frequency value
-        :rtype: pint quantity
-
-        : setter :
-
-        :param F: frequency in Hz. It can be any value between 0.5 and 150Hz.
-        :type F: pint Quantity
-
-        """
-        self.logger.debug('Ask for the current frequency.')
-        ans = self.controller.freq
-        self._freq = ans
-        return self._freq
-
-    @freq.setter
-    def freq(self, F):
-        self._freq = F
-        self.controller.freq = F
-        self.logger.debug('Changed frequency to {} '.format(F))
-
-    @property
-    def output(self):
-        """ Tells if the output is enabled or not.
-
-        :getter:
-        :return: output state
-        :rtype: logical
-
-        :setter:
-        :param state: value for the amplitude to set in Volts
-        :type state: logical
-
-        """
-        self.logger.debug('Asking for the output state')
-        self._output = self.controller.output
-        return self._output
-
-    @output.setter
-    def output(self, state):
-        self.logger.debug('Setting the output state to {}'.format(state))
-        self._output = state
-        self.controller.output = state
-        return self._output
-
-    @property
-    def mode(self):
-        """ Operation mode
-
-        The possible modes are:
-
-        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
-
-        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
-
-        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
-        is one limit and voltage 2 is the second. the modulation frequency can be
-        changed with the command 'freq' in the 0.5-150 Hz range.
-
-        : getter :
-
-        Gets the current mode
-
-        : setter :
-
-        Sets the mode
-
-        :param mode: type of operation.
-        :type mode: int
-
-        """
-        self.logger.debug('Getting the mode of operation')
-        self._mode = self.controller.mode
-        return self._mode
-
-    @mode.setter
-    def mode(self, mode):
-        self.controller.mode = mode
-        self.logger.info('Changed to mode "{}" '.format(mode))
-        self._mode = mode
-
-    def finalize(self, state=False):
-        """ Closes the connection to the device
-
-        """
-        self.logger.info('Finalizing connection with Variable Waveplate')
-        self.controller.output = state
-        self.controller.finalize()
-
     def quarter_waveplate_voltage(self, wavelength, method = 'lookup'):
         """
         This method gives the voltage needed to set on the LCC25 to get a
@@ -235,7 +139,7 @@ class VariableWaveplate(BaseInstrument):
                 wavelength.m_as('nm') > self.calibration['wavelength_limits'][1].m_as('nm'):
 
             self.logger.warning('The required wavelength is outside the calibration range for bias voltage')
-            #todo set some value closer to the value that you should have. 
+            #todo set some value closer to the value that you should have.
 
         if method == 'lookup':
             x = self.calibration['wavelength']
@@ -288,6 +192,102 @@ class VariableWaveplate(BaseInstrument):
         self.set_analog_value(ch, v)
 
         return v
+
+    def finalize(self, state=False):
+        """ Closes the connection to the device
+
+        """
+        self.logger.info('Finalizing connection with Variable Waveplate')
+        self.controller.output = state
+        self.controller.finalize()
+
+    @property
+    def freq(self):
+        """ Modulation frequency when the operation mode is 'modulation' (mode = 0)
+
+        : getter :
+
+        Asks for the current frequency
+
+        :return: The frequency value
+        :rtype: pint quantity
+
+        : setter :
+
+        :param F: frequency in Hz. It can be any value between 0.5 and 150Hz.
+        :type F: pint Quantity
+
+        """
+        self.logger.debug('Ask for the current frequency.')
+        ans = self.controller.freq
+        self._freq = ans
+        return self._freq
+
+    @freq.setter
+    def freq(self, F):
+        self._freq = F
+        self.controller.freq = F
+        self.logger.debug('Changed frequency to {} '.format(F))
+
+    @property
+    def output(self):
+        """ Tells if the output is enabled or not.
+
+        :getter:
+        :return: output state
+        :rtype: logical
+
+        :setter:
+        :param state: value for the amplitude to set in Volts
+        :type state: logical
+
+        """
+        self.logger.debug('Asking for the output state')
+        self._output = self.controller.output
+        return self._output
+
+    @output.setter
+    def output(self, state):
+        self.logger.debug('Setting the output state to {}'.format(state))
+        self._output = state
+        self.controller.output = state
+        #return self._output
+
+    @property
+    def mode(self):
+        """ Operation mode
+
+        The possible modes are:
+
+        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
+
+        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
+
+        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
+        is one limit and voltage 2 is the second. the modulation frequency can be
+        changed with the command 'freq' in the 0.5-150 Hz range.
+
+        : getter :
+
+        Gets the current mode
+
+        : setter :
+
+        Sets the mode
+
+        :param mode: type of operation.
+        :type mode: int
+
+        """
+        self.logger.debug('Getting the mode of operation')
+        self._mode = self.controller.mode
+        return self._mode
+
+    @mode.setter
+    def mode(self, mode):
+        self.controller.mode = mode
+        self.logger.info('Changed to mode "{}" '.format(mode))
+        self._mode = mode
 
 
 if __name__ == '__main__':
