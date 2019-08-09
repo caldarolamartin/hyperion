@@ -3,7 +3,7 @@
 LCC25 (thorlabs) model
 ======================
 
-This class (variable_waveplate.py) is the model to drive the LCC25 variable waveplate controller.
+This class (variable_waveplate_gui.py) is the model to drive the LCC25 variable waveplate controller.
 
 It ads the use of units with pint and the wavelength calibration to obtain make the variable
 waveplate a quarter waveplate for a given wavelength.
@@ -22,7 +22,7 @@ class VariableWaveplate(BaseInstrument):
 
 
     """
-    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : False,
+    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : True,
                                    'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'} ):
         """
         Init of the class.
@@ -109,7 +109,7 @@ class VariableWaveplate(BaseInstrument):
 
         :param channel: Port number. Range depends on device
         :type channel: int
-        :param value: The input value in Volts (Pint type)
+        :param value: The input value in Volts between 0 and 25 (Pint type)
         :type value: pint quantity
 
 
@@ -233,7 +233,9 @@ class VariableWaveplate(BaseInstrument):
 
         if wavelength.m_as('nm') < self.calibration['wavelength_limits'][0].m_as('nm') or \
                 wavelength.m_as('nm') > self.calibration['wavelength_limits'][1].m_as('nm'):
-            raise Warning('The required wavelength is outside the calibration range for bias voltage')
+
+            self.logger.warning('The required wavelength is outside the calibration range for bias voltage')
+            #todo set some value closer to the value that you should have. 
 
         if method == 'lookup':
             x = self.calibration['wavelength']
