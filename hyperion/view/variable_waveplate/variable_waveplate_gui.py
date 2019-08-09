@@ -79,17 +79,19 @@ class VariableWaveplateGui(QWidget):
         self.set_frequency_textfield()
     def set_frequency_textfield(self):
         self.frequency_textfield = QLineEdit(self)
-        self.frequency_textfield.setText(str(self.variable_waveplate_ins.freq))
+        self.frequency_textfield.setText(str(self.variable_waveplate_ins.controller._properties["freq"]["default"]))
         self.grid_layout.addWidget(self.frequency_textfield, 0, 3)
     def set_quater_waveplate_textfield(self):
         self.quater_waveplate_textfield = QLineEdit(self)
+        self.quater_waveplate_textfield.setText("I don't know, as Martin")
         self.grid_layout.addWidget(self.quater_waveplate_textfield, 3, 1)
     def set_voltage_2_textfield(self):
         self.voltage_2_textfield = QLineEdit(self)
-        #self.voltage_2_textfield.setText(self.variable_waveplate_ins.)
+        self.voltage_2_textfield.setText(str(self.variable_waveplate_ins.controller._properties["volt2"]["default"]))
         self.grid_layout.addWidget(self.voltage_2_textfield, 2, 1)
     def set_voltage_1_textfield(self):
         self.voltage_1_textfield = QLineEdit(self)
+        self.voltage_1_textfield.setText(str(self.variable_waveplate_ins.controller._properties["volt1"]["default"]))
         self.grid_layout.addWidget(self.voltage_1_textfield, 1, 1)
 
     def set_miscelanious_gui_stuff(self):
