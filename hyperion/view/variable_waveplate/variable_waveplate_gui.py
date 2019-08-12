@@ -34,7 +34,6 @@ class VariableWaveplateGui(QWidget):
         self.show()
 
     def set_elements_in_gui(self):
-        # addWidget (self, QWidget, row, column, rowSpan, columnSpan, Qt.Alignment alignment = 0)
         self.set_labels()
 
         self.set_textfields()

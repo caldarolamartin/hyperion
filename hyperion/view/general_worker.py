@@ -20,14 +20,11 @@ class WorkThread(QtCore.QThread):
         self.function = function
         self.args = args
         self.kwargs = kwargs
-        self.is_running = False
 
     def __del__(self):
-        self.is_running = False
         self.wait()
 
     def run(self):
-        self.is_running = True
         self.function(*self.args,**self.kwargs)
         return
 

@@ -1,7 +1,10 @@
 import sys
+import time
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 from hyperion.instrument.example_instrument import ExampleInstrument
+from hyperion.view.general_worker import WorkThread
+
 
 class ExampleGui(QWidget):
     """"
@@ -24,19 +27,43 @@ class ExampleGui(QWidget):
 
 
         self.setAutoFillBackground(True)
-        p = self.palette()
-        p.setColor(self.backgroundRole(), Qt.red)
-        self.setPalette(p)
+        self.p = self.palette()
+        self.p.setColor(self.backgroundRole(), Qt.red)
+        self.setPalette(self.p)
 
-        button = QPushButton('PyQt5 button', self)
-        button.setToolTip('This is an example button')
-        button.move(10,10)
+        self.button = QPushButton('start button', self)
+        self.button.setToolTip('This is an example button')
+        self.button.move(10,10)
+        self.button.clicked.connect(self.on_click)
 
-        button.clicked.connect(self.on_click)
-
+        self.button_2 = QPushButton('end button',self)
+        self.button_2.setToolTip('end the function')
+        self.button_2.move(90, 10)
+        #self.button_2.setEnabled(False)
+        self.button_2.clicked.connect(self.stop_on_click_function)
         self.show()
     def on_click(self):
-        print('PyQt5 button click')
+        #disable the ability to press the button multiple times
+        #self.button.setEnabled(False)
+        #self.button_2.setEnabled(True)
+        #make this a long function.
+        self.worker_thread = WorkThread(self.go_to_sleep)
+        self.worker_thread.start()
+
+        #self.button.setEnabled(True)
+        #self.button_2.setEnabled(False)
+    def stop_on_click_function(self):
+        if self.worker_thread.isRunning():
+            self.worker_thread.quit()
+            print('this function is going to stop the on_click function')
+
+    def go_to_sleep(self):
+        self.p.setColor(self.backgroundRole(), Qt.yellow)
+        self.setPalette(self.p)
+        time.sleep(4)
+        print('button click')
+        self.p.setColor(self.backgroundRole(), Qt.red)
+        self.setPalette(self.p)
 
 if __name__ == '__main__':
     example_ins = ExampleInstrument()
