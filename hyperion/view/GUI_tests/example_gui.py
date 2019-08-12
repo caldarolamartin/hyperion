@@ -50,20 +50,23 @@ class ExampleGui(QWidget):
         self.worker_thread = WorkThread(self.go_to_sleep)
         self.worker_thread.start()
 
-        #self.button.setEnabled(True)
-        #self.button_2.setEnabled(False)
     def stop_on_click_function(self):
         if self.worker_thread.isRunning():
             self.worker_thread.quit()
+            self.worker_thread.wait()
             print('this function is going to stop the on_click function')
+        else:
+            return
 
     def go_to_sleep(self):
+        self.button.setEnabled(False)
         self.p.setColor(self.backgroundRole(), Qt.yellow)
         self.setPalette(self.p)
         time.sleep(4)
         print('button click')
         self.p.setColor(self.backgroundRole(), Qt.red)
         self.setPalette(self.p)
+        self.button.setEnabled(True)
 
 if __name__ == '__main__':
     example_ins = ExampleInstrument()
