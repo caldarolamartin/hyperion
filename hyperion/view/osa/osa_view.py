@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, \
-    QSizePolicy, QDockWidget, QGridLayout
+    QSizePolicy, QGridLayout, QVBoxLayout
 
 import logging
 import sys
@@ -9,6 +9,7 @@ from hyperion import ur, Q_
 from hyperion.view.general_worker import WorkThread
 import matplotlib.pyplot as plt
 
+import pyqtgraph as pg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 #todo figure out what goes wrong with the instr. in the view.
@@ -47,9 +48,6 @@ class App(QWidget):
         self.set_submit_button()
 
         self.set_recommended_sample_points_button()
-
-        self.m = PlotCanvas(self, width=4, height=3)
-        self.layout.addWidget(self.m,0,1)
 
         self.show()
 
@@ -258,15 +256,14 @@ class App(QWidget):
         print(id(self.instr.controller._osa))
 
         self.worker_thread = WorkThread(self.instr.take_spectrum)
-        #self.worker_thread.finished.connect(self.worker_thread.deleteLater)
         print("starting")
         self.worker_thread.start()
-        #self.worker_thread.quit()
 
     def plot_data(self):
         wav = self.instr.wav
         spec = self.instr.spec
-        PlotCanvas.plot(self.m, spec, wav)
+        self.draw = DrawSpectrum
+        self.draw.random_plot.plot(wav, spec, clear=True)
 
     def set_textboxs_to_osa_machine_values(self):
         # set the textboxs to the value from the osa machine
@@ -282,6 +279,32 @@ class App(QWidget):
         # when the button is clicked this method will be executed
         print('button says something')
         self.statusBar().showMessage("you have clicked the button, nothing happens(yet)")
+class DrawSpectrum(QWidget):
+    """
+    In this class a widget is created to draw a graph on.
+    """
+    def __init__(self):
+        super().__init__()
+        self.title = 'PyQt5 simple window - pythonspot.com'
+        self.left = 100
+        self.top = 100
+        self.width = 640
+        self.height = 480
+        self.random_plot = pg.PlotWidget()
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.random_plot)
+        self.setWidget(self.setLayout(vbox))
+        self.show()
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = DrawSpectrum()
+    sys.exit(app.exec_())
 
 
 class PlotCanvas(FigureCanvas):
@@ -307,7 +330,6 @@ class PlotCanvas(FigureCanvas):
 
 
 if __name__ == '__main__':
-    # , 'controller':'hyperion.controller.osa/osacontroller', 'port':'AUTO'
     from hyperion import _logger_format, _logger_settings
     logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[

@@ -39,14 +39,10 @@ class ExampleGui(QWidget):
         self.button_2 = QPushButton('end button',self)
         self.button_2.setToolTip('end the function')
         self.button_2.move(90, 10)
-        #self.button_2.setEnabled(False)
         self.button_2.clicked.connect(self.stop_on_click_function)
         self.show()
     def on_click(self):
-        #disable the ability to press the button multiple times
-        #self.button.setEnabled(False)
-        #self.button_2.setEnabled(True)
-        #make this a long function.
+        #initialize a long test function.
         self.worker_thread = WorkThread(self.go_to_sleep)
         self.worker_thread.start()
 

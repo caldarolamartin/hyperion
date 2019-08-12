@@ -93,7 +93,7 @@ class App(QMainWindow):
 
     def draw_random_graph(self):
         """"
-        Simple code to make a literal random graph using pyqt5 stuff.
+        Simple code to make a literal random graph using pyqt5 plotting stuff.
         """
         self.ydata = [random.random() for i in range(25)]
         self.xdata = [random.random() for i in range(25)]
