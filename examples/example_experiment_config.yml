@@ -26,6 +26,7 @@ Instruments:
     instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
     controller: hyperion.controller.osa.osa_controller/OsaController
     view: hyperion.view.osa.osa_view/App
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
     dummy: False
 
 Data:

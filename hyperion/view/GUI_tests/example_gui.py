@@ -25,7 +25,6 @@ class ExampleGui(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-
         self.setAutoFillBackground(True)
         self.p = self.palette()
         self.p.setColor(self.backgroundRole(), Qt.red)

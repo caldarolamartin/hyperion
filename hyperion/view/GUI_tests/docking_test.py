@@ -190,6 +190,8 @@ class App(QMainWindow):
             vbox.addWidget(self.random_plot)
             dock_widget_content.setLayout(vbox)
             dock.setWidget(dock_widget_content)
+        elif name == "central_dock_1_ariel":
+            dock.setWidget(self.experiment.view_instances["OsaInstrumentGraph"])
         else:
             string_list = [self.randomString(5) for n in range(5)]
             listwidget = QListWidget(dock)
@@ -288,6 +290,10 @@ class App(QMainWindow):
             if not instrument == 'VariableWaveplate':
                 #get the right name
                 self.ins_bag[instrument] = self.load_gui(instrument)
+                for index in self.experiment.properties['Instruments'][instrument]:
+                    #get an additional gui(if available) on which will be a graph.
+                    if index == "graphView":
+                        self.load_draw_gui(instrument)
     def load_gui(self, name):
         """
         Create instances of gui's and returns these to the load_intefaces.
@@ -307,6 +313,17 @@ class App(QMainWindow):
         except KeyError:
             print("the key(aka, your view/gui) does not exist in properties,\n meaning that it is not in the .yml file.")
             return None
+
+    def load_draw_gui(self, name):
+        dictionairy = self.experiment.properties['Instruments'][name]
+        module_name, class_name = dictionairy['graphView'].split('/')
+        MyClass = getattr(importlib.import_module(module_name), class_name)
+        # instr is variable that will be the instrument name of a device. For example: OsaInstrument.
+        instr = ((dictionairy['instrument']).split('/')[1])
+        instance = MyClass()
+        # Getting certain uniquetiy by addiding _graph as a name. For example: OsaInstrumentGraph.
+        self.experiment.view_instances[name + "Graph"] = instance
+
 
     def initUI(self):
         self.set_gui_specifics()

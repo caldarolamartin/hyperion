@@ -20,7 +20,6 @@ What goes wrong is that at some point after the gui is initialized the connectio
 An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. 
 Never shot is always mis
 """
-#todo split the gui into a gui to enter parameters and a gui to plot data in.
 class App(QWidget):
 
     def __init__(self, instr):
@@ -298,7 +297,7 @@ class DrawSpectrum(QWidget):
         self.setGeometry(self.left, self.top, self.width, self.height)
         vbox = QVBoxLayout()
         vbox.addWidget(self.random_plot)
-        self.setWidget(self.setLayout(vbox))
+        self.setLayout(vbox)
         self.show()
 
 if __name__ == '__main__':
