@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QStandardItem, QColor
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit
 from hyperion.instrument.variable_waveplate.variable_waveplate import VariableWaveplate
 from hyperion import Q_
@@ -83,7 +84,7 @@ class VariableWaveplateGui(QWidget):
         self.grid_layout.addWidget(self.frequency_textfield, 0, 3)
     def set_quater_waveplate_textfield(self):
         self.quater_waveplate_textfield = QLineEdit(self)
-        self.quater_waveplate_textfield.setText("Idk, as Martin")
+        self.quater_waveplate_textfield.setText("Idk, ask Martin")
         self.grid_layout.addWidget(self.quater_waveplate_textfield, 3, 1)
     def set_voltage_2_textfield(self):
         self.voltage_2_textfield = QLineEdit(self)
@@ -106,11 +107,33 @@ class VariableWaveplateGui(QWidget):
     def set_mode_combobox(self):
         self.mode_combobox = QComboBox(self)
         self.mode_combobox.addItems(["Voltage1", "Voltage2", "Modulation"])
+        #making sure that the user can only enter values in the right textbox when
+        #changes are made to the mode it is in.
+        self.voltage_2_textfield.setReadOnly(True)
+        self.mode_combobox.currentIndexChanged.connect(self.set_channel_textfield_disabled)
         self.grid_layout.addWidget(self.mode_combobox, 0, 1)
     def set_output_dropdown(self):
         self.output_combobox = QComboBox(self)
-        self.output_combobox.addItems(["On", "Off"])
+        model = self.output_combobox.model()
+        items = ["On", "Off"]
+        for row in items:
+            item = QStandardItem(str(row))
+            if row == "On":
+                item.setForeground(QColor('green'))
+            elif row == "Off":
+                item.setForeground(QColor('red'))
+            model.appendRow(item)
         self.grid_layout.addWidget(self.output_combobox, 1, 3)
+    def set_channel_textfield_disabled(self):
+        if self.mode_combobox.currentText() == "Voltage1":
+            self.voltage_1_textfield.setReadOnly(False)
+            self.voltage_2_textfield.setReadOnly(True)
+        elif self.mode_combobox.currentText() == "Voltage2":
+            self.voltage_1_textfield.setReadOnly(True)
+            self.voltage_2_textfield.setReadOnly(False)
+        elif self.mode_combobox.currentText() == "Modulation":
+            self.voltage_1_textfield.setReadOnly(False)
+            self.voltage_2_textfield.setReadOnly(False)
 
     def get_mode(self):
         return self.mode_combobox.currentText()
@@ -119,7 +142,6 @@ class VariableWaveplateGui(QWidget):
         self.set_output_mode()
 
         if self.get_mode() == "Voltage1":
-            # self.variable_waveplate_ins.set_analog_value(1, (20 * Q_("V")))
             self.variable_waveplate_ins.mode = 1
             self.variable_waveplate_ins.set_analog_value(1, (self.voltage_1_textfield.text() * Q_("V")))
         elif self.get_mode() == "Voltage2":
