@@ -159,7 +159,10 @@ class TDC001(BaseController):
         if (filename is not None):
             lib = ctypes.windll.LoadLibrary(filename)
         else:
-            filename = "%s/"% os.path.dirname(__file__)+bitsystem[0]+"APT.dll" 
+            filename = "%s\\"% os.path.dirname(__file__)+bitsystem[0]+"APT.dll"
+            #filename = "C://Program Files//Thorlabs//APT//APT.dll"
+
+            print(filename)
             lib = ctypes.windll.LoadLibrary(filename)
             if (lib is None):
                 filename = "%s/" % os.path.dirname(sys.argv[0])+bitsystem[0]+"APT.dll"
