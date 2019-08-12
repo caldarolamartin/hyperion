@@ -27,8 +27,7 @@ class ExampleGui(QWidget):
 
         self.setAutoFillBackground(True)
         self.p = self.palette()
-        self.p.setColor(self.backgroundRole(), Qt.red)
-        self.setPalette(self.p)
+        self.set_color(Qt.red)
 
         self.button = QPushButton('start button', self)
         self.button.setToolTip('This is an example button')
@@ -40,6 +39,11 @@ class ExampleGui(QWidget):
         self.button_2.move(90, 10)
         self.button_2.clicked.connect(self.stop_on_click_function)
         self.show()
+
+    def set_color(self, color):
+        self.p.setColor(self.backgroundRole(), color)
+        self.setPalette(self.p)
+
     def on_click(self):
         #initialize a long test function.
         self.worker_thread = WorkThread(self.go_to_sleep)
@@ -55,12 +59,10 @@ class ExampleGui(QWidget):
 
     def go_to_sleep(self):
         self.button.setEnabled(False)
-        self.p.setColor(self.backgroundRole(), Qt.yellow)
-        self.setPalette(self.p)
+        self.set_color(Qt.yellow)
         time.sleep(4)
         print('button click')
-        self.p.setColor(self.backgroundRole(), Qt.red)
-        self.setPalette(self.p)
+        self.set_color(Qt.red)
         self.button.setEnabled(True)
 
 if __name__ == '__main__':
