@@ -4,16 +4,18 @@
 Osa Instrument
 ==================
 
-This is the osa instrument, created to have a place where the view can send requests and
-the controller can get the data the view want's to show. so data flows controller > instrument > view
+This is the osa instrument, created to be able to indirectly talk to the device through controller and
+get data which can be shown in the. So request for doing things go view > instrument > controller
+
+This class uses pint to give units to the variables.
 
 """
 import logging
 import sys
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion import ur, root_dir, Q_
-import yaml     # TEMPORARILY ADDED TO TEST pftl_example view
+from hyperion import ur, Q_
+import yaml
 
 class OsaInstrument(BaseInstrument):
     """
@@ -21,15 +23,25 @@ class OsaInstrument(BaseInstrument):
     """
     def __init__(self, settings = {'port':'COM10', 'dummy': False,
                                    'controller': 'hyperion.controller.osa/OsaController'}):
-        """ init of the osa_instrument class"""
+        """ Init of the class.
+
+        It needs a settings dictionary that contains the following fields (mandatory)
+
+            * port: COM port name where the osa is connected
+            * dummy: logical to say if the connection is real or dummy (True means dummy)
+            * controller: this should point to the controller to use and with / add the name of the class to use
+
+        Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
+        i.e. the class will automatically overwrite the 'controller' with 'hyperion.controller.thorlabs.lcc25/OsaDummy'
+"""
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class OsaInstrument has been created.')
         self.is_busy = None
+        #plotting variables
         self.wav = None
         self.spec = None
 
-    # TEMPORARILY ADDED TO TEST pftl_example view
     def load_config(self, filename=None):
         """Loads the configuration file to generate the properties of the Scan and Monitor.
 
@@ -46,15 +58,13 @@ class OsaInstrument(BaseInstrument):
         self.properties['User'] = self.properties['User']['name']
 
     def initialize(self):
-        """ Starts the connection to the osa machine
-        """
+        """ Starts the connection to the osa machine"""
         self.logger.info('Opening connection to OSA machine.')
         self.controller.initialize()
         self.is_busy = False
 
     def finalize(self):
-        """ this is to close connection to the osa machine
-        """
+        """ this is to close connection to the osa machine"""
         self.logger.info('Closing connection to OSA machine.')
         self.controller.finalize()
 
@@ -117,8 +127,8 @@ class OsaInstrument(BaseInstrument):
     def is_end_wav_bigger_than_start_wav(self, end_wav, start_wav):
         """
         Check to see if end_wav is bigger than the start_wav
-        :param end_wav:
-        :param start_wav:
+        :param end_wav: a pint quantity
+        :param start_wav: a pint quantity
         :return: boolean, true if condition passed, false if condition failed.
         """
         if end_wav.m_as('nm') < start_wav.m_as('nm'):
