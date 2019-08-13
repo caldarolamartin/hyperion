@@ -160,11 +160,10 @@ class TDC001(BaseController):
             lib = ctypes.windll.LoadLibrary(filename)
         else:
             filename = "%s\\"% os.path.dirname(__file__)+bitsystem[0]+"APT.dll"
-            #filename = "C://Program Files//Thorlabs//APT//APT.dll"
-
             print(filename)
             lib = ctypes.windll.LoadLibrary(filename)
             if (lib is None):
+                print('Lib is none')
                 filename = "%s/" % os.path.dirname(sys.argv[0])+bitsystem[0]+"APT.dll"
                 lib = ctypes.windll.LoadLibrary(lib)
                 if (lib is None):
@@ -336,6 +335,7 @@ class TDC001(BaseController):
         # initialize device
         if serial_number is None:
             serial_number = self._serial_number
+        self._serial_number=serial_number    
         err_code = self._lib.InitHWDevice(serial_number)
         if (err_code != 0):
             raise Exception("Could not initialize device: %s" %
