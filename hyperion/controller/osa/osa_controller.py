@@ -32,12 +32,13 @@ class OsaController(BaseController):
         self._rm = visa.ResourceManager()
         self._resource_list = self._rm.list_resources()
         self._osa = None
+        #these are @properties variables
         self._start_wav = None
         self._end_wav = None
         self._optical_resolution = None
         self._sample_points = None
-        self._settings = settings
         self._sensitivity = None                # will match value of OSA (1-6)
+        self._settings = settings
         if 'port' in self._settings:
             self._port = self._settings['port']
         else:
@@ -47,7 +48,7 @@ class OsaController(BaseController):
         self._sens_commands = ['SH1', 'SH2', 'SH3', 'SNHD', 'SNAT', 'SMID']
 
     def initialize(self):
-        """ Starts the connection to the device in port """
+        """ Starts the connection to the device with given port """
         self.logger.info('Opening connection to OSA')
 
         if self._port == 'AUTO':
@@ -75,8 +76,8 @@ class OsaController(BaseController):
         """
         Method to let the program do nothing for a while
         in order to create enough time to let the osa machine take a spectrum.
-        If timeout is not specified a timeout will be calculated and used.
         :param timeout: time in seconds how long the program must wait before it resumes
+        if no timeout is specified a timeout will be calculated using self._time_constants
         :return: -
         """
         if timeout==None:
@@ -156,7 +157,7 @@ class OsaController(BaseController):
                 self.logger.warning("The sample points value did not set in OSA")
 
     @property
-    def sensitivity(self):          # this is a string
+    def sensitivity(self):
         self._sensitivity = int(self._osa.query_ascii_values('SENS?')[0])
         return self._sensitivities[self._sensitivity - 1]
 
@@ -175,8 +176,7 @@ class OsaController(BaseController):
 
     def perform_single_sweep(self):
         """
-        Gives a command to the osa machine to
-        do a single sweep.
+        Gives a command to the osa machine to perform a single sweep.
         :return:
         """
         self._osa.write('SGL')
@@ -185,7 +185,8 @@ class OsaController(BaseController):
         """
         Calculates the data created with the single sweep.
         Wait for OSA to finish before grabbing data
-        :return:
+        :return: wav: an list of the wavelengths \
+        spec: an list with spectrum data.
         """
         wav = self._osa.query_ascii_values('WDATA')[1:]
         spec = self._osa.query_ascii_values('LDATA')[1:]
@@ -212,7 +213,7 @@ class OsaController(BaseController):
         return 'ExampleController device'
 
     def query(self, msg):
-        """ writes into the device msg
+        """ writes into the device message
 
         :param msg: command to write into the device port
         :type msg: string
@@ -222,21 +223,6 @@ class OsaController(BaseController):
         self.write(msg)
         ans = self.read()
         return ans
-
-    def read(self):
-        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
-
-        :return: fake result
-        :rtype: string
-        """
-        return 'A'
-
-    def write(self, msg):
-        """ Writes into the device
-        :param msg: message to be written in the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the device:{}'.format(msg))
 
 
     def set_settings_for_osa(self):
@@ -275,8 +261,19 @@ class OsaControllerDummy(OsaController):
         self.logger.debug('Writing into the dummy device:{}'.format(msg))
         ans = 'A general dummy answer'
         return ans
+    def read(self):
+        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
 
-
+        :return: fake result
+        :rtype: string
+        """
+        return 'A'
+    def write(self, msg):
+        """ Writes into the device
+        :param msg: message to be written in the device port
+        :type msg: string
+        """
+        self.logger.debug('Writing into the device:{}'.format(msg))
 
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings

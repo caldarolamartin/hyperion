@@ -20,7 +20,7 @@ from hyperion.controller.base_controller import BaseController
 
 
 class Lcc(BaseController):
-    """ This class is to controls the LCC25 thorlabs driver for a liquid crystal variable wavelpate.
+    """ This class is to controls the LCC25 thorlabs driver for a liquid crystal variable waveplate.
 
 
     """
