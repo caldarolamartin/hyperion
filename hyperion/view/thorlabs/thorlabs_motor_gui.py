@@ -1,26 +1,38 @@
 import sys
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,
-                             QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QSlider, QLabel)
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QSlider, QLabel)
+
+from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
+#todo make save logic
+#todo make recover logic
+#todo make slider logic. 
 
 class App(QWidget):
 
-    def __init__(self):
+    def __init__(self, motor_hub):
         super().__init__()
         self.title = 'PyQt5 simple window - pythonspot.com'
         self.left = 50
         self.top = 50
-        self.width = 640
-        self.height = 480
+        self.width = 400
+        self.height = 200
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
+        self.motor_hub = motor_hub
         self.initUI()
         
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
+        self.make_labels()
+        self.make_buttons()
+        self.make_sliders()
+        
+        self.show()
+        
+    def make_labels(self):    
+        #make labels:
         self.make_save_pos_1_label()
         self.make_save_pos_2_label()
         self.make_save_pos_3_label()
@@ -36,7 +48,7 @@ class App(QWidget):
         self.make_x_coordinate_current_label()
         self.make_y_coordinate_current_label()
         self.make_z_coordinate_current_label()
-        
+    def make_buttons(self):
         self.make_save_pos_1_button()
         self.make_save_pos_2_button()
         self.make_save_pos_3_button()
@@ -44,22 +56,19 @@ class App(QWidget):
         self.make_recover_2_button()
         self.make_recover_3_button()
         
+    def make_sliders(self):
         self.make_slider_z()
         self.make_slider_x()
         self.make_slider_y()
-        
-        self.show()
-    #make labels:
+    
     def make_save_pos_1_label(self):
         label = QLabel(self)
         label.setText("save pos. 1:")
-        self.grid_layout.addWidget(label, 1, 2)
-        
+        self.grid_layout.addWidget(label, 1, 2)        
     def make_save_pos_2_label(self):
         label = QLabel(self)
         label.setText("save pos. 2:")
-        self.grid_layout.addWidget(label, 2, 2)
-        
+        self.grid_layout.addWidget(label, 2, 2)        
     def make_save_pos_3_label(self):
         label = QLabel(self)
         label.setText("save pos. 3:")
@@ -69,17 +78,14 @@ class App(QWidget):
         label = QLabel(self)
         label.setText("recover 1:")
         self.grid_layout.addWidget(label, 1, 4)
-
     def make_recover_2_label(self):
         label = QLabel(self)
         label.setText("recover 2:")
         self.grid_layout.addWidget(label, 2, 4)
-
     def make_recover_3_label(self):
         label = QLabel(self)
         label.setText("recover 3:")
         self.grid_layout.addWidget(label, 3, 4)
-        
         
     def make_x_coordinate_second_label(self):
         label = QLabel(self)
@@ -98,12 +104,10 @@ class App(QWidget):
         label = QLabel(self)
         label.setText("x: ")
         self.grid_layout.addWidget(label, 0, 2)
-
     def make_y_coordinate_label(self):
         label = QLabel(self)
         label.setText("y: ")
-        self.grid_layout.addWidget(label, 0, 4)
-        
+        self.grid_layout.addWidget(label, 0, 4)        
     def make_z_coordinate_label(self):
         label = QLabel(self)
         label.setText("z: ")
@@ -112,13 +116,11 @@ class App(QWidget):
     def make_x_coordinate_current_label(self):
         self.x_coordinate_label = QLabel(self)
         self.x_coordinate_label.setText("")
-        self.grid_layout.addWidget(self.x_coordinate_label, 1, 1)
-    
+        self.grid_layout.addWidget(self.x_coordinate_label, 1, 1)    
     def make_y_coordinate_current_label(self):
         self.y_coordinate_label = QLabel(self)
         self.y_coordinate_label.setText("")
-        self.grid_layout.addWidget(self.y_coordinate_label, 2, 1)
-    
+        self.grid_layout.addWidget(self.y_coordinate_label, 2, 1)    
     def make_z_coordinate_current_label(self):
         self.z_coordinate_label = QLabel(self)
         self.z_coordinate_label.setText("")
@@ -128,13 +130,11 @@ class App(QWidget):
     def make_save_pos_1_button(self):
         button = QPushButton('save pos 1', self)
         button.setToolTip('save the first position')
-        self.grid_layout.addWidget(button, 1, 3)
-    
+        self.grid_layout.addWidget(button, 1, 3)    
     def make_save_pos_2_button(self):
         button = QPushButton('save pos 2', self)
         button.setToolTip('save the second position')
-        self.grid_layout.addWidget(button, 2, 3)
-        
+        self.grid_layout.addWidget(button, 2, 3)        
     def make_save_pos_3_button(self):
         button = QPushButton('save pos 3', self)
         button.setToolTip('save the third position')
@@ -143,13 +143,11 @@ class App(QWidget):
     def make_recover_1_button(self):
         button = QPushButton('recover 1', self)
         button.setToolTip('recover the first position')
-        self.grid_layout.addWidget(button, 1, 5)
-        
+        self.grid_layout.addWidget(button, 1, 5)        
     def make_recover_2_button(self):
         button = QPushButton('recover 2', self)
         button.setToolTip('recover the second position')
-        self.grid_layout.addWidget(button, 2, 5)
-        
+        self.grid_layout.addWidget(button, 2, 5)        
     def make_recover_3_button(self):
         button = QPushButton('recover 3', self)
         button.setToolTip('recover the third position')
@@ -160,30 +158,28 @@ class App(QWidget):
         self.slider_z = QSlider(Qt.Vertical, self)
         self.slider_z.setFocusPolicy(Qt.StrongFocus)
         self.slider_z.setTickPosition(QSlider.TicksBothSides)
-        self.slider_z.setTickInterval(30)
+        self.slider_z.setTickInterval(10)
         self.slider_z.setSingleStep(1)
-        self.grid_layout.addWidget(self.slider_z, 0, 1)
-        
+        self.grid_layout.addWidget(self.slider_z, 0, 1)        
     def make_slider_x(self):
         self.slider_x = QSlider(Qt.Vertical, self)
         self.slider_x.setFocusPolicy(Qt.StrongFocus)
         self.slider_x.setTickPosition(QSlider.TicksBothSides)
-        self.slider_x.setTickInterval(30)
+        self.slider_x.setTickInterval(10)
         self.slider_x.setSingleStep(1)
         self.grid_layout.addWidget(self.slider_x, 0, 3)
-        
-        
     def make_slider_y(self):
         self.slider_y = QSlider(Qt.Vertical, self)
-        self.slider_y.setFocusPolicy(Qt.StrongFocus)
+        self.slider_y.setFocusPolicy(Qt.NoFocus)
         self.slider_y.setTickPosition(QSlider.TicksBothSides)
-        self.slider_y.setTickInterval(30)
-        self.slider_y.setSingleStep(1)
+        self.slider_y.setTickInterval(10)
+        self.slider_y.setSingleStep(0)
         self.grid_layout.addWidget(self.slider_y, 0, 5)
         
         
         
 if __name__ == '__main__':
+    motor_hub = Thorlabsmotor()
     app = QApplication(sys.argv)
-    ex = App()
+    ex = App(motor_hub)
     sys.exit(app.exec_())
