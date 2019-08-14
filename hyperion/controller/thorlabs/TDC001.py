@@ -50,7 +50,7 @@ and then moved relative by 45 degree.
 ```python
     >>> from hyperion.controller.thorlabs.TDC001 import TDC001
 	>>> checkdevices = TDC001()
-	>>> checkdevices.list_available_device()
+	>>> checkdevices.list_available_devices()
 	>>> [(31,81818251)]
     >>> motorx = TDC001()
 	>>> motorx.initialize(81818251)

@@ -19,6 +19,15 @@ Instruments:
       dummy: True
       settings:
         output: True
+  - ThorlabsMotor:
+      xMotor: 83817644
+      yMotor: 83815760
+      zMotor: 83815758
+      testMotor: 83817677
+      piezoMotor: 81818266
+  
+  
+   
 Data:
   save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
   data_type: txt

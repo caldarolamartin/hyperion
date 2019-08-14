@@ -11,7 +11,7 @@ Example:
 ```python
     >>>  from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 	>>> checkdevices = Thorlabsmotor()
-	>>> checkdevices.list_available_device()
+	>>> checkdevices.list_available_devices()
 	>>> [(31,81818251)]
     >>> motorx = Thorlabsmotor()
 	>>> motorx.initialize(81818251)
