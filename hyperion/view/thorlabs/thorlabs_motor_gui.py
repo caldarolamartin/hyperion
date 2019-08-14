@@ -4,8 +4,27 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
                              QComboBox, QLineEdit)
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
+#import keyboard 
 #todo make save logic
 #todo make recover logic
+
+
+"""
+code om te implementeren op een gegeven moment. FF vragen aan ben of hij
+weet hoe je dit kan implementeren in de code hier onder. 
+https://stackoverflow.com/questions/24072790/detect-key-press-in-python
+
+import keyboard  # using module keyboard
+while True:  # making a loop
+    try:  # used try so that if user pressed other than the given key error will not be shown
+        if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+            print('You Pressed A Key!')
+            break  # finishing the loop
+        else:
+            pass
+    except:
+        break  # if user pressed a key other than the given key the loop will break
+"""
 
 class App(QWidget):
 
@@ -122,7 +141,7 @@ class App(QWidget):
     def make_motor_current_position_label(self):
         self.current_motor_position_label = QLabel(self)
         try:
-            self.current_motor_position_label.setText(self.motor_bag[str(self.motor_combobox.currentText())].controller.position)
+            self.current_motor_position_label.setText(self.motor_bag[self.motor_combobox.currentText()].controller.position())
         except Exception:
             self.current_motor_position_label.setText("currently\nunavailable")
         self.grid_layout.addWidget(self.current_motor_position_label, 1, 5)    
@@ -175,6 +194,8 @@ class App(QWidget):
         self.slider_z.setValue(5)
         self.slider_z.setTickInterval(9)
         #self.slider_z.setSingleStep(1)
+        
+        
         self.slider_z.sliderReleased.connect(self.set_slider_z_to_the_middle)
         self.slider_z.sliderMoved.connect(self.make_slider_z_motor_move)
         self.grid_layout.addWidget(self.slider_z, 4, 5)     
@@ -209,6 +230,7 @@ class App(QWidget):
         for index in self.motor_hub.controller.list_available_devices():
             list_with_motors.append(str(index[1]))
         self.motor_combobox.addItems(list_with_motors)
+        self.motor_combobox.currentIndexChanged.connect(self.set_current_motor_label)
         self.grid_layout.addWidget(self.motor_combobox, 1, 7)
     def make_go_to_input_textfield(self):
         self.input_textfield = QLineEdit(self)
@@ -256,7 +278,10 @@ class App(QWidget):
         elif self.slider_y.value() < 5:
             #moving reverse
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
-        
+    
+    def set_current_motor_label(self):
+        #in this function the position value is retrieved and round + set in a label.
+        self.current_motor_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
         
     def go_home_motor(self):
         selected_motor = str(self.motor_combobox.currentText())
