@@ -53,7 +53,7 @@ and then moved relative by 45 degree.
 	>>> checkdevices.list_available_devices()
 	>>> [(31,81818251)]
     >>> motorx = TDC001()
-	>>> motorx.initialize(81818251)
+	>>> motorx.initialize(83817677)
     >>> motorx.move_home(True)
     >>> motorx.move_by(0.01)
 ```

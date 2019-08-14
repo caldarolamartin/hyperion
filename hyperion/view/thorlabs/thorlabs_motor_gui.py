@@ -259,9 +259,17 @@ class App(QWidget):
         self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
     def make_slider_z_motor_move(self):
         if self.slider_z.value() > 5:
+            if self.slider_z.value() > 7:
+                param = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
+                self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(param[0], param[1], 0.5)
+                self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
             #moving forward
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
         elif self.slider_z.value() < 5:
+            if self.slider_z.value() < 3:
+                param = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
+                self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(param[0], param[1], 0.1)
+                self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
             #moving reverse
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
     def make_slider_x_motor_move(self):
