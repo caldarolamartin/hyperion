@@ -6,13 +6,12 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 #todo make save logic
 #todo make recover logic
-#todo make slider logic. 
 
 class App(QWidget):
 
     def __init__(self, motor_hub):
         super().__init__()
-        self.title = 'PyQt5 simple window - pythonspot.com'
+        self.title = 'thorlabs motors GUI'
         self.left = 50
         self.top = 50
         self.width = 400
@@ -171,22 +170,37 @@ class App(QWidget):
         self.slider_z = QSlider(Qt.Vertical, self)
         self.slider_z.setFocusPolicy(Qt.StrongFocus)
         self.slider_z.setTickPosition(QSlider.TicksBothSides)
-        self.slider_z.setTickInterval(10)
-        self.slider_z.setSingleStep(1)
-        self.grid_layout.addWidget(self.slider_z, 4, 5)        
+        self.slider_z.setMinimum(1)
+        self.slider_z.setMaximum(9)
+        self.slider_z.setValue(5)
+        self.slider_z.setTickInterval(9)
+        #self.slider_z.setSingleStep(1)
+        self.slider_z.sliderReleased.connect(self.set_slider_z_to_the_middle)
+        self.slider_z.sliderMoved.connect(self.make_slider_z_motor_move)
+        self.grid_layout.addWidget(self.slider_z, 4, 5)     
     def make_slider_x(self):
         self.slider_x = QSlider(Qt.Vertical, self)
         self.slider_x.setFocusPolicy(Qt.StrongFocus)
         self.slider_x.setTickPosition(QSlider.TicksBothSides)
-        self.slider_x.setTickInterval(10)
+        self.slider_x.setMinimum(1)
+        self.slider_x.setMaximum(9)
+        self.slider_x.setValue(5)
+        self.slider_x.setTickInterval(9)
         self.slider_x.setSingleStep(1)
+        self.slider_x.sliderReleased.connect(self.set_slider_x_to_the_middle)
+        self.slider_x.sliderMoved.connect(self.make_slider_x_motor_move)
         self.grid_layout.addWidget(self.slider_x, 4, 1)
     def make_slider_y(self):
         self.slider_y = QSlider(Qt.Vertical, self)
         self.slider_y.setFocusPolicy(Qt.NoFocus)
         self.slider_y.setTickPosition(QSlider.TicksBothSides)
-        self.slider_y.setTickInterval(10)
-        self.slider_y.setSingleStep(0)
+        self.slider_y.setMinimum(1)
+        self.slider_y.setMaximum(9)
+        self.slider_y.setValue(5)
+        self.slider_y.setTickInterval(9)
+        self.slider_y.setSingleStep(1)
+        self.slider_y.sliderReleased.connect(self.set_slider_y_to_the_middle)
+        self.slider_y.sliderMoved.connect(self.make_slider_y_motor_move)
         self.grid_layout.addWidget(self.slider_y, 4, 3)
         
     def make_dropdown_motor(self):    
@@ -212,7 +226,38 @@ class App(QWidget):
                                     'serial_number' : str(self.motor_hub.controller.list_available_devices()[opteller][1])})
             self.motor_bag[serial_number].initialize(int(serial_number))
             opteller += 1
-            
+    def set_slider_z_to_the_middle(self):
+        self.slider_z.setValue(5)
+        self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+    def set_slider_x_to_the_middle(self):
+        self.slider_x.setValue(5)
+        self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+    def set_slider_y_to_the_middle(self):
+        self.slider_y.setValue(5)
+        self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+    def make_slider_z_motor_move(self):
+        if self.slider_z.value() > 5:
+            #moving forward
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+        elif self.slider_z.value() < 5:
+            #moving reverse
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+    def make_slider_x_motor_move(self):
+        if self.slider_x.value() > 5:
+            #moving forward
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+        elif self.slider_x.value() < 5:
+            #moving reverse
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+    def make_slider_y_motor_move(self):
+        if self.slider_y.value() > 5:
+            #moving forward
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+        elif self.slider_y.value() < 5:
+            #moving reverse
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+        
+        
     def go_home_motor(self):
         selected_motor = str(self.motor_combobox.currentText())
         self.motor_bag[selected_motor].controller.move_home(True)
