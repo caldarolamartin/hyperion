@@ -214,7 +214,6 @@ class App(QMainWindow):
         """
         Old code needed to have an example of how to add a QdockWidget by hand.
         For the rest, it is not needed.
-        :return:
         """
         """
                 # how to add Qobjects to a dockable goes as follows.
@@ -297,6 +296,7 @@ class App(QMainWindow):
     def load_gui(self, name):
         """
         Create instances of gui's and returns these to the load_intefaces.
+
         :param name: name of view to load. It has to be specified in the config file under Instruments
         :type name: string
         """

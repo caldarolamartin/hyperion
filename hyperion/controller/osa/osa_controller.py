@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-==================
+==============
 Osa controller
-==================
+==============
 
 This controller (osa.py) supplies one class with several methods to communicate
     with the osa machine from ando AQ6317B model: ?
@@ -76,9 +76,11 @@ class OsaController(BaseController):
         """
         Method to let the program do nothing for a while
         in order to create enough time to let the osa machine take a spectrum.
+
         :param timeout: time in seconds how long the program must wait before it resumes
         if no timeout is specified a timeout will be calculated using self._time_constants
-        :return: -
+        :type timeout: float
+
         """
         if timeout==None:
             timeout = 4.0 + 1.05 * self._sample_points * self._time_constants[self._sensitivity-1]
@@ -177,7 +179,6 @@ class OsaController(BaseController):
     def perform_single_sweep(self):
         """
         Gives a command to the osa machine to perform a single sweep.
-        :return:
         """
         self._osa.write('SGL')
 
@@ -185,8 +186,9 @@ class OsaController(BaseController):
         """
         Calculates the data created with the single sweep.
         Wait for OSA to finish before grabbing data
-        :return: wav: an list of the wavelengths \
-        spec: an list with spectrum data.
+
+        :return wav: an list of the wavelengths, spec an list with spectrum data.
+        :rtype wav: a list of floats and a list of floats
         """
         wav = self._osa.query_ascii_values('WDATA')[1:]
         spec = self._osa.query_ascii_values('LDATA')[1:]
@@ -196,7 +198,6 @@ class OsaController(BaseController):
     def finalize(self):
         """ This method closes the connection to the device.
         It is ran automatically if you use a with block
-
         """
         self.logger.info('Closing connection to device.')
         self._osa.close()
@@ -229,8 +230,8 @@ class OsaController(BaseController):
         """
         in this method the parameters for the osa machine are set with
         hand in order to quickly get results.
+
         :param self: the osa device object.
-        :return: -
         """
         # start and end between 600.00 and 1750.00
         self.start_wav = 900.00
@@ -270,6 +271,7 @@ class OsaControllerDummy(OsaController):
         return 'A'
     def write(self, msg):
         """ Writes into the device
+
         :param msg: message to be written in the device port
         :type msg: string
         """

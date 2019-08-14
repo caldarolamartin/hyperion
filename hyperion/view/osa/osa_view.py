@@ -23,6 +23,9 @@ Never shot is always mis
 class App(QWidget):
 
     def __init__(self, instr):
+        """ Init of the class.
+            The class needs an instance of the osa instrument.
+        """
         super().__init__()
         self.title = 'PyQt5 just a window'
         self.left = 50          #how many pixels are away from the left of the GUI
@@ -37,6 +40,9 @@ class App(QWidget):
         self.initUI()
 
     def initUI(self):
+        """
+        This method initialises all the QWidgets needed.
+        """
         self.set_gui_constructor()
 
         self.set_textboxs()
@@ -51,20 +57,20 @@ class App(QWidget):
         self.show()
 
     def set_gui_constructor(self):
-        # a constructor to set the properties of  the GUI in
+        """ a constructor to set the properties of  the GUI in"""
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         #self.statusBar().showMessage("Just some text")
 
     def set_recommended_sample_points_button(self):
-        # calculate the recommended sample_points
+        """calculate the recommended sample_points"""
         button_calculate_recommended_sample_points = QPushButton('get recommended sample_points', self)
         button_calculate_recommended_sample_points.setToolTip(
             "click this button to \n get the recommended sample_points")
         self.layout.addWidget(button_calculate_recommended_sample_points, 11, 0)
         # button_calculate_recommended_sample_points.clicked.connect(self.on_click_recommended)
     def set_submit_button(self):
-        # submit button code
+        """code to make the submit button """
         self.button_submit = QPushButton('submit', self)
         self.button_submit.setToolTip('You are hovering over the button, \n what do you expect?')
         self.layout.addWidget(self.button_submit, 12, 0)
@@ -80,16 +86,16 @@ class App(QWidget):
         # set the sensitivity label
         self.layout.addWidget(QLabel("the sensitivity"), 8, 0)
     def set_sample_points_label(self):
-        # the sample points label
+        # set the sample points label
         self.layout.addWidget(QLabel("the amount of sample points"), 6, 0)
     def set_optical_resolution_label(self):
-        # the optical resolution label
+        # set the optical resolution label
         self.layout.addWidget(QLabel("the optical resolution in stepvalue of nm"), 4, 0)
     def set_end_wav_label(self):
-        # the end_wav label
+        # set the end_wav label
         self.layout.addWidget(QLabel("the end wavelength, from 600.00 nm to 1750.00 nm"), 2, 0)
     def set_start_wav_label(self):
-        # the start_wav label
+        # set the start_wav label
         self.layout.addWidget(QLabel("the start wavelength, from 600.00 nm to 1750.00 nm"), 0, 0)
 
     def set_textboxs(self):
@@ -99,7 +105,7 @@ class App(QWidget):
         self.set_sample_points_textbox()
         self.set_sensitivity_dropdown()
     def set_sensitivity_dropdown(self):
-        # this is the sensitivity_dropdown
+        """"code to make the sensitivity_dropdown """
         self.dropdown_sensitivity = QComboBox(self)
         self.dropdown_sensitivity.addItems(
             ["sensitivity normal range", "sensitivity normal range automatic", "sensitivity medium range",
@@ -110,7 +116,7 @@ class App(QWidget):
         self.textbox_sample_points = QLineEdit(self)
         self.layout.addWidget(self.textbox_sample_points, 7, 0)
     def set_optical_resolution_textbox(self):
-        # this is the optical_resolution_dropdown
+        """"code to make the optical_resolution dropdown"""
         self.dropdown_optical_resolution = QComboBox(self)
         self.dropdown_optical_resolution.addItems(["0.01", "0.02", "0.05", "0.1", "0.2", "0.5", "1.0", "2.0", "5.0"])
         self.layout.addWidget(self.dropdown_optical_resolution, 5, 0)
@@ -130,6 +136,10 @@ class App(QWidget):
 
 
     def on_click_recommended(self):
+        """"when the recommend sample points button is clicked
+        the textfield will be set empty and the recommend sample points will be calculated.
+        using the formula: 1 + (2*(end_wav  - start_wav)/float(optical_resolution))
+        """
         print("the recommended sample points will be calculated ")
         if self.instr.controller._is_initialized:
             self.instr.controller.perform_single_sweep()
@@ -205,8 +215,10 @@ class App(QWidget):
             str(int(1 + (2 * (Q_(self.textbox_end_wav.text()) - Q_(self.textbox_start_wav.text())).m_as('nm') / float(
                 self.dropdown_optical_resolution.currentText())))))
 
-    ###########################################################################################
     def on_click_submit(self):
+        """"
+        In this method there is a request to do a single sweep and plot the data.
+        """
         if self.instr.controller._is_initialized:
             self.instr.controller.perform_single_sweep()
         else:
@@ -259,6 +271,10 @@ class App(QWidget):
         self.worker_thread.start()
 
     def plot_data(self):
+        """
+        Plot the data. On the x axis there is the wavelength and the y axis is the
+        spectrometer data.
+        """
         wav = self.instr.wav
         spec = self.instr.spec
         self.draw = DrawSpectrum

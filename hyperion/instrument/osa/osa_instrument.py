@@ -33,7 +33,7 @@ class OsaInstrument(BaseInstrument):
 
         Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
         i.e. the class will automatically overwrite the 'controller' with 'hyperion.controller.thorlabs.lcc25/OsaDummy'
-"""
+        """
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class OsaInstrument has been created.')
@@ -46,6 +46,7 @@ class OsaInstrument(BaseInstrument):
         """Loads the configuration file to generate the properties of the Scan and Monitor.
 
         :param str filename: Path to the filename. Defaults to Config/experiment.yml if not specified.
+        :type: str
         """
         if filename is None:
             filename = 'Config/experiment.yml'
@@ -70,6 +71,7 @@ class OsaInstrument(BaseInstrument):
 
     def idn(self):
         """ Identify command
+
         :return: identification for the device
         :rtype: string
         """
@@ -118,8 +120,10 @@ class OsaInstrument(BaseInstrument):
 
     def __wav_in_range(self, wav):
         """
-        Is the given wavelength in range?
-        :param wav:
+        Is the given wavelength in range between 600 and 1750
+
+        :param wav: the start wavelength
+        :type: float
         :return: boolean
         """
         return (wav<1750.0 and wav>600.0)
@@ -127,8 +131,11 @@ class OsaInstrument(BaseInstrument):
     def is_end_wav_bigger_than_start_wav(self, end_wav, start_wav):
         """
         Check to see if end_wav is bigger than the start_wav
+
         :param end_wav: a pint quantity
+        :type: pint nm quantity
         :param start_wav: a pint quantity
+        :type: pint nm quantity
         :return: boolean, true if condition passed, false if condition failed.
         """
         if end_wav.m_as('nm') < start_wav.m_as('nm'):
@@ -138,8 +145,10 @@ class OsaInstrument(BaseInstrument):
             return False
     def is_end_wav_value_correct(self, end_wav):
         """
-        Is end_wav in range
+        Is end_wav in range between 600 and 1750
+
         :param end_wav: a pint quantity
+        :type: pint nm quantity
         :return: boolean, true if condition passed, false if condition failed.
         """
         if end_wav.m_as('nm') >= 600 and end_wav.m_as('nm') <= 1750:
@@ -149,8 +158,10 @@ class OsaInstrument(BaseInstrument):
             return False
     def is_start_wav_value_correct(self, start_wav):
         """
-        Is start_wav in range
-        :param start_wav:
+        Is start_wav in range between 600 and 1750 nm
+
+        :param start_wav: the startwavelength
+        :type: pint nm quantity
         :return:
         """
         if start_wav.m_as('nm') >= 600 and start_wav.m_as('nm') <= 1750:
@@ -162,10 +173,10 @@ class OsaInstrument(BaseInstrument):
     def take_spectrum(self):
         """
         Method where a spectrum will be taken using the osa machine.
+
         :return: wav, spec: two list containing the data from the taken spectrum.
         """
-        print('inside instrument: take_spectrum()')
-        #self.logging.info('taking spectrum')
+        self.logging.info('taking spectrum')
         self.is_busy = True
         self.controller.perform_single_sweep()
         self.controller.wait_for_osa()

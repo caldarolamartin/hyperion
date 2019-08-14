@@ -17,5 +17,6 @@ So far, we have contributed to this project:
 * Irina Komen
 * Marc Noordam
 * Thijs Van Gogh
+* Ariel Komen
 
 

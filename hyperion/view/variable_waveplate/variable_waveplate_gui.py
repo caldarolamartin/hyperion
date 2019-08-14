@@ -7,11 +7,14 @@ from hyperion import Q_
 #todo checkout if the device is on the computer if this class can work with the variablewaveplate/lcc25
 
 class VariableWaveplateGui(QWidget):
-    """"
-    The variable_waveplate gui
-    """
 
     def __init__(self, variable_waveplate_ins):
+        """
+        Init of the VariableWaveplateGui
+
+        :param variable_waveplate_ins:
+        :type an instance of the variable_waveplate instrument
+        """
         super().__init__()
         self.title = 'variable waveplate gui'
         self.left = 40
@@ -104,6 +107,9 @@ class VariableWaveplateGui(QWidget):
         self.grid_layout.addWidget(submit_button, 3, 3)
         submit_button.clicked.connect(self.submit_button_clicked)
     def set_mode_combobox(self):
+        """
+        With the combobox all the different modes are shown.
+        """
         self.mode_combobox = QComboBox(self)
         self.mode_combobox.addItems(["Voltage1", "Voltage2", "Modulation"])
         #making sure that the user can only enter values in the right textbox when
@@ -112,6 +118,11 @@ class VariableWaveplateGui(QWidget):
         self.mode_combobox.currentIndexChanged.connect(self.set_channel_textfield_disabled)
         self.grid_layout.addWidget(self.mode_combobox, 0, 1)
     def set_output_dropdown(self):
+        """
+        The output parameter is made.
+        The letters of the output combobox change depending on if the name is Onn(green) and
+        Off(red)
+        """
         self.output_combobox = QComboBox(self)
         model = self.output_combobox.model()
         items = ["On", "Off"]
@@ -124,6 +135,10 @@ class VariableWaveplateGui(QWidget):
             model.appendRow(item)
         self.grid_layout.addWidget(self.output_combobox, 1, 3)
     def set_channel_textfield_disabled(self):
+        """
+        if the mode is Voltage1 than it is not possible to
+        write something in textbox of Voltage 2
+        """
         if self.mode_combobox.currentText() == "Voltage1":
             self.voltage_1_textfield.setReadOnly(False)
             self.voltage_2_textfield.setReadOnly(True)
@@ -138,6 +153,11 @@ class VariableWaveplateGui(QWidget):
         return self.mode_combobox.currentText()
 
     def submit_button_clicked(self):
+        """
+        Get the paramters from the gui and sent these to the
+        instrument of the variable waveplate.
+        :return:
+        """
         self.set_output_mode()
 
         if self.get_mode() == "Voltage1":
