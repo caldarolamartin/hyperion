@@ -80,12 +80,12 @@ class ExampleExperiment(BaseExperiment):
         in the self.ins_bag. This way they are approachable via self.
         The option to set the instruments by hand is still possible. 
         """
-        self.ins_bag = {}
+        #self.ins_bag = {}
 
         for instrument in self.properties['Instruments']:
             if not instrument == 'VariableWaveplate':
-                self.ins_bag[instrument] = self.load_instrument(instrument)
-                self.logger.debug('Class'+instrument+": {}".format(self.ins_bag[instrument]))
+                self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+                self.logger.debug('Class'+instrument+": {}".format(self.instruments_instances[instrument]))
 
         # self.vwp = self.load_instrument('VariableWaveplate')
         # self.logger.debug('Class vwp: {}'.format(self.vwp))

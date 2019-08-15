@@ -22,7 +22,7 @@ Never shot is always mis
 """
 class App(QWidget):
 
-    def __init__(self, instr):
+    def __init__(self, instr, draw):
         """ Init of the class.
             The class needs an instance of the osa instrument.
         """
@@ -37,6 +37,7 @@ class App(QWidget):
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.instr = instr
+        self.draw = draw
         self.initUI()
 
     def initUI(self):
@@ -46,7 +47,7 @@ class App(QWidget):
         self.set_gui_constructor()
 
         self.set_textboxs()
-        # self.set_textboxs_to_osa_machine_values()
+        #self.set_textboxs_to_osa_machine_values()
 
         self.set_labels()
 
@@ -68,13 +69,13 @@ class App(QWidget):
         button_calculate_recommended_sample_points.setToolTip(
             "click this button to \n get the recommended sample_points")
         self.layout.addWidget(button_calculate_recommended_sample_points, 11, 0)
-        # button_calculate_recommended_sample_points.clicked.connect(self.on_click_recommended)
+        button_calculate_recommended_sample_points.clicked.connect(self.on_click_recommended)
     def set_submit_button(self):
         """code to make the submit button """
         self.button_submit = QPushButton('submit', self)
         self.button_submit.setToolTip('You are hovering over the button, \n what do you expect?')
         self.layout.addWidget(self.button_submit, 12, 0)
-        # self.button_submit.clicked.connect(self.on_click_submit)
+        self.button_submit.clicked.connect(self.on_click_submit)
 
     def set_labels(self):
         self.set_start_wav_label()
@@ -277,7 +278,6 @@ class App(QWidget):
         """
         wav = self.instr.wav
         spec = self.instr.spec
-        self.draw = DrawSpectrum
         self.draw.random_plot.plot(wav, spec, clear=True)
 
     def set_textboxs_to_osa_machine_values(self):
@@ -356,10 +356,11 @@ if __name__ == '__main__':
     
 
     with OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as instr:
+        draw = DrawSpectrum()
         instr.initialize()
 
         app = QApplication([])
-        ex = App(instr) #mandatory in order to call osainstrument in osa_view class
+        ex = App(instr, draw) #mandatory in order to call osainstrument in osa_view class
         ex.show()
 
         instr.finalize()

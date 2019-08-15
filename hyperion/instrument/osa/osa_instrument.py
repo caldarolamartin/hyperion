@@ -176,7 +176,7 @@ class OsaInstrument(BaseInstrument):
 
         :return: wav, spec: two list containing the data from the taken spectrum.
         """
-        self.logging.info('taking spectrum')
+        self.logger.info('taking spectrum')
         self.is_busy = True
         self.controller.perform_single_sweep()
         self.controller.wait_for_osa()
