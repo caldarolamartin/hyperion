@@ -13,7 +13,7 @@ class ExampleGui(QWidget):
 
     def __init__(self, example_ins):
         super().__init__()
-        self.title = 'PyQt5 button - pythonspot.com'
+        self.title = 'example gui'
         self.left = 10
         self.top = 10
         self.width = 320

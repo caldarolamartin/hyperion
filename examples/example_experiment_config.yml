@@ -21,6 +21,38 @@ Instruments:
     dummy: True
     settings:
       output: True
+  ExampleInstrument_2:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_3:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_4:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_5:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
   OsaInstrument:
     port: AUTO
     instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
@@ -28,6 +60,31 @@ Instruments:
     view: hyperion.view.osa.osa_view/App
     graphView: hyperion.view.osa.osa_view/DrawSpectrum
     dummy: False
+  Gui_with_graph:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView:  hyperion.view.GUI_tests.gui_with_graph/App
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_7:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_8:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    dummy: True
+    settings:
+      output: True
+
 
 Data:
   save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/

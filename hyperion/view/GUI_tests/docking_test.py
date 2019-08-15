@@ -16,7 +16,7 @@ class App(QMainWindow):
 
     def __init__(self, experiment):
         super().__init__()
-        self.title = 'PyQt5 simple window'
+        self.title = 'master gui'
         self.left = 40
         self.top = 40
         self.width = 800
@@ -27,6 +27,16 @@ class App(QMainWindow):
         self.setWindowTitle("Dock demo")
 
         self.initUI()
+    def initUI(self):
+        self.set_gui_specifics()
+
+        self.get_view_instances_and_load_instruments()
+
+        self.set_menu_bar()
+
+        self.make_automatic_dock_widgets()
+
+        self.show()
 
     def set_gui_specifics(self):
         """"
@@ -55,8 +65,8 @@ class App(QMainWindow):
         mainMenu = self.menuBar()
         self.fileMenu = mainMenu.addMenu('File')
         self.fileMenu.addAction("Exit NOW", self.close)
-        self.edge_dock_menu = mainMenu.addMenu('Edge Dock windows')
-        self.central_dock_menu = mainMenu.addMenu('Central Dock Windows')
+        self.instrument_menu = mainMenu.addMenu('Edge Dock windows')
+        self.visiualise_menu = mainMenu.addMenu('Central Dock Windows')
 
         self.draw_something = mainMenu.addMenu('draw')
         self.draw_something.addAction("Draw", self.draw_random_graph)
@@ -106,11 +116,14 @@ class App(QMainWindow):
         Each QDockWidget will be given it's specifics in the make_dock_widgets left and right + central left and right.
         The rest of the things will be filled in at the RandomDockWidget method.
         """
-        lijst_met_dock_widget = ["dock_1_ariel", "dock_2_ariel", "dock_3_ariel", "dock_4_ariel", "dock_5_ariel", "dock_6_ariel",
-                                 "central_dock_1_ariel", "central_dock_2_ariel", "central_dock_3_ariel", "central_dock_4_ariel"]
         self.dock_widget_dict = {}
         opteller = 0
-        for dock_widget in lijst_met_dock_widget:
+        """"
+        The thing is that you don't know what type of gui you have. 
+        This is because I throw all the gui's together in one dict, so maybe it is better to differentiate 
+        and make a second dict so you know which gui's should be in the central and which gui's should be on the sides. 
+        """
+        for dock_widget in self.experiment.view_instances.keys():
             if opteller <=2:
                 self.make_left_dock_widgets(dock_widget, opteller)
             elif opteller > 2 and opteller <=5:
@@ -121,7 +134,7 @@ class App(QMainWindow):
                 self.make_central_left_dock_widgets(dock_widget, opteller)
             opteller += 1
     def make_left_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edge_dock_menu, dock_widget)
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.instrument_menu, dock_widget)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
         if opteller == 0:
             self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
@@ -129,7 +142,7 @@ class App(QMainWindow):
             self.dock_widget_dict[dock_widget].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetClosable)
     def make_right_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.edge_dock_menu, dock_widget)
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.instrument_menu, dock_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
         if opteller == 3:
             self.dock_widget_dict[dock_widget].setFeatures(
@@ -138,12 +151,12 @@ class App(QMainWindow):
             self.dock_widget_dict[dock_widget].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetFloatable)
     def make_central_right_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.central_dock_menu, dock_widget)
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.visiualise_menu, dock_widget)
         self.central.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
         if opteller == 6:
             self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
     def make_central_left_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.central_dock_menu, dock_widget)
+        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.visiualise_menu, dock_widget)
         self.central.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
         if opteller == 8:
             self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
@@ -178,7 +191,14 @@ class App(QMainWindow):
         """"
         Setting some widgets with gui's from different files and
         setting the 'normal' gui's with some content so that they are not empty.
+
+        :param dock: a generic qdockwidget
+        :type QDockWidget, used to set gui's in
+        :param name: name of the dock_widget
+        :type string
         """
+        dock.setWidget(self.experiment.view_instances[name])
+        """"
         if name == "dock_1_ariel":
             dock.setWidget(self.experiment.view_instances["ExampleInstrument"])
         elif name == "dock_2_ariel":
@@ -197,6 +217,7 @@ class App(QMainWindow):
             listwidget = QListWidget(dock)
             listwidget.addItems(string_list)
             dock.setWidget(listwidget)
+        """
     def setting_standard_dock_settings(self, name):
         """"
         Setting standard functionality of a QDockWidget.
@@ -216,33 +237,33 @@ class App(QMainWindow):
         For the rest, it is not needed.
         """
         """
-                # how to add Qobjects to a dockable goes as follows.
-                # First you make a Qwidget where the content will be placed in. Call this things something with content in the name
-                # Then define the Qobjects you want to make
-                # Finally, you choose a layout((maybe absolute positioning is possible,
-                # haven't seen it in examples so it is not implemented in this code)QVBoxLayout, QHBoxLayout and QGridLayout)
-                # then you add the layout to the content widget and lastly you set the beginning Qwhatever as the widget of the dockwidget.
+        # how to add Qobjects to a dockable goes as follows.
+        # First you make a Qwidget where the content will be placed in. Call this things something with content in the name
+        # Then define the Qobjects you want to make
+        # Finally, you choose a layout((maybe absolute positioning is possible,
+        # haven't seen it in examples so it is not implemented in this code)QVBoxLayout, QHBoxLayout and QGridLayout)
+        # then you add the layout to the content widget and lastly you set the beginning Qwhatever as the widget of the dockwidget.
 
-                self.dock_widget_1_content = QWidget()
-                self.dock_widget_1_content.setObjectName('de content voor de dock_widget')
+        self.dock_widget_1_content = QWidget()
+        self.dock_widget_1_content.setObjectName('de content voor de dock_widget')
 
-                self.listWidget_right = QListWidget()
-                self.listWidget_right.addItems(["item 1", "item 2", "item 3"])
+        self.listWidget_right = QListWidget()
+        self.listWidget_right.addItems(["item 1", "item 2", "item 3"])
 
-                self.some_button = QPushButton('test', self)
-                self.some_button.setToolTip('You are hovering over the button, \n what do you expect?')
-                self.some_button.clicked.connect(self.on_click_submit)
+        self.some_button = QPushButton('test', self)
+        self.some_button.setToolTip('You are hovering over the button, \n what do you expect?')
+        self.some_button.clicked.connect(self.on_click_submit)
 
-                self.textbox = QLineEdit(self)
-                self.textbox.setText('this is a test')
+        self.textbox = QLineEdit(self)
+        self.textbox.setText('this is a test')
 
-                self.vbox_1_scroll_area = QVBoxLayout()
-                self.vbox_1_scroll_area.addWidget(self.some_button)
-                self.vbox_1_scroll_area.addWidget(self.textbox)
-                self.vbox_1_scroll_area.addWidget(self.listWidget_right)
-                self.dock_widget_1_content.setLayout(self.vbox_1_scroll_area)
-                self.dock_widget_1.setWidget(self.dock_widget_1_content)
-                """
+        self.vbox_1_scroll_area = QVBoxLayout()
+        self.vbox_1_scroll_area.addWidget(self.some_button)
+        self.vbox_1_scroll_area.addWidget(self.textbox)
+        self.vbox_1_scroll_area.addWidget(self.listWidget_right)
+        self.dock_widget_1_content.setLayout(self.vbox_1_scroll_area)
+        self.dock_widget_1.setWidget(self.dock_widget_1_content)
+        """
         self.dock_widget_2 = QDockWidget("dock_widget_2", self)
         self.dock_widget_2_content = QWidget()
         self.dock_widget_2_content.setObjectName('de content voor de dock_widget')
@@ -324,17 +345,6 @@ class App(QMainWindow):
         # Getting certain uniquetiy by addiding _graph as a name. For example: OsaInstrumentGraph.
         self.experiment.view_instances[name + "Graph"] = instance
 
-
-    def initUI(self):
-        self.set_gui_specifics()
-
-        self.get_view_instances_and_load_instruments()
-
-        self.set_menu_bar()
-
-        self.make_automatic_dock_widgets()
-
-        self.show()
 
 if __name__ == '__main__':
     experiment = ExampleExperiment()
