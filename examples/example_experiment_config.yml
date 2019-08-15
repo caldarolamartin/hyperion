@@ -2,17 +2,6 @@ User:
   name: Martin
 
 Instruments:
-  VariableWaveplate:
-    port: COM8
-    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
-    controller: hyperion.controller.thorlabs.lcc25/Lcc
-    view: hyperion.view.variable_waveplate.variable_waveplate_gui/VariableWaveplateGui
-    dummy: True
-    enable: True
-    settings: # not implemented yet
-      output: True
-      voltage1: 1V
-      voltage2: 1V
   ExampleInstrument:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument

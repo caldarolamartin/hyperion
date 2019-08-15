@@ -10,6 +10,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QListWidget, QTextEdit, QPushButton, \
     QGraphicsView, QAction, QLineEdit, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout
 import pyqtgraph as pg
+from hyperion import root_dir
 from examples.example_experiment import ExampleExperiment
 
 class App(QMainWindow):
@@ -300,7 +301,7 @@ class App(QMainWindow):
         # config_folder = os.path.dirname(os.path.abspath(__file__))
         # config_file = os.path.join(config_folder, name)
 
-        self.experiment.load_config('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml')
+        self.experiment.load_config('D:\labsoftware\hyperion\examples\example_experiment_config.yml')
         self.experiment.load_instruments()
         self.load_interfaces()
     def load_interfaces(self):
@@ -308,12 +309,19 @@ class App(QMainWindow):
         Method to get instances of gui's through load_gui and set these in self.ins_bag.
         Through this way they can later be retrieved in the self object.
         """
-        self.ins_bag = {}
+        self.view_bag = {}
+
+        for instrument_name in self.experiment.properties['Instruments']:
+            for propertie in self.experiment.properties['Instruments'][instrument_name]:
+                if propertie == "graphView":
+                    self.load_graph_gui(instrument_name)
+        for instrument in self.experiment.properties['Instruments']:
+            self.view_bag[instrument] = self.load_gui(instrument)
 
         for instrument in self.experiment.properties['Instruments']:
             if not instrument == 'VariableWaveplate':
                 #get the right name
-                self.ins_bag[instrument] = self.load_gui(instrument)
+                self.view_bag[instrument] = self.load_gui(instrument)
                 for index in self.experiment.properties['Instruments'][instrument]:
                     #get an additional gui(if available) on which will be a graph.
                     if index == "graphView":
@@ -333,7 +341,11 @@ class App(QMainWindow):
             instr = ((dictionairy['instrument']).split('/')[1])
             #self.experiment.instruments_instances[instr] = the name of the instrument for a device. This is necessary
             #to communicate between instrument and view. Instance is still an instance of for example OsaView.
-            instance = MyClass(self.experiment.instruments_instances[instr])
+            try:
+                instance = MyClass(self.experiment.instruments_instances[instr])
+            except Exception:
+                print("initialising gui with a graph.")
+                instance = MyClass(self.experiment.instruments_instances[instr], self.experiment.graph_view_instance[name + "Graph"])
             self.experiment.view_instances[name] = instance
         except KeyError:
             print("the view key(aka,"+str(name)+") does not exist in properties,\n meaning that it is not in the .yml file.\n This not a bad thing, if there is a gui"
