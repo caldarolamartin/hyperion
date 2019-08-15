@@ -36,9 +36,6 @@ class App(QMainWindow):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        #set window icon
-        self.setWindowIcon(QIcon('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\docs\\source\\img\\logo_hyperion.png'))
-
         _DOCK_OPTS = QMainWindow.AllowTabbedDocks
         # _DOCK_OPTS |= QMainWindow.AllowNestedDocks         # This has no impact on the code if switched on
         # _DOCK_OPTS |= QMainWindow.AnimatedDocks            # I don't know what this does
