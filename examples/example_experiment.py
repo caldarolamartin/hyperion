@@ -32,6 +32,7 @@ class ExampleExperiment(BaseExperiment):
         self.properties = {}
         self.instruments_instances = {}
         self.view_instances = {}
+        self.graph_view_instance = {}
 
         # scanning variables
         self.scan = {}
