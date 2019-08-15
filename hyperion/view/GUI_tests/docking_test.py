@@ -336,7 +336,8 @@ class App(QMainWindow):
             instance = MyClass(self.experiment.instruments_instances[instr])
             self.experiment.view_instances[name] = instance
         except KeyError:
-            print("the key(aka, your view/gui) does not exist in properties,\n meaning that it is not in the .yml file.")
+            print("the view key(aka,"+str(name)+") does not exist in properties,\n meaning that it is not in the .yml file.\n This not a bad thing, if there is a gui"
+                                                "than you can ignore this message.")
             return None
 
     def load_graph_gui(self, name):
