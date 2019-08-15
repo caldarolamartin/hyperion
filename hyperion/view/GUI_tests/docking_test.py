@@ -2,6 +2,7 @@ import importlib
 import random
 import string
 import sys
+import os
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -10,7 +11,6 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QLi
     QGraphicsView, QAction, QLineEdit, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout
 import pyqtgraph as pg
 from examples.example_experiment import ExampleExperiment
-
 
 class App(QMainWindow):
 
@@ -35,6 +35,9 @@ class App(QMainWindow):
         """
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
+
+        #set window icon
+        self.setWindowIcon(QIcon('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\docs\\source\\img\\logo_hyperion.png'))
 
         _DOCK_OPTS = QMainWindow.AllowTabbedDocks
         # _DOCK_OPTS |= QMainWindow.AllowNestedDocks         # This has no impact on the code if switched on
