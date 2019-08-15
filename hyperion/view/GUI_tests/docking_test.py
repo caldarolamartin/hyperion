@@ -180,6 +180,11 @@ class App(QMainWindow):
         In this method the widget will be made a QDockWidget.
         There are some nested functions in this method with which
         the action to toggle the widget will be available in the given menu.
+
+        :param menu: a menu to set a quick action in
+        :type QmenuBar
+        :param name: the name of the widget to add
+        :type string
         """
         dock, name = self.setting_standard_dock_settings(name)
 
