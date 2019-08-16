@@ -38,6 +38,8 @@ class App(QWidget):
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
         self.motor_hub = motor_hub
+        self.motor_bag = {}
+        self.position_1_all_motors_dict = {}
         self.initUI()
         
     def initUI(self):
@@ -150,6 +152,7 @@ class App(QWidget):
     def make_save_pos_1_button(self):
         button = QPushButton('save pos 1', self)
         button.setToolTip('save the first position')
+        button.clicked.connect(self.save_position_1_for_all_motors)
         self.grid_layout.addWidget(button, 1, 1)    
     def make_save_pos_2_button(self):
         button = QPushButton('save pos 2', self)
@@ -163,6 +166,7 @@ class App(QWidget):
     def make_recover_1_button(self):
         button = QPushButton('recover 1', self)
         button.setToolTip('recover the first position')
+        button.clicked.connect(self.recover_position_1_all_motors)
         self.grid_layout.addWidget(button, 1, 3)        
     def make_recover_2_button(self):
         button = QPushButton('recover 2', self)
@@ -192,10 +196,8 @@ class App(QWidget):
         self.slider_z.setMinimum(1)
         self.slider_z.setMaximum(9)
         self.slider_z.setValue(5)
-        self.slider_z.setTickInterval(9)
-        #self.slider_z.setSingleStep(1)
-        
-        
+        self.slider_z.setTickInterval(1)
+        self.slider_z.setSingleStep(1)
         self.slider_z.sliderReleased.connect(self.set_slider_z_to_the_middle)
         self.slider_z.sliderMoved.connect(self.make_slider_z_motor_move)
         self.grid_layout.addWidget(self.slider_z, 4, 5)     
@@ -206,7 +208,7 @@ class App(QWidget):
         self.slider_x.setMinimum(1)
         self.slider_x.setMaximum(9)
         self.slider_x.setValue(5)
-        self.slider_x.setTickInterval(9)
+        self.slider_x.setTickInterval(1)
         self.slider_x.setSingleStep(1)
         self.slider_x.sliderReleased.connect(self.set_slider_x_to_the_middle)
         self.slider_x.sliderMoved.connect(self.make_slider_x_motor_move)
@@ -218,7 +220,7 @@ class App(QWidget):
         self.slider_y.setMinimum(1)
         self.slider_y.setMaximum(9)
         self.slider_y.setValue(5)
-        self.slider_y.setTickInterval(9)
+        self.slider_y.setTickInterval(1)
         self.slider_y.setSingleStep(1)
         self.slider_y.sliderReleased.connect(self.set_slider_y_to_the_middle)
         self.slider_y.sliderMoved.connect(self.make_slider_y_motor_move)
@@ -240,7 +242,6 @@ class App(QWidget):
     def initialize_available_motors(self):
         #todo, this setup is very hacky and not the hyperion way to do this.
         #this should be changed when I know how to do this the right way.
-        self.motor_bag = {}
         opteller = 0
         for serial_number in self.motor_hub.controller.list_available_devices():
             serial_number = str(serial_number[1])
@@ -248,6 +249,7 @@ class App(QWidget):
                                     'serial_number' : str(self.motor_hub.controller.list_available_devices()[opteller][1])})
             self.motor_bag[serial_number].initialize(int(serial_number))
             opteller += 1
+    
     def set_slider_z_to_the_middle(self):
         self.slider_z.setValue(5)
         self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
@@ -259,17 +261,13 @@ class App(QWidget):
         self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
     def make_slider_z_motor_move(self):
         if self.slider_z.value() > 5:
-            if self.slider_z.value() > 7:
-                param = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
-                self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(param[0], param[1], 0.5)
-                self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+            
+            param = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
+            self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(param[0], param[1], 0.1)
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
             #moving forward
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
         elif self.slider_z.value() < 5:
-            if self.slider_z.value() < 3:
-                param = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
-                self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(param[0], param[1], 0.1)
-                self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
             #moving reverse
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
     def make_slider_x_motor_move(self):
@@ -303,6 +301,37 @@ class App(QWidget):
         except ValueError:
             print("The input is not a float, change this")
             return
+    def save_position_1_for_all_motors(self):
+        #get positions
+        for motor in self.motor_bag.items():
+            #motor[0] == serial nummer
+            #motor[1] == Thorlabs motor instance
+            try:
+                position = motor[1].controller.position
+            except Exception:
+                #the motor position has not been found, could be because it is a 
+                #piezo motor or because the software is not running as expected. 
+                print("for motor: "+ str(motor[0]) +" the position has not been set")
+                position = None
+            self.position_1_all_motors_dict[motor[0]] = position
+    def recover_position_1_all_motors(self):
+        #set position of motors
+        #(this only works if the position of the motors is from the home position):
+        #so, that should be changed. 
+        if bool(self.position_1_all_motors_dict) == False:
+            print("the positions have not been set!")
+            return
+        for motor in self.motor_bag.items():
+            #motor[0] == serial nummer
+            #motor[1] == Thorlabs motor instance
+            print(motor)
+            retrieved_position = self.position_1_all_motors_dict[motor[0]]
+            if retrieved_position != None:
+                motor[1].controller.set_position = float(retrieved_position)
+            
+        
+        
+        
 
         
 if __name__ == '__main__':
