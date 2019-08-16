@@ -306,7 +306,7 @@ class App(QMainWindow):
         # config_folder = os.path.dirname(os.path.abspath(__file__))
         # config_file = os.path.join(config_folder, name)
 
-        self.experiment.load_config('D:\labsoftware\hyperion\examples\example_experiment_config.yml')
+        self.experiment.load_config('C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml')
         self.experiment.load_instruments()
         self.load_interfaces()
     def load_interfaces(self):
@@ -314,23 +314,17 @@ class App(QMainWindow):
         Method to get instances of gui's through load_gui and set these in self.ins_bag.
         Through this way they can later be retrieved in the self object.
         """
-        self.view_bag = {}
 
         for instrument_name in self.experiment.properties['Instruments']:
-            for propertie in self.experiment.properties['Instruments'][instrument_name]:
-                if propertie == "graphView":
-                    self.load_graph_gui(instrument_name)
-        for instrument in self.experiment.properties['Instruments']:
-            self.view_bag[instrument] = self.load_gui(instrument)
-
-        for instrument in self.experiment.properties['Instruments']:
-            if not instrument == 'VariableWaveplate':
-                #get the right name
-                self.view_bag[instrument] = self.load_gui(instrument)
-                for index in self.experiment.properties['Instruments'][instrument]:
-                    #get an additional gui(if available) on which will be a graph.
-                    if index == "graphView":
-                        self.load_graph_gui(instrument)
+            if "graphView" in self.experiment.properties['Instruments'][instrument_name]:
+                #this weird construction is here because there must first be initialized a graph_gui
+                #before a instrument gui is initialized. All the instrument gui's can be initialized immediatly.
+                self.load_graph_gui(instrument_name)
+                self.load_gui(instrument_name)
+            else:
+                #check if there is gui available for this instrument
+                if "view" in self.experiment.properties['Instruments'][instrument_name]:
+                    self.load_gui(instrument_name)
     def load_gui(self, name):
         """
         Create instances of gui's and returns these to the load_intefaces.
@@ -349,7 +343,7 @@ class App(QMainWindow):
             try:
                 instance = MyClass(self.experiment.instruments_instances[instr])
             except Exception:
-                print("initialising gui with a graph.")
+                #this is necessary to initialise gui's which need to connect to a graph gui.
                 instance = MyClass(self.experiment.instruments_instances[instr], self.experiment.graph_view_instance[name + "Graph"])
             self.experiment.view_instances[name] = instance
         except KeyError:

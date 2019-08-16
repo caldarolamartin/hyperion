@@ -27,7 +27,7 @@ class App(QWidget):
             The class needs an instance of the osa instrument.
         """
         super().__init__()
-        self.title = 'PyQt5 just a window'
+        self.title = 'Osa gui'
         self.left = 50          #how many pixels are away from the left of the GUI
         self.top = 50           #how many pixels are away form the top of the GUI
         self.width = 700        #how many pixels in width the GUI is
