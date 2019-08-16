@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
                              QComboBox, QLineEdit)
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
+from hyperion.experiment.base_experiment import BaseExperiment
 #import keyboard 
 #todo make save logic
 #todo make recover logic
@@ -228,9 +229,10 @@ class App(QWidget):
         
     def make_dropdown_motor(self):    
         list_with_motors = []
-        self.motor_combobox = QComboBox(self) 
-        for index in self.motor_hub.controller.list_available_devices():
-            list_with_motors.append(str(index[1]))
+        self.motor_combobox = QComboBox(self)
+        #these are all the available motors:
+        for index in self.motor_bag.keys():
+            list_with_motors.append(str(index))
         self.motor_combobox.addItems(list_with_motors)
         self.motor_combobox.currentIndexChanged.connect(self.set_current_motor_label)
         self.grid_layout.addWidget(self.motor_combobox, 1, 7)
@@ -243,12 +245,18 @@ class App(QWidget):
         #todo, this setup is very hacky and not the hyperion way to do this.
         #this should be changed when I know how to do this the right way.
         opteller = 0
-        for serial_number in self.motor_hub.controller.list_available_devices():
-            serial_number = str(serial_number[1])
-            self.motor_bag[serial_number] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001',
-                                    'serial_number' : str(self.motor_hub.controller.list_available_devices()[opteller][1])})
-            self.motor_bag[serial_number].initialize(int(serial_number))
-            opteller += 1
+        self.experiment = BaseExperiment()
+        self.experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
+        for instrument in self.experiment.properties["Instruments"]:
+            if instrument == "ThorlabsMotor":
+                for motor in self.experiment.properties["Instruments"][opteller][instrument].items():
+                    #motor[0] = name of the motor
+                    #motor[1] = serial number of  the motor
+                    if motor[1] in self.motor_hub.controller.list_available_devices():
+                        self.motor_bag[motor[0]] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : motor[1]})
+                        self.motor_bag[motor[0]].initialize(motor[1])
+            else:
+                opteller += 1
     
     def set_slider_z_to_the_middle(self):
         self.slider_z.setValue(5)
@@ -287,7 +295,10 @@ class App(QWidget):
     
     def set_current_motor_label(self):
         #in this function the position value is retrieved and round + set in a label.
-        self.current_motor_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
+        print(self.motor_bag.items())
+        print(self.motor_bag[self.motor_combobox.currentText()])
+        self.current_motor_position_label.setText
+        (str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
         
     def go_home_motor(self):
         selected_motor = str(self.motor_combobox.currentText())
@@ -324,7 +335,6 @@ class App(QWidget):
         for motor in self.motor_bag.items():
             #motor[0] == serial nummer
             #motor[1] == Thorlabs motor instance
-            print(motor)
             retrieved_position = self.position_1_all_motors_dict[motor[0]]
             if retrieved_position != None:
                 motor[1].controller.set_position = float(retrieved_position)
