@@ -320,7 +320,9 @@ class App(QMainWindow):
                 #this weird construction is here because there must first be initialized a graph_gui
                 #before a instrument gui is initialized. All the instrument gui's can be initialized immediatly.
                 self.load_graph_gui(instrument_name)
-                self.load_gui(instrument_name)
+                # check to see if there is an instrument gui for this instrument:
+                if "view" in self.experiment.properties['Instruments'][instrument_name]:
+                    self.load_gui(instrument_name)
             else:
                 #check if there is gui available for this instrument
                 if "view" in self.experiment.properties['Instruments'][instrument_name]:
