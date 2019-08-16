@@ -231,6 +231,7 @@ class App(QWidget):
         list_with_motors = []
         self.motor_combobox = QComboBox(self)
         #these are all the available motors:
+        
         for index in self.motor_bag.keys():
             list_with_motors.append(str(index))
         self.motor_combobox.addItems(list_with_motors)
@@ -245,19 +246,28 @@ class App(QWidget):
         #todo, this setup is very hacky and not the hyperion way to do this.
         #this should be changed when I know how to do this the right way.
         opteller = 0
+        list_with_actule_serial_numbers = []
+        for i in self.motor_hub.controller.list_available_devices():
+            list_with_actule_serial_numbers.append(i[1])
+        print(list_with_actule_serial_numbers)
+        
         self.experiment = BaseExperiment()
         self.experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
         for instrument in self.experiment.properties["Instruments"]:
-            if instrument == "ThorlabsMotor":
-                for motor in self.experiment.properties["Instruments"][opteller][instrument].items():
-                    #motor[0] = name of the motor
-                    #motor[1] = serial number of  the motor
-                    if motor[1] in self.motor_hub.controller.list_available_devices():
-                        self.motor_bag[motor[0]] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : motor[1]})
-                        self.motor_bag[motor[0]].initialize(motor[1])
+            if "ThorlabsMotor" in instrument:
+                for motor in self.experiment.properties["Instruments"][opteller].values():
+                    for motor_item in motor.items():    
+                        print(motor_item[1])
+                        print(self.motor_hub.controller.list_available_devices())
+                        #motor_item[0] = name of the motor
+                        #motor_item[1] = serial number of  the motor
+                        if motor_item[1] in list_with_actule_serial_numbers:
+                            self.motor_bag[motor_item[0]] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : motor_item[1]})
+                            self.motor_bag[motor_item[0]].initialize(motor_item[1])
             else:
                 opteller += 1
-    
+        print(self.motor_bag.items())
+        
     def set_slider_z_to_the_middle(self):
         self.slider_z.setValue(5)
         self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
