@@ -249,7 +249,6 @@ class App(QWidget):
         list_with_actule_serial_numbers = []
         for i in self.motor_hub.controller.list_available_devices():
             list_with_actule_serial_numbers.append(i[1])
-        print(list_with_actule_serial_numbers)
         
         self.experiment = BaseExperiment()
         self.experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
@@ -257,8 +256,6 @@ class App(QWidget):
             if "ThorlabsMotor" in instrument:
                 for motor in self.experiment.properties["Instruments"][opteller].values():
                     for motor_item in motor.items():    
-                        print(motor_item[1])
-                        print(self.motor_hub.controller.list_available_devices())
                         #motor_item[0] = name of the motor
                         #motor_item[1] = serial number of  the motor
                         if motor_item[1] in list_with_actule_serial_numbers:
@@ -266,49 +263,45 @@ class App(QWidget):
                             self.motor_bag[motor_item[0]].initialize(motor_item[1])
             else:
                 opteller += 1
-        print(self.motor_bag.items())
         
     def set_slider_z_to_the_middle(self):
         self.slider_z.setValue(5)
-        self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+        self.motor_bag["testMotor"].controller.stop_profiled()
     def set_slider_x_to_the_middle(self):
         self.slider_x.setValue(5)
-        self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+        self.motor_bag["zMotor"].controller.stop_profiled()
     def set_slider_y_to_the_middle(self):
         self.slider_y.setValue(5)
-        self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+        self.motor_bag["yMotor"].controller.stop_profiled()
     def make_slider_z_motor_move(self):
         if self.slider_z.value() > 5:
             
-            param = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
-            self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(param[0], param[1], 0.1)
-            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+            param = self.motor_bag["testMotor"].controller.get_velocity_parameters()
+            self.motor_bag["testMotor"].controller.set_velocity_parameters(param[0], param[1], 0.5)
+            self.motor_bag["testMotor"].controller.move_velocity(1)
             #moving forward
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
         elif self.slider_z.value() < 5:
             #moving reverse
-            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+            self.motor_bag["testMotor"].controller.move_velocity(1)
     def make_slider_x_motor_move(self):
         if self.slider_x.value() > 5:
             #moving forward
-            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+            self.motor_bag["zMotor"].controller.move_velocity(2)
         elif self.slider_x.value() < 5:
             #moving reverse
-            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+            self.motor_bag["zMotor"].controller.move_velocity(1)
     def make_slider_y_motor_move(self):
         if self.slider_y.value() > 5:
             #moving forward
-            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+            self.motor_bag["yMotor"].controller.move_velocity(2)
         elif self.slider_y.value() < 5:
             #moving reverse
-            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+            self.motor_bag["yMotor"].controller.move_velocity(1)
     
     def set_current_motor_label(self):
         #in this function the position value is retrieved and round + set in a label.
-        print(self.motor_bag.items())
-        print(self.motor_bag[self.motor_combobox.currentText()])
-        self.current_motor_position_label.setText
-        (str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
+        self.current_motor_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
         
     def go_home_motor(self):
         selected_motor = str(self.motor_combobox.currentText())
