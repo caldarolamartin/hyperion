@@ -54,6 +54,7 @@ class App(QWidget):
         self.make_motor_current_position_label()
         self.make_use_keyboard_label()
     def make_buttons(self):
+        #make buttons
         self.make_save_pos_1_button()
         self.make_save_pos_2_button()
         self.make_save_pos_3_button()
@@ -65,6 +66,7 @@ class App(QWidget):
         self.make_use_keyboard_button()
         
     def make_misc_gui_stuff(self):
+        #make all the miscellaneous gui stuff. 
         self.make_slider_z()
         self.make_slider_x()
         self.make_slider_y()
@@ -73,9 +75,9 @@ class App(QWidget):
         self.make_go_to_input_textfield()
     
     def make_save_pos_1_label(self):
-        label = QLabel(self)
-        label.setText("save pos. 1:")
-        self.grid_layout.addWidget(label, 1, 0)        
+        #label = QLabel(self)
+        #label.setText("save pos. 1:")
+        self.grid_layout.addWidget(QLabel(self, "save pos. 1:"), 1, 0)        
     def make_save_pos_2_label(self):
         label = QLabel(self)
         label.setText("save pos. 2:")
@@ -368,15 +370,10 @@ class App(QWidget):
     def save_position_2_for_all_motors(self, something):
         #make sure the user knows the button is pressed by setting it to a different color
         self.save_2_button.setStyleSheet("background-color: yellow")
-        #get positions
         for motor in self.motor_bag.items():
-            #motor[0] == serial nummer
-            #motor[1] == Thorlabs motor instance
             try:
                 position = motor[1].controller.position
             except Exception:
-                #the motor position has not been found, could be because it is a 
-                #piezo motor or because the software is not running as expected. 
                 print("for motor: "+ str(motor[0]) +" the position has not been set")
                 position = None
             self.position_2_all_motors_dict[motor[0]] = position
@@ -384,15 +381,10 @@ class App(QWidget):
     def save_position_3_for_all_motors(self):
         #make sure the user knows the button is pressed by setting it to a different color
         self.save_3_button.setStyleSheet("background-color: red")
-        #get positions
         for motor in self.motor_bag.items():
-            #motor[0] == serial nummer
-            #motor[1] == Thorlabs motor instance
             try:
                 position = motor[1].controller.position
             except Exception:
-                #the motor position has not been found, could be because it is a 
-                #piezo motor or because the software is not running as expected. 
                 print("for motor: "+ str(motor[0]) +" the position has not been set")
                 position = None
             self.position_3_all_motors_dict[motor[0]] = position
@@ -412,27 +404,19 @@ class App(QWidget):
                 motor[1].controller.set_position = float(retrieved_position)
     def recover_position_2_all_motors(self):
         #set position of motors
-        #(this only works if the position of the motors is from the home position):
-        #so, that should be changed. 
         if bool(self.position_2_all_motors_dict) == False:
             print("the positions have not been set!")
             return
         for motor in self.motor_bag.items():
-            #motor[0] == serial nummer
-            #motor[1] == Thorlabs motor instance
             retrieved_position = self.position_1_all_motors_dict[motor[0]]
             if retrieved_position != None:
                 motor[1].controller.set_position = float(retrieved_position)
     def recover_position_3_all_motors(self):
         #set position of motors
-        #(this only works if the position of the motors is from the home position):
-        #so, that should be changed. 
         if bool(self.position_3_all_motors_dict) == False:
             print("the positions have not been set!")
             return
         for motor in self.motor_bag.items():
-            #motor[0] == serial nummer
-            #motor[1] == Thorlabs motor instance
             retrieved_position = self.position_1_all_motors_dict[motor[0]]
             if retrieved_position != None:
                 motor[1].controller.set_position = float(retrieved_position)
