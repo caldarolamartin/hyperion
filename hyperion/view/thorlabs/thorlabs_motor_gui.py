@@ -75,9 +75,9 @@ class App(QWidget):
         self.make_go_to_input_textfield()
     
     def make_save_pos_1_label(self):
-        #label = QLabel(self)
-        #label.setText("save pos. 1:")
-        self.grid_layout.addWidget(QLabel(self, "save pos. 1:"), 1, 0)        
+        label = QLabel(self)
+        label.setText("save pos. 1:")
+        self.grid_layout.addWidget(label, 1, 0)        
     def make_save_pos_2_label(self):
         label = QLabel(self)
         label.setText("save pos. 2:")
