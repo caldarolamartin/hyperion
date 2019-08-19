@@ -19,12 +19,38 @@ Instruments:
       dummy: True
       settings:
         output: True
-  - ThorlabsMotor:
-      xMotor: 83817644
-      yMotor: 83815760
-      zMotor: 83815758
-      testMotor: 83817677
-      piezoMotor: 81818266
+
+  - XMotor:
+      serial_number: 83817644
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+      etc: aa
+  - YMotor:
+      serial_number: 83815760
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+      etc: aa
+  - ZMotor:
+      serial_number: 83815758
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+      etc: aa
+  - testMotor:
+      serial_number: 83817677
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+      etc: aa
+  - piezoMotor:
+      serial_number: 81818266
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+      etc: aa
+  - XYZMotor:
+      instrument: hyperion.instrument.xyz_motors/ThorlabsXYZ
+      view: hyperion.view.xyz_motors/Thorlabs3AxisView
+      x: SampleXMotor
+      y: SampleYMotor
+      z: SampleZMotor
   
   
    

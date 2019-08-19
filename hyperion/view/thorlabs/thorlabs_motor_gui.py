@@ -55,9 +55,9 @@ class App(QWidget):
         self.make_use_keyboard_label()
     def make_buttons(self):
         #make buttons
+        self.make_save_pos_3_button()
         self.make_save_pos_1_button()
         self.make_save_pos_2_button()
-        self.make_save_pos_3_button()
         self.make_recover_1_button()
         self.make_recover_2_button()
         self.make_recover_3_button()

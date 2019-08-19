@@ -112,7 +112,6 @@ if __name__ == '__main__':
         #
         # save metadata
         e.save_scan_metadata()
-
         # perform scan
         # e.set_scan()
         # e.do_scan()
