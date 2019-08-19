@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 from hyperion.experiment.base_experiment import BaseExperiment
-from pynput.keyboard import Listener, Key
+from pynput.keyboard import Listener
 
 class App(QWidget):
 
@@ -21,6 +21,8 @@ class App(QWidget):
         self.motor_hub = motor_hub
         self.motor_bag = {}
         self.position_1_all_motors_dict = {}
+        self.position_2_all_motors_dict = {}
+        self.position_3_all_motors_dict = {}
         self.initUI()
         
     def initUI(self):
@@ -131,7 +133,7 @@ class App(QWidget):
         self.grid_layout.addWidget(self.current_motor_position_label, 1, 5)    
     def make_use_keyboard_label(self):
         self.keyboard_label = QLabel(self)
-        self.keyboard_label.setText("use keyboard\nto control motors:")
+        self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
         self.grid_layout.addWidget(self.keyboard_label, 3, 6)
         
         
@@ -142,13 +144,15 @@ class App(QWidget):
         self.save_1_button.clicked.connect(self.save_position_1_for_all_motors)
         self.grid_layout.addWidget(self.save_1_button, 1, 1)    
     def make_save_pos_2_button(self):
-        button = QPushButton('save pos 2', self)
-        button.setToolTip('save the second position')
-        self.grid_layout.addWidget(button, 2, 1)        
+        self.save_2_button = QPushButton('save pos 2', self)
+        self.save_2_button.setToolTip('save the second position')
+        self.save_2_button.clicked.connect(self.save_position_2_for_all_motors)
+        self.grid_layout.addWidget(self.save_2_button, 2, 1)        
     def make_save_pos_3_button(self):
-        button = QPushButton('save pos 3', self)
-        button.setToolTip('save the third position')
-        self.grid_layout.addWidget(button, 3, 1)
+        self.save_3_button = QPushButton('save pos 3', self)
+        self.save_3_button.setToolTip('save the third position')
+        self.save_3_button.clicked.connect(self.save_position_3_for_all_motors)
+        self.grid_layout.addWidget(self.save_3_button, 3, 1)
         
     def make_recover_1_button(self):
         button = QPushButton('recover 1', self)
@@ -158,10 +162,12 @@ class App(QWidget):
     def make_recover_2_button(self):
         button = QPushButton('recover 2', self)
         button.setToolTip('recover the second position')
+        button.clicked.connect(self.recover_position_2_all_motors)
         self.grid_layout.addWidget(button, 2, 3)        
     def make_recover_3_button(self):
         button = QPushButton('recover 3', self)
         button.setToolTip('recover the third position')
+        button.clicked.connect(self.recover_position_3_all_motors)
         self.grid_layout.addWidget(button, 3, 3)
         
     def make_go_home_button(self):
@@ -307,43 +313,42 @@ class App(QWidget):
             return
         
     def on_press(self, key):
-        print('{0} pressed'.format(key))
-        if key == Key.up:
+        """ 
+        In this method if the w is pressed the motor 
+        selected in the combobox will move forward or if 
+        s is pressed the motor will move backward.
+        The w and s are written as: "'w'"/"'s'" because of syntacs.
+        """
+        if str(key) == "'w'":
             #forward
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
-        elif key == Key.down:
+        elif str(key) == "'s'":
             #backwards
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
     def on_release(self, key):
-        print('{0} release'.format(key))
-        if key == Key.up or key == Key.down:
+        """
+        In this method if the w or s is released the motor will stop moving.
+        If q is released the keyboard mode stops. 
+        """
+        if str(key) == "'w'" or str(key) == "'s'":
             #stop the motor from going
             self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
-        elif key == Key.esc:
+        elif str(key) == "'q'":
             # Stop listener
             return False
-    
     def control_motor_with_keyboard(self):
-        """
+        """ 
+        In this method with the Listener object you can 
+        press a button on the keyboard and with that input a motor will move. 
         
         """
         #set text of keyboard_label to using keyboard
         self.keyboard_label.setText("using keyboard/npress esc to exit")
-        #naar voren
-        #self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
-        #self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
-        #naar achteren
-        #self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
-        #self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
-        
         # Collect events until released
         with Listener(on_press=self.on_press, on_release=self.on_release) as listener:
             listener.join()
-        
-        
-                
-                    
-        self.keyboard_label.setText("use keyboard\nto control motors:")
+        #set the text back to you can use the keyboard.
+        self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
         
     def save_position_1_for_all_motors(self):
         #make sure the user knows the button is pressed by setting it to a different color
@@ -360,6 +365,38 @@ class App(QWidget):
                 print("for motor: "+ str(motor[0]) +" the position has not been set")
                 position = None
             self.position_1_all_motors_dict[motor[0]] = position
+    def save_position_2_for_all_motors(self, something):
+        #make sure the user knows the button is pressed by setting it to a different color
+        self.save_2_button.setStyleSheet("background-color: yellow")
+        #get positions
+        for motor in self.motor_bag.items():
+            #motor[0] == serial nummer
+            #motor[1] == Thorlabs motor instance
+            try:
+                position = motor[1].controller.position
+            except Exception:
+                #the motor position has not been found, could be because it is a 
+                #piezo motor or because the software is not running as expected. 
+                print("for motor: "+ str(motor[0]) +" the position has not been set")
+                position = None
+            self.position_2_all_motors_dict[motor[0]] = position
+        
+    def save_position_3_for_all_motors(self):
+        #make sure the user knows the button is pressed by setting it to a different color
+        self.save_3_button.setStyleSheet("background-color: red")
+        #get positions
+        for motor in self.motor_bag.items():
+            #motor[0] == serial nummer
+            #motor[1] == Thorlabs motor instance
+            try:
+                position = motor[1].controller.position
+            except Exception:
+                #the motor position has not been found, could be because it is a 
+                #piezo motor or because the software is not running as expected. 
+                print("for motor: "+ str(motor[0]) +" the position has not been set")
+                position = None
+            self.position_3_all_motors_dict[motor[0]] = position
+            
     def recover_position_1_all_motors(self):
         #set position of motors
         #(this only works if the position of the motors is from the home position):
@@ -373,7 +410,32 @@ class App(QWidget):
             retrieved_position = self.position_1_all_motors_dict[motor[0]]
             if retrieved_position != None:
                 motor[1].controller.set_position = float(retrieved_position)
-            
+    def recover_position_2_all_motors(self):
+        #set position of motors
+        #(this only works if the position of the motors is from the home position):
+        #so, that should be changed. 
+        if bool(self.position_2_all_motors_dict) == False:
+            print("the positions have not been set!")
+            return
+        for motor in self.motor_bag.items():
+            #motor[0] == serial nummer
+            #motor[1] == Thorlabs motor instance
+            retrieved_position = self.position_1_all_motors_dict[motor[0]]
+            if retrieved_position != None:
+                motor[1].controller.set_position = float(retrieved_position)
+    def recover_position_3_all_motors(self):
+        #set position of motors
+        #(this only works if the position of the motors is from the home position):
+        #so, that should be changed. 
+        if bool(self.position_3_all_motors_dict) == False:
+            print("the positions have not been set!")
+            return
+        for motor in self.motor_bag.items():
+            #motor[0] == serial nummer
+            #motor[1] == Thorlabs motor instance
+            retrieved_position = self.position_1_all_motors_dict[motor[0]]
+            if retrieved_position != None:
+                motor[1].controller.set_position = float(retrieved_position)
         
         
         
