@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 from hyperion.experiment.base_experiment import BaseExperiment
-from pynput.keyboard import Listener
+from pynput.keyboard import Listener, Key
 
 class App(QWidget):
 
@@ -307,21 +307,19 @@ class App(QWidget):
             return
         
     def on_press(self, key):
-        print('{0} pressed'.format(
-            key))
-        if key == 'w':
+        print('{0} pressed'.format(key))
+        if key == Key.up:
             #forward
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
-        elif key == 's':
+        elif key == Key.down:
             #backwards
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
     def on_release(self, key):
-        print('{0} release'.format(
-            key))
-        if key == 'w' or key == 's':
+        print('{0} release'.format(key))
+        if key == Key.up or key == Key.down:
             #stop the motor from going
             self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
-        if key == 'q':
+        elif key == Key.esc:
             # Stop listener
             return False
     
@@ -330,7 +328,7 @@ class App(QWidget):
         
         """
         #set text of keyboard_label to using keyboard
-        self.keyboard_label.setText("using keyboard/npress q to exit")
+        self.keyboard_label.setText("using keyboard/npress esc to exit")
         #naar voren
         #self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
         #self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
