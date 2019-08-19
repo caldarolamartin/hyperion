@@ -5,25 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 from hyperion.experiment.base_experiment import BaseExperiment
-import keyboard 
-
-
-"""
-code om te implementeren op een gegeven moment. FF vragen aan ben of hij
-weet hoe je dit kan implementeren in de code hier onder. 
-https://stackoverflow.com/questions/24072790/detect-key-press-in-python
-
-import keyboard  # using module keyboard
-while True:  # making a loop
-    try:  # used try so that if user pressed other than the given key error will not be shown
-        if keyboard.is_pressed('q'):  # if key 'q' is pressed 
-            print('You Pressed A Key!')
-            break  # finishing the loop
-        else:
-            pass
-    except:
-        break  # if user pressed a key other than the given key the loop will break
-"""
+from pynput.keyboard import Listener
 
 class App(QWidget):
 
@@ -323,29 +305,50 @@ class App(QWidget):
         except ValueError:
             print("The input is not a float, change this")
             return
+        
+    def on_press(self, key):
+        print('{0} pressed'.format(
+            key))
+        if key == 'w':
+            #forward
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+        elif key == 's':
+            #backwards
+            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+    def on_release(self, key):
+        print('{0} release'.format(
+            key))
+        if key == 'w' or key == 's':
+            #stop the motor from going
+            self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+        if key == 'q':
+            # Stop listener
+            return False
+    
     def control_motor_with_keyboard(self):
+        """
+        
+        """
         #set text of keyboard_label to using keyboard
         self.keyboard_label.setText("using keyboard/npress q to exit")
+        #naar voren
+        #self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+        #self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+        #naar achteren
+        #self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+        #self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
         
-        while True:  # making a loop
-            try:  # used try so that if user pressed other than the given key error will not be shown
-                if keyboard.on_press_key('w'):
-                    #motor moving up
-                    self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
-                elif keyboard.on_press_key('s'):
-                    #motor going down
-                    self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
-                if keyboard.is_pressed('q'):  # if key 'q' is pressed 
-                    print('Exiting from keyboard modus')
-                    break  # finishing the loop
-                else:
-                    pass
-            except:
-                break  # if user pressed a key other than the given key the loop will break
+        # Collect events until released
+        with Listener(on_press=self.on_press, on_release=self.on_release) as listener:
+            listener.join()
+        
+        
+                
+                    
         self.keyboard_label.setText("use keyboard\nto control motors:")
         
     def save_position_1_for_all_motors(self):
-        #set color
+        #make sure the user knows the button is pressed by setting it to a different color
         self.save_1_button.setStyleSheet("background-color: green")
         #get positions
         for motor in self.motor_bag.items():
