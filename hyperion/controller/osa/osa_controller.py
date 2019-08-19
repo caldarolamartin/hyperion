@@ -22,7 +22,6 @@ class OsaController(BaseController):
 
         :param settings: this includes all the settings needed to connect to the device in question.
         :type settings: dict
-
         """
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
@@ -70,7 +69,7 @@ class OsaController(BaseController):
         # have not initialized it inside a with statement
         self.start_wav; self.end_wav; self.sample_points; self.sensitivity; self.optical_resolution
         # make sure self._start_wav/end_wav/sample_points/optical_resolution is the same as on the osa machine.
-        #This is mandatory
+        # This is mandatory
 
     def wait_for_osa(self, timeout=None):
         """
@@ -196,31 +195,25 @@ class OsaController(BaseController):
         return wav, spec
 
     def finalize(self):
-        """ This method closes the connection to the device.
-        It is ran automatically if you use a with block
+        """
+        This method closes the connection to the osa machine.
+        This method should be called when all the things are done which you wanted to do with
+        osa machine.
         """
         self.logger.info('Closing connection to device.')
         self._osa.close()
         self._is_initialized = False
-
-    @property
-    def idn(self):
-        """ Identify command
-
-        :return: identification for the device
-        :rtype: string
-        """
-        self.logger.debug('Ask IDN to device.')
-        return 'ExampleController device'
 
     def query(self, msg):
         """ writes into the device message
 
         :param msg: command to write into the device port
         :type msg: string
+        :return ans: answer from the osa
+        :rtype ans: string
         """
         print(self._osa.session)
-        self.logger.debug('Writing into the example device:{}'.format(msg))
+        self.logger.debug('Writing into the osa machine:{}'.format(msg))
         self.write(msg)
         ans = self.read()
         return ans
@@ -230,8 +223,6 @@ class OsaController(BaseController):
         """
         in this method the parameters for the osa machine are set with
         hand in order to quickly get results.
-
-        :param self: the osa device object.
         """
         # start and end between 600.00 and 1750.00
         self.start_wav = 900.00
@@ -246,8 +237,8 @@ class OsaControllerDummy(OsaController):
     """
     Example Controller Dummy for the Osa machine
     ========================
-
     A dummy version of the Example Controller.
+    ========================
 
     In essence we have the same methods and we re-write the query to answer something meaningful but
     without connecting to the real device.
@@ -276,6 +267,15 @@ class OsaControllerDummy(OsaController):
         :type msg: string
         """
         self.logger.debug('Writing into the device:{}'.format(msg))
+    def idn(self):
+        """ Identify command
+
+        :return: identification for the device
+        :rtype: string
+        """
+        self.logger.debug('Ask id to example device.')
+        return 'ExampleController device'
+
 
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings

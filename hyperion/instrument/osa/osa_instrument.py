@@ -5,21 +5,21 @@ Osa Instrument
 ==================
 
 This is the osa instrument, created to be able to indirectly talk to the device through controller and
-get data which can be shown in the. So request for doing things go view > instrument > controller
+get data which can be shown in the gui. So request for doing things go view > instrument > controller
 
 This class uses pint to give units to the variables.
 
 """
 import logging
-import sys
+import yaml
 
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
-import yaml
+
 
 class OsaInstrument(BaseInstrument):
     """
-    OsaInstrument
+    OsaInstrument class
     """
     def __init__(self, settings = {'port':'COM10', 'dummy': False,
                                    'controller': 'hyperion.controller.osa/OsaController'}):
@@ -45,8 +45,8 @@ class OsaInstrument(BaseInstrument):
     def load_config(self, filename=None):
         """Loads the configuration file to generate the properties of the Scan and Monitor.
 
-        :param str filename: Path to the filename. Defaults to Config/experiment.yml if not specified.
-        :type: str
+        :param filename: Path to the filename. Default is: 'Config/experiment.yml' if not specified.
+        :type string
         """
         if filename is None:
             filename = 'Config/experiment.yml'
@@ -65,7 +65,7 @@ class OsaInstrument(BaseInstrument):
         self.is_busy = False
 
     def finalize(self):
-        """ this is to close connection to the osa machine"""
+        """Closes the connection to the osa machine"""
         self.logger.info('Closing connection to OSA machine.')
         self.controller.finalize()
 
@@ -124,7 +124,8 @@ class OsaInstrument(BaseInstrument):
 
         :param wav: the start wavelength
         :type: float
-        :return: boolean
+        :return: is this true(condition passed) or false(condition failed)?
+        :rtype boolean
         """
         return (wav<1750.0 and wav>600.0)
 
@@ -136,7 +137,8 @@ class OsaInstrument(BaseInstrument):
         :type: pint nm quantity
         :param start_wav: a pint quantity
         :type: pint nm quantity
-        :return: boolean, true if condition passed, false if condition failed.
+        :return: true if condition passed, false if condition failed.
+        :rtype boolean
         """
         if end_wav.m_as('nm') < start_wav.m_as('nm'):
             return True
@@ -149,7 +151,8 @@ class OsaInstrument(BaseInstrument):
 
         :param end_wav: a pint quantity
         :type: pint nm quantity
-        :return: boolean, true if condition passed, false if condition failed.
+        :return: true if condition passed, false if condition failed.
+        :rtype boolean
         """
         if end_wav.m_as('nm') >= 600 and end_wav.m_as('nm') <= 1750:
             return True
@@ -162,7 +165,8 @@ class OsaInstrument(BaseInstrument):
 
         :param start_wav: the startwavelength
         :type: pint nm quantity
-        :return:
+        :return: true if condition passed, false if condition failed.
+        :rtype boolean
         """
         if start_wav.m_as('nm') >= 600 and start_wav.m_as('nm') <= 1750:
             return True
@@ -175,6 +179,7 @@ class OsaInstrument(BaseInstrument):
         Method where a spectrum will be taken using the osa machine.
 
         :return: wav, spec: two list containing the data from the taken spectrum.
+        :rtype wav, sepec: wav(a list of floats), spec(a list of floats)
         """
         self.logger.info('taking spectrum')
         self.is_busy = True

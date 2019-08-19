@@ -198,6 +198,9 @@ class App(QMainWindow):
         def toggle_visibility():
             dock.setVisible(not dock.isVisible())
         def toggle_collapsed():
+            """
+            This is a way to collapse the QDockWidgets
+            """
             if not dock.collapsed:
                 #dock.uncollapsed_height = dock.height()    # Haven't worked this out yet
                 dock.setMinimumHeight(dock.collapsed_height)
@@ -207,7 +210,7 @@ class App(QMainWindow):
                 dock.setMinimumHeight(dock.uncollapsed_height)
                 dock.collapsed = False
 
-        menu.addAction(name, toggle_visibility())
+        menu.addAction(name, toggle_visibility)
         return dock
     def setting_dock_content(self, dock, name):
         """"

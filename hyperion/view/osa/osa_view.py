@@ -47,6 +47,7 @@ class App(QWidget):
         self.set_gui_constructor()
 
         self.set_textboxs()
+        #only works if the pyvisa bug is fixed
         #self.set_textboxs_to_osa_machine_values()
 
         self.set_labels()
