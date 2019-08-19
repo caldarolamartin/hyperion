@@ -2,18 +2,17 @@ import importlib
 import random
 import string
 import sys
-import os
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QListWidget, QTextEdit, QPushButton, \
-    QGraphicsView, QAction, QLineEdit, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QPushButton, QVBoxLayout
 import pyqtgraph as pg
 from hyperion import root_dir
 from examples.example_experiment import ExampleExperiment
 
 class App(QMainWindow):
+    """class to make the master gui"""
 
     def __init__(self, experiment):
         super().__init__()
@@ -24,8 +23,6 @@ class App(QMainWindow):
         self.height = 500
         self.button_pressed = False
         self.experiment = experiment
-
-        self.setWindowTitle("Dock demo")
 
         self.initUI()
     def initUI(self):
@@ -80,14 +77,14 @@ class App(QMainWindow):
 
     def get_status_open_or_closed(self):
         """"
-        An example of how to make a widget visible and not visible.
-        Can be automated as menuaction in RandomDockWidget, with additional code(ofcourse).
+        An example of how to let a widget disappear and appear (using the same button).
+        Can be automated as menuaction in RandomDockWidget, with additional code(of course).
         """
         self.dock_widget_dict["ExampleInstrument_3"].setVisible(not self.dock_widget_dict["ExampleInstrument_3"].isVisible())
     def create_single_qdockwidget(self):
         """"
         In this method the goal is to create a blank QDockwidget and set this widget in the main_gui.
-        It must be done only once because else errors will be created.
+        It must be done only once because else errors will be created(because there is already some widget).
         This is example code of how to do this.
         """
         if self.button_pressed == False:
@@ -105,22 +102,24 @@ class App(QMainWindow):
     def draw_random_graph(self):
         """"
         Simple code to make a literal random graph using pyqt5 plotting stuff.
+        The 'clear=True' means that if the graph get's refreshed if will clear it's old content and plot something new
         """
-        self.ydata = [random.random() for i in range(25)]
-        self.xdata = [random.random() for i in range(25)]
-        self.experiment.graph_view_instance["Gui_with_graphGraph"].random_plot.plot(self.xdata, self.ydata, clear=True)
+        ydata = [random.random() for i in range(25)]
+        xdata = [random.random() for i in range(25)]
+        self.experiment.graph_view_instance["Gui_with_graphGraph"].random_plot.plot(xdata, ydata, clear=True)
 
     def make_automatic_dock_widgets(self):
         """"
-        In this method there will be made automatically QDockWidgets using the lijst_met_dock_widget.
-        The widget's are saved in the self.dock_widget_dict, through this way the widgets are approachable via self.
-        Each QDockWidget will be given it's specifics in the make_dock_widgets left and right + central left and right.
+        In this method there will be made automatically QDockWidgets using the view_instances and graph_view_instance.
+        The widget's are saved in the self.dock_widget_dict, through this way the widgets are approachable via self.dock_widget_dict.
+        Each QDockWidget will be given it's specifics in the make_dock_widgets: left and right + central: left and right.
         The rest of the things will be filled in at the RandomDockWidget method.
         """
         self.dock_widget_dict = {}
         opteller = 1
 
         self.get_left_right_amount_of_gui(len(self.experiment.view_instances.keys()))
+
         for dock_widget in self.experiment.view_instances.keys():
             if opteller <= self.left_amount_of_gui:
                 self.make_left_dock_widgets(dock_widget, opteller)
@@ -129,6 +128,7 @@ class App(QMainWindow):
             opteller += 1
         self.get_left_right_amount_of_gui(len(self.experiment.graph_view_instance.keys()))
         opteller = 1
+
         for dock_widget in self.experiment.graph_view_instance.keys():
             if opteller <= self.left_amount_of_gui:
                 self.make_central_right_dock_widgets(dock_widget, opteller)
@@ -136,15 +136,19 @@ class App(QMainWindow):
                 self.make_central_left_dock_widgets(dock_widget, opteller)
             opteller += 1
     def get_left_right_amount_of_gui(self, amount_of_gui):
-        amount_of_instrument_gui = amount_of_gui
-        if amount_of_instrument_gui % 2 == 0:
-            # there are a number of gui's
-            self.left_amount_of_gui = amount_of_instrument_gui / 2
-            self.right_amount_of_gui = amount_of_instrument_gui / 2
+        """"
+        Method to see how many gui's there are and divide these to the sides.
+        So self.left_amount_of_gui are the amount of gui's that will be on the left.
+        The same goes for the self.right_amount_of_gui.
+        """
+        if amount_of_gui% 2 == 0:
+            # there are a even number of gui's
+            self.left_amount_of_gui = amount_of_gui / 2
+            self.right_amount_of_gui = amount_of_gui / 2
         else:
             # there are a uneven amount of gui's
-            self.left_amount_of_gui = int(amount_of_instrument_gui / 2)
-            self.right_amount_of_gui = (int(amount_of_instrument_gui / 2) + (amount_of_instrument_gui % 2 > 0))
+            self.left_amount_of_gui = int(amount_of_gui / 2)
+            self.right_amount_of_gui = (int(amount_of_gui / 2)+(amount_of_gui % 2 > 0))
 
     def make_left_dock_widgets(self, dock_widget, opteller):
         self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.instrument_menu, dock_widget)
@@ -203,12 +207,12 @@ class App(QMainWindow):
                 dock.setMinimumHeight(dock.uncollapsed_height)
                 dock.collapsed = False
 
-        menu.addAction(name, toggle_collapsed)
+        menu.addAction(name, toggle_visibility())
         return dock
     def setting_dock_content(self, dock, name):
         """"
-        Setting some widgets with gui's from different files and
-        setting the 'normal' gui's with some content so that they are not empty.
+        Setting widgets with gui's from different files using the .yml file.
+        These Gui's will be set in QdockWidgets.
 
         :param dock: a generic qdockwidget
         :type QDockWidget, used to set gui's in
@@ -216,21 +220,17 @@ class App(QMainWindow):
         :type string
         """
         if name[-5:] == "Graph":
-            #it are graph widgets
+            #it is a graph widget:
             dock.setWidget(self.experiment.graph_view_instance[name])
         else:
-            #the widget is an instrument widget
+            #it is a instrument widget:
             dock.setWidget(self.experiment.view_instances[name])
-        """"
-        #old code used to make some random stuff in a widget.
-        string_list = [self.randomString(5) for n in range(5)]
-        listwidget = QListWidget(dock)
-        listwidget.addItems(string_list)
-        dock.setWidget(listwidget)
-        """
     def setting_standard_dock_settings(self, name):
         """"
-        Setting standard functionality of a QDockWidget.
+        Setting standard functionality of all QDockWidgets.
+
+        :return dock, name. dock is a QdockWidget and name is a random name if that is needed.
+        :rtype: dock, Qdockwidget. name, string
         """
         if name == None:
             name = self.randomString(7)
@@ -243,8 +243,8 @@ class App(QMainWindow):
 
     def set_dock_widget_2(self):
         """
-        Old code needed to have an example of how to add a QdockWidget by hand.
-        For the rest, it is not needed.
+        Old code, needed to have an example of how to add a QdockWidget by hand.
+        For the rest...yeah, it's not needed.
         """
         """
         # how to add Qobjects to a dockable goes as follows.
@@ -298,8 +298,8 @@ class App(QMainWindow):
     def get_view_instances_and_load_instruments(self):
         """"
         In this function with functions found in the ExampleExperiment class
-        Instruments and interfaces will be loaded via the .yml file.
-        The .yml file should be in the same folder as this python file in order to not hardcode the
+        Instruments and graph gui's will be loaded via the .yml file.
+        The .yml file should be in the same folder as this python file in order to not hard code the
         path to the .yml file.
         """
         # name = 'example_experiment_config'
@@ -311,14 +311,12 @@ class App(QMainWindow):
         self.load_interfaces()
     def load_interfaces(self):
         """"
-        Method to get instances of gui's through load_gui and set these in self.ins_bag.
+        Method to get instances of gui's through load_gui and set these in self.view_instance.
         Through this way they can later be retrieved in the self object.
         """
 
         for instrument_name in self.experiment.properties['Instruments']:
             if "graphView" in self.experiment.properties['Instruments'][instrument_name]:
-                #this weird construction is here because there must first be initialized a graph_gui
-                #before a instrument gui is initialized. All the instrument gui's can be initialized immediatly.
                 self.load_graph_gui(instrument_name)
                 # check to see if there is an instrument gui for this instrument:
                 if "view" in self.experiment.properties['Instruments'][instrument_name]:
@@ -329,7 +327,7 @@ class App(QMainWindow):
                     self.load_gui(instrument_name)
     def load_gui(self, name):
         """
-        Create instances of gui's and returns these to the load_intefaces.
+        Create instances of instrument gui's and set these in the self.experiment.view_instaces()
 
         :param name: name of view to load. It has to be specified in the config file under Instruments
         :type name: string
@@ -349,25 +347,30 @@ class App(QMainWindow):
                 instance = MyClass(self.experiment.instruments_instances[instr], self.experiment.graph_view_instance[name + "Graph"])
             self.experiment.view_instances[name] = instance
         except KeyError:
-            print("the view key(aka,"+str(name)+") does not exist in properties,\n meaning that it is not in the .yml file.\n This not a bad thing, if there is a gui"
-                                                "than you can ignore this message.")
+            print("the view key(aka,"+str(name)+") does not exist in properties.\n This not a bad thing, if there is a gui"
+                                                "than you can ignore this message.\n")
             return None
 
     def load_graph_gui(self, name):
+        """
+        Create instances of graph gui's and set these in the self.experiment.graph_view_instace()
+
+        :param name: name of view to load. It has to be specified in the config file under Instruments
+        :type name: string
+        """
         dictionairy = self.experiment.properties['Instruments'][name]
         module_name, class_name = dictionairy['graphView'].split('/')
         MyClass = getattr(importlib.import_module(module_name), class_name)
         # instr is variable that will be the instrument name of a device. For example: OsaInstrument.
         instr = ((dictionairy['instrument']).split('/')[1])
         instance = MyClass()
-        # Getting certain uniquetiy by addiding _graph as a name. For example: OsaInstrumentGraph.
+        # Getting certain uniqueness by adding Graph as a name. For example: OsaInstrumentGraph.
         self.experiment.graph_view_instance[name + "Graph"] = instance
 
 
 if __name__ == '__main__':
     experiment = ExampleExperiment()
+
     app = QApplication(sys.argv)
-
     main_gui = App(experiment)
-
     sys.exit(app.exec_())
