@@ -5,9 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 from hyperion.experiment.base_experiment import BaseExperiment
-#import keyboard 
-#todo make save logic
-#todo make recover logic
+import keyboard 
 
 
 """
@@ -70,6 +68,7 @@ class App(QWidget):
         self.make_y_coordinate_second_label()
         self.make_z_coordinate_second_label()
         self.make_motor_current_position_label()
+        self.make_use_keyboard_label()
     def make_buttons(self):
         self.make_save_pos_1_button()
         self.make_save_pos_2_button()
@@ -79,7 +78,7 @@ class App(QWidget):
         self.make_recover_3_button()
         self.make_go_home_button()
         self.make_go_to_button()
-        
+        self.make_use_keyboard_button()
         
     def make_misc_gui_stuff(self):
         self.make_slider_z()
@@ -148,13 +147,18 @@ class App(QWidget):
         except Exception:
             self.current_motor_position_label.setText("currently\nunavailable")
         self.grid_layout.addWidget(self.current_motor_position_label, 1, 5)    
+    def make_use_keyboard_label(self):
+        self.keyboard_label = QLabel(self)
+        self.keyboard_label.setText("use keyboard\nto control motors:")
+        self.grid_layout.addWidget(self.keyboard_label, 3, 6)
+        
         
     #make buttons:
     def make_save_pos_1_button(self):
-        button = QPushButton('save pos 1', self)
-        button.setToolTip('save the first position')
-        button.clicked.connect(self.save_position_1_for_all_motors)
-        self.grid_layout.addWidget(button, 1, 1)    
+        self.save_1_button = QPushButton('save pos 1', self)
+        self.save_1_button.setToolTip('save the first position')
+        self.save_1_button.clicked.connect(self.save_position_1_for_all_motors)
+        self.grid_layout.addWidget(self.save_1_button, 1, 1)    
     def make_save_pos_2_button(self):
         button = QPushButton('save pos 2', self)
         button.setToolTip('save the second position')
@@ -188,6 +192,12 @@ class App(QWidget):
         self.move_button.setToolTip('move to given input')
         self.move_button.clicked.connect(self.go_to_input)
         self.grid_layout.addWidget(self.move_button, 2, 6)
+    def make_use_keyboard_button(self):
+        self.use_keyboard_button = QPushButton('use keyboard', self)
+        self.use_keyboard_button.setToolTip('use keyboard to control motors')
+        self.use_keyboard_button.clicked.connect(self.control_motor_with_keyboard)
+        self.grid_layout.addWidget(self.use_keyboard_button, 3, 7)
+        
         
     #make misc gui stuff:
     def make_slider_z(self):
@@ -231,7 +241,6 @@ class App(QWidget):
         list_with_motors = []
         self.motor_combobox = QComboBox(self)
         #these are all the available motors:
-        
         for index in self.motor_bag.keys():
             list_with_motors.append(str(index))
         self.motor_combobox.addItems(list_with_motors)
@@ -275,12 +284,11 @@ class App(QWidget):
         self.motor_bag["yMotor"].controller.stop_profiled()
     def make_slider_z_motor_move(self):
         if self.slider_z.value() > 5:
-            
             param = self.motor_bag["testMotor"].controller.get_velocity_parameters()
             self.motor_bag["testMotor"].controller.set_velocity_parameters(param[0], param[1], 0.5)
-            self.motor_bag["testMotor"].controller.move_velocity(1)
+            #self.motor_bag["testMotor"].controller.move_velocity(1)
             #moving forward
-            self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+            self.motor_bag["testMotor"].controller.move_velocity(2)
         elif self.slider_z.value() < 5:
             #moving reverse
             self.motor_bag["testMotor"].controller.move_velocity(1)
@@ -315,7 +323,30 @@ class App(QWidget):
         except ValueError:
             print("The input is not a float, change this")
             return
+    def control_motor_with_keyboard(self):
+        #set text of keyboard_label to using keyboard
+        self.keyboard_label.setText("using keyboard/npress q to exit")
+        
+        while True:  # making a loop
+            try:  # used try so that if user pressed other than the given key error will not be shown
+                if keyboard.on_press_key('w'):
+                    #motor moving up
+                    self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+                elif keyboard.on_press_key('s'):
+                    #motor going down
+                    self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+                if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+                    print('Exiting from keyboard modus')
+                    break  # finishing the loop
+                else:
+                    pass
+            except:
+                break  # if user pressed a key other than the given key the loop will break
+        self.keyboard_label.setText("use keyboard\nto control motors:")
+        
     def save_position_1_for_all_motors(self):
+        #set color
+        self.save_1_button.setStyleSheet("background-color: green")
         #get positions
         for motor in self.motor_bag.items():
             #motor[0] == serial nummer
