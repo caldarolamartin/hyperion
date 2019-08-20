@@ -74,6 +74,18 @@ Instruments:
     settings:
       output: True
 
+MetaInstruments:
+  SampleXyzStage:
+    x: xMotor
+    y: yMotor
+    z: zMotor
+
+Measurements:
+  #specific for this experiment
+  #list of measurement views which need to be loaded and accesible for the main experiment class.
+  exampleMeasurement:
+    view: examples.measurement_gui/App
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
 
 Data:
   save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/

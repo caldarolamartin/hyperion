@@ -73,6 +73,10 @@ class ExampleExperiment(BaseExperiment):
         winsound.Beep(1500, 200)
         winsound.Beep(3000, 500)
         sleep(0.1)
+    def measurement(self):
+        for i in range(1, 10):
+            print(i)
+
 
     def load_instruments(self):
         """"
