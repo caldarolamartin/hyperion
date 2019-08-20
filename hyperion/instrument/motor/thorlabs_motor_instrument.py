@@ -77,6 +77,42 @@ class Thorlabsmotor(BaseInstrument):
             self.controller.move_home(True)
             self.controller.move_to(homing)
         return motor
+    def initialize_available_motors(self, motor_bag):
+        """
+        Starts the connection to all motors 
+        and sets the motor object in the motor_bag.
+        
+        :param motor_bag: a fictional bag with all the available motor instances.
+        :type dict
+        :return motor_bag: but this time it is filled with motor instances
+        :rtype dict
+        """
+        opteller = 0
+        list_with_actule_serial_numbers = []
+        for i in self.controller.list_available_devices():
+            list_with_actule_serial_numbers.append(i[1])
+        
+        experiment = BaseExperiment()
+        experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
+        for instrument in experiment.properties["Instruments"]:
+            if "Motor" in str(instrument):
+                for motor_item in experiment.properties["Instruments"][opteller].values():
+                    if not "view" in motor_item and motor_item["serial_number"] in list_with_actule_serial_numbers:
+                        #' '.join(instrument.keys()) = the name given(in the .yml file) to the motor
+                        #motor_item["serial_number"] = serial_number of the motor
+                        print(motor_item["serial_number"])
+                        motor_bag[' '.join(instrument.keys())] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : motor_item["serial_number"]})
+                        motor_bag[' '.join(instrument.keys())].initialize(motor_item["serial_number"])
+                    elif "view" in motor_item:
+                        #these are the gui's
+                        print(motor_item["view"])
+                    else:
+                        #these gui's are not available
+                        print("motor: "+str(motor_item["serial_number"])+" is not available")
+                    opteller += 1
+            else:
+                opteller += 1
+        return motor_bag
     
     def move_relative_um(self,distance):
         """ Moves the motor to a relative position
