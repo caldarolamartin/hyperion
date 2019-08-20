@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer 
 from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QSlider, QLabel,
                              QComboBox, QLineEdit)
 
@@ -67,6 +67,13 @@ class App(QWidget):
         
     def make_misc_gui_stuff(self):
         #make all the miscellaneous gui stuff. 
+        """
+        In this method th slider and other miscellaneous gui stuff will be made.
+        The slider get made by adding a tuple with the name of the slider and the name of the
+        motor that the slider will use. 
+        Beter code would be to set in the .yml file which motor belongs to which slider.
+        But, that is for another time.
+        """
         slider_list = [("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z","testMotor")]
         opteller = 1
         for slider in slider_list:    
@@ -190,16 +197,21 @@ class App(QWidget):
         self.use_keyboard_button.setToolTip('use keyboard to control motors')
         self.use_keyboard_button.clicked.connect(self.control_motor_with_keyboard)
         self.grid_layout.addWidget(self.use_keyboard_button, 3, 7)
-        
-        
-        
-        
-        
-        
-        
-        
+    
     #make misc gui stuff:
     def make_slider(self, slider, motor_name, opteller):
+        """
+        In this method sliders get made automatically. 
+        This done by getting the name of the slider an setting it in a slider_dict.
+        The rest of the parameters get set in this method.
+        
+        :param slider: a slider name
+        :type string
+        :param motor_name: the name of the motor which connects with the slider
+        :type string
+        :param opteller: indication on which grid the slider must be set
+        :type int
+        """
         self.slider = slider 
         self.slider_dict[self.slider] = QSlider(Qt.Vertical, self)
         self.slider_dict[self.slider].setFocusPolicy(Qt.StrongFocus)
@@ -229,10 +241,27 @@ class App(QWidget):
         self.grid_layout.addWidget(self.input_textfield, 2, 7)
         
     def set_slider_to_middle(self, slider_object, motor_name):
+        """
+        In this method an slider is set to the middle. This is done 
+        through connecting a signal and slot.
+        
+        :param slider_object: an slider that must be set to it's middle
+        :type QSlider
+        :param motor_name: the name of the motor to stop
+        :type string
+        """
         slider_object.setValue(5)
         self.motor_bag[motor_name].controller.stop_profiled()
         
     def make_slider_motor_move(self, slider_object, motor_name):
+        """
+        In this method the motor moves if the slider is moved.
+        
+        :param slider_object: the slider that is being moved
+        :type QSlider
+        :param motor_name: the name of the motor to move
+        :type string
+        """
         if slider_object.value() > 5:
             #moving forward
             self.motor_bag[motor_name].controller.move_velocity(2)
