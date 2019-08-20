@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
                              QComboBox, QLineEdit)
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
-from hyperion.experiment.base_experiment import BaseExperiment
 from pynput.keyboard import Listener
 
 class App(QWidget):
