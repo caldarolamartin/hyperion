@@ -21,3 +21,4 @@ dependencies:
    - https://github.com/qpit/thorlabs_apt/archive/master.tar.gz
    - pyvisa-py
    - pyserial
+   - pynput
