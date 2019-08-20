@@ -142,33 +142,34 @@ class App(QWidget):
     def make_save_pos_1_button(self):
         self.save_1_button = QPushButton('save pos 1', self)
         self.save_1_button.setToolTip('save the first position')
-        self.save_1_button.clicked.connect(self.save_position_1_for_all_motors)
+        #self, button, color, position_all_motors_dict
+        self.save_1_button.clicked.connect(lambda: self.save_position_for_all_motors(self.save_1_button, "green", self.position_1_all_motors_dict))
         self.grid_layout.addWidget(self.save_1_button, 1, 1)    
     def make_save_pos_2_button(self):
         self.save_2_button = QPushButton('save pos 2', self)
         self.save_2_button.setToolTip('save the second position')
-        self.save_2_button.clicked.connect(self.save_position_2_for_all_motors)
+        self.save_2_button.clicked.connect(lambda: self.save_position_for_all_motors(self.save_2_button, "yellow", self.position_2_all_motors_dict))
         self.grid_layout.addWidget(self.save_2_button, 2, 1)        
     def make_save_pos_3_button(self):
         self.save_3_button = QPushButton('save pos 3', self)
         self.save_3_button.setToolTip('save the third position')
-        self.save_3_button.clicked.connect(self.save_position_3_for_all_motors)
+        self.save_3_button.clicked.connect(lambda: self.save_position_for_all_motors(self.save_3_button, "red", self.position_3_all_motors_dict))
         self.grid_layout.addWidget(self.save_3_button, 3, 1)
         
     def make_recover_1_button(self):
         button = QPushButton('recover 1', self)
         button.setToolTip('recover the first position')
-        button.clicked.connect(self.recover_position_1_all_motors)
+        button.clicked.connect(lambda: self.recover_position_all_motors(self.position_1_all_motors_dict))
         self.grid_layout.addWidget(button, 1, 3)        
     def make_recover_2_button(self):
         button = QPushButton('recover 2', self)
         button.setToolTip('recover the second position')
-        button.clicked.connect(self.recover_position_2_all_motors)
+        button.clicked.connect(lambda: self.recover_position_all_motors(self.position_2_all_motors_dict))
         self.grid_layout.addWidget(button, 2, 3)        
     def make_recover_3_button(self):
         button = QPushButton('recover 3', self)
         button.setToolTip('recover the third position')
-        button.clicked.connect(self.recover_position_3_all_motors)
+        button.clicked.connect(lambda: self.recover_position_all_motors(self.position_3_all_motors_dict))
         self.grid_layout.addWidget(button, 3, 3)
         
     def make_go_home_button(self):
@@ -331,10 +332,9 @@ class App(QWidget):
             listener.join()
         #set the text back to you can use the keyboard.
         self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
-        
-    def save_position_1_for_all_motors(self):
+    def save_position_for_all_motors(self, button, color, position_all_motors_dict):
         #make sure the user knows the button is pressed by setting it to a different color
-        self.save_1_button.setStyleSheet("background-color: green")
+        button.setStyleSheet("background-color: "+color)
         #get positions
         for motor in self.motor_bag.items():
             #motor[0] == serial nummer
@@ -346,63 +346,19 @@ class App(QWidget):
                 #piezo motor or because the software is not running as expected. 
                 print("for motor: "+ str(motor[0]) +" the position has not been set")
                 position = None
-            self.position_1_all_motors_dict[motor[0]] = position
-    def save_position_2_for_all_motors(self, something):
-        #make sure the user knows the button is pressed by setting it to a different color
-        self.save_2_button.setStyleSheet("background-color: yellow")
-        for motor in self.motor_bag.items():
-            try:
-                position = motor[1].controller.position
-            except Exception:
-                print("for motor: "+ str(motor[0]) +" the position has not been set")
-                position = None
-            self.position_2_all_motors_dict[motor[0]] = position
-        
-    def save_position_3_for_all_motors(self):
-        #make sure the user knows the button is pressed by setting it to a different color
-        self.save_3_button.setStyleSheet("background-color: red")
-        for motor in self.motor_bag.items():
-            try:
-                position = motor[1].controller.position
-            except Exception:
-                print("for motor: "+ str(motor[0]) +" the position has not been set")
-                position = None
-            self.position_3_all_motors_dict[motor[0]] = position
-            
-    def recover_position_1_all_motors(self):
+            position_all_motors_dict[motor[0]] = position
+    def recover_position_all_motors(self, position_all_motors_dict):
         #set position of motors
         #(this only works if the position of the motors is from the home position):
         #so, that should be changed. 
-        if bool(self.position_1_all_motors_dict) == False:
+        if bool(position_all_motors_dict) == False:
             print("the positions have not been set!")
             return
         for motor in self.motor_bag.items():
             #motor[0] == serial nummer
             #motor[1] == Thorlabs motor instance
-            print(motor[0])
-            print(motor[1])
-            retrieved_position = self.position_1_all_motors_dict[motor[0]]
-            print(retrieved_position)
-            print("-"*40)
+            retrieved_position = position_all_motors_dict[motor[0]]
             if retrieved_position != None and retrieved_position != motor[1].controller.position:
-                motor[1].controller.set_position = float(retrieved_position)
-    def recover_position_2_all_motors(self):
-        #set position of motors
-        if bool(self.position_2_all_motors_dict) == False:
-            print("the positions have not been set!")
-            return
-        for motor in self.motor_bag.items():
-            retrieved_position = self.position_1_all_motors_dict[motor[0]]
-            if retrieved_position != None:
-                motor[1].controller.set_position = float(retrieved_position)
-    def recover_position_3_all_motors(self):
-        #set position of motors
-        if bool(self.position_3_all_motors_dict) == False:
-            print("the positions have not been set!")
-            return
-        for motor in self.motor_bag.items():
-            retrieved_position = self.position_1_all_motors_dict[motor[0]]
-            if retrieved_position != None:
                 motor[1].controller.set_position = float(retrieved_position)
         
         

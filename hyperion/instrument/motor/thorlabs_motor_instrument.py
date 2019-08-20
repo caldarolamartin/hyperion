@@ -101,12 +101,12 @@ class Thorlabsmotor(BaseInstrument):
                     if not "view" in motor_item and motor_item["serial_number"] in list_with_actule_serial_numbers:
                         #' '.join(instrument.keys()) = the name given(in the .yml file) to the motor
                         #motor_item["serial_number"] = serial_number of the motor
-                        print(motor_item["serial_number"])
+                        print("initialize: "+ str(motor_item["serial_number"]))
                         motor_bag[' '.join(instrument.keys())] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : motor_item["serial_number"]})
                         motor_bag[' '.join(instrument.keys())].initialize(motor_item["serial_number"])
                     elif "view" in motor_item:
                         #these are the gui's
-                        print(motor_item["view"])
+                        print("initialize: "+ str(motor_item["view"]))
                     else:
                         #these gui's are not available
                         print("motor: "+str(motor_item["serial_number"])+" is not available")
