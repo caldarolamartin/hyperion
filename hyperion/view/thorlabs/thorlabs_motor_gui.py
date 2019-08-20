@@ -19,6 +19,7 @@ class App(QWidget):
         self.setLayout(self.grid_layout)
         self.motor_hub = motor_hub
         self.motor_bag = {}
+        self.slider_dict = {}
         self.position_1_all_motors_dict = {}
         self.position_2_all_motors_dict = {}
         self.position_3_all_motors_dict = {}
@@ -66,10 +67,12 @@ class App(QWidget):
         
     def make_misc_gui_stuff(self):
         #make all the miscellaneous gui stuff. 
-        self.make_slider_z()
-        self.make_slider_x()
-        self.make_slider_y()
-        
+        slider_list = [("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z","testMotor")]
+        opteller = 1
+        for slider in slider_list:    
+            self.make_slider(lambda: slider[0], slider[1], opteller)
+            opteller += 2
+            
         self.make_dropdown_motor()
         self.make_go_to_input_textfield()
     
@@ -189,43 +192,27 @@ class App(QWidget):
         self.grid_layout.addWidget(self.use_keyboard_button, 3, 7)
         
         
+        
+        
+        
+        
+        
+        
     #make misc gui stuff:
-    def make_slider_z(self):
-        self.slider_z = QSlider(Qt.Vertical, self)
-        self.slider_z.setFocusPolicy(Qt.StrongFocus)
-        self.slider_z.setTickPosition(QSlider.TicksBothSides)
-        self.slider_z.setMinimum(1)
-        self.slider_z.setMaximum(9)
-        self.slider_z.setValue(5)
-        self.slider_z.setTickInterval(1)
-        self.slider_z.setSingleStep(1)
-        self.slider_z.sliderReleased.connect(self.set_slider_z_to_the_middle)
-        self.slider_z.sliderMoved.connect(self.make_slider_z_motor_move)
-        self.grid_layout.addWidget(self.slider_z, 4, 5)     
-    def make_slider_x(self):
-        self.slider_x = QSlider(Qt.Vertical, self)
-        self.slider_x.setFocusPolicy(Qt.StrongFocus)
-        self.slider_x.setTickPosition(QSlider.TicksBothSides)
-        self.slider_x.setMinimum(1)
-        self.slider_x.setMaximum(9)
-        self.slider_x.setValue(5)
-        self.slider_x.setTickInterval(1)
-        self.slider_x.setSingleStep(1)
-        self.slider_x.sliderReleased.connect(self.set_slider_x_to_the_middle)
-        self.slider_x.sliderMoved.connect(self.make_slider_x_motor_move)
-        self.grid_layout.addWidget(self.slider_x, 4, 1)
-    def make_slider_y(self):
-        self.slider_y = QSlider(Qt.Vertical, self)
-        self.slider_y.setFocusPolicy(Qt.NoFocus)
-        self.slider_y.setTickPosition(QSlider.TicksBothSides)
-        self.slider_y.setMinimum(1)
-        self.slider_y.setMaximum(9)
-        self.slider_y.setValue(5)
-        self.slider_y.setTickInterval(1)
-        self.slider_y.setSingleStep(1)
-        self.slider_y.sliderReleased.connect(self.set_slider_y_to_the_middle)
-        self.slider_y.sliderMoved.connect(self.make_slider_y_motor_move)
-        self.grid_layout.addWidget(self.slider_y, 4, 3)
+    def make_slider(self, slider, motor_name, opteller):
+        self.slider = slider 
+        self.slider_dict[self.slider] = QSlider(Qt.Vertical, self)
+        self.slider_dict[self.slider].setFocusPolicy(Qt.StrongFocus)
+        self.slider_dict[self.slider].setFocusPolicy(Qt.StrongFocus)
+        self.slider_dict[self.slider].setTickPosition(QSlider.TicksBothSides)
+        self.slider_dict[self.slider].setMinimum(1)
+        self.slider_dict[self.slider].setMaximum(9)
+        self.slider_dict[self.slider].setValue(5)
+        self.slider_dict[self.slider].setTickInterval(1)
+        self.slider_dict[self.slider].setSingleStep(1)
+        self.slider_dict[self.slider].sliderReleased.connect(lambda: self.set_slider_to_middle(self.slider_dict[self.slider], motor_name))
+        self.slider_dict[self.slider].sliderMoved.connect(lambda: self.make_slider_motor_move(self.slider_dict[self.slider], motor_name))
+        self.grid_layout.addWidget(self.slider_dict[self.slider], 4, opteller)
         
     def make_dropdown_motor(self):    
         list_with_motors = []
@@ -241,40 +228,17 @@ class App(QWidget):
         self.input_textfield.setText("0.01")
         self.grid_layout.addWidget(self.input_textfield, 2, 7)
         
-    
-    def set_slider_z_to_the_middle(self):
-        self.slider_z.setValue(5)
-        self.motor_bag["testMotor"].controller.stop_profiled()
-    def set_slider_x_to_the_middle(self):
-        self.slider_x.setValue(5)
-        self.motor_bag["zMotor"].controller.stop_profiled()
-    def set_slider_y_to_the_middle(self):
-        self.slider_y.setValue(5)
-        self.motor_bag["yMotor"].controller.stop_profiled()
-    def make_slider_z_motor_move(self):
-        if self.slider_z.value() > 5:
-            param = self.motor_bag["testMotor"].controller.get_velocity_parameters()
-            self.motor_bag["testMotor"].controller.set_velocity_parameters(param[0], param[1], 0.5)
-            #self.motor_bag["testMotor"].controller.move_velocity(1)
+    def set_slider_to_middle(self, slider_object, motor_name):
+        slider_object.setValue(5)
+        self.motor_bag[motor_name].controller.stop_profiled()
+        
+    def make_slider_motor_move(self, slider_object, motor_name):
+        if slider_object.value() > 5:
             #moving forward
-            self.motor_bag["testMotor"].controller.move_velocity(2)
-        elif self.slider_z.value() < 5:
+            self.motor_bag[motor_name].controller.move_velocity(2)
+        elif slider_object.value() < 5:
             #moving reverse
-            self.motor_bag["testMotor"].controller.move_velocity(1)
-    def make_slider_x_motor_move(self):
-        if self.slider_x.value() > 5:
-            #moving forward
-            self.motor_bag["zMotor"].controller.move_velocity(2)
-        elif self.slider_x.value() < 5:
-            #moving reverse
-            self.motor_bag["zMotor"].controller.move_velocity(1)
-    def make_slider_y_motor_move(self):
-        if self.slider_y.value() > 5:
-            #moving forward
-            self.motor_bag["yMotor"].controller.move_velocity(2)
-        elif self.slider_y.value() < 5:
-            #moving reverse
-            self.motor_bag["yMotor"].controller.move_velocity(1)
+            self.motor_bag[motor_name].controller.move_velocity(1)
     
     def set_current_motor_label(self):
         #in this function the position value is retrieved and round + set in a label.

@@ -9,7 +9,7 @@ Example:
     Shows the list of available devices conects to motor x and initialize (without homing) it and moves it by 10 micro meter. 
 
 ```python
-    >>>  from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
+    >>> from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 	>>> checkdevices = Thorlabsmotor()
 	>>> checkdevices.list_available_devices()
 	>>> [(31,81818251)]
@@ -95,6 +95,7 @@ class Thorlabsmotor(BaseInstrument):
         
         experiment = BaseExperiment()
         experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
+        print("-"*40)
         for instrument in experiment.properties["Instruments"]:
             if "Motor" in str(instrument):
                 for motor_item in experiment.properties["Instruments"][opteller].values():
@@ -113,6 +114,7 @@ class Thorlabsmotor(BaseInstrument):
                     opteller += 1
             else:
                 opteller += 1
+        print("-"*40)
         return motor_bag
     
     def move_relative_um(self,distance):

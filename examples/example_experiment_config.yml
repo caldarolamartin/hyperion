@@ -19,15 +19,15 @@ Instruments:
       dummy: True
       settings:
         output: True
-  - XMotor:
+  - xMotor:
       serial_number: 83817644
       instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
       controller: hyperion.controller.thorlabs.TDC001/TDC001
-  - YMotor:
+  - yMotor:
       serial_number: 83815760
       instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
       controller: hyperion.controller.thorlabs.TDC001/TDC001
-  - ZMotor:
+  - zMotor:
       serial_number: 83815758
       instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
       controller: hyperion.controller.thorlabs.TDC001/TDC001
