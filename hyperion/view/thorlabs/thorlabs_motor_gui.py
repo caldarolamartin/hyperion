@@ -29,7 +29,7 @@ class App(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
-        self.initialize_available_motors()
+        self.motor_bag = self.motor_hub.initialize_available_motors(self.motor_bag)
         
         self.make_misc_gui_stuff()
         self.make_labels()
@@ -241,28 +241,7 @@ class App(QWidget):
         self.input_textfield.setText("0.01")
         self.grid_layout.addWidget(self.input_textfield, 2, 7)
         
-    def initialize_available_motors(self):
-        #todo, this setup is very hacky and not the hyperion way to do this.
-        #this should be changed when I know how to do this the right way.
-        opteller = 0
-        list_with_actule_serial_numbers = []
-        for i in self.motor_hub.controller.list_available_devices():
-            list_with_actule_serial_numbers.append(i[1])
-        
-        self.experiment = BaseExperiment()
-        self.experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
-        for instrument in self.experiment.properties["Instruments"]:
-            if "ThorlabsMotor" in instrument:
-                for motor in self.experiment.properties["Instruments"][opteller].values():
-                    for motor_item in motor.items():    
-                        #motor_item[0] = name of the motor
-                        #motor_item[1] = serial number of  the motor
-                        if motor_item[1] in list_with_actule_serial_numbers:
-                            self.motor_bag[motor_item[0]] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : motor_item[1]})
-                            self.motor_bag[motor_item[0]].initialize(motor_item[1])
-            else:
-                opteller += 1
-        
+    
     def set_slider_z_to_the_middle(self):
         self.slider_z.setValue(5)
         self.motor_bag["testMotor"].controller.stop_profiled()
