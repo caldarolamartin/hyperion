@@ -282,12 +282,14 @@ class App(QWidget):
     def go_home_motor(self):
         selected_motor = str(self.motor_combobox.currentText())
         self.motor_bag[selected_motor].controller.move_home(True)
+        self.set_current_motor_label()
         
     def go_to_input(self):
         selected_motor = str(self.motor_combobox.currentText())
         try:
             go_to_input = float(self.input_textfield.text())
             self.motor_bag[selected_motor].move_relative_um(go_to_input)
+            self.set_current_motor_label()
         except ValueError:
             print("The input is not a float, change this")
             return
@@ -377,8 +379,12 @@ class App(QWidget):
         for motor in self.motor_bag.items():
             #motor[0] == serial nummer
             #motor[1] == Thorlabs motor instance
+            print(motor[0])
+            print(motor[1])
             retrieved_position = self.position_1_all_motors_dict[motor[0]]
-            if retrieved_position != None:
+            print(retrieved_position)
+            print("-"*40)
+            if retrieved_position != None and retrieved_position != motor[1].controller.position:
                 motor[1].controller.set_position = float(retrieved_position)
     def recover_position_2_all_motors(self):
         #set position of motors
