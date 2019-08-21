@@ -30,4 +30,4 @@ class App(QWidget):
 
     @pyqtSlot()
     def on_click(self):
-        pass
+        print("button clicked")

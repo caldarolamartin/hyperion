@@ -116,25 +116,26 @@ class App(QMainWindow):
         The widget's are saved in the self.dock_widget_dict, through this way the widgets are approachable via self.dock_widget_dict.
         Each QDockWidget will be given it's specifics in the make_dock_widgets: left and right + central: left and right.
         The rest of the things will be filled in at the RandomDockWidget method.
+        If there is an odd number of gui's, self.left_amount_of_gui should be less than self.right_amount_of_gui.
         """
         self.dock_widget_dict = {}
         opteller = 1
-
         self.get_left_right_amount_of_gui(len(self.experiment.view_instances.keys()))
 
         for dock_widget in self.experiment.view_instances.keys():
             if opteller <= self.left_amount_of_gui:
                 self.make_left_dock_widgets(dock_widget, opteller)
-            elif opteller > self.right_amount_of_gui:
+            elif opteller >= self.right_amount_of_gui:
                 self.make_right_dock_widgets(dock_widget, opteller)
             opteller += 1
+        #reset values for the graph_view_instances
         self.get_left_right_amount_of_gui(len(self.experiment.graph_view_instance.keys()))
         opteller = 1
 
         for dock_widget in self.experiment.graph_view_instance.keys():
             if opteller <= self.left_amount_of_gui:
                 self.make_central_right_dock_widgets(dock_widget, opteller)
-            elif opteller > self.right_amount_of_gui:
+            elif opteller >= self.right_amount_of_gui:
                 self.make_central_left_dock_widgets(dock_widget, opteller)
             opteller += 1
     def get_left_right_amount_of_gui(self, amount_of_gui):
@@ -142,6 +143,12 @@ class App(QMainWindow):
         Method to see how many gui's there are and divide these to the sides.
         So self.left_amount_of_gui are the amount of gui's that will be on the left.
         The same goes for the self.right_amount_of_gui.
+
+        :param amount_of_gui: a number that represents all the gui's found in the .yml file
+        :type int
+        :return self.left_amount_of_gui & self.right_amount_of_gui: these two objects represent how many gui's should be on the left and how many
+        should be on the right side of the screen.
+        :rtype int (both(self.left_amount_of_gui & self.right_amount_of_gui))
         """
         if amount_of_gui% 2 == 0:
             # there are a even number of gui's
@@ -299,11 +306,10 @@ class App(QMainWindow):
         self.dock_widget_2.setAllowedAreas(Qt.RightDockWidgetArea | Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_widget_2)
-    #todo change docstring
+
     def get_view_instances_and_load_instruments(self):
         """"
-        In this function with functions found in the ExampleExperiment class
-        Instruments and graph gui's will be loaded via the .yml file.
+        In this function instruments(via experiment) and graph gui's will be loaded via the .yml file.
         The .yml file should be in the same folder as this python file in order to not hard code the
         path to the .yml file.
         """
@@ -366,7 +372,7 @@ class App(QMainWindow):
         MyClass = getattr(importlib.import_module(module_name), class_name)
         instance = MyClass(self.experiment)
         #the measurement_gui is being set in the view_instance dict.
-        self.experiment.view_instance[module_name] = instance
+        self.experiment.view_instances[module_name] = instance
     def load_graph_gui(self, name, view_path):
         """
         Create instances of graph gui's and set these in the self.experiment.graph_view_instace()
