@@ -9,6 +9,7 @@ dependencies:
  - qt=5
  - pyqtgraph
  - netcdf4
+ - matplotlib
  - pip>=19
  - pip:
    - pyyaml>=5.1

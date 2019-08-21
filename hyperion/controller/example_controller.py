@@ -153,10 +153,13 @@ class ExampleControllerDummy(ExampleController):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                  logging.StreamHandler()])
+    from hyperion import _logger_format, _logger_settings
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
+                            logging.StreamHandler()])
 
     dummy = False  # change this to false to work with the real device in the COM specified below.
 

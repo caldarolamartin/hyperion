@@ -24,6 +24,7 @@ class BaseInstrument():
         """
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class BaseInstrument created with settings: {}'.format(settings))
+        self.settings = settings
 
         if 'dummy' in settings and settings['dummy']==True:
             if 'controller' in settings:
@@ -31,7 +32,20 @@ class BaseInstrument():
                     settings['controller'] += 'Dummy'
 
         self.controller_class = self.load_controller(settings)
-        self.controller = self.controller_class(settings)
+
+        if 'via_serial' in settings:
+            port = settings['via_serial'].split('COM')[-1]
+            self.controller = self.controller_class.via_serial(port)
+        elif 'via_gpib' in settings:
+            self.logger.warning('NOT TESTED')
+            port = settings['via_gpib'].split('COM')[-1]
+            self.controller = self.controller_class.via_gpib(port) # to do
+        elif 'via_usb' in settings:
+            self.logger.warning('NOT TESTED')
+            port = settings['via_usb'].split('COM')[-1]
+            self.controller = self.controller_class.via_usb(port)  # to do
+        else:
+            self.controller = self.controller_class(settings)
 
     def __enter__(self):
         return self
@@ -40,14 +54,21 @@ class BaseInstrument():
         self.finalize()
 
     def initialize(self):
-        """ Starts the connection to the device """
-        self.logger.warning('Method used from the BaseInstrument class')
-        self.logger.info('Opening connection to device using driver.')
-        self.controller.initialize(self._port)
+        """ Starts the connection to the device.
+
+        If you need to parse arguments to the initialize, make your own initialize method in
+        your instrument class.
+        """
+        self.logger.warning('Initialization done from the BaseInstrument class.')
+        self.controller.initialize()
 
     def finalize(self):
-        """ this is to close connection to the device."""
-        self.logger.warning('Method used from the BaseInstrument class')
+        """ This is to close connection to the device.
+
+        If you need to parse arguments to the finalize, make your own finalize method in
+        your instrument class.
+        """
+        self.logger.warning('Finalization done from the BaseInstrument class.')
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 

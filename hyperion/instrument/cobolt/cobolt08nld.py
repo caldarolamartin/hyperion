@@ -8,55 +8,26 @@ This class is the instrument layer to control the Cobolt laser model 08-NLD
 It ads the use of units with pint
 """
 import logging
-from lantz.drivers.cobolt.cobolt0601 import Cobolt0601
-from hyperion import ur, root_dir
-from hyperion.controller.agilent.agilent33522A import Agilent33522A
+from hyperion import ur, Q_
+from hyperion.controller.cobolt.cobolt08NLD import Cobolt08NLD
 from hyperion.instrument.base_instrument import BaseInstrument
 
 
-class Cobolt08NLD(BaseInstrument):
+class CoboltLaser(BaseInstrument, Cobolt08NLD):
     """ This class is to control the laser.
 
     """
-    def __init__(self, instrument_id, dummy=True):
-        """
-        Initialize the fun gen class
-
-        :param instrument_id: name of the port where the aotf is connected, like 'COM10'
-        :type instrument_id: str
-        :param defaults: used to load the default values in the config.ylm
-        :type defaults: logical
-        :param dummy: logical value to allow testing without connection
-        :type logical
-        """
+    def __init__(self, settings={'dummy': False,
+                                 'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD',
+                                 'via_serial': 'COM5'}):
+        """ init of the class"""
+        super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-        parser = argparse.ArgumentParser(description='Test Kentech HRI')
-        parser.add_argument('-i', '--interactive', action='store_true',
-                            default=False, help='Show interactive GUI')
-        parser.add_argument('-p', '--port', type=str, default='COM5',
-                            help='Serial port to connect to')
+        self.logger.info('Class CoboltLaser Instrument created.')
 
-        args = parser.parse_args()
-
-        self.dummy = dummy
-        self.CHANNELS = [1, 2]
-        self.FUN = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
-        self.logger.info('Initializing device Agilent33522A number = {}'.format(instrument_id))
-        self.instrument_id = instrument_id
-        self.name = 'Cobolt06NLD'
-        self.driver = Cobolt0601(instrument_id, dummy=dummy)
-        if dummy:
-            self.logger.info('Working in dummy mode')
-
-        self.driver.initialize()
+        self.initialize()
         self.DEFAULTS = {}
-        self.load_defaults(defaults)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.finalize()
+        #self.load_defaults(defaults)
 
     def idn(self):
         """
@@ -65,7 +36,30 @@ class Cobolt08NLD(BaseInstrument):
         :return: message with identification from the device
         :rtype: string
         """
-        return self.driver.idn()
+        return self.controller.idn
+
+    @property
+    def power_sp(self):
+        """ Power set point for the laser, when used in constant power mode
+
+        : getter :
+        Asks for the current power set point
+
+        :return: The power set point
+        :rtype: pint quantity
+
+        : setter :
+        Sets the power setpoint
+
+        :param value: power to set
+        :type value: pint Quantity
+
+        """
+        return self.controller.power_sp
+
+    @power_sp.setter
+    def power_sp(self, value):
+        self.controller.power_sp = value
 
 
 if __name__ == '__main__':
@@ -76,8 +70,12 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with FunGen('8967', defaults=False, dummy=True) as d:
-        print('Output state for channels = {}'.format(d.output_state()))
+    with CoboltLaser(settings={'dummy': False,
+                               'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD',
+                               'via_serial': 'COM5'}) as d:
 
         # #### test idn
         print('Identification = {}.'.format(d.idn()))
+        print('power {}'.format(d.power_sp))
+        d.power_sp = Q_(110,'mW')
+        print('power {}'.format(d.controller.power_sp))

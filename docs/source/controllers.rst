@@ -17,3 +17,4 @@ Here we group all the controllers we use for the Hyperion project.
     controller/hydraharp400
     controller/sk_pol_ana
     controller/TDC001
+    controller/osa

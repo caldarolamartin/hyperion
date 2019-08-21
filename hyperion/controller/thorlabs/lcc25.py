@@ -20,7 +20,7 @@ from hyperion.controller.base_controller import BaseController
 
 
 class Lcc(BaseController):
-    """ This class is to controls the LCC25 thorlabs driver for a liquid crystal variable wavelpate.
+    """ This class is to controls the LCC25 thorlabs driver for a liquid crystal variable waveplate.
 
 
     """
@@ -404,13 +404,16 @@ class LccDummy(Lcc):
         return self._response[-1]
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
+    from hyperion import _logger_format, _logger_settings
+
     logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
-    dummy = False  # change this to false to work with the real device in the COM specified below.
+    dummy = True  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = LccDummy
@@ -419,7 +422,7 @@ if __name__ == "__main__":
 
     with my_class(settings={'port':'COM8', 'dummy':dummy}) as dev:
         dev.initialize()
-
+        print(dev.get_voltage(1))
         # output status and set
         logging.info('The output is: {}'.format(dev.output))
         dev.output = True

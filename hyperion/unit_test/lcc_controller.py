@@ -27,7 +27,7 @@ class UTestLcc():
         self.logger.info('Created UTestLcc25 class.')
         self.logger.info('Testing in dummy={}'.format(settings['dummy']))
         self.dummy = settings['dummy']
-        if dummy:
+        if self.dummy:
             self.dev = LccDummy(settings)
         else:
             self.dev = Lcc(settings)

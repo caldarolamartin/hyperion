@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.cobolt.cobolt0601
+    lantz.drivers.cobolt.cobolt08NLD
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
+
+    Based on the driver for cobolt 06-01 series by Vasco Tenner
 """
 
 from pyvisa import constants
@@ -25,12 +27,6 @@ class Cobolt08NLD(MessageBasedDriver):
                          'encoding': 'ascii',
                          }}
 
-    #TODO: add this in PyVISA
-    # flow control flags
-    #RTSCTS = False
-    #DSRDTR = False
-    #XONXOFF = False
-
     @Feat(read_once=True)
     def idn(self):
         """Get serial number
@@ -41,22 +37,10 @@ class Cobolt08NLD(MessageBasedDriver):
 
     def initialize(self):
         super().initialize()
-        self.mode = 'APC'
+        self.mode = 'PC'
         self.ctl_mode = self.mode
 
     # ENABLE LASER METHODS
-
-    @Feat(values={True: '1', False: '0'})
-    def ksw_enabled(self):
-        """Handling Key Switch enable state
-        """
-        ans = self.query('@cobasky?')
-        return ans[1:]
-
-    @ksw_enabled.setter
-    def ksw_enabled(self, value):
-        self.query('@cobasky ' + value)
-
     @Feat(values={True: '1', False: '0'})
     def enabled(self):
         """Method for turning on the laser. Requires autostart disabled.
@@ -85,6 +69,20 @@ class Cobolt08NLD(MessageBasedDriver):
         """
         self.query('@cob1')
 
+    @Feat(values={True: '1', False: '0'})
+    def ksw_enabled(self):
+        """Handling Key Switch enable state
+        """
+        ans = self.query('@cobasky?')
+        return ans[1:]
+
+    @ksw_enabled.setter
+    def ksw_enabled(self, value):
+        """ Key switch status
+
+        """
+        self.query('@cobasky ' + value)
+
     # LASER INFORMATION METHODS
     @Feat()
     def operating_hours(self):
@@ -100,19 +98,19 @@ class Cobolt08NLD(MessageBasedDriver):
 
     # LASER'S CONTROL MODE AND SET POINT
 
-    @Feat(values={'APC', 'ACC'})
+    @Feat(values={'PC', 'CC'})
     def ctl_mode(self):
-        """To handle laser control modes
+        """To handle laser control modes: PC means constant power and CC constant current
         """
         return self.mode
 
     @ctl_mode.setter
     def ctl_mode(self, value):
-        if value == 'ACC':
+        if value == 'CC':
             self.query('ci')
-            self.mode = 'ACC'
-        elif value == 'APC':
-            self.mode = 'APC'
+            self.mode = 'CC'
+        elif value == 'PC':
+            self.mode = 'PC'
             self.query('cp')
 
     @Feat(units='mA')
@@ -203,7 +201,21 @@ class Cobolt08NLD(MessageBasedDriver):
 
 if __name__ == '__main__':
     lantz.log.log_to_screen(lantz.log.DEBUG)
+    from hyperion import Q_
+
     with Cobolt08NLD.via_serial('5') as inst:
-        print('Non interactive mode')
-        print(inst.idn)
+
+        print('Identification: {}'.format(inst.idn))
+        print('Enabled = {}'.format(inst.enabled))
+        print('used hours = {} hs'.format(inst.operating_hours))
+        print('Laser mode: {}'.format(inst.ctl_mode))
+        print('Laser interlock state: {}'.format(inst.interlock))
+        print('Autostart status: {}'.format(inst.autostart))
+        print('Power setpoint: {}'.format(inst.power_sp))
+        inst.power_sp = Q_(150,'milliwatt')
+        print('Power setpoint: {}'.format(inst.power_sp))
+        inst.power_sp = 200
+        print('Power setpoint: {}'.format(inst.power_sp))
+        print('Output power now: {}'.format(inst.power))
+
 

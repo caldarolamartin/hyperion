@@ -18,12 +18,13 @@ class BaseExperiment():
 
     def __init__(self):
         """ initialize the class"""
-
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the BaseExperiment class.')
         self.properties = {}
-        self.instruments= []
-        self.instruments_instances = []
+        self.view_instances = {}
+        self.graph_view_instances = {}
+        self.instruments_instances = {}
+        self.filename = ''
 
     def __enter__(self):
         return self
@@ -46,38 +47,51 @@ class BaseExperiment():
         self.properties = d
         self.properties['config file'] = filename  # add to the class the name of the Config file used.
 
-        self.scan['properties'] = d['Scan']
+        if 'Scan' in d:
+            self.scan['properties'] = d['Scan']
 
     def finalize(self):
         """ Finalizing the experiment class """
         self.logger.info('Finalizing the experiment base class')
-        for inst in self.instruments_instances:
+        for inst in self.instruments_instances.values():
             inst.finalize()
-
-
 
     def load_instrument(self, name):
         """ Loads instrument
 
-        :param name: name of the instrument to load
+        :param name: name of the instrument to load. It has to be specified in the config file under Instruments
         :type name: string
+        :return: instance of instrument class and adds this instrument object to a dictionary.
         """
         self.logger.debug('Loading instrument: {}'.format(name))
-        for inst in self.properties['Instruments']:
-            self.logger.debug('instrument name: {}'.format(inst))
 
-            if name in inst:
-                module_name, class_name = inst[name]['instrument'].split('/')
-                self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
-                my_class = getattr(importlib.import_module(module_name), class_name)
-                instance = my_class(inst[name])
-                self.instruments.append(inst)
-                self.instruments_instances.append(instance)
-                return instance
+        try:
+            di = self.properties['Instruments'][name]
+            module_name, class_name = di['instrument'].split('/')
+            self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+            MyClass = getattr(importlib.import_module(module_name), class_name)
+            instance = MyClass(di)
+            #self.instruments.append(name)
+            self.instruments_instances[name] = instance
+            return instance
+        except KeyError:
+            self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+            return None
 
-        self.logger.warning('The name "{}" does not exist in the config file'.format(name))
-        return None
-
+        # for inst in self.properties['Instruments']:
+        #     self.logger.debug('Current instrument information: {}'.format(self.properties['Instruments'][inst]))
+        #
+        #     if name == inst:
+        #         module_name, class_name = self.properties['Instruments']['instrument'].split('/')
+        #         self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+        #         my_class = getattr(importlib.import_module(module_name), class_name)
+        #         instance = my_class(inst)
+        #         self.instruments.append(inst)
+        #         self.instruments_instances.append(instance)
+        #         return instance
+        #
+        # self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+        # return None
     # this next two methods should be moved to tools
     def create_filename(self, file_path):
         """ creates the filename property in the class, so all the methods point to the same folder

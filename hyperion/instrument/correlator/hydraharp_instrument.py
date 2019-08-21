@@ -28,8 +28,7 @@ ureg = ur
 #print(time)
 
 class HydraInstrument(BaseInstrument):  
-    def __init__(self, settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
-                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}):
+    def __init__(self, settings):
         """ init of the class"""
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
@@ -162,7 +161,8 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with HydraInstrument() as q:
+    with HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
+                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as q:
         q.initialize()
         q.configurate()
         
