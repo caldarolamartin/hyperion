@@ -122,21 +122,21 @@ class App(QMainWindow):
         opteller = 1
         self.get_left_right_amount_of_gui(len(self.experiment.view_instances.keys()))
 
-        for dock_widget in self.experiment.view_instances.keys():
+        for instrument_name in self.experiment.view_instances.keys():
             if opteller <= self.left_amount_of_gui:
-                self.make_left_dock_widgets(dock_widget, opteller)
+                self.make_left_dock_widgets(instrument_name, opteller)
             elif opteller >= self.right_amount_of_gui:
-                self.make_right_dock_widgets(dock_widget, opteller)
+                self.make_right_dock_widgets(instrument_name, opteller)
             opteller += 1
         #reset values for the graph_view_instances
         self.get_left_right_amount_of_gui(len(self.experiment.graph_view_instance.keys()))
         opteller = 1
 
-        for dock_widget in self.experiment.graph_view_instance.keys():
+        for instrument_name in self.experiment.graph_view_instance.keys():
             if opteller <= self.left_amount_of_gui:
-                self.make_central_right_dock_widgets(dock_widget, opteller)
+                self.make_central_right_dock_widgets(instrument_name, opteller)
             elif opteller >= self.right_amount_of_gui:
-                self.make_central_left_dock_widgets(dock_widget, opteller)
+                self.make_central_left_dock_widgets(instrument_name, opteller)
             opteller += 1
     def get_left_right_amount_of_gui(self, amount_of_gui):
         """"
@@ -159,33 +159,60 @@ class App(QMainWindow):
             self.left_amount_of_gui = int(amount_of_gui / 2)
             self.right_amount_of_gui = (int(amount_of_gui / 2)+(amount_of_gui % 2 > 0))
 
-    def make_left_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.instrument_menu, dock_widget)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
+    def make_left_dock_widgets(self, instrument_name, opteller):
+        """
+        Initialize the left side of the master_gui with gui's.
+        :param instrument_name: The name of the dock_widget
+        :type string
+        :param opteller: the amount of gui this is, used to set some gui's with some QDockWidget features.
+        :type int
+        """
+        #making sure that the Measurement gui's get set in the measurement menu
+        if "Measurement" in instrument_name:
+            self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.measurement_menu, instrument_name)
+        else:
+            self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.instrument_menu, instrument_name)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[instrument_name])
         if opteller == 0:
-            self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
+            self.dock_widget_dict[instrument_name].setFeatures(QDockWidget.NoDockWidgetFeatures)
         elif opteller == 1:
-            self.dock_widget_dict[dock_widget].setFeatures(
+            self.dock_widget_dict[instrument_name].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetClosable)
-    def make_right_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.instrument_menu, dock_widget)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
+    def make_right_dock_widgets(self, instrument_name, opteller):
+        if "Measurement" in instrument_name:
+            self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.measurement_menu, instrument_name)
+        else:
+            self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.instrument_menu, instrument_name)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[instrument_name])
         if opteller == 3:
-            self.dock_widget_dict[dock_widget].setFeatures(
+            self.dock_widget_dict[instrument_name].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetMovable)
         elif opteller == 4:
-            self.dock_widget_dict[dock_widget].setFeatures(
+            self.dock_widget_dict[instrument_name].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetFloatable)
-    def make_central_right_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.instrument_graph_menu, dock_widget)
-        self.central.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[dock_widget])
+    def make_central_right_dock_widgets(self, instrument_name, opteller):
+        """
+
+        :param instrument_name: The name of the dock_widget
+        :type string
+        :param opteller: the amount of gui this is, used to set some gui's with some QDockWidget features.
+        :type int
+        """
+        if "Measurement" in instrument_name:
+            self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.measurement_graph_menu, instrument_name)
+        else:
+            self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.instrument_graph_menu, instrument_name)
+        self.central.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[instrument_name])
         if opteller == 2:
-            self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
-    def make_central_left_dock_widgets(self, dock_widget, opteller):
-        self.dock_widget_dict[dock_widget] = self.randomDockWindow(self.instrument_graph_menu, dock_widget)
-        self.central.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[dock_widget])
+            self.dock_widget_dict[instrument_name].setFeatures(QDockWidget.NoDockWidgetFeatures)
+    def make_central_left_dock_widgets(self, instrument_name, opteller):
+        if "Measurement" in instrument_name:
+            self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.measurement_graph_menu, instrument_name)
+        else:
+            self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.instrument_graph_menu, instrument_name)
+        self.central.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget_dict[instrument_name])
         if opteller == 4:
-            self.dock_widget_dict[dock_widget].setFeatures(QDockWidget.NoDockWidgetFeatures)
+            self.dock_widget_dict[instrument_name].setFeatures(QDockWidget.NoDockWidgetFeatures)
 
     def randomString(self, N):
         return ''.join([random.choice(string.ascii_lowercase) for n in range(N)])
