@@ -6,7 +6,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -14,7 +14,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -22,7 +22,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -30,7 +30,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -38,7 +38,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.GUI_tests.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -53,7 +53,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView:  hyperion.view.GUI_tests.gui_with_graph/App
+    graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
     dummy: True
     settings:
       output: True
