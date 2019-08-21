@@ -312,7 +312,10 @@ class App(QWidget):
             self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
         elif str(key) == "'q'":
             # Stop listener
-            return False
+            if self.worker_thread.isRunning():
+                self.worker_thread.quit()
+                self.worker_thread.wait()
+                return False
     def control_motor_with_keyboard(self):
         """ 
         In this method with the Listener object you can 
