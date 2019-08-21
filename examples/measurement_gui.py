@@ -2,12 +2,11 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
-from examples.example_experiment import ExampleExperiment
 
 
 class App(QWidget):
 
-    def __init__(self, experiment, ):
+    def __init__(self, experiment):
         super().__init__()
         self.title = 'measurement gui'
         self.left = 10

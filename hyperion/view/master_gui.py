@@ -3,13 +3,13 @@ import random
 import string
 import sys
 
+import pyqtgraph as pg
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QPushButton, QVBoxLayout, QAction
 
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QPushButton, QVBoxLayout
-import pyqtgraph as pg
-from hyperion import root_dir
 from examples.example_experiment import ExampleExperiment
+
 
 class App(QMainWindow):
     """class to make the master gui"""
@@ -233,6 +233,7 @@ class App(QMainWindow):
 
         def toggle_visibility():
             dock.setVisible(not dock.isVisible())
+            action.setChecked(True)
         def toggle_collapsed():
             """
             This is a way to collapse the QDockWidgets
@@ -245,8 +246,11 @@ class App(QMainWindow):
             else:
                 dock.setMinimumHeight(dock.uncollapsed_height)
                 dock.collapsed = False
+        action = QAction(name, self)
+        action.setCheckable(True)
+        action.triggered.connect(toggle_visibility)
 
-        menu.addAction(name, toggle_visibility)
+        menu.addAction(action)
         return dock
     def setting_dock_content(self, dock, name):
         """"
