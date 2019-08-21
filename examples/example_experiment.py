@@ -11,10 +11,8 @@ import os
 import logging
 
 import numpy as np
-import yaml
 import winsound
-from time import time, sleep, strftime
-from datetime import datetime
+from time import sleep
 from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
 
@@ -129,13 +127,10 @@ if __name__ == '__main__':
         #
 
         # save metadata
-<<<<<<< HEAD
-        e.save_scan_metadata()
-=======
+
+        #e.save_scan_metadata()
         #e.save_scan_metadata()
         #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
-
->>>>>>> 9cf9216e2e17abe40d3fdebcf48255eaa9cf6559
         # perform scan
         # e.set_scan()
         # e.do_scan()

@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
                              QComboBox, QLineEdit)
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
+from hyperion.view.general_worker import WorkThread
 from pynput.keyboard import Listener
 
 class App(QWidget):
@@ -321,10 +322,15 @@ class App(QWidget):
         #set text of keyboard_label to using keyboard
         self.keyboard_label.setText("using keyboard/npress esc to exit")
         # Collect events until released
-        with Listener(on_press=self.on_press, on_release=self.on_release) as listener:
-            listener.join()
+        self.worker_thread = WorkThread(self.create_keyboard_listener)
+        self.worker_thread.start()
+        
         #set the text back to you can use the keyboard.
         self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
+    def create_keyboard_listener(self):
+        with Listener(on_press=self.on_press, on_release=self.on_release) as listener:
+            listener.join()
+        
     def save_position_for_all_motors(self, button, color, position_all_motors_dict):
         #make sure the user knows the button is pressed by setting it to a different color
         button.setStyleSheet("background-color: "+color)
