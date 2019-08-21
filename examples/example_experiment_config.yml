@@ -2,23 +2,91 @@ User:
   name: Martin
 
 Instruments:
-  VariableWaveplate:
-    port: COM8
-    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
-    controller: hyperion.controller.thorlabs.lcc25/Lcc
-    dummy: False
-    enable: True
-    settings: # not implemented yet
-      output: True
-      voltage1: 1V
-      voltage2: 1V
   ExampleInstrument:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
       output: True
+  ExampleInstrument_2:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_3:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_4:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_5:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  OsaInstrument:
+    port: AUTO
+    instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
+    controller: hyperion.controller.osa.osa_controller/OsaController
+    view: hyperion.view.osa.osa_view/App
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    dummy: False
+  Gui_with_graph:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_7:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_8:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    dummy: True
+    settings:
+      output: True
+
+MetaInstruments:
+  SampleXyzStage:
+    x: xMotor
+    y: yMotor
+    z: zMotor
+
+Measurements:
+  #specific for this experiment
+  #list of measurement views which need to be loaded and accesible for the main experiment class.
+  exampleMeasurement:
+    view: examples.measurement_gui/App
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+
 Data:
   save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
   data_type: txt

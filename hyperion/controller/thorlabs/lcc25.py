@@ -20,7 +20,7 @@ from hyperion.controller.base_controller import BaseController
 
 
 class Lcc(BaseController):
-    """ This class is to controls the LCC25 thorlabs driver for a liquid crystal variable wavelpate.
+    """ This class is to controls the LCC25 thorlabs driver for a liquid crystal variable waveplate.
 
 
     """
@@ -422,7 +422,7 @@ if __name__ == "__main__":
 
     with my_class(settings={'port':'COM8', 'dummy':dummy}) as dev:
         dev.initialize()
-
+        print(dev.get_voltage(1))
         # output status and set
         logging.info('The output is: {}'.format(dev.output))
         dev.output = True

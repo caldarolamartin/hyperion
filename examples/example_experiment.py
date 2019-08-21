@@ -3,9 +3,9 @@
     Example Experiment
     ==================
 
+
+
     This is an example of an experiment class.
-
-
 """
 import os
 import logging
@@ -30,8 +30,9 @@ class ExampleExperiment(BaseExperiment):
 
         self.devices = {}
         self.properties = {}
-        self.instruments = []
-        self.instruments_instances = []
+        self.instruments_instances = {}
+        self.view_instances = {}
+        self.graph_view_instance = {}
 
         # scanning variables
         self.scan = {}
@@ -72,13 +73,29 @@ class ExampleExperiment(BaseExperiment):
         winsound.Beep(1500, 200)
         winsound.Beep(3000, 500)
         sleep(0.1)
+    def measurement(self):
+        for i in range(1, 10):
+            print(i)
+
 
     def load_instruments(self):
+        """"
+        This method gets the instance of every instrument and sets this instance
+        in the self.ins_bag. This way they are approachable via self.
+        The option to set the instruments by hand is still possible. 
+        """
+        #self.ins_bag = {}
 
-        self.vwp = self.load_instrument('VariableWaveplate')
-        self.logger.debug('Class vwp: {}'.format(self.vwp))
-        self.example_instrument = self.load_instrument('ExampleInstrument')
-        self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+        for instrument in self.properties['Instruments']:
+            if not instrument == 'VariableWaveplate':
+                self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+                self.logger.debug('Class'+instrument+": {}".format(self.instruments_instances[instrument]))
+
+        # self.vwp = self.load_instrument('VariableWaveplate')
+        # self.logger.debug('Class vwp: {}'.format(self.vwp))
+        # self.example_instrument = self.load_instrument('ExampleInstrument')
+        # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+
 
 
 if __name__ == '__main__':
@@ -107,12 +124,13 @@ if __name__ == '__main__':
         # # Initialize devices
         print('\n-------------- LOADING DEVICES ----------------\n')
         e.load_instruments()
-        print(e.instruments)
+        print(e.instruments_instances.keys())
         print('-------------- DONE LOADING DEVICES ----------------')
         #
+
         # save metadata
-        e.save_scan_metadata()
-        e.vwp.set_analog_value(1,2.25*ur('volt'))
+        #e.save_scan_metadata()
+        #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
 
         # perform scan
         # e.set_scan()

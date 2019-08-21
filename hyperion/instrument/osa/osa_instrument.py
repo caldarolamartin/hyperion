@@ -4,36 +4,49 @@
 Osa Instrument
 ==================
 
-This is the osa instrument, created to have a place where the view can send requests and
-the controller can get the data the view want's to show. so data flows controller > instrument > view
+This is the osa instrument, created to be able to indirectly talk to the device through controller and
+get data which can be shown in the gui. So request for doing things go view > instrument > controller
+
+This class uses pint to give units to the variables.
 
 """
 import logging
-import sys
+import yaml
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion import ur, root_dir, Q_
-import yaml     # TEMPORARILY ADDED TO TEST pftl_example view
+from hyperion import ur, Q_
+
 
 class OsaInstrument(BaseInstrument):
     """
-    OsaInstrument
+    OsaInstrument class
     """
     def __init__(self, settings = {'port':'COM10', 'dummy': False,
                                    'controller': 'hyperion.controller.osa/OsaController'}):
-        """ init of the osa_instrument class"""
+        """ Init of the class.
+
+        It needs a settings dictionary that contains the following fields (mandatory)
+
+            * port: COM port name where the osa is connected
+            * dummy: logical to say if the connection is real or dummy (True means dummy)
+            * controller: this should point to the controller to use and with / add the name of the class to use
+
+        Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
+        i.e. the class will automatically overwrite the 'controller' with 'hyperion.controller.thorlabs.lcc25/OsaDummy'
+        """
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class OsaInstrument has been created.')
         self.is_busy = None
+        #plotting variables
         self.wav = None
         self.spec = None
 
-    # TEMPORARILY ADDED TO TEST pftl_example view
     def load_config(self, filename=None):
         """Loads the configuration file to generate the properties of the Scan and Monitor.
 
-        :param str filename: Path to the filename. Defaults to Config/experiment.yml if not specified.
+        :param filename: Path to the filename. Default is: 'Config/experiment.yml' if not specified.
+        :type string
         """
         if filename is None:
             filename = 'Config/experiment.yml'
@@ -46,20 +59,19 @@ class OsaInstrument(BaseInstrument):
         self.properties['User'] = self.properties['User']['name']
 
     def initialize(self):
-        """ Starts the connection to the osa machine
-        """
+        """ Starts the connection to the osa machine"""
         self.logger.info('Opening connection to OSA machine.')
         self.controller.initialize()
         self.is_busy = False
 
     def finalize(self):
-        """ this is to close connection to the osa machine
-        """
+        """Closes the connection to the osa machine"""
         self.logger.info('Closing connection to OSA machine.')
         self.controller.finalize()
 
     def idn(self):
         """ Identify command
+
         :return: identification for the device
         :rtype: string
         """
@@ -108,18 +120,25 @@ class OsaInstrument(BaseInstrument):
 
     def __wav_in_range(self, wav):
         """
-        Is the given wavelength in range?
-        :param wav:
-        :return: boolean
+        Is the given wavelength in range between 600 and 1750
+
+        :param wav: the start wavelength
+        :type: float
+        :return: is this true(condition passed) or false(condition failed)?
+        :rtype boolean
         """
         return (wav<1750.0 and wav>600.0)
 
     def is_end_wav_bigger_than_start_wav(self, end_wav, start_wav):
         """
         Check to see if end_wav is bigger than the start_wav
-        :param end_wav:
-        :param start_wav:
-        :return: boolean, true if condition passed, false if condition failed.
+
+        :param end_wav: a pint quantity
+        :type: pint nm quantity
+        :param start_wav: a pint quantity
+        :type: pint nm quantity
+        :return: true if condition passed, false if condition failed.
+        :rtype boolean
         """
         if end_wav.m_as('nm') < start_wav.m_as('nm'):
             return True
@@ -128,9 +147,12 @@ class OsaInstrument(BaseInstrument):
             return False
     def is_end_wav_value_correct(self, end_wav):
         """
-        Is end_wav in range
+        Is end_wav in range between 600 and 1750
+
         :param end_wav: a pint quantity
-        :return: boolean, true if condition passed, false if condition failed.
+        :type: pint nm quantity
+        :return: true if condition passed, false if condition failed.
+        :rtype boolean
         """
         if end_wav.m_as('nm') >= 600 and end_wav.m_as('nm') <= 1750:
             return True
@@ -139,9 +161,12 @@ class OsaInstrument(BaseInstrument):
             return False
     def is_start_wav_value_correct(self, start_wav):
         """
-        Is start_wav in range
-        :param start_wav:
-        :return:
+        Is start_wav in range between 600 and 1750 nm
+
+        :param start_wav: the startwavelength
+        :type: pint nm quantity
+        :return: true if condition passed, false if condition failed.
+        :rtype boolean
         """
         if start_wav.m_as('nm') >= 600 and start_wav.m_as('nm') <= 1750:
             return True
@@ -152,10 +177,11 @@ class OsaInstrument(BaseInstrument):
     def take_spectrum(self):
         """
         Method where a spectrum will be taken using the osa machine.
+
         :return: wav, spec: two list containing the data from the taken spectrum.
+        :rtype wav, sepec: wav(a list of floats), spec(a list of floats)
         """
-        print('inside instrument: take_spectrum()')
-        #self.logging.info('taking spectrum')
+        self.logger.info('taking spectrum')
         self.is_busy = True
         self.controller.perform_single_sweep()
         self.controller.wait_for_osa()

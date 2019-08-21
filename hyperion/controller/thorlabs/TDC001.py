@@ -66,7 +66,6 @@ and then moved relative by 45 degree.
 """
 from hyperion.controller.base_controller import BaseController
 
-
 import logging
 import ctypes
 import ctypes.util

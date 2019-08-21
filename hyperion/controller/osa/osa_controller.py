@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-==================
+==============
 Osa controller
-==================
+==============
 
 This controller (osa.py) supplies one class with several methods to communicate
     with the osa machine from ando AQ6317B model: ?
@@ -22,7 +22,6 @@ class OsaController(BaseController):
 
         :param settings: this includes all the settings needed to connect to the device in question.
         :type settings: dict
-
         """
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
@@ -32,12 +31,13 @@ class OsaController(BaseController):
         self._rm = visa.ResourceManager()
         self._resource_list = self._rm.list_resources()
         self._osa = None
+        #these are @properties variables
         self._start_wav = None
         self._end_wav = None
         self._optical_resolution = None
         self._sample_points = None
-        self._settings = settings
         self._sensitivity = None                # will match value of OSA (1-6)
+        self._settings = settings
         if 'port' in self._settings:
             self._port = self._settings['port']
         else:
@@ -47,7 +47,7 @@ class OsaController(BaseController):
         self._sens_commands = ['SH1', 'SH2', 'SH3', 'SNHD', 'SNAT', 'SMID']
 
     def initialize(self):
-        """ Starts the connection to the device in port """
+        """ Starts the connection to the device with given port """
         self.logger.info('Opening connection to OSA')
 
         if self._port == 'AUTO':
@@ -69,15 +69,17 @@ class OsaController(BaseController):
         # have not initialized it inside a with statement
         self.start_wav; self.end_wav; self.sample_points; self.sensitivity; self.optical_resolution
         # make sure self._start_wav/end_wav/sample_points/optical_resolution is the same as on the osa machine.
-        #This is mandatory
+        # This is mandatory
 
     def wait_for_osa(self, timeout=None):
         """
         Method to let the program do nothing for a while
         in order to create enough time to let the osa machine take a spectrum.
-        If timeout is not specified a timeout will be calculated and used.
+
         :param timeout: time in seconds how long the program must wait before it resumes
-        :return: -
+        if no timeout is specified a timeout will be calculated using self._time_constants
+        :type timeout: float
+
         """
         if timeout==None:
             timeout = 4.0 + 1.05 * self._sample_points * self._time_constants[self._sensitivity-1]
@@ -156,7 +158,7 @@ class OsaController(BaseController):
                 self.logger.warning("The sample points value did not set in OSA")
 
     @property
-    def sensitivity(self):          # this is a string
+    def sensitivity(self):
         self._sensitivity = int(self._osa.query_ascii_values('SENS?')[0])
         return self._sensitivities[self._sensitivity - 1]
 
@@ -175,9 +177,7 @@ class OsaController(BaseController):
 
     def perform_single_sweep(self):
         """
-        Gives a command to the osa machine to
-        do a single sweep.
-        :return:
+        Gives a command to the osa machine to perform a single sweep.
         """
         self._osa.write('SGL')
 
@@ -185,7 +185,9 @@ class OsaController(BaseController):
         """
         Calculates the data created with the single sweep.
         Wait for OSA to finish before grabbing data
-        :return:
+
+        :return wav: an list of the wavelengths, spec an list with spectrum data.
+        :rtype wav: a list of floats and a list of floats
         """
         wav = self._osa.query_ascii_values('WDATA')[1:]
         spec = self._osa.query_ascii_values('LDATA')[1:]
@@ -193,58 +195,34 @@ class OsaController(BaseController):
         return wav, spec
 
     def finalize(self):
-        """ This method closes the connection to the device.
-        It is ran automatically if you use a with block
-
+        """
+        This method closes the connection to the osa machine.
+        This method should be called when all the things are done which you wanted to do with
+        osa machine.
         """
         self.logger.info('Closing connection to device.')
         self._osa.close()
         self._is_initialized = False
 
-    @property
-    def idn(self):
-        """ Identify command
-
-        :return: identification for the device
-        :rtype: string
-        """
-        self.logger.debug('Ask IDN to device.')
-        return 'ExampleController device'
-
     def query(self, msg):
-        """ writes into the device msg
+        """ writes into the device message
 
         :param msg: command to write into the device port
         :type msg: string
+        :return ans: answer from the osa
+        :rtype ans: string
         """
         print(self._osa.session)
-        self.logger.debug('Writing into the example device:{}'.format(msg))
+        self.logger.debug('Writing into the osa machine:{}'.format(msg))
         self.write(msg)
         ans = self.read()
         return ans
-
-    def read(self):
-        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
-
-        :return: fake result
-        :rtype: string
-        """
-        return 'A'
-
-    def write(self, msg):
-        """ Writes into the device
-        :param msg: message to be written in the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the device:{}'.format(msg))
 
 
     def set_settings_for_osa(self):
         """
         in this method the parameters for the osa machine are set with
         hand in order to quickly get results.
-        :param self: the osa device object.
-        :return: -
         """
         # start and end between 600.00 and 1750.00
         self.start_wav = 900.00
@@ -259,8 +237,8 @@ class OsaControllerDummy(OsaController):
     """
     Example Controller Dummy for the Osa machine
     ========================
-
     A dummy version of the Example Controller.
+    ========================
 
     In essence we have the same methods and we re-write the query to answer something meaningful but
     without connecting to the real device.
@@ -275,7 +253,28 @@ class OsaControllerDummy(OsaController):
         self.logger.debug('Writing into the dummy device:{}'.format(msg))
         ans = 'A general dummy answer'
         return ans
+    def read(self):
+        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
 
+        :return: fake result
+        :rtype: string
+        """
+        return 'A'
+    def write(self, msg):
+        """ Writes into the device
+
+        :param msg: message to be written in the device port
+        :type msg: string
+        """
+        self.logger.debug('Writing into the device:{}'.format(msg))
+    def idn(self):
+        """ Identify command
+
+        :return: identification for the device
+        :rtype: string
+        """
+        self.logger.debug('Ask id to example device.')
+        return 'ExampleController device'
 
 
 if __name__ == "__main__":
