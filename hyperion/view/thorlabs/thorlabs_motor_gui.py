@@ -298,10 +298,14 @@ class App(QWidget):
         """
         if str(key) == "'w'":
             #forward
+            self.set_current_motor_label()
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(2)
+            self.set_current_motor_label()
         elif str(key) == "'s'":
             #backwards
+            self.set_current_motor_label()
             self.motor_bag[self.motor_combobox.currentText()].controller.move_velocity(1)
+            self.set_current_motor_label()
     def on_release(self, key):
         """
         In this method if the w or s is released the motor will stop moving.
@@ -310,9 +314,11 @@ class App(QWidget):
         if str(key) == "'w'" or str(key) == "'s'":
             #stop the motor from going
             self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
+            self.set_current_motor_label()
         elif str(key) == "'q'":
             # Stop listener
             if self.worker_thread.isRunning():
+                self.set_current_motor_label()
                 self.worker_thread.quit()
                 self.worker_thread.wait()
                 return False
