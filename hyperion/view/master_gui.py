@@ -239,17 +239,8 @@ class App(QMainWindow):
                 # if the action has been checked
                 action.setChecked(False)
             dock.setVisible(not dock.isVisible())
-
-
-
-
-
         def toggle_collapsed():
-            """
-            This is a way to collapse the QDockWidgets
-            """
             if not dock.collapsed:
-                #dock.uncollapsed_height = dock.height()    # Haven't worked this out yet
                 dock.setMinimumHeight(dock.collapsed_height)
                 dock.setMaximumHeight(dock.collapsed_height)
                 dock.collapsed = True
