@@ -312,25 +312,29 @@ class App(QMainWindow):
         self.load_interfaces()
     def load_interfaces(self):
         """"
-        Method to get instances of gui's through load_gui and set these in self.view_instance.
+        Method to get instances of instrument and graph gui's through load_gui and load_graph_gui.
+        The instances will be set in self.view_instance or self.graph_view_instance. Also,
+        the measurements will be loaded via load_measurement_gui.
         Through this way they can later be retrieved in the self object.
         """
 
         for measurement in self.experiment.properties["Measurements"]:
-            if 'graphView' in self.experiment.properties["Measurements"][measurement]:
-                self.load_graph_gui(measurement, self.experiment.properties['Measurements'][measurement]['graphView'])
-            if 'view' in self.experiment.properties["Measurements"][measurement]:
-                self.load_measurement_gui(self.experiment.properties["Measurements"][measurement]['view'])
+            measurement_name = self.experiment.properties["Measurements"][measurement]
+            if 'graphView' in measurement_name:
+                self.load_graph_gui(measurement, measurement_name['graphView'])
+            if 'view' in measurement_name:
+                self.load_measurement_gui(measurement_name['view'])
 
         for instrument_name in self.experiment.properties['Instruments']:
-            if "graphView" in self.experiment.properties['Instruments'][instrument_name]:
-                self.load_graph_gui(instrument_name, self.experiment.properties['Instruments'][instrument_name]['graphView'])
+            name_of_instrument = self.experiment.properties['Instruments'][instrument_name]
+            if "graphView" in name_of_instrument:
+                self.load_graph_gui(instrument_name, name_of_instrument['graphView'])
                 # check to see if there is an instrument gui for this instrument:
-                if "view" in self.experiment.properties['Instruments'][instrument_name]:
+                if "view" in name_of_instrument:
                     self.load_instrument_gui(instrument_name)
             else:
                 #check if there is gui available for this instrument
-                if "view" in self.experiment.properties['Instruments'][instrument_name]:
+                if "view" in name_of_instrument:
                     self.load_instrument_gui(instrument_name)
     def load_instrument_gui(self, name):
         """
@@ -361,9 +365,8 @@ class App(QMainWindow):
         module_name, class_name = view_path.split('/')
         MyClass = getattr(importlib.import_module(module_name), class_name)
         instance = MyClass(self.experiment)
-        # Getting certain uniqueness by adding Graph as a name. For example: OsaInstrumentGraph.
+        #the measurement_gui is being set in the view_instance dict.
         self.experiment.view_instance[module_name] = instance
-
     def load_graph_gui(self, name, view_path):
         """
         Create instances of graph gui's and set these in the self.experiment.graph_view_instace()
