@@ -356,7 +356,7 @@ class App(QMainWindow):
             if 'graphView' in measurement_name:
                 self.load_graph_gui(measurement, measurement_name['graphView'])
             if 'view' in measurement_name:
-                self.load_measurement_gui(measurement_name['view'])
+                self.load_measurement_gui(measurement, measurement_name['view'])
 
         for instrument_name in self.experiment.properties['Instruments']:
             name_of_instrument = self.experiment.properties['Instruments'][instrument_name]
@@ -394,17 +394,17 @@ class App(QMainWindow):
             print("the view key(aka,"+str(name)+") does not exist in properties.\n This not a bad thing, if there is a gui"
                                                 "than you can ignore this message.\n")
             return None
-    def load_measurement_gui(self, view_path):
+    def load_measurement_gui(self, name, view_path):
         module_name, class_name = view_path.split('/')
         MyClass = getattr(importlib.import_module(module_name), class_name)
         instance = MyClass(self.experiment)
         #the measurement_gui is being set in the view_instance dict.
-        self.experiment.view_instances[module_name] = instance
+        self.experiment.view_instances[name] = instance
     def load_graph_gui(self, name, view_path):
         """
         Create instances of graph gui's and set these in the self.experiment.graph_view_instace()
-
-        :param view_path:
+        :param view_path: the path hardcode to the view.
+        :type string
         :param name: name of view to load. It has to be specified in the config file under Instruments
         :type name: string
         """
