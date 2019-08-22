@@ -317,7 +317,6 @@ class DrawSpectrum(QWidget):
         vbox.addWidget(self.random_plot)
         self.setLayout(vbox)
         self.show()
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = DrawSpectrum()

@@ -115,6 +115,7 @@ class App(QWidget):
         #needs time and count_channel( 1 or 2)
         self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
         self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
+        self.draw.random_plot.plot(self.histogram, clear=True)
 
     def save_histogram(self):
         print('save the histogram')
@@ -143,16 +144,12 @@ class DrawHistogram(QWidget):
         self.setLayout(vbox)
         self.show()
 
+
+
 if __name__ == '__main__':
+    hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal',
+                                                 'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
     app = QApplication(sys.argv)
-    ex = DrawHistogram()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    hydra_instrument = HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
-                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
     draw = DrawHistogram()
-    app = QApplication(sys.argv)
     ex = App(hydra_instrument, draw)
     sys.exit(app.exec_())
