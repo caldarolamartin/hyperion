@@ -58,11 +58,18 @@ class Hydraharp(BaseController):
                 print("Import local library")
                 self.hhlib = ctypes.CDLL("./hhlib.so")
         elif sys.platform == 'win32':
-            try: 
+            try:
                 self.hhlib = ctypes.WinDLL("hhlib.dll")
             except OSError:
                 print("Import local library")
-                self.hhlib = ctypes.WinDLL("./hhlib.dll")
+                self.hhlib = ctypes.WinDLL("./hhlib64.dll")
+        elif sys.platform == 'win64':
+            print('ik ben hier')
+            try:
+                self.hhlib = ctypes.WinDLL("hhlib64.dll")
+            except OSError:
+                print("Import local library")
+                self.hhlib = ctypes.WinDLL("./hhlib64.dll")
         else:
             raise NotImplementedError("Not (yet) implemented on your system ({}).".format(sys.platform))
         assert self.__devidx in range(self.settings['MAXDEVNUM']), "devidx should be a int in range 0 ... 8."

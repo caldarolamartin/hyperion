@@ -8,8 +8,8 @@ class App(QWidget):
     def __init__(self, hydra_instrument):
         super().__init__()
         self.title = 'hydraharp gui, hail hydra'
-        self.left = 10
-        self.top = 10
+        self.left = 50
+        self.top = 50
         self.width = 320
         self.height = 200
         self.grid_layout = QGridLayout()
@@ -20,6 +20,8 @@ class App(QWidget):
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
+
+        self.hydra_instrument.initialize()
 
         self.make_buttons()
         self.make_labels()
@@ -35,16 +37,6 @@ class App(QWidget):
         self.make_channel_label()
         self.make_data_label()
         self.make_end_time_label()
-
-    def make_save_histogram_button(self):
-        self.save_histogram_button = QPushButton('save histrogram', self)
-        self.save_histogram_button.setToolTip('save your histogram in a file')
-        self.save_histogram_button.clicked.connect(self.save_histogram)
-        self.grid_layout.addWidget(self.save_histogram_button,0, 2)
-    def make_take_histogram_button(self):
-        self.take_histogram_button = QPushButton('take histogram', self)
-        self.take_histogram_button.setToolTip('take the histogram')
-        self.take_histogram_button.clicked.connect(self.take_histogram)
     def make_textfields(self):
         self.make_array_length_textfield()
         self.make_resolution_textfield()
@@ -52,6 +44,17 @@ class App(QWidget):
         self.make_channel_textfield()
         self.make_data_textfield()
         self.make_end_time_textfield()
+
+    def make_save_histogram_button(self):
+        self.save_histogram_button = QPushButton('save histrogram', self)
+        self.save_histogram_button.setToolTip('save your histogram in a file')
+        self.save_histogram_button.clicked.connect(self.save_histogram)
+        self.grid_layout.addWidget(self.save_histogram_button,1, 0)
+    def make_take_histogram_button(self):
+        self.take_histogram_button = QPushButton('take histogram', self)
+        self.take_histogram_button.setToolTip('take the histogram')
+        self.take_histogram_button.clicked.connect(self.take_histogram)
+        self.grid_layout.addWidget(self.take_histogram_button, 0,0)
 
     def make_array_length_label(self):
         self.array_length_label = QLabel(self)
@@ -75,7 +78,7 @@ class App(QWidget):
         self.grid_layout.addWidget(self.data_label, 4, 1)
     def make_end_time_label(self):
         self.end_time_label = QLabel(self)
-        self.end_time_label.setText("End time: ")
+        self.end_time_label.setText("End time(in sec.): ")
         self.grid_layout.addWidget(self.end_time_label, 5, 1)
 
     def make_array_length_textfield(self):
@@ -107,7 +110,7 @@ class App(QWidget):
     def take_histogram(self):
         print("Take the histrogram")
         #needs time and count_channel( 1 or 2)
-        self.hydra_instrument.make_histogram(self.end_time_textfield.text(), int(self.channel_textfield.text()))
+        self.hydra_instrument.make_histogram(self.end_time_textfield.text() * ur('s'), int(self.channel_textfield.text()))
 
     def save_histogram(self):
         print('save the histogram')
