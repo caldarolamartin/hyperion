@@ -89,8 +89,8 @@ class HydraInstrument(BaseInstrument):
         
     
     def sync_rate(self):
-        """ Asks the controller the rate of counts on the sync channel
-        
+        """
+        Asks the controller the rate of counts on the sync channel
         """
         self.sync = self.controller.sync_rate()*ureg('cps')
         return self.sync

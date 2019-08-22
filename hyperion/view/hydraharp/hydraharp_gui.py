@@ -67,7 +67,7 @@ class App(QWidget):
         self.grid_layout.addWidget(self.resolution_label, 1, 1)
     def make_integration_time_label(self):
         self.integration_time_label = QLabel(self)
-        self.integration_time_label.setText("Integrationtime: ")
+        self.integration_time_label.setText("Integration time(in sec.): ")
         self.grid_layout.addWidget(self.integration_time_label, 2, 1)
     def make_channel_label(self):
         self.channel_label = QLabel(self)
@@ -92,7 +92,7 @@ class App(QWidget):
         self.grid_layout.addWidget(self.resolution_textfield, 1, 2)
     def make_integration_time_textfield(self):
         self.integration_time_textfield = QLineEdit(self)
-        self.integration_time_textfield.setText("???")
+        self.integration_time_textfield.setText("5")
         self.grid_layout.addWidget(self.integration_time_textfield, 2, 2)
     def make_channel_textfield(self):
         self.channel_combobox = QComboBox()
@@ -111,8 +111,8 @@ class App(QWidget):
     def take_histogram(self):
         print("Take the histrogram")
         #needs time and count_channel( 1 or 2)
-        self.hydra_instrument.set_histogram(int(self.array_length_textfield.text()),res = 8.0*ur('ps'))
-        self.hydra_instrument.make_histogram(self.end_time_textfield.text() * ur('s'), int(self.channel_textfield.text()))
+        self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
+        self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
 
     def save_histogram(self):
         print('save the histogram')
