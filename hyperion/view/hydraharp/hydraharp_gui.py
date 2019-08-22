@@ -1,4 +1,6 @@
 import sys
+
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion import ur
@@ -26,6 +28,11 @@ class App(QWidget):
         self.hydra_instrument.initialize()
         self.hydra_instrument.configurate()
 
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.magenta)
+        self.setPalette(p)
+
         self.make_buttons()
         self.make_labels()
         self.make_textfields()
@@ -39,14 +46,12 @@ class App(QWidget):
         self.make_integration_time_label()
         self.make_channel_label()
         self.make_data_label()
-        self.make_end_time_label()
     def make_textfields(self):
         self.make_array_length_textfield()
         self.make_resolution_textfield()
         self.make_integration_time_textfield()
         self.make_channel_combobox()
         self.make_data_textfield()
-        self.make_end_time_textfield()
 
     def make_save_histogram_button(self):
         self.save_histogram_button = QPushButton('save histrogram', self)
@@ -79,10 +84,6 @@ class App(QWidget):
         self.data_label = QLabel(self)
         self.data_label.setText("Data")
         self.grid_layout.addWidget(self.data_label, 4, 1)
-    def make_end_time_label(self):
-        self.end_time_label = QLabel(self)
-        self.end_time_label.setText("End time(in sec.): ")
-        self.grid_layout.addWidget(self.end_time_label, 5, 1)
 
     def make_array_length_textfield(self):
         self.array_length_textfield = QLineEdit(self)
@@ -104,10 +105,6 @@ class App(QWidget):
         self.data_textfield = QLineEdit(self)
         self.data_textfield.setText("???")
         self.grid_layout.addWidget(self.data_textfield, 4, 2)
-    def make_end_time_textfield(self):
-        self.end_time_textfield = QLineEdit(self)
-        self.end_time_textfield.setText("some time")
-        self.grid_layout.addWidget(self.end_time_textfield, 5, 2)
 
 
     def take_histogram(self):
