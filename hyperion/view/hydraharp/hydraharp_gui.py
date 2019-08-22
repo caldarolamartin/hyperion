@@ -1,6 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
+from hyperion import ur
 
 class App(QWidget):
 
@@ -20,19 +21,93 @@ class App(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
+        self.make_buttons()
+        self.make_labels()
+        self.make_textfields()
+        self.show()
+    def make_buttons(self):
+        self.make_save_histogram_button()
+        self.make_take_histogram_button()
+    def make_labels(self):
+        self.make_array_length_label()
+        self.make_resolution_label()
+        self.make_integration_time_label()
+        self.make_channel_label()
+        self.make_data_label()
+        self.make_end_time_label()
+
+    def make_save_histogram_button(self):
         self.save_histogram_button = QPushButton('save histrogram', self)
         self.save_histogram_button.setToolTip('save your histogram in a file')
         self.save_histogram_button.clicked.connect(self.save_histogram)
         self.grid_layout.addWidget(self.save_histogram_button,0, 2)
-
+    def make_take_histogram_button(self):
         self.take_histogram_button = QPushButton('take histogram', self)
         self.take_histogram_button.setToolTip('take the histogram')
         self.take_histogram_button.clicked.connect(self.take_histogram)
+    def make_textfields(self):
+        self.make_array_length_textfield()
+        self.make_resolution_textfield()
+        self.make_integration_time_textfield()
+        self.make_channel_textfield()
+        self.make_data_textfield()
+        self.make_end_time_textfield()
+
+    def make_array_length_label(self):
+        self.array_length_label = QLabel(self)
+        self.array_length_label.setText("Array lengh: ")
+        self.grid_layout.addWidget(self.array_length_label, 0, 1)
+    def make_resolution_label(self):
+        self.resolution_label = QLabel(self)
+        self.resolution_label.setText("Resolution: ")
+        self.grid_layout.addWidget(self.resolution_label, 1, 1)
+    def make_integration_time_label(self):
+        self.integration_time_label = QLabel(self)
+        self.integration_time_label.setText("Integrationtime: ")
+        self.grid_layout.addWidget(self.integration_time_label, 2, 1)
+    def make_channel_label(self):
+        self.channel_label = QLabel(self)
+        self.channel_label.setText("Channel: ")
+        self.grid_layout.addWidget(self.channel_label, 3, 1)
+    def make_data_label(self):
+        self.data_label = QLabel(self)
+        self.data_label.setText("Data")
+        self.grid_layout.addWidget(self.data_label, 4, 1)
+    def make_end_time_label(self):
+        self.end_time_label = QLabel(self)
+        self.end_time_label.setText("End time: ")
+        self.grid_layout.addWidget(self.end_time_label, 5, 1)
+
+    def make_array_length_textfield(self):
+        self.array_length_textfield = QLineEdit(self)
+        self.array_length_textfield.setText("2")
+        self.grid_layout.addWidget(self.array_length_textfield, 0, 2)
+    def make_resolution_textfield(self):
+        self.resolution_textfield = QLineEdit(self)
+        self.resolution_textfield.setText("???")
+        self.grid_layout.addWidget(self.resolution_textfield, 1, 2)
+    def make_integration_time_textfield(self):
+        self.integration_time_textfield = QLineEdit(self)
+        self.integration_time_textfield.setText("???")
+        self.grid_layout.addWidget(self.integration_time_textfield, 2, 2)
+    def make_channel_textfield(self):
+        self.channel_textfield = QLineEdit(self)
+        self.channel_textfield.setText("2")
+        self.grid_layout.addWidget(self.channel_textfield, 3, 2)
+    def make_data_textfield(self):
+        self.data_textfield = QLineEdit(self)
+        self.data_textfield.setText("???")
+        self.grid_layout.addWidget(self.data_textfield, 4, 2)
+    def make_end_time_textfield(self):
+        self.end_time_textfield = QLineEdit(self)
+        self.end_time_textfield.setText("some time")
+        self.grid_layout.addWidget(self.end_time_textfield, 5, 2)
 
 
-        self.show()
     def take_histogram(self):
         print("Take the histrogram")
+        #needs time and count_channel( 1 or 2)
+        self.hydra_instrument.make_histogram(self.end_time_textfield.text(), int(self.channel_textfield.text()))
 
     def save_histogram(self):
         print('save the histogram')
