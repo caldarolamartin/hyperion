@@ -58,7 +58,7 @@ class Skpolarimeter(BaseController):
 
         """
         self.wavelength = wavelength
-        file = "C:\\test.ini"
+        file = "C:\\unit_test.ini"
         wave = ctypes.c_int(int(wavelength))
         id = ctypes.c_int(int(self.id))
         self.logger.info('Initialization of SK polarimiter with ID = {} at wavelength {} nm. '
@@ -67,7 +67,7 @@ class Skpolarimeter(BaseController):
         func = self.dll.SkInitPolarimeterByID
         func.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int]
 
-        ans = func(self.id, br"C:\\test.ini", wave)
+        ans = func(self.id, br"C:\\unit_test.ini", wave)
         self.logger.debug('Answer from the SkInitPolarimeter: {}'.format(ans))
 
         return ans
@@ -196,11 +196,13 @@ class Skpolarimeter(BaseController):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
+    from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
     with Skpolarimeter() as s:
@@ -213,10 +215,10 @@ if __name__ == "__main__":
         # open connection
         s.initialize()
 
-        # test wavelength
+        # unit_test wavelength
         #s.get_wavelength()
 
-        # test get data
+        # unit_test get data
         t = time()
         s.start_measurement()
 

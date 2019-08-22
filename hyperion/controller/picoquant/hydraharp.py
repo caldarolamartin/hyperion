@@ -26,7 +26,7 @@ c_int_p = ctypes.POINTER(ctypes.c_int)
 class Hydraharp(BaseController):
     """ Hydraharp 400 controller """
 
-    def __init__(self, devidx=0, mode='Histogram', clock='Internal'):
+    def __init__(self, config = {'devidx':0, 'mode':'Histogram', 'clock':'Internal'} ):
         """
         Initialise communication with hydraharp400 device
       
@@ -40,13 +40,19 @@ class Hydraharp(BaseController):
         :type clock: string
                
         """
+        super().__init__(config)
         self.logger = logging.getLogger(__name__)
-        self._is_initialized = False
         self.logger.info('0. hello, this is the hydraharp (controller) speaking')
+
+        # read the configuration
+        self._config = config
+        self.__devidx = config['devidx'] # index of device DO NOT MODIFY THAT FROM OUTSIDE
+
+        # load settings from file
         self.settings = {}
         self.load_config()
-        #print(self.settings)
-      
+
+        # loading dll
         if sys.platform == 'linux':
             try: 
                 self.hhlib = ctypes.CDLL("hhlib.so")
@@ -61,13 +67,14 @@ class Hydraharp(BaseController):
                 self.hhlib = ctypes.WinDLL("./hhlib.dll")
         else:
             raise NotImplementedError("Not (yet) implemented on your system ({}).".format(sys.platform))
-        assert devidx in range(self.settings['MAXDEVNUM']), "devidx should be a int in range 0 ... 8."
-        self.__devidx = devidx  # index of device DO NOT MODIFY THAT FROM OUTSIDE
+        assert self.__devidx in range(self.settings['MAXDEVNUM']), "devidx should be a int in range 0 ... 8."
         self.error_code = 0  # current error code
         self._histoLen = 65536  # default histogram length = 65536
-        assert self.library_version is not self.settings['LIB_VERSION'], "Current code (version {}) may not be compatible with system library (version {})".format(LIB_VERSION, self.library_version)
+        assert self.library_version is not self.settings['LIB_VERSION'], \
+            "Current code (version {}) may not be compatible with system library " \
+            "(version {})".format(LIB_VERSION, self.library_version)
         self._open_device()  # initialize communication
-        self.initialize(mode=mode, clock=clock)  # initialise the instrument
+        self.initialize(mode=config['mode'], clock=config['clock'])  # initialise the instrument
         self.calibrate()  # calibrate it
         self.histogram_length = self._histoLen
         self._binning(0)  # default binning to 0
@@ -85,7 +92,7 @@ class Hydraharp(BaseController):
             filename = os.path.join(root_dir,'controller','picoquant','Hydraharp_config.yml')
       
         with open(filename, 'r') as f:
-            d = yaml.load(f)
+            d = yaml.load(f, Loader=yaml.FullLoader)
     
         self.settings = d['settings']
        
@@ -770,7 +777,6 @@ if __name__ == "__main__":
     
     with Hydraharp() as q:
         q.initialize()
-        
         q.calibrate()
         
         print('The sync rate is: ' , q.sync_rate())

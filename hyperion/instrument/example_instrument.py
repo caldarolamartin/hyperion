@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 """
-================
-Dummy Instrument
-================
+==================
+Example Instrument
+==================
 
-This is a dummy device, simulated for developing and testing the code
+This is an example instrument, created to give developers a canvas to start their own instruments
+for real devices. This is only a dummy device.
 
 """
 import logging
@@ -17,14 +19,9 @@ class ExampleInstrument(BaseInstrument):
     def __init__(self, settings = {'port':'COM10', 'dummy': True,
                                    'controller': 'hyperion.controller.example_controller/ExampleController'}):
         """ init of the class"""
+        super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
-
-        self._port = settings['port']
-        self.dummy = settings['dummy']
-        self.logger.debug('Creating the instance of the controller')
-        self.controller_class = self.load_controller(settings['controller'])
-        self.controller = self.controller_class(self._port, dummy=self.dummy)
 
     def initialize(self):
         """ Starts the connection to the device"
@@ -67,18 +64,24 @@ class ExampleInstrument(BaseInstrument):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                  logging.StreamHandler()])
+    from hyperion import _logger_format, _logger_settings
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
+                            logging.StreamHandler()])
 
-    with ExampleInstrument() as dev:
-        dev.initialize()
-        print(dev.amplitude)
-        v = 2 * ur('volts')
-        dev.amplitude = v
-        print(dev.amplitude)
-        dev.amplitude = v
-        print(dev.amplitude)
+    dummy = [True, False]
+    for d in dummy:
+        with ExampleInstrument(settings = {'port':'COM8', 'dummy' : d,
+                                   'controller': 'hyperion.controller.example_controller/ExampleController'}) as dev:
+            dev.initialize()
+            print(dev.amplitude)
+            # v = 2 * ur('volts')
+            # dev.amplitude = v
+            # print(dev.amplitude)
+            # dev.amplitude = v
+            # print(dev.amplitude)
 
-
+    print('done')

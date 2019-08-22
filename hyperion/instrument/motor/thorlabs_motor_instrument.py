@@ -1,6 +1,6 @@
 """
 ================
-Thorlabs motors Instrument
+Thorlabs motor Instrument
 ================
 
 Connects now to the TDC001 controller.

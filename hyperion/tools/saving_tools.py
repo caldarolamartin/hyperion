@@ -40,7 +40,7 @@ def create_filename(self, file_path):
     return file_path
 
 
-def save_scan_metadata(self):
+def save_metadata(self):
     """ Saves the config file information with the same name as the data and extension .yml
 
 

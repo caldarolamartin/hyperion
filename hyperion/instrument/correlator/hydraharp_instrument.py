@@ -28,13 +28,13 @@ ureg = ur
 #print(time)
 
 class HydraInstrument(BaseInstrument):  
-    def __init__(self, settings = {'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}):
+    def __init__(self, settings):
         """ init of the class"""
+        super().__init__(settings)
         self.logger = logging.getLogger(__name__)
+
         self.logger.info('1. welcome to the instrument level')
         self.logger.debug('Creating the instance of the controller')
-        self.controller_class = self.load_controller(settings['controller'])
-        self.controller = self.controller_class()
         self.sync = 0
         self.count = 0
         self.hist = []
@@ -64,7 +64,7 @@ class HydraInstrument(BaseInstrument):
             filename = os.path.join(root_dir,'instrument','correlator','HydraInstrument_config.yml')
       
         with open(filename, 'r') as f:
-            d = yaml.load(f)
+            d = yaml.load(f, Loader=yaml.FullLoader)
     
         self.settings = d['settings']
         
@@ -147,8 +147,7 @@ class HydraInstrument(BaseInstrument):
                 
         self.hist = self.controller.histogram(count_channel)
         return self.hist
-    
-    
+
     def finalize(self):
         """ this is to close connection to the device."""
         self.logger.info('Closing connection to device.')
@@ -162,20 +161,16 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with HydraInstrument() as q:
-   
+    with HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
+                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as q:
         q.initialize()
-        
         q.configurate()
         
         print('The sync rate is: ' , q.sync_rate())
-        
         print('The count rate is: ' , q.count_rate(0))
-        
+
+        # use the hist
         q.set_histogram(leng = 65536,res = 8.0*ureg('ps'))
-    
         hist = q.make_histogram(tijd = 5*ureg('s'), count_channel = 0)
-        
         print(hist)
-         
-        q.finalize()
+

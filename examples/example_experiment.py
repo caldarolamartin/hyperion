@@ -1,11 +1,11 @@
 """
-    ===============
-    Base Experiment
-    ===============
+    ==================
+    Example Experiment
+    ==================
 
-    This is a base experiment class. The propose is put all the common methods needed for the experiment
-    classes so they are shared and easily modified.
 
+
+    This is an example of an experiment class.
 """
 import os
 import logging
@@ -30,8 +30,9 @@ class ExampleExperiment(BaseExperiment):
 
         self.devices = {}
         self.properties = {}
-        self.instruments = []
-        self.instruments_instances = []
+        self.instruments_instances = {}
+        self.view_instances = {}
+        self.graph_view_instance = {}
 
         # scanning variables
         self.scan = {}
@@ -63,7 +64,6 @@ class ExampleExperiment(BaseExperiment):
     def __exit__(self, exc_type, exc_val, exc_tb):
        self.finalize()
 
-
     def make_sound(self):
         """ This methods makes a sound to call the attention of humans
 
@@ -72,50 +72,33 @@ class ExampleExperiment(BaseExperiment):
         winsound.Beep(3000, 800)  # (frequency in Hz, Duration in ms)
         winsound.Beep(1500, 200)
         winsound.Beep(3000, 500)
+        sleep(0.1)
+    def measurement(self):
+        for i in range(1, 10):
+            print(i)
 
-    def set_scan(self, scan):
-        """ Method to setup a scan.
-
-        :param scan: a dict containing all the information
-
-        """
-
-        self.logger.debug('Setting up devices: detectors and actuators.')
-        self.setup_device(device, settings)
-
-        if 'Triger' in scan:
-            # set up trigger
-            self.set_up_trigger(trigger_device)
-
-        # creating variables needed for the scan
-        self.logger.debug('Reading parameters for Scan from the config file.')
-        # wavelength
-        units = start.u
-        stop = stop.to(units)
-        num_points = (stop - start) / step
-        num_points = round(num_points.m_as(''))
-        scan = np.linspace(start, stop, num_points + 1)
-
-        # initialize the vectors to save data
-        self.xdata_scan = scan
-        self.ydata_scan = np.zeros((np.size(scan), self.number_detectors))
-        self.ydata_scan_error = np.zeros((np.size(scan), self.number_detectors))
-
-        self.tdata_h_scan = np.zeros(np.size(scan))
-        self.tdata_m_scan = np.zeros(np.size(scan))
-        self.tdata_s_scan = np.zeros(np.size(scan))
 
     def load_instruments(self):
+        """"
+        This method gets the instance of every instrument and sets this instance
+        in the self.ins_bag. This way they are approachable via self.
+        The option to set the instruments by hand is still possible. 
+        """
+        #self.ins_bag = {}
 
-        self.vwp = self.load_instrument('VariableWaveplate')
-        self.logger.debug('Class vwp: {}'.format(self.vwp))
-        self.example_instrument = self.load_instrument('ExampleInstrument')
-        self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+        for instrument in self.properties['Instruments']:
+            if not instrument == 'VariableWaveplate':
+                self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+                self.logger.debug('Class'+instrument+": {}".format(self.instruments_instances[instrument]))
+
+        # self.vwp = self.load_instrument('VariableWaveplate')
+        # self.logger.debug('Class vwp: {}'.format(self.vwp))
+        # self.example_instrument = self.load_instrument('ExampleInstrument')
+        # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+
 
 
 if __name__ == '__main__':
-
-
     from hyperion import _logger_format
     logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
@@ -125,7 +108,7 @@ if __name__ == '__main__':
     with ExampleExperiment() as e:
 
         name = 'example_experiment_config'
-        config_folder = os.path.join('c:/hyperion', 'examples')
+        config_folder = os.path.dirname(os.path.abspath(__file__))
         config_file = os.path.join(config_folder, name)
 
         print('Using the config file: {}.yml'.format(config_file))
@@ -141,25 +124,22 @@ if __name__ == '__main__':
         # # Initialize devices
         print('\n-------------- LOADING DEVICES ----------------\n')
         e.load_instruments()
-        print(e.instruments)
-        # # e.load_aotf_controller()
-        # # # e.load_voltage_controller()
-        # # e.load_fun_gen()
+        print(e.instruments_instances.keys())
         print('-------------- DONE LOADING DEVICES ----------------')
         #
+
         # save metadata
-        e.save_scan_metadata()
+        #e.save_scan_metadata()
+        #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
 
         # perform scan
-        # e.do_wavelength_scan()
-        #
+        # e.set_scan()
+        # e.do_scan()
+        e.make_sound()
+
         # # save data
         # e.save_scan_data()
-        #
-        # # finalize
-        # e.finalize_aotf()
-        # # e.finalize_analog_voltage_controller()
-        # e.finalize_fun_gen()
+
 
     print('--------------------- DONE with the experiment')
 
