@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion import ur
 
@@ -20,8 +20,9 @@ class App(QWidget):
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-
+        #initialize and configurate the settings of the hydraharp
         self.hydra_instrument.initialize()
+        self.hydra_instrument.configurate()
 
         self.make_buttons()
         self.make_labels()
@@ -62,7 +63,7 @@ class App(QWidget):
         self.grid_layout.addWidget(self.array_length_label, 0, 1)
     def make_resolution_label(self):
         self.resolution_label = QLabel(self)
-        self.resolution_label.setText("Resolution: ")
+        self.resolution_label.setText("Resolution in ps: ")
         self.grid_layout.addWidget(self.resolution_label, 1, 1)
     def make_integration_time_label(self):
         self.integration_time_label = QLabel(self)
@@ -83,20 +84,20 @@ class App(QWidget):
 
     def make_array_length_textfield(self):
         self.array_length_textfield = QLineEdit(self)
-        self.array_length_textfield.setText("2")
+        self.array_length_textfield.setText("65536")
         self.grid_layout.addWidget(self.array_length_textfield, 0, 2)
     def make_resolution_textfield(self):
         self.resolution_textfield = QLineEdit(self)
-        self.resolution_textfield.setText("???")
+        self.resolution_textfield.setText("8.0")
         self.grid_layout.addWidget(self.resolution_textfield, 1, 2)
     def make_integration_time_textfield(self):
         self.integration_time_textfield = QLineEdit(self)
         self.integration_time_textfield.setText("???")
         self.grid_layout.addWidget(self.integration_time_textfield, 2, 2)
     def make_channel_textfield(self):
-        self.channel_textfield = QLineEdit(self)
-        self.channel_textfield.setText("2")
-        self.grid_layout.addWidget(self.channel_textfield, 3, 2)
+        self.channel_combobox = QComboBox()
+        self.channel_combobox.addItems(["1","2"])
+        self.grid_layout.addWidget(self.channel_combobox, 3, 2)
     def make_data_textfield(self):
         self.data_textfield = QLineEdit(self)
         self.data_textfield.setText("???")
@@ -110,6 +111,7 @@ class App(QWidget):
     def take_histogram(self):
         print("Take the histrogram")
         #needs time and count_channel( 1 or 2)
+        self.hydra_instrument.set_histogram(int(self.array_length_textfield.text()),res = 8.0*ur('ps'))
         self.hydra_instrument.make_histogram(self.end_time_textfield.text() * ur('s'), int(self.channel_textfield.text()))
 
     def save_histogram(self):
