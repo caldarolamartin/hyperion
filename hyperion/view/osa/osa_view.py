@@ -295,13 +295,14 @@ class App(QWidget):
         # when the button is clicked this method will be executed
         print('button says something')
         self.statusBar().showMessage("you have clicked the button, nothing happens(yet)")
+
 class DrawSpectrum(QWidget):
     """
     In this class a widget is created to draw a graph on.
     """
     def __init__(self):
         super().__init__()
-        self.title = 'PyQt5 simple window - pythonspot.com'
+        self.title = 'draw osa gui'
         self.left = 100
         self.top = 100
         self.width = 640

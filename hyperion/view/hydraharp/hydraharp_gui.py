@@ -1,11 +1,12 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion import ur
+import pyqtgraph as pg
 
 class App(QWidget):
 
-    def __init__(self, hydra_instrument):
+    def __init__(self, hydra_instrument, draw):
         super().__init__()
         self.title = 'hydraharp gui, hail hydra'
         self.left = 50
@@ -15,6 +16,7 @@ class App(QWidget):
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
         self.hydra_instrument = hydra_instrument
+        self.draw = draw
         self.initUI()
 
     def initUI(self):
@@ -117,11 +119,40 @@ class App(QWidget):
     def save_histogram(self):
         print('save the histogram')
 
+class DrawHistogram(QWidget):
+
+    """
+        In this class a widget is created to draw a graph on.
+        """
+
+    def __init__(self):
+        super().__init__()
+        self.title = 'draw hydraharp gui'
+        self.left = 100
+        self.top = 100
+        self.width = 640
+        self.height = 480
+        self.random_plot = pg.PlotWidget()
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.random_plot)
+        self.setLayout(vbox)
+        self.show()
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = DrawHistogram()
+    sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     hydra_instrument = HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
                                    'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
-
+    draw = DrawHistogram()
     app = QApplication(sys.argv)
-    ex = App(hydra_instrument)
+    ex = App(hydra_instrument, draw)
     sys.exit(app.exec_())
