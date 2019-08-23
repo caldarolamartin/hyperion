@@ -33,22 +33,38 @@
 #                         24-Feb-2015
 #                       robheath.me.uk
 
-#from hyperion import root_dir
-#from hyperion.controller.base_controller import BaseController
+from hyperion import root_dir
+from hyperion.controller.base_controller import BaseController
 
-import pyanc350.ANC350lib as ANC350lib
+import ANC350lib
 import ctypes
 import math
 import os
 import sys
 import numpy as np
+import logging
 
 
-#(BaseController)
-class Positioner:
-	def __init__(self):
+class Anc350(BaseController):
+	def __init__(self, settings={'dummy': False}):
+		""" INIT of the class
+
+        :param settings: this includes all the settings needed to connect to the device in question.
+        :type settings: dict
+        """
+		super().__init__()  # runs the init of the base_controller class.
+		self.logger = logging.getLogger(__name__)
+		self.name = 'ANC350'
+		self.dummy = settings['dummy']
+		self.logger.info('Class ANC350 init. Created object.')
+
+	def initialize(self):
 		self.check()
 		self.connect()
+		self._is_initialized = True
+
+	def finalize(self):
+		self.close()
 
 	def acInEnable(self, axis, state):
 		'''
@@ -89,8 +105,8 @@ class Positioner:
 		self.posinf = ANC350lib.PositionerInfo() #create PositionerInfo Struct
 		self.numconnected = ANC350lib.positionerCheck(ctypes.byref(self.posinf)) #look for positioners!
 		if self.numconnected > 0:
-			print(self.numconnected,'ANC350 connected')
-			print('ANC350 with id:',self.posinf.id,'has locked state:',self.posinf.locked)
+			self.logger.info(self.numconnected,'ANC350 connected')
+			self.logger.info('ANC350 with id:',self.posinf.id,'has locked state:',self.posinf.locked)
 
 	def clearStopDetection(self, axis):
 		'''
@@ -102,6 +118,7 @@ class Positioner:
 		'''
 		closes connection to ANC350 device
 		'''
+		self.logger.info('Closing connection to ANC350')
 		ANC350lib.positionerClose(self.handle)
 
 	def connect(self):
@@ -111,9 +128,9 @@ class Positioner:
 		self.handle = ANC350lib.Int32(0)
 		try:
 			ANC350lib.positionerConnect(0,ctypes.byref(self.handle)) #0 means "first device"
-			print('connected to first positioner')
+			self.logger.info('connected to first positioner')
 		except Exception as e:
-			print('unable to connect!')
+			self.logger.error('unable to connect!')
 			raise e		
 
 	def dcInEnable(self, axis, state):
@@ -293,7 +310,15 @@ class Positioner:
 		'''
 		loads a parameter file for actor configuration.	note: this requires a pointer to a char datatype. having no parameter file to test, I have no way of telling whether this will work, especially with the manual being as erroneous as it is. as such, use at your own (debugging) risk!
 		'''
-		ANC350lib.positionerLoad(self.handle,axis,ctypes.byref(ctypes.char(filename)))
+		ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
+
+		# ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(bytearray(filename.encode()))))
+
+
+		#ANC350lib.positionerLoad(self.handle,axis,ctypes.byref(ctypes.c_char_p(filename.encode('utf-8'))))
+
+		#f = ctypes.create_string_buffer(filename.encode())
+
 
 	def moveAbsolute(self, axis, position, rotcount=0):
 		'''
@@ -502,3 +527,52 @@ def debitmask(input_int,num_bits = False):
 			result_array[i] = 1
 			input_int -= 2**i
 	return result_array
+
+
+if __name__ == "__main__":
+	from hyperion import _logger_format
+
+	import time
+
+	logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+						handlers=[
+							logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
+							logging.StreamHandler()])
+
+	with Anc350() as anc:
+		#anc.initialize()
+
+		#filename = 'C:\\Program Files\\Attocube positioners\\ANC350_GUI\\general_APS_files\\ANPx101res.aps'
+		filename = 'q'
+		anc.load(0, filename)
+
+
+		ax = {'x': 0, 'y': 1, 'z': 2}
+		# define a dict of axes to make things simpler
+
+		# instantiate positioner as anc
+		print('-------------------------------------------------------------')
+		print('capacitances:')
+		for axis in sorted(ax.keys()):
+			print(axis, anc.capMeasure(ax[axis]))
+		print('-------------------------------------------------------------')
+		print('setting static amplitude to 2V')
+		anc.staticAmplitude(2000)
+		# set staticAmplitude to 2V to ensure accurate positioning info
+		print('-------------------------------------------------------------')
+		print('moving to x = 2mm')
+		anc.moveAbsolute(ax['x'], 2000000)
+
+		# check what's happening
+		time.sleep(0.5)
+		state = 1
+		while state == 1:
+			newstate = anc.getStatus(ax['x'])  # find bitmask of status
+			if newstate == 1:
+				print('axis moving, currently at', anc.getPosition(ax['x']))
+			elif newstate == 0:
+				print('axis arrived at', anc.getPosition(ax['x']))
+			else:
+				print('axis has value', newstate)
+			state = newstate
+			time.sleep(0.5)

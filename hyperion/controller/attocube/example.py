@@ -3,13 +3,13 @@
 #   by Rob Heath
 #
 
-from pyanc350 import Positioner
+from anc350 import Anc350
 import time
 
 ax = {'x':0,'y':1,'z':2}
 #define a dict of axes to make things simpler
 
-anc = Positioner()
+anc = Anc350()
 #instantiate positioner as anc
 print('-------------------------------------------------------------')
 print('capacitances:')

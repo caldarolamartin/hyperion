@@ -15,8 +15,9 @@
 #    v1.1: corrected POINTER used in intEnable (!!)
 #
 
-
+from hyperion import root_dir
 import ctypes
+import os
 import time
 #
 # List of error types
@@ -62,7 +63,7 @@ def checkError(code,func,args):
 	return code
 
 #import dll
-anc350v2 = ctypes.windll.anc350v2
+anc350v2 = ctypes.WinDLL(os.path.join(root_dir,'controller/attocube/','anc350v2.dll'))
 
 #creates alias for c_int as "Int32" (I really don't know why)
 Int32 = ctypes.c_int
