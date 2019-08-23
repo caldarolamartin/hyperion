@@ -139,18 +139,18 @@ class App(QWidget):
         This is done with pyqtgraph.exporters. The widht and height can be set of the picture below.
         """
         print('save the histogram')
-        try:
-            plt = pg.plot(self.histogram)
-            #plt = pg.plot([1,5,2,4,3])
-            exporter = pg.exporters.ImageExporter(plt.plotItem)
-            # set export parameters if needed
-            exporter.parameters()['height'] = 100  # (note this also affects height parameter)
-            exporter.parameters()['width'] = 100  # (note this also affects height parameter)
-            self.actually_save_histogram(exporter)
-            #there must first be made another(or the same) histogram before this method can be accessed.(should be False)
-            self.save_histogram_button.setEnabled(False)
-        except Exception:
-            print("There is no picture to export...change that by clicking the button above")
+        #try:
+        plt = pg.plot(self.histogram)
+        #plt = pg.plot([1,5,2,4,3])
+        exporter = pg.exporters.ImageExporter(self.draw.random_plot.plot.plotItem)
+        # set export parameters if needed
+        exporter.parameters()['height'] = 100  # (note this also affects height parameter)
+        exporter.parameters()['width'] = 100  # (note this also affects height parameter)
+        self.actually_save_histogram(exporter)
+        #there must first be made another(or the same) histogram before this method can be accessed.(should be False)
+        self.save_histogram_button.setEnabled(False)
+        #except Exception:
+            #print("There is no picture to export...change that by clicking the button above")
 
     def actually_save_histogram(self, exporter):
         """
@@ -160,8 +160,9 @@ class App(QWidget):
         :param exporter: A exporter object with which you can save data
         :type pyqtgraph.exporter, doesn't say that much, I know
         """
-        # save to file
+
         if self.export_textfield.text() != "":
+            # save to file via the textfield
             file_name = self.export_textfield.text() + "\\histogram_"+str(self.histogram_number)+".png"
             self.histogram_number += 1
             exporter.export(file_name)
