@@ -142,7 +142,7 @@ class App(QWidget):
         #try:
         plt = pg.plot(self.histogram)
         #plt = pg.plot([1,5,2,4,3])
-        exporter = pg.exporters.ImageExporter(self.draw.random_plot.plot.plotItem)
+        exporter = pg.exporters.ImageExporter(plt.plotItem)
         # set export parameters if needed
         exporter.parameters()['height'] = 100  # (note this also affects height parameter)
         exporter.parameters()['width'] = 100  # (note this also affects height parameter)
