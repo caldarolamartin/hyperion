@@ -422,7 +422,7 @@ class App(QMainWindow):
 
 if __name__ == '__main__':
     experiment = ExampleExperiment()
-    experiment.load_config("C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml")
+    experiment.load_config("D:\\labsoftware\\hyperion\\examples\\example_experiment_config.yml")
 
     app = QApplication(sys.argv)
     main_gui = App(experiment)
