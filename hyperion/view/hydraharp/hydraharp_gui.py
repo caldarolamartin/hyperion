@@ -88,7 +88,7 @@ class App(QWidget):
     def make_export_label(self):
         self.export_label = QLabel(self)
         self.export_label.setText("Export file: ")
-        self.grid_layout.addWidget(self.export_label, 4, 1)
+        self.grid_layout.addWidget(self.export_label, 4, 0)
     def make_progress_label(self):
         self.make_progress_label = QLabel(self)
         self.make_progress_label.setText("*")
@@ -113,7 +113,7 @@ class App(QWidget):
     def make_export_textfield(self):
         self.export_textfield = QLineEdit(self)
         self.export_textfield.setText(root_dir)
-        self.grid_layout.addWidget(self.export_textfield, 4, 2)
+        self.grid_layout.addWidget(self.export_textfield, 4, 1, 1, 2)
 
 
     def take_histogram(self):
@@ -139,18 +139,18 @@ class App(QWidget):
         This is done with pyqtgraph.exporters. The widht and height can be set of the picture below.
         """
         print('save the histogram')
-        #try:
-        plt = pg.plot(self.histogram)
-        #plt = pg.plot([1,5,2,4,3])
-        exporter = pg.exporters.ImageExporter(plt.plotItem)
-        # set export parameters if needed
-        exporter.parameters()['height'] = 100  # (note this also affects height parameter)
-        exporter.parameters()['width'] = 100  # (note this also affects height parameter)
-        self.actually_save_histogram(exporter)
-        #there must first be made another(or the same) histogram before this method can be accessed.(should be False)
-        self.save_histogram_button.setEnabled(False)
-        #except Exception:
-            #print("There is no picture to export...change that by clicking the button above")
+        try:
+            plt = pg.plot(self.histogram)
+            exporter = pg.exporters.ImageExporter(plt.plotItem)
+            # set export parameters if needed
+            exporter.parameters()['height'] = 100  # (note this also affects width parameter)
+            exporter.parameters()['width'] = 100  # (note this also affects height parameter)
+            self.actually_save_histogram(exporter)
+            #there must first be made another(or the same) histogram before this method can be accessed.(should be False)
+            self.save_histogram_button.setEnabled(False)
+            plt.close()
+        except Exception:
+            print("There is no picture to export...change that by clicking the button above")
 
     def actually_save_histogram(self, exporter):
         """
