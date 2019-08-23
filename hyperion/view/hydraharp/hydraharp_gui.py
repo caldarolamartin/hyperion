@@ -48,6 +48,7 @@ class App(QWidget):
         self.make_integration_time_label()
         self.make_channel_label()
         self.make_export_label()
+        self.make_progress_label()
     def make_textfields(self):
         self.make_array_length_textfield()
         self.make_resolution_textfield()
@@ -59,7 +60,7 @@ class App(QWidget):
         self.save_histogram_button = QPushButton('save histrogram', self)
         self.save_histogram_button.setToolTip('save your histogram in a file')
         #The maek_save_button should be setEnabled False
-        self.save_histogram_button.setEnabled(True)
+        self.save_histogram_button.setEnabled(False)
         self.save_histogram_button.clicked.connect(self.save_histogram)
         self.grid_layout.addWidget(self.save_histogram_button, 1, 0)
     def make_take_histogram_button(self):
@@ -88,6 +89,10 @@ class App(QWidget):
         self.export_label = QLabel(self)
         self.export_label.setText("Export file: ")
         self.grid_layout.addWidget(self.export_label, 4, 1)
+    def make_progress_label(self):
+        self.make_progress_label = QLabel(self)
+        self.make_progress_label.setText("*")
+        self.grid_layout.addWidget(self.make_progress_label, 2, 0)
 
     def make_array_length_textfield(self):
         self.array_length_textfield = QLineEdit(self)
@@ -126,6 +131,7 @@ class App(QWidget):
         self.draw.random_plot.plot(self.histogram, clear=True)
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
+        self.make_progress_label.setText("The histogram has been made")
 
     def save_histogram(self):
         """
@@ -142,7 +148,7 @@ class App(QWidget):
             exporter.parameters()['width'] = 100  # (note this also affects height parameter)
             self.actually_save_histogram(exporter)
             #there must first be made another(or the same) histogram before this method can be accessed.(should be False)
-            self.save_histogram_button.setEnabled(True)
+            self.save_histogram_button.setEnabled(False)
         except Exception:
             print("There is no picture to export...change that by clicking the button above")
 
@@ -163,6 +169,7 @@ class App(QWidget):
             #a file chooser will be used
             file_name = self.get_file_path_via_filechooser()
             exporter.export(file_name)
+        self.make_progress_label.setText("The histogram has been saved at: \n" + str(file_name))
     def get_file_path_via_filechooser(self):
         """
         This is code plucked from the internet...so I have no clou what is happening and
