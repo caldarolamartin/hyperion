@@ -1,10 +1,11 @@
 import sys
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout,QFileDialog
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion import ur
 import pyqtgraph as pg
+import pyqtgraph.exporters
 
 class App(QWidget):
 
@@ -15,6 +16,7 @@ class App(QWidget):
         self.top = 50
         self.width = 320
         self.height = 200
+        self.histogram_number = 0
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
         self.hydra_instrument = hydra_instrument
@@ -45,13 +47,13 @@ class App(QWidget):
         self.make_resolution_label()
         self.make_integration_time_label()
         self.make_channel_label()
-        self.make_data_label()
+        self.make_export_label()
     def make_textfields(self):
         self.make_array_length_textfield()
         self.make_resolution_textfield()
         self.make_integration_time_textfield()
         self.make_channel_combobox()
-        self.make_data_textfield()
+        self.make_export_textfield()
 
     def make_save_histogram_button(self):
         self.save_histogram_button = QPushButton('save histrogram', self)
@@ -61,8 +63,16 @@ class App(QWidget):
     def make_take_histogram_button(self):
         self.take_histogram_button = QPushButton('take histogram', self)
         self.take_histogram_button.setToolTip('take the histogram')
+        self.take_histogram_button.setEnabled(True)
         self.take_histogram_button.clicked.connect(self.take_histogram)
         self.grid_layout.addWidget(self.take_histogram_button, 0,0)
+    def make_filechooser_dialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
+                                                  "All Files (*);;Text Files (*.txt)", options=options)
+        if fileName:
+            print(fileName)
 
     def make_array_length_label(self):
         self.array_length_label = QLabel(self)
@@ -80,10 +90,10 @@ class App(QWidget):
         self.channel_label = QLabel(self)
         self.channel_label.setText("Channel: ")
         self.grid_layout.addWidget(self.channel_label, 3, 1)
-    def make_data_label(self):
-        self.data_label = QLabel(self)
-        self.data_label.setText("Data")
-        self.grid_layout.addWidget(self.data_label, 4, 1)
+    def make_export_label(self):
+        self.export_label = QLabel(self)
+        self.export_label.setText("Export file: ")
+        self.grid_layout.addWidget(self.export_label, 4, 1)
 
     def make_array_length_textfield(self):
         self.array_length_textfield = QLineEdit(self)
@@ -101,27 +111,52 @@ class App(QWidget):
         self.channel_combobox = QComboBox()
         self.channel_combobox.addItems(["1","2"])
         self.grid_layout.addWidget(self.channel_combobox, 3, 2)
-    def make_data_textfield(self):
-        self.data_textfield = QLineEdit(self)
-        self.data_textfield.setText("???")
-        self.grid_layout.addWidget(self.data_textfield, 4, 2)
+    def make_export_textfield(self):
+        self.export_textfield = QLineEdit(self)
+        self.export_textfield.setText("???")
+        self.grid_layout.addWidget(self.export_textfield, 4, 2)
 
 
     def take_histogram(self):
+        """
+        In this method there will be made a histogram using the input of the user.
+        To set(a method to clear the data from the previous histogram)the length of the array is needed and
+        the resolution in picoseconds(ps). The histogram gets made by make_histogram using the integration time(how long
+        does your measurement need to take?) and the channel on which to measure.
+        The data gets plot in the DrawHistogram plot(self.draw.random_plot.plot())
+        """
         print("Take the histrogram")
+        y = []
         #needs time and count_channel( 1 or 2)
         self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
         self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
-        self.draw.random_plot.plot(self.histogram, clear=True)
+        for quantity in range(0,len(self.histogram)):
+            y.append(quantity)
+        self.draw.random_plot.plot(self.histogram, y, clear=True)
+        #make it possible to press the save_histogram_button.
+        self.take_histogram_button.setEnabled(False)
 
     def save_histogram(self):
         print('save the histogram')
+        try:
+            plt = self.draw.random_plot
+            # create an exporter instance, as an argument give it
+            # the item you wish to export
+            exporter = pg.exporters.ImageExporter(plt.plotItem)
+            # set export parameters if needed
+            exporter.parameters()['width'] = 100  # (note this also affects height parameter)
+            # save to file
+            exporter.export(self.make_filechooser_dialog)
+            #there must first be made another(or the same) histogram before this method can be accessed.
+            self.take_histogram_button.setEnabled(True)
+        except Exception:
+            print("There is no picture to export...change that by clicking the button above")
 
 class DrawHistogram(QWidget):
 
     """
-        In this class a widget is created to draw a graph on.
-        """
+    In this class a widget is created to draw a graph on.
+    """
 
     def __init__(self):
         super().__init__()
@@ -140,8 +175,6 @@ class DrawHistogram(QWidget):
         vbox.addWidget(self.random_plot)
         self.setLayout(vbox)
         self.show()
-
-
 
 if __name__ == '__main__':
     hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal',
