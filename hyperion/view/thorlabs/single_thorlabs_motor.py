@@ -133,7 +133,8 @@ class App(QWidget):
     def recover_position(self):
         #set position of motors
         #(this only works if the position of the motors is from the home position):
-        #so, that should be changed. 
+        #so, that should be changed.
+        print(self.position)
         if self.position == None:
             print("the positions have not been set!")
             return
