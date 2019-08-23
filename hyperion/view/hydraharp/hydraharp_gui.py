@@ -119,27 +119,25 @@ class App(QWidget):
         The data gets plot in the DrawHistogram plot(self.draw.random_plot.plot())
         """
         print("Take the histrogram")
-        y = []
         #needs time and count_channel( 1 or 2)
         self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
         self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
-        for quantity in range(0,len(self.histogram)):
-            y.append(quantity)
-        self.draw.random_plot.plot(self.histogram, y, clear=True)
+        self.draw.random_plot.plot(self.histogram, clear=True)
         #make it possible to press the save_histogram_button.
         self.take_histogram_button.setEnabled(False)
 
     def save_histogram(self):
         print('save the histogram')
         #try:
-        plt = self.draw.random_plot.plot([1,5,2,4,3])
-        # create an exporter instance, as an argument give it
-        # the item you wish to export
-        exporter = pg.exporters.ImageExporter(plt.plotItem())
+        #plt = pg.plot(self.histogram)
+        plt = pg.plot([1,5,2,4,3])
+        exporter = pg.exporters.ImageExporter(plt.plotItem)
         # set export parameters if needed
+        exporter.parameters()['height'] = 100  # (note this also affects height parameter)
         exporter.parameters()['width'] = 100  # (note this also affects height parameter)
         # save to file
-        exporter.export(self.get_file_path_via_filechooser())
+        #file_name = self.get_file_path_via_filechooser()
+        exporter.export('aap.png')
         #there must first be made another(or the same) histogram before this method can be accessed.
         self.take_histogram_button.setEnabled(False)
         #except Exception:
@@ -149,7 +147,7 @@ class App(QWidget):
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
                                                   "All Files (*);;Text Files (*.txt)", options=options)
-        return fileName
+        return fileName + ".png"
 
 class DrawHistogram(QWidget):
 
