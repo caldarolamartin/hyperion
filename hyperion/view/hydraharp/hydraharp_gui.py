@@ -58,21 +58,14 @@ class App(QWidget):
     def make_save_histogram_button(self):
         self.save_histogram_button = QPushButton('save histrogram', self)
         self.save_histogram_button.setToolTip('save your histogram in a file')
+        self.save_histogram_button.setEnabled(True)
         self.save_histogram_button.clicked.connect(self.save_histogram)
-        self.grid_layout.addWidget(self.save_histogram_button,1, 0)
+        self.grid_layout.addWidget(self.save_histogram_button, 1, 0)
     def make_take_histogram_button(self):
         self.take_histogram_button = QPushButton('take histogram', self)
         self.take_histogram_button.setToolTip('take the histogram')
-        self.take_histogram_button.setEnabled(True)
         self.take_histogram_button.clicked.connect(self.take_histogram)
-        self.grid_layout.addWidget(self.take_histogram_button, 0,0)
-    def make_filechooser_dialog(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
-                                                  "All Files (*);;Text Files (*.txt)", options=options)
-        if fileName:
-            print(fileName)
+        self.grid_layout.addWidget(self.take_histogram_button, 0, 0)
 
     def make_array_length_label(self):
         self.array_length_label = QLabel(self)
@@ -138,19 +131,25 @@ class App(QWidget):
 
     def save_histogram(self):
         print('save the histogram')
-        try:
-            plt = self.draw.random_plot
-            # create an exporter instance, as an argument give it
-            # the item you wish to export
-            exporter = pg.exporters.ImageExporter(plt.plotItem)
-            # set export parameters if needed
-            exporter.parameters()['width'] = 100  # (note this also affects height parameter)
-            # save to file
-            exporter.export(self.make_filechooser_dialog)
-            #there must first be made another(or the same) histogram before this method can be accessed.
-            self.take_histogram_button.setEnabled(True)
-        except Exception:
-            print("There is no picture to export...change that by clicking the button above")
+        #try:
+        plt = self.draw.random_plot.plot([1,5,2,4,3])
+        # create an exporter instance, as an argument give it
+        # the item you wish to export
+        exporter = pg.exporters.ImageExporter(plt.plotItem())
+        # set export parameters if needed
+        exporter.parameters()['width'] = 100  # (note this also affects height parameter)
+        # save to file
+        exporter.export(self.get_file_path_via_filechooser())
+        #there must first be made another(or the same) histogram before this method can be accessed.
+        self.take_histogram_button.setEnabled(False)
+        #except Exception:
+            #print("There is no picture to export...change that by clicking the button above")
+    def get_file_path_via_filechooser(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
+                                                  "All Files (*);;Text Files (*.txt)", options=options)
+        return fileName
 
 class DrawHistogram(QWidget):
 
