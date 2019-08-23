@@ -49,9 +49,9 @@ class Anc350(BaseController):
 	def __init__(self, settings={'dummy': False}):
 		""" INIT of the class
 
-        :param settings: this includes all the settings needed to connect to the device in question.
-        :type settings: dict
-        """
+		:param settings: this includes all the settings needed to connect to the device in question.
+		:type settings: dict
+		"""
 		super().__init__()  # runs the init of the base_controller class.
 		self.logger = logging.getLogger(__name__)
 		self.name = 'ANC350'
@@ -64,7 +64,11 @@ class Anc350(BaseController):
 		self._is_initialized = True
 
 	def finalize(self):
-		self.close()
+		'''
+		closes connection to ANC350 device
+		'''
+		self.logger.info('Closing connection to ANC350')
+		ANC350lib.positionerClose(self.handle)
 
 	def acInEnable(self, axis, state):
 		'''
@@ -114,18 +118,12 @@ class Anc350(BaseController):
 		'''
 		ANC350lib.positionerClearStopDetection(self.handle,axis)
 
-	def close(self):
-		'''
-		closes connection to ANC350 device
-		'''
-		self.logger.info('Closing connection to ANC350')
-		ANC350lib.positionerClose(self.handle)
-
 	def connect(self):
 		'''
 		Establishes connection to first device found
 		'''
 		self.handle = ANC350lib.Int32(0)
+		'I am reaching the handle'
 		try:
 			ANC350lib.positionerConnect(0,ctypes.byref(self.handle)) #0 means "first device"
 			self.logger.info('connected to first positioner')
@@ -313,7 +311,6 @@ class Anc350(BaseController):
 		ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
 
 		# ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(bytearray(filename.encode()))))
-
 
 		#ANC350lib.positionerLoad(self.handle,axis,ctypes.byref(ctypes.c_char_p(filename.encode('utf-8'))))
 
