@@ -128,6 +128,10 @@ class App(QWidget):
         self.save_histogram_button.setEnabled(True)
 
     def save_histogram(self):
+        """
+        In this method the made histogram gets saved.
+        This is done with pyqtgraph.exporters. The widht and height can be set of the picture below.
+        """
         print('save the histogram')
         try:
             #plt = pg.plot(self.histogram)
@@ -143,6 +147,13 @@ class App(QWidget):
             print("There is no picture to export...change that by clicking the button above")
 
     def actually_save_histogram(self, exporter):
+        """
+        In this method it is defined what the file_name is via checking if
+        there is text in the export textfield. If there is none, than a file_chooser will be
+        used to have a location where the .png's will be saved.
+        :param exporter: A exporter object with which you can save data
+        :type pyqtgraph.exporter, doesn't say that much, I know
+        """
         # save to file
         if self.export_textfield.text() != "":
             file_name = self.export_textfield.text() + "\\histogram_"+str(self.histogram_number)+".png"
@@ -152,8 +163,14 @@ class App(QWidget):
             #a file chooser will be used
             file_name = self.get_file_path_via_filechooser()
             exporter.export(file_name)
-
     def get_file_path_via_filechooser(self):
+        """
+        This is code plucked from the internet...so I have no clou what is happening and
+        that is fine really. If the code breaks, go to: https://pythonspot.com/pyqt5-file-dialog/
+        It is where I got the code from.
+        :return: the filepath, .png needs to be attached in order to save the picture as a...picture
+        :rtype string
+        """
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
