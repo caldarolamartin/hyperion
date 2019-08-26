@@ -95,7 +95,11 @@ class Thorlabsmotor(BaseInstrument):
         
         experiment = BaseExperiment()
         experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
+        print(self.experiment)
         print("-"*40)
+        print(self.experiment.properties["Instruments"])
+        print("-"*40)
+        
         for instrument in experiment.properties["Instruments"]:
             if "Motor" in str(instrument):
                 for motor_item in experiment.properties["Instruments"][opteller].values():
