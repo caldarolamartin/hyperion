@@ -103,9 +103,9 @@ class Thorlabsmotor(BaseInstrument):
                     motor_bag[str(instrument)].initialize(instrument_path["serial_number"])
                 except KeyError:
                     #this is the view
-                    print(instrument_path["Thorlabs3AxisView"])
+                    print(instrument_path["view"])
                 except Exception:
-                    print("motor: "+str(instrument_path)+"is not available")
+                    print("motor: "+str(instrument_path["serial_number"])+" is not available")
                         
         print("-"*40)
         return motor_bag
