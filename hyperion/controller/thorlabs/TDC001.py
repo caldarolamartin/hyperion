@@ -334,7 +334,7 @@ class TDC001(BaseController):
         # initialize device
         if serial_number is None:
             serial_number = self._serial_number
-        self._serial_number=serial_number    
+        #self._serial_number=serial_number    
         err_code = self._lib.InitHWDevice(serial_number)
         if (err_code != 0):
             raise Exception("Could not initialize device: %s" %
