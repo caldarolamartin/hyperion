@@ -80,7 +80,6 @@ class App(QWidget):
         for slider in slider_list:    
             self.make_slider(lambda: slider[0], slider[1], opteller)
             opteller += 2
-            
         self.make_dropdown_motor()
         self.make_go_to_input_textfield()
     
@@ -213,20 +212,53 @@ class App(QWidget):
         :param opteller: indication on which grid the slider must be set
         :type int
         """
-        self.slider = slider 
-        self.slider_dict[self.slider] = QSlider(Qt.Vertical, self)
-        self.slider_dict[self.slider].setFocusPolicy(Qt.StrongFocus)
-        self.slider_dict[self.slider].setFocusPolicy(Qt.StrongFocus)
-        self.slider_dict[self.slider].setTickPosition(QSlider.TicksBothSides)
-        self.slider_dict[self.slider].setMinimum(1)
-        self.slider_dict[self.slider].setMaximum(9)
-        self.slider_dict[self.slider].setValue(5)
-        self.slider_dict[self.slider].setTickInterval(1)
-        self.slider_dict[self.slider].setSingleStep(1)
-        self.slider_dict[self.slider].sliderReleased.connect(lambda: self.set_slider_to_middle(self.slider_dict[self.slider], motor_name))
-        self.slider_dict[self.slider].sliderMoved.connect(lambda: self.make_slider_motor_move(self.slider_dict[self.slider], motor_name))
-        self.grid_layout.addWidget(self.slider_dict[self.slider], 4, opteller)
         
+        self.slider_ding = QSlider(Qt.Vertical, self)
+        self.slider_ding.setFocusPolicy(Qt.StrongFocus)
+        self.slider_ding.setTickPosition(QSlider.TicksBothSides)
+        self.slider_ding.setMinimum(1)
+        self.slider_ding.setMaximum(9)
+        self.slider_ding.setValue(5)
+        self.slider_ding.setTickInterval(1)
+        self.slider_ding.setSingleStep(1)
+        self.slider_ding.sliderReleased.connect(lambda: self.set_slider_to_middle(slider, motor_name))
+        self.slider_ding.sliderMoved.connect(lambda: self.make_slider_motor_move(slider, motor_name))
+        
+        self.slider_dict[slider] = self.slider_ding
+        self.grid_layout.addWidget(self.slider_dict[slider], 4, opteller)
+    
+    def set_slider_to_middle(self, slider, motor_name):
+        """
+        In this method an slider is set to the middle. This is done 
+        through connecting a signal and slot.
+        
+        :param slider_object: an slider that must be set to it's middle
+        :type QSlider
+        :param motor_name: the name of the motor to stop
+        :type string
+        """
+        self.slider_dict[slider].setValue(5)
+        self.motor_bag[motor_name].controller.stop_profiled()
+        
+    def make_slider_motor_move(self, slider, motor_name):
+        """
+        In this method the motor moves if the slider is moved.
+        
+        :param slider_object: the slider that is being moved
+        :type QSlider
+        :param motor_name: the name of the motor to move
+        :type string
+        """
+        print("Slider: "+str(slider)+" will move")
+        if self.slider_dict[slider].value() > 5:
+            #moving forward
+            self.motor_bag[motor_name].controller.move_velocity(2)
+        elif self.slider_dict[slider].value() < 5:
+            #moving reverse
+            self.motor_bag[motor_name].controller.move_velocity(1)    
+    
+    
+    
     def make_dropdown_motor(self):    
         list_with_motors = []
         self.motor_combobox = QComboBox(self)
@@ -240,35 +272,6 @@ class App(QWidget):
         self.input_textfield = QLineEdit(self)
         self.input_textfield.setText("0.01")
         self.grid_layout.addWidget(self.input_textfield, 2, 7)
-        
-    def set_slider_to_middle(self, slider_object, motor_name):
-        """
-        In this method an slider is set to the middle. This is done 
-        through connecting a signal and slot.
-        
-        :param slider_object: an slider that must be set to it's middle
-        :type QSlider
-        :param motor_name: the name of the motor to stop
-        :type string
-        """
-        slider_object.setValue(5)
-        self.motor_bag[motor_name].controller.stop_profiled()
-        
-    def make_slider_motor_move(self, slider_object, motor_name):
-        """
-        In this method the motor moves if the slider is moved.
-        
-        :param slider_object: the slider that is being moved
-        :type QSlider
-        :param motor_name: the name of the motor to move
-        :type string
-        """
-        if slider_object.value() > 5:
-            #moving forward
-            self.motor_bag[motor_name].controller.move_velocity(2)
-        elif slider_object.value() < 5:
-            #moving reverse
-            self.motor_bag[motor_name].controller.move_velocity(1)
     
     def set_current_motor_label(self):
         #in this function the position value is retrieved and round + set in a label.
