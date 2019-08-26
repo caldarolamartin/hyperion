@@ -24,6 +24,7 @@ class App(QWidget):
         self.position_1_all_motors_dict = {}
         self.position_2_all_motors_dict = {}
         self.position_3_all_motors_dict = {}
+        self.velocity_motors_dict = {}
         self.initUI()
         
     def initUI(self):
@@ -54,6 +55,7 @@ class App(QWidget):
         self.make_z_coordinate_second_label()
         self.make_motor_current_position_label()
         self.make_use_keyboard_label()
+        self.make_go_faster_label()
     def make_buttons(self):
         #make buttons
         self.make_save_pos_3_button()
@@ -74,11 +76,11 @@ class App(QWidget):
         motor that the slider will use. 
         """
         slider_list = self.motor_hub.make_slider_list()
-        print(slider_list)
         opteller = 1
         for slider in slider_list:    
             self.make_slider(lambda: slider[0], slider[1], opteller)
             opteller += 2
+        self.make_go_faster_slider()
         self.make_dropdown_motor()
         self.make_go_to_input_textfield()
     def make_save_pos_1_label(self):
@@ -144,7 +146,10 @@ class App(QWidget):
         self.keyboard_label = QLabel(self)
         self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
         self.grid_layout.addWidget(self.keyboard_label, 3, 6)
-        
+    def make_go_faster_label(self):
+        self.go_faster_label = QLabel(self)
+        self.go_faster_label.setText("change\nmotor speed:")
+        self.grid_layout.addWidget(self.go_faster_label, 4, 6)
         
     #make buttons:
     def make_save_pos_1_button(self):
@@ -252,9 +257,45 @@ class App(QWidget):
         elif self.slider_dict[slider].value() < 5:
             #moving reverse
             self.motor_bag[motor_name].controller.move_velocity(1)    
-    
-    
-    
+    def make_go_faster_slider(self):
+        #make a slider go faster
+        
+        self.go_faster_slider = QSlider(Qt.Horizontal, self)
+        self.go_faster_slider.setFocusPolicy(Qt.StrongFocus)
+        self.go_faster_slider.setTickPosition(QSlider.TicksBelow)
+        self.go_faster_slider.setMinimum(0)
+        self.go_faster_slider.setMaximum(10)
+        self.go_faster_slider.setValue(0)
+        self.go_faster_slider.setTickInterval(1)
+        self.go_faster_slider.setSingleStep(1)
+        self.go_faster_slider.sliderReleased.connect(self.change_motor_speed)
+        self.grid_layout.addWidget(self.go_faster_slider, 4, 7)
+    def change_motor_speed(self):
+        #print("for motor: "+str(self.motor_combobox.currentText())+" the limits are: "+str(self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameter_limits()))
+        #minimum velocity = output[0]
+        #acceleration = ouput[1]
+        #maximum velocity = output[2]
+        output = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
+        if not self.motor_combobox.currentText() in self.velocity_motors_dict:
+            #setting the original highest value of the motor to prevent degrading in speed.
+            self.velocity_motors_dict[self.motor_combobox.currentText()] = output[2]
+        if (output[0] - output[2]) == 0:
+            #the numbers are equal meaning that the speed cannot change
+            print("you cannot change the speed of this motor")
+        else:
+            #the speed can change
+            total_speed = self.velocity_motors_dict[self.motor_combobox.currentText()] - output[0]
+            tenth_of_total_speed = total_speed / 10
+            print(tenth_of_total_speed)
+            slider_value = self.go_faster_slider.value()
+            print(slider_value)
+            new_speed = slider_value * tenth_of_total_speed
+            # minimum_velocity, accelleration, maximum_velocity
+            print("the old max speed: "+str(self.velocity_motors_dict[self.motor_combobox.currentText()])+"the new max speed "+str(new_speed))
+            print("-"*40)
+            if new_speed < output[2] and new_speed > output[0]:
+                self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(output[0], output[1], new_speed)
+            
     def make_dropdown_motor(self):    
         list_with_motors = []
         self.motor_combobox = QComboBox(self)
