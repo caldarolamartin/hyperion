@@ -115,10 +115,13 @@ class Thorlabsmotor(BaseInstrument):
     def make_slider_list(self):
         #[("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
         slider_list = []
-        
+        slider_namen_lijst = ["slider_x","slider_y","slider_z"]
+        opteller = 0
         for instrument in self.experiment.properties["MetaInstruments"]:
             if "Motor" in instrument:
-                print("meta instrument: "+ str(instrument))
+                for motor_naam in self.experiment.properties["MetaInstruments"][instrument].items():
+                    slider_list.extend(slider_namen_lijst[opteller], motor_naam[1])
+                    opteller += 1
                 
         
         return [("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
