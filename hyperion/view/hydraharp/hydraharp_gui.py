@@ -1,15 +1,17 @@
 import sys
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout,QFileDialog
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
+from hyperion.view.general_worker import WorkThread
 from hyperion import ur, root_dir
 import pyqtgraph as pg
 import pyqtgraph.exporters
 
 class App(QWidget):
 
-    def __init__(self, hydra_instrument, draw):
+    #def __init__(self, hydra_instrument, draw):
+    def __init__(self):
         super().__init__()
         self.title = 'hydraharp gui, hail hydra'
         self.left = 50
@@ -19,16 +21,16 @@ class App(QWidget):
         self.histogram_number = 0
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
-        self.hydra_instrument = hydra_instrument
-        self.draw = draw
+        #self.hydra_instrument = hydra_instrument
+        #self.draw = draw
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         #initialize and configurate the settings of the hydraharp
-        self.hydra_instrument.initialize()
-        self.hydra_instrument.configurate()
+        #self.hydra_instrument.initialize()
+        #self.hydra_instrument.configurate()
 
         self.setAutoFillBackground(True)
         p = self.palette()
@@ -48,6 +50,7 @@ class App(QWidget):
         self.make_integration_time_label()
         self.make_channel_label()
         self.make_export_label()
+        self.make_remaining_time_label()
     def make_textfields(self):
         self.make_array_length_textfield()
         self.make_resolution_textfield()
@@ -88,6 +91,10 @@ class App(QWidget):
         self.export_label = QLabel(self)
         self.export_label.setText("Export file: ")
         self.grid_layout.addWidget(self.export_label, 4, 1)
+    def make_remaining_time_label(self):
+        self.remaining_time_label = QLabel(self)
+        self.remaining_time_label.setText("Remaining time:\n")
+        self.grid_layout.addWidget(self.remaining_time_label, 2, 0)
 
     def make_array_length_textfield(self):
         self.array_length_textfield = QLineEdit(self)
@@ -121,9 +128,9 @@ class App(QWidget):
         """
         print("Take the histrogram")
         #needs time and count_channel( 1 or 2)
-        self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
-        self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
-        self.draw.random_plot.plot(self.histogram, clear=True)
+        #self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
+        #self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
+        #self.draw.random_plot.plot(self.histogram, clear=True)
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
 
@@ -145,6 +152,7 @@ class App(QWidget):
             self.save_histogram_button.setEnabled(True)
         except Exception:
             print("There is no picture to export...change that by clicking the button above")
+
 
     def actually_save_histogram(self, exporter):
         """
@@ -202,9 +210,9 @@ class DrawHistogram(QWidget):
         self.show()
 
 if __name__ == '__main__':
-    hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal',
-                                                 'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
+    #hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
     app = QApplication(sys.argv)
-    draw = DrawHistogram()
-    ex = App(hydra_instrument, draw)
+    #draw = DrawHistogram()
+    #ex = App(hydra_instrument, draw)
+    ex = App()
     sys.exit(app.exec_())

@@ -128,7 +128,7 @@ class HydraInstrument(BaseInstrument):
     def make_histogram(self,tijd,count_channel):
         """ Does the histogram measurement, checking for the status, saving the histogram
         
-        :param tijd: integration time of histogram (please dont use the English word) in s
+        :param tijd: integration time of histogram (please dont use the English word for tijd) in s
         :type tijd: pint quantity
         
         :param count_channel: number of channel that is correlated with the sync channel, 1 or 2
@@ -139,11 +139,13 @@ class HydraInstrument(BaseInstrument):
         
         ended = False
         t = round(tijd.m_as('s')/5)
+        total_time_passed = 0
+        total_time_passed.m_as('s')
         
         while ended == False:
             ended = self.controller.ctc_status
             time.sleep(t)
-            print(ended)
+            print("Go strong for: "+tijd.m_as('s') - )
                 
         self.hist = self.controller.histogram(count_channel)
         return self.hist
