@@ -88,36 +88,27 @@ class Thorlabsmotor(BaseInstrument):
         :return motor_bag: but this time it is filled with motor instances
         :rtype dict
         """
-        opteller = 0
         list_with_actule_serial_numbers = []
         for i in self.controller.list_available_devices():
             list_with_actule_serial_numbers.append(i[1])
         
         experiment = BaseExperiment()
         experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
-        print(self.experiment)
-        print("-"*40)
-        print(self.experiment.properties["Instruments"])
-        print("-"*40)
         
         for instrument in experiment.properties["Instruments"]:
-            if "Motor" in str(instrument):
-                for motor_item in experiment.properties["Instruments"][opteller].values():
-                    if not "view" in motor_item and motor_item["serial_number"] in list_with_actule_serial_numbers:
-                        #' '.join(instrument.keys()) = the name given(in the .yml file) to the motor
-                        #motor_item["serial_number"] = serial_number of the motor
-                        print("initialize: "+ str(motor_item["serial_number"]))
-                        motor_bag[' '.join(instrument.keys())] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : motor_item["serial_number"]})
-                        motor_bag[' '.join(instrument.keys())].initialize(motor_item["serial_number"])
-                    elif "view" in motor_item:
-                        #these are the gui's
-                        print("initialize: "+ str(motor_item["view"]))
+            if "Motor" in instrument:
+                instrument_path = experiment.properties["Instruments"][instrument]
+                for index in instrument_path.items():
+                    if index[0] == "serial_number":
+                        print("initialize: "+ str(instrument_path["serial_number"]))
+                        motor_bag[instrument] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : instrument_path["serial_number"]})
+                        motor_bag[instrument].initialize(instrument_path["serial_number"])
+                    elif index[0] == "view":
+                        #these are the gui's 
+                        print("initialize: "+str(instrument_path["serial_number"]))
                     else:
-                        #these gui's are not available
-                        print("motor: "+str(motor_item["serial_number"])+" is not available")
-                    opteller += 1
-            else:
-                opteller += 1
+                        print("motor: "+str(instrument_path["serial_number"])+"is not available")
+                        
         print("-"*40)
         return motor_bag
     
