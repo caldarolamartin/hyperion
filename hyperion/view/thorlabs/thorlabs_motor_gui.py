@@ -72,17 +72,15 @@ class App(QWidget):
         In this method th slider and other miscellaneous gui stuff will be made.
         The slider get made by adding a tuple with the name of the slider and the name of the
         motor that the slider will use. 
-        Beter code would be to set in the .yml file which motor belongs to which slider.
-        But, that is for another time.
         """
-        slider_list = [("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
+        slider_list = self.motor_hub.make_slider_list()
+        print(slider_list)
         opteller = 1
         for slider in slider_list:    
             self.make_slider(lambda: slider[0], slider[1], opteller)
             opteller += 2
         self.make_dropdown_motor()
         self.make_go_to_input_textfield()
-    
     def make_save_pos_1_label(self):
         label = QLabel(self)
         label.setText("save pos. 1:")
@@ -212,7 +210,6 @@ class App(QWidget):
         :param opteller: indication on which grid the slider must be set
         :type int
         """
-        print(motor_name)
         self.slider_ding = QSlider(Qt.Vertical, self)
         self.slider_ding.setFocusPolicy(Qt.StrongFocus)
         self.slider_ding.setTickPosition(QSlider.TicksBothSides)

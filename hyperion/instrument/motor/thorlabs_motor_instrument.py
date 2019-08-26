@@ -106,7 +106,7 @@ class Thorlabsmotor(BaseInstrument):
                         print("motor: "+str(instrument_path["serial_number"])+" is not available")
                 except KeyError:
                     #this is the view
-                    print("available view: "+str(instrument_path["view"]))
+                    print("no serial_number found in motor: "+str(instrument))
                 except Exception:
                     print("motor: "+str(instrument_path["serial_number"])+" is not available")
                         
@@ -115,16 +115,20 @@ class Thorlabsmotor(BaseInstrument):
     def make_slider_list(self):
         #[("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
         slider_list = []
+        temporary_lijst = []
         slider_namen_lijst = ["slider_x","slider_y","slider_z"]
         opteller = 0
         for instrument in self.experiment.properties["MetaInstruments"]:
             if "Motor" in instrument:
                 for motor_naam in self.experiment.properties["MetaInstruments"][instrument].items():
-                    slider_list.extend(slider_namen_lijst[opteller], motor_naam[1])
+                    temporary_lijst.append(slider_namen_lijst[opteller])
+                    temporary_lijst.append(motor_naam[1])
+                    slider_list.append(temporary_lijst)
+                    #reset values
+                    temporary_lijst = []
                     opteller += 1
-                
         
-        return [("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
+        return slider_list
     
     def move_relative_um(self,distance):
         """ Moves the motor to a relative position
