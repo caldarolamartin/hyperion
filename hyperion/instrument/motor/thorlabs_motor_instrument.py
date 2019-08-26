@@ -99,8 +99,10 @@ class Thorlabsmotor(BaseInstrument):
             if "Motor" in instrument:
                 instrument_path = experiment.properties["Instruments"][instrument]
                 try:
-                    motor_bag[str(instrument)] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : instrument_path["serial_number"]})
-                    motor_bag[str(instrument)].initialize(instrument_path["serial_number"])
+                    if instrument_path["serial_number"] in list_with_actule_serial_numbers:
+                        motor_bag[str(instrument)] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : instrument_path["serial_number"]})
+                        motor_bag[str(instrument)].initialize(instrument_path["serial_number"])
+                    print("motor: "+str(instrument_path["serial_number"])+" is not available")
                 except KeyError:
                     #this is the view
                     print(instrument_path["view"])
