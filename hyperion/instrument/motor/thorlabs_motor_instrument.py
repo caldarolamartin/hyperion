@@ -92,25 +92,36 @@ class Thorlabsmotor(BaseInstrument):
         for i in self.controller.list_available_devices():
             list_with_actule_serial_numbers.append(i[1])
         
-        experiment = BaseExperiment()
-        experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
+        self.experiment = BaseExperiment()
+        self.experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
         
-        for instrument in experiment.properties["Instruments"]:
+        for instrument in self.experiment.properties["Instruments"]:
             if "Motor" in instrument:
-                instrument_path = experiment.properties["Instruments"][instrument]
+                instrument_path = self.experiment.properties["Instruments"][instrument]
                 try:
                     if instrument_path["serial_number"] in list_with_actule_serial_numbers:
                         motor_bag[str(instrument)] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : instrument_path["serial_number"]})
                         motor_bag[str(instrument)].initialize(instrument_path["serial_number"])
-                    print("motor: "+str(instrument_path["serial_number"])+" is not available")
+                    else:
+                        print("motor: "+str(instrument_path["serial_number"])+" is not available")
                 except KeyError:
                     #this is the view
-                    print(instrument_path["view"])
+                    print("available view: "+str(instrument_path["view"]))
                 except Exception:
                     print("motor: "+str(instrument_path["serial_number"])+" is not available")
                         
         print("-"*40)
         return motor_bag
+    def make_slider_list(self):
+        #[("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
+        slider_list = []
+        
+        for instrument in self.experiment.properties["MetaInstruments"]:
+            if "Motor" in instrument:
+                print("meta instrument: "+ str(instrument))
+                
+        
+        return [("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
     
     def move_relative_um(self,distance):
         """ Moves the motor to a relative position
