@@ -1,4 +1,5 @@
 import sys
+import logging
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QComboBox, QGridLayout, QLabel, QLineEdit
 
 from hyperion.instrument.positioner.anc_instrument import Anc350Instrument
@@ -6,8 +7,7 @@ from hyperion.instrument.positioner.anc_instrument import Anc350Instrument
 
 class App(QWidget):
 
-    #def __init__(self, anc350_instrument):
-    def __init__(self):
+    def __init__(self, anc350_instrument):
         super().__init__()
         self.title = 'attocube gui'
         self.left = 50
@@ -16,12 +16,16 @@ class App(QWidget):
         self.height = 250
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
-        #self.anc350_instrument = anc350_instrument
+        self.anc350_instrument = anc350_instrument
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
+
+        self.anc350_instrument.initialize()
+        self.anc350_instrument.initialize_available_motors()
+        self.anc350_instrument.list_devices()
 
         self.make_labels()
         self.make_textfields()
@@ -30,7 +34,6 @@ class App(QWidget):
 
         self.show()
 
-        #labels
     def make_labels(self):
         self.make_move_to_absolute_position_label()
         self.make_move_to_relative_position_label()
@@ -110,7 +113,6 @@ class App(QWidget):
         self.grid_layout.addWidget(self.frequency_textfield, 1, 4)
 
         #buttons
-
     def make_move_to_absolute_position_button(self):
         self.move_to_absolute_position_button = QPushButton("absolute position", self)
         self.move_to_absolute_position_button.setToolTip("move to the absolute position")
@@ -155,6 +157,7 @@ class App(QWidget):
 
     def move_absolute_position(self):
         print("move absolute position")
+
     def move_relative_position(self):
         print("move relative position")
     def go_single_step_left(self):
@@ -169,8 +172,7 @@ class App(QWidget):
         print("set the frequency of the piezo")
 
 if __name__ == '__main__':
-    #anc350_instrument = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'})
+    anc350_instrument = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'})
     app = QApplication(sys.argv)
-    #ex = App(anc350_instrument)
-    ex = App()
+    ex = App(anc350_instrument)
     sys.exit(app.exec_())

@@ -114,7 +114,6 @@ class Anc350Instrument(BaseInstrument):
         else:
             raise Exception('The required frequency needs to be between 1Hz and 2kHz')
 
-
     def configurate_scanner(self,axis):
         """Does the necessary configuration of the Scanner:
         -you need to set the mode to INT, not DC-IN
@@ -191,7 +190,6 @@ class Anc350Instrument(BaseInstrument):
                 self.logger.info('axis has value' + str(newstate))
             state = newstate
             time.sleep(1)
-
 
     def given_step(self,axis,direction,amount):
         """Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different

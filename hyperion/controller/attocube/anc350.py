@@ -165,7 +165,7 @@ class Anc350(BaseController):
         :param freq: frequency in Hz, from 1Hz to 2kHz
         :type freq: integer
         """
-        if 1 <= freq 2000:
+        if 1 <= freq and freq >= 2000:
             ANC350lib.positionerFrequency(self.handle,axis,freq)
         else:
             raise Exception('The required frequency needs to be between 1Hz and 2kHz')
