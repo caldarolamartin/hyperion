@@ -129,7 +129,7 @@ class App(QWidget):
         print("Take the histrogram")
         #needs time and count_channel( 1 or 2)
         #self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
-        #self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
+        self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
         #self.draw.random_plot.plot(self.histogram, clear=True)
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)

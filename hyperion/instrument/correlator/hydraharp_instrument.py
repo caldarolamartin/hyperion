@@ -125,7 +125,7 @@ class HydraInstrument(BaseInstrument):
         self.controller.histogram_length = leng
         self.controller.resolution = res.m_as('ps')
     
-    def make_histogram(self,tijd,count_channel):
+    def make_histogram(self, tijd, count_channel):
         """ Does the histogram measurement, checking for the status, saving the histogram
         
         :param tijd: integration time of histogram (please dont use the English word for tijd) in s
@@ -136,27 +136,33 @@ class HydraInstrument(BaseInstrument):
         
         """
         self.controller.start_measurement(tijd.m_as('s'))
-        
-        ended = False
-        t = round(tijd.m_as('s')/5)
-        total_time_passed = 0
-        total_time_passed.m_as('s')
-        
-        while ended == False:
-            ended = self.controller.ctc_status
-            time.sleep(t)
-            print("Go strong for: "+tijd.m_as('s') - )
-                
+
+        print("Time left: "+str(self.wait_till_finished(tijd)))
+
         self.hist = self.controller.histogram(count_channel)
         return self.hist
+
+    def wait_till_finished(self, tijd):
+        ended = False
+        t = round(tijd.m_as('s') / 5)
+        total_time_passed = ur('0s')
+        while ended == False:
+            #ended = self.controller.ctc_status
+            if total_time_passed >= ur('3s'):
+                ended = True
+            else:
+                time.sleep(t)
+                total_time_passed += t * ur('s')
+                #print("Time left: " + str(tijd.m_as('s') - total_time_passed.m_as('s')))
+                return (tijd.m_as('s') - total_time_passed.m_as('s'))
+
 
     def finalize(self):
         """ this is to close connection to the device."""
         self.logger.info('Closing connection to device.')
         self.controller.close_device()
         #close the device
-
-
+        
 if __name__ == "__main__":
     from hyperion import _logger_format
     logging.basicConfig(level=logging.DEBUG, format=_logger_format,
