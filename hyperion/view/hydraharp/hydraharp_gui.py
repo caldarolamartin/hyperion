@@ -10,8 +10,7 @@ import pyqtgraph.exporters
 
 class App(QWidget):
 
-    #def __init__(self, hydra_instrument, draw):
-    def __init__(self):
+    def __init__(self, hydra_instrument, draw):
         super().__init__()
         self.title = 'hydraharp gui, hail hydra'
         self.left = 50
@@ -21,16 +20,16 @@ class App(QWidget):
         self.histogram_number = 0
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
-        #self.hydra_instrument = hydra_instrument
-        #self.draw = draw
+        self.hydra_instrument = hydra_instrument
+        self.draw = draw
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         #initialize and configurate the settings of the hydraharp
-        #self.hydra_instrument.initialize()
-        #self.hydra_instrument.configurate()
+        self.hydra_instrument.initialize()
+        self.hydra_instrument.configurate()
 
         self.setAutoFillBackground(True)
         p = self.palette()
@@ -127,10 +126,12 @@ class App(QWidget):
         The data gets plot in the DrawHistogram plot(self.draw.random_plot.plot())
         """
         print("Take the histrogram")
-        #needs time and count_channel( 1 or 2)
-        #self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
-        self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), self.channel_combobox.currentText())
-        #self.draw.random_plot.plot(self.histogram, clear=True)
+        #first, prepare the machine to take the histogram
+        self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
+        self.remaining_time_label.setText(str(self.hydra_instrument.prepare_to_take_histogram(int(self.integration_time_textfield.text()) * ur('s'))))
+        # needs count_channel( 1 or 2)
+        self.histogram= self.hydra_instrument.make_histogram(self.channel_combobox.currentText())
+        self.draw.random_plot.plot(self.histogram, clear=True)
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
 
@@ -210,9 +211,8 @@ class DrawHistogram(QWidget):
         self.show()
 
 if __name__ == '__main__':
-    #hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
+    hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
     app = QApplication(sys.argv)
-    #draw = DrawHistogram()
-    #ex = App(hydra_instrument, draw)
-    ex = App()
+    draw = DrawHistogram()
+    ex = App(hydra_instrument, draw)
     sys.exit(app.exec_())

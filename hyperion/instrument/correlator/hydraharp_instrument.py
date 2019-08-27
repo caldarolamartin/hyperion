@@ -125,36 +125,37 @@ class HydraInstrument(BaseInstrument):
         self.controller.histogram_length = leng
         self.controller.resolution = res.m_as('ps')
     
-    def make_histogram(self, tijd, count_channel):
+    def make_histogram(self, count_channel):
         """ Does the histogram measurement, checking for the status, saving the histogram
-        
-        :param tijd: integration time of histogram (please dont use the English word for tijd) in s
-        :type tijd: pint quantity
         
         :param count_channel: number of channel that is correlated with the sync channel, 1 or 2
         :type count_channel: int
-        
         """
-        self.controller.start_measurement(tijd.m_as('s'))
-
-        print("Time left: "+str(self.wait_till_finished(tijd)))
 
         self.hist = self.controller.histogram(count_channel)
         return self.hist
 
+    def prepare_to_take_histogram(self, tijd):
+        self.controller.start_measurement(tijd.m_as('s'))
+        return (self.wait_till_finished(tijd))
+
     def wait_till_finished(self, tijd):
+        """
+
+        :param tijd: integration time of histogram (please dont use the English word for tijd) in s
+        :type tijd: pint quantity
+        :return: remaining time in seconds
+        :rtype: pint quantity
+        """
         ended = False
         t = round(tijd.m_as('s') / 5)
         total_time_passed = ur('0s')
         while ended == False:
-            #ended = self.controller.ctc_status
-            if total_time_passed >= ur('3s'):
-                ended = True
-            else:
-                time.sleep(t)
-                total_time_passed += t * ur('s')
-                #print("Time left: " + str(tijd.m_as('s') - total_time_passed.m_as('s')))
-                return (tijd.m_as('s') - total_time_passed.m_as('s'))
+            ended = self.controller.ctc_status
+            time.sleep(t)
+            total_time_passed += t * ur('s')
+            #this line returns a pint quantity which tells the user how much time the program needs before it can take the histogram
+            return (tijd.m_as('s') - total_time_passed.m_as('s'))
 
 
     def finalize(self):
@@ -162,7 +163,7 @@ class HydraInstrument(BaseInstrument):
         self.logger.info('Closing connection to device.')
         self.controller.close_device()
         #close the device
-        
+
 if __name__ == "__main__":
     from hyperion import _logger_format
     logging.basicConfig(level=logging.DEBUG, format=_logger_format,
