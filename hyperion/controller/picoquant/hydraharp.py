@@ -9,7 +9,7 @@ changed by Irina Komen
 """
 import numpy as np
 import ctypes
-from hyperion import root_dir
+from hyperion import root_dir, ur
 from hyperion.controller.base_controller import BaseController
 import os
 import warnings
@@ -644,10 +644,13 @@ class Hydraharp(BaseController):
         
             Acquisition time in second
         """
+
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
-        tacq = int(acquisition_time*1000)  # acquisition time in milisecond
-        assert (tacq >= self.settings['ACQTMIN']) and (tacq <= self.settings['ACQTMAX']), "HH_StartMeas, tacq not valid."
+        tacq = acquisition_time * ur('ms')# acquisition time in milisecond
+        min_acqt = self.settings['ACQTMIN'] * ur('ms')
+        max_acqt = self.settings['ACQTMAX'] * ur('ms')
+        assert (tacq - min_acqt) and (tacq - max_acqt), "HH_StartMeas, tacq not valid."
         func = self.hhlib.HH_StartMeas
         func.argtypes = [ctypes.c_int, ctypes.c_int]
         func.restype = ctypes.c_int
