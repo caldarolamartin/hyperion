@@ -88,34 +88,47 @@ class Thorlabsmotor(BaseInstrument):
         :return motor_bag: but this time it is filled with motor instances
         :rtype dict
         """
-        opteller = 0
         list_with_actule_serial_numbers = []
         for i in self.controller.list_available_devices():
             list_with_actule_serial_numbers.append(i[1])
         
-        experiment = BaseExperiment()
-        experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
-        print("-"*40)
-        for instrument in experiment.properties["Instruments"]:
-            if "Motor" in str(instrument):
-                for motor_item in experiment.properties["Instruments"][opteller].values():
-                    if not "view" in motor_item and motor_item["serial_number"] in list_with_actule_serial_numbers:
-                        #' '.join(instrument.keys()) = the name given(in the .yml file) to the motor
-                        #motor_item["serial_number"] = serial_number of the motor
-                        print("initialize: "+ str(motor_item["serial_number"]))
-                        motor_bag[' '.join(instrument.keys())] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : motor_item["serial_number"]})
-                        motor_bag[' '.join(instrument.keys())].initialize(motor_item["serial_number"])
-                    elif "view" in motor_item:
-                        #these are the gui's
-                        print("initialize: "+ str(motor_item["view"]))
+        self.experiment = BaseExperiment()
+        self.experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
+        
+        for instrument in self.experiment.properties["Instruments"]:
+            if "Motor" in instrument:
+                instrument_path = self.experiment.properties["Instruments"][instrument]
+                try:
+                    if instrument_path["serial_number"] in list_with_actule_serial_numbers:
+                        motor_bag[str(instrument)] = Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001','serial_number' : instrument_path["serial_number"]})
+                        motor_bag[str(instrument)].initialize(instrument_path["serial_number"])
                     else:
-                        #these gui's are not available
-                        print("motor: "+str(motor_item["serial_number"])+" is not available")
-                    opteller += 1
-            else:
-                opteller += 1
+                        print("motor: "+str(instrument_path["serial_number"])+" is not available")
+                except KeyError:
+                    #this is the view
+                    print("no serial_number found in motor: "+str(instrument))
+                except Exception:
+                    print("motor: "+str(instrument_path["serial_number"])+" is not available")
+                        
         print("-"*40)
         return motor_bag
+    def make_slider_list(self):
+        #[("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
+        slider_list = []
+        temporary_lijst = []
+        slider_namen_lijst = ["slider_x","slider_y","slider_z"]
+        opteller = 0
+        for instrument in self.experiment.properties["MetaInstruments"]:
+            if "Motor" in instrument:
+                for motor_naam in self.experiment.properties["MetaInstruments"][instrument].items():
+                    temporary_lijst.append(slider_namen_lijst[opteller])
+                    temporary_lijst.append(motor_naam[1])
+                    slider_list.append(temporary_lijst)
+                    #reset values
+                    temporary_lijst = []
+                    opteller += 1
+        
+        return slider_list
     
     def move_relative_um(self,distance):
         """ Moves the motor to a relative position
