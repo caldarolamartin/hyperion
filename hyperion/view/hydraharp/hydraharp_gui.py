@@ -50,7 +50,7 @@ class App(QWidget):
         self.make_channel_label()
         self.make_export_label()
         self.make_remaining_time_label()
-        self.make_progress_label()
+        #self.make_progress_label()
 
     def make_textfields(self):
         self.make_array_length_textfield()
@@ -91,16 +91,14 @@ class App(QWidget):
     def make_export_label(self):
         self.export_label = QLabel(self)
         self.export_label.setText("Export file: ")
-        self.grid_layout.addWidget(self.export_label, 4, 1)
+        self.grid_layout.addWidget(self.export_label, 4, 0)
     def make_remaining_time_label(self):
         self.remaining_time_label = QLabel(self)
         self.remaining_time_label.setText("Remaining time:\n")
         self.grid_layout.addWidget(self.remaining_time_label, 2, 0)
-        self.grid_layout.addWidget(self.export_label, 4, 0)
-    def make_progress_label(self):
-        self.make_progress_label = QLabel(self)
-        self.make_progress_label.setText("*")
-        self.grid_layout.addWidget(self.make_progress_label, 2, 0)
+    def make_progress_label(self, iets):
+        self.remaining_time_label.setText("Remaining time:\n"+iets)
+
 
     def make_array_length_textfield(self):
         self.array_length_textfield = QLineEdit(self)
@@ -135,14 +133,14 @@ class App(QWidget):
         print("Take the histrogram")
         #first, prepare the machine to take the histogram
         self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
-        self.remaining_time_label.setText(str(self.hydra_instrument.prepare_to_take_histogram(int(self.integration_time_textfield.text()) * ur('s'))))
+        self.make_progress_label(str(self.hydra_instrument.prepare_to_take_histogram(int(self.integration_time_textfield.text())) * ur('s')))
         # needs count_channel( 1 or 2)
         self.histogram= self.hydra_instrument.make_histogram(self.channel_combobox.currentText())
         self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), int(self.channel_combobox.currentText()))
         self.draw.random_plot.plot(self.histogram, clear=True)
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
-        self.make_progress_label.setText("The histogram has been made")
+        self.make_progress_label("Done, the histogram has been made")
 
     def save_histogram(self):
         """

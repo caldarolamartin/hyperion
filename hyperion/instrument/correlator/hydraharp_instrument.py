@@ -132,7 +132,7 @@ class HydraInstrument(BaseInstrument):
         :type count_channel: int
         """
 
-        self.hist = self.controller.histogram(count_channel)
+        self.hist = self.controller.histogram(int(count_channel))
         return self.hist
 
     def prepare_to_take_histogram(self, tijd):
