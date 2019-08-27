@@ -19,6 +19,30 @@ Instruments:
     dummy: True
     settings:
     output: True
+  XPiezoStepper:
+    axis_number: 0
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+  ZPiezoStepper:
+    axis_number: 1
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+  YPiezoStepper:
+    axis_number: 2
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+  XPiezoScanner:
+    axis_number: 3
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+  ZPiezoScanner:
+    axis_number: 4
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+  YPiezoScanner:
+    axis_number: 5
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
   xMotor:
     serial_number: 83817644
     instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor

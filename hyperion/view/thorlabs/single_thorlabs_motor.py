@@ -112,7 +112,7 @@ class App(QWidget):
     def go_to_input(self):
         try:
             go_to_input = float(self.input_textfield.text())
-            self.motor.move_relative_um(go_to_input)
+            self.motor.move_relative(go_to_input)
             self.set_current_motor_position_label()
         except ValueError:
             print("The input is not a float, change this")

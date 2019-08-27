@@ -605,76 +605,76 @@ if __name__ == "__main__":
             state = newstate
             time.sleep(0.5)
 
-        #nr. 2: with a step, the stepwidth was determined by the amplitude and frequency
-        #so the step is order of magnitude 300 nm
-
-        print('-------------------------------------------------------------')
-        print('moving 10 single steps of stepwidth, determined by set amplitude and frequency')
-
-        #forward 0, backward 1
-        #but you have to give it time, because it won't tell you that it's not finished moving yet
-        for ii in range(10):
-            anc.moveSingleStep(0,0)
-            time.sleep(0.5)
-            print(ii,': we are now at ',anc.getPosition(0),'nm')
-
-        #nr. 3: with a step that you give it by ordering a relative move
-        #but this one takes a very long time
-
-        print('-------------------------------------------------------------')
-        print('moving to a relative position, 5um back')
-        anc.moveRelative(0,-5000)
-
-        time.sleep(1)
-        state = 1
-        while state == 1:
-            newstate = anc.getStatus(ax['x'])  # find bitmask of status
-            if newstate == 1:
-                print('axis moving, currently at', anc.getPosition(ax['x']))
-            elif newstate == 0:
-                print('axis arrived at', anc.getPosition(ax['x']))
-            else:
-                print('axis has value', newstate)
-            state = newstate
-            time.sleep(1)
-
-        #nr. 4: put a voltage on the piezo
-        #this means it makes a small step too; in theory
-        #it's too small to detect with the closed loop resolution, need a camera to see it
-        #60V seems to be the max
-        #this should have a fine positioning range of 3.5um
-
-        print('-------------------------------------------------------------')
-        print('moving in fine positioning mode by putting 10V')
-        anc.dcLevel(0,10000)
-        print('put a DC level of ',anc.getDcLevel(0),'mV')
-
-
-        #-------------------------------
-        #controlling the scanner
-        #-------------------------------
-
-        # filename = 'q'
-        # anc.load(0, filename)
-
-
-        #you need to set the mode to INT
-        #this means you can apply a voltage of 0-140V to the piezo
-
-        print('-------------------------------------------------------------')
-        print('now we start with the SCANNER')
-        anc.intEnable(3,True)
-        print('is the scanner on INT mode? ',anc.getIntEnable(3))
-
-        #this one has only one way to make a step: put a voltage
-
-        print('-------------------------------------------------------------')
-        print('moving something by putting 50V')
-        anc.dcLevel(0,50000)
-        print('put a DC level of ',anc.getDcLevel(0),'mV')
-        print('no way of knowing when and if we ever arrive')
-
-        #but no idea how we know whether it arrived at its position
+        # #nr. 2: with a step, the stepwidth was determined by the amplitude and frequency
+        # #so the step is order of magnitude 300 nm
+        #
+        # print('-------------------------------------------------------------')
+        # print('moving 10 single steps of stepwidth, determined by set amplitude and frequency')
+        #
+        # #forward 0, backward 1
+        # #but you have to give it time, because it won't tell you that it's not finished moving yet
+        # for ii in range(10):
+        #     anc.moveSingleStep(0,0)
+        #     time.sleep(0.5)
+        #     print(ii,': we are now at ',anc.getPosition(0),'nm')
+        #
+        # #nr. 3: with a step that you give it by ordering a relative move
+        # #but this one takes a very long time
+        #
+        # print('-------------------------------------------------------------')
+        # print('moving to a relative position, 5um back')
+        # anc.moveRelative(0,-5000)
+        #
+        # time.sleep(1)
+        # state = 1
+        # while state == 1:
+        #     newstate = anc.getStatus(ax['x'])  # find bitmask of status
+        #     if newstate == 1:
+        #         print('axis moving, currently at', anc.getPosition(ax['x']))
+        #     elif newstate == 0:
+        #         print('axis arrived at', anc.getPosition(ax['x']))
+        #     else:
+        #         print('axis has value', newstate)
+        #     state = newstate
+        #     time.sleep(1)
+        #
+        # #nr. 4: put a voltage on the piezo
+        # #this means it makes a small step too; in theory
+        # #it's too small to detect with the closed loop resolution, need a camera to see it
+        # #60V seems to be the max
+        # #this should have a fine positioning range of 3.5um
+        #
+        # print('-------------------------------------------------------------')
+        # print('moving in fine positioning mode by putting 10V')
+        # anc.dcLevel(0,10000)
+        # print('put a DC level of ',anc.getDcLevel(0),'mV')
+        #
+        #
+        # #-------------------------------
+        # #controlling the scanner
+        # #-------------------------------
+        #
+        # # filename = 'q'
+        # # anc.load(0, filename)
+        #
+        #
+        # #you need to set the mode to INT
+        # #this means you can apply a voltage of 0-140V to the piezo
+        #
+        # print('-------------------------------------------------------------')
+        # print('now we start with the SCANNER')
+        # anc.intEnable(3,True)
+        # print('is the scanner on INT mode? ',anc.getIntEnable(3))
+        #
+        # #this one has only one way to make a step: put a voltage
+        #
+        # print('-------------------------------------------------------------')
+        # print('moving something by putting 50V')
+        # anc.dcLevel(0,50000)
+        # print('put a DC level of ',anc.getDcLevel(0),'mV')
+        # print('no way of knowing when and if we ever arrive')
+        #
+        # #but no idea how we know whether it arrived at its position
 
 
 

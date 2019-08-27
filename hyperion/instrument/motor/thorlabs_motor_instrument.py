@@ -16,7 +16,7 @@ Example:
     >>> motorx = Thorlabsmotor()
 	>>> motorx.initialize(81818251)
     >>> motorx.move_home(True)
-    >>> motorx.move_relative_um(10)
+    >>> motorx.move_relative(10)
 ```
 
 
@@ -45,11 +45,8 @@ class Thorlabsmotor(BaseInstrument):
         # property
         self._output = False
         self._mode = 0
-
-
-
         self.logger.info('Initializing Thorlabs motoer settings: {}'.format(settings))
-        
+
         # initialize
         #self.controller.initialize()
 
@@ -78,6 +75,7 @@ class Thorlabsmotor(BaseInstrument):
             self.controller.move_home(True)
             self.controller.move_to(homing)
         return motor
+
     def initialize_available_motors(self, motor_bag):
         """
         Starts the connection to all motors 
@@ -112,6 +110,7 @@ class Thorlabsmotor(BaseInstrument):
                         
         print("-"*40)
         return motor_bag
+
     def make_slider_list(self):
         #[("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
         slider_list = []
@@ -130,7 +129,7 @@ class Thorlabsmotor(BaseInstrument):
         
         return slider_list
     
-    def move_relative_um(self,distance):
+    def move_relative(self, distance):
         """ Moves the motor to a relative position
         
         :param distance: relative distance in micro meter
