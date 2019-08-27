@@ -69,7 +69,6 @@ class Anc350Instrument(BaseInstrument):
         self.controller.amplitude(self.manage_axes(axis),amplitude.m_as('mV'))      #30V
         print('amplitude is ',self.controller.getAmplitude(self.manage_axes(axis))*ur('mV'))
         print('so the step width is ',self.controller.getStepwidth(self.manage_axes(axis))*ur('nm'))
-        #
         # #you also need to set the frequency
         # #higher means more noise and faster (= less precise?)
         self.controller.frequency(self.manage_axes(axis),frequency.m_as('Hz'))
@@ -156,9 +155,9 @@ class Anc350Instrument(BaseInstrument):
         print('average step size is ',round(av_steps)*ur('nm'))
 
     def move_scanner(self,axis,voltage):
-        print('moving something by putting 50V')
-        self.controller.dcLevel(self.manage_axes(axis),voltage)
-        print('put a DC level of ',self.controller.getDcLevel(self.manage_axes(axis)),'mV')
+        print('moving something by putting ',voltage)
+        self.controller.dcLevel(self.manage_axes(axis),voltage.m_as('mV'))
+        print('put a DC level of ',self.controller.getDcLevel(self.manage_axes(axis))*ur('mV'))
         print('no way of knowing when and if we ever arrive')
 
     def finalize(self):
@@ -184,7 +183,7 @@ if __name__ == "__main__":
 
         q.configurate_stepper(axis,ampl,freq)
 
-        q.move_to(axis,2000000*ur('nm'))
+        q.move_to(axis,2_000_000*ur('nm'))
 
         q.relative_step(axis,-5000*ur('nm'))
 
@@ -197,7 +196,6 @@ if __name__ == "__main__":
 
         q.configurate_scanner(axis)
 
-        volts = 30
+        volts = 30000*ur('mV')
         q.move_scanner(axis,volts)
 
-        
