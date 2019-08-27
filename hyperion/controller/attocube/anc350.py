@@ -58,70 +58,33 @@ class Anc350(BaseController):
         self.dummy = settings['dummy']
         self.logger.info('Class ANC350 init. Created object.')
 
+    #----------------------------------------------------------------------------------------------------
+    #Used methods both stepper and scanner
+    #----------------------------------------------------------------------------------------------------
+
     def initialize(self):
+        """Initializes controller
+        Checks for attocube controller units and connects to it
+        Pay attention: there are 6 positioners, but only 1 controller; we connect to the 1
+
+        """
         self.check()
         self.connect()
         self._is_initialized = True
 
-    def finalize(self):
-        '''
-        closes connection to ANC350 device
-        '''
-        self.logger.info('Closing connection to ANC350')
-        ANC350lib.positionerClose(self.handle)
-
-    def acInEnable(self, axis, state):
-        '''
-        Activates/deactivates AC input of addressed axis; only applicable for dither axes
-        '''
-        ANC350lib.positionerAcInEnable(self.handle,axis,ctypes.c_bool(state))
-
-    def amplitude(self, axis, amp):
-        '''
-        set the amplitude setpoint in mV
-        '''
-        ANC350lib.positionerAmplitude(self.handle,axis,amp)
-
-    def amplitudeControl(self, axis, mode):
-        '''
-        selects the type of amplitude control. The amplitude is controlled by the positioner to hold the value constant determined by the selected type of amplitude control. mode takes values 0: speed, 1: amplitude, 2: step size
-        '''
-        ANC350lib.positionerAmplitudeControl(self.handle,axis,mode)
-
-    def bandwidthLimitEnable(self, axis, state):
-        '''
-        activates/deactivates the bandwidth limiter of the addressed axis. only applicable for scanner axes
-        '''
-        ANC350lib.positionerBandwidthLimitEnable(self.handle,axis,ctypes.c_bool(state))
-
-    def capMeasure(self, axis):
-        '''
-        determines the capacitance of the piezo addressed by axis
-        '''
-        self.status = ANC350lib.Int32(0)
-        ANC350lib.positionerCapMeasure(self.handle,axis,ctypes.byref(self.status))
-        return self.status.value
-
     def check(self):
-        '''
-        Determines number of connected positioners and their respective hardware IDs
-        '''
+        """Determines number of connected attocube controller devices and their respective hardware IDs
+        """
         self.posinf = ANC350lib.PositionerInfo() #create PositionerInfo Struct
         self.numconnected = ANC350lib.positionerCheck(ctypes.byref(self.posinf)) #look for positioners!
         if self.numconnected > 0:
             self.logger.info(self.numconnected,'ANC350 connected')
-            self.logger.info('ANC350 with id:',self.posinf.id,'has locked state:',self.posinf.locked)
-
-    def clearStopDetection(self, axis):
-        '''
-        when .setStopDetectionSticky() is enabled, this clears the stop detection status
-        '''
-        ANC350lib.positionerClearStopDetection(self.handle,axis)
+            self.logger.info('ANC350 with id:'+ str(self.posinf.id) +'has locked state:' + str(self.posinf.locked))
 
     def connect(self):
-        '''
-        Establishes connection to first device found
-        '''
+        """Establishes connection to first attocube device found
+        Pay attention: the 0 that you give to the ANC350lib.Int32 is the first attocube device; not the first of the 6 positioners
+        """
         self.handle = ANC350lib.Int32(0)
         'I am reaching the handle'
         try:
@@ -131,17 +94,181 @@ class Anc350(BaseController):
             self.logger.error('unable to connect!')
             raise e
 
+    def capMeasure(self, axis):
+        """Determines the capacitance of the piezo addressed by axis
+        Pay attention: the 0 that you give to the ANC350lib.Int32 is the first attocube device; not the first of the 6 positioners
+
+        :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
+        :type axis: integer
+
+        :return status.value: capacitance value in mF
+        """
+        self.status = ANC350lib.Int32(0)
+        ANC350lib.positionerCapMeasure(self.handle,axis,ctypes.byref(self.status))
+        return self.status.value
+
+    def finalize(self):
+        """Closes connection to ANC350 device
+        """
+        self.logger.info('Closing connection to ANC350')
+        ANC350lib.positionerClose(self.handle)
+
+
+    #Used methods only stepper
+    #----------------------------------------------------------------------------------------------------
+    def amplitudeControl(self, axis, mode):
+        """Selects the type of amplitude control in the stepper
+        The amplitude is controlled by the positioner to hold the value constant determined by the selected type of amplitude control.
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param mode: Mode takes values 0: speed, 1: amplitude, 2: step size
+        :type mode: integer
+        """
+        ANC350lib.positionerAmplitudeControl(self.handle,axis,mode)
+
+    def amplitude(self, axis, amp):
+        """Set the amplitude setpoint of the Stepper in mV
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param amp: amplitude to be set to the Stepper in mV, between
+        :type amp: integer or float
+        """
+        if 0 <= amp <= 60000:
+            ANC350lib.positionerAmplitude(self.handle,axis,amp)
+        else:
+            raise Exception('The required amplitude needs to be between 0V and 60V')
+
+    def getAmplitude(self, axis):
+        """Determines the actual amplitude.
+        In case of standstill of the actor this is the amplitude setpoint.
+        In case of movement the amplitude set by amplitude control is determined.
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :return: measured amplitude in mV
+        """
+        self.status = ANC350lib.Int32(0)
+        ANC350lib.positionerGetAmplitude(self.handle, axis, ctypes.byref(self.status))
+        return self.status.value
+
+    def frequency(self, axis, freq):
+        """Sets the frequency of selected stepper axis
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param freq: frequency in Hz, from 1Hz to 2kHz
+        :type freq: integer
+        """
+        if 1 <= freq 2000:
+            ANC350lib.positionerFrequency(self.handle,axis,freq)
+        else:
+            raise Exception('The required frequency needs to be between 1Hz and 2kHz')
+
+    def getFrequency(self, axis):
+        """Determines the frequency on the stepper
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :return: measured frequency in Hz
+        """
+        self.freq = ANC350lib.Int32(0)
+        ANC350lib.positionerGetFrequency(self.handle,axis,ctypes.byref(self.freq))
+        return self.freq.value
+
+    def getPosition(self, axis):
+        """Determines actual position of addressed stepper axis
+        Pay attention: the sensor resolution is specified for 200nm
+
+        :param axis:
+        :return:
+        """
+        '''
+        
+        '''
+        self.pos = ANC350lib.Int32(0)
+        ANC350lib.positionerGetPosition(self.handle,axis,ctypes.byref(self.pos))
+        return self.pos.value
+
+    #Used methods only scanner
+    #----------------------------------------------------------------------------------------------------
+
+    def dcLevel(self, axis, dclev):
+        """Sets the dc level of selected scanner (or maybe stepper, if you want)
+
+        :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
+        :type axis: integer
+
+        :param dclev: DC level in mV
+        :type dclev: integer
+        """
+        if 0 <= dclev <= 140000:
+            ANC350lib.positionerDCLevel(self.handle, axis, dclev)
+        else:
+            raise Exception('The required voltage is between 0V - 140V')
+
+    def getDcLevel(self, axis):
+        """Determines the status actual DC level on the scanner (or stepper)
+        Again: the 0 is for the number of controller units, not the 6 positioners
+
+        :param axis: axis number from 3 to 5 for scanners
+        :type axis: integer
+
+        :return: measured DC level in mV
+        """
+        self.dclev = ANC350lib.Int32(0)
+        ANC350lib.positionerGetDcLevel(self.handle,axis,ctypes.byref(self.dclev))
+        return self.dclev.value
+
+    def getIntEnable(self, axis):
+        """Determines status of internal signal generation of addressed axis. only applicable for scanner/dither axes
+
+        :param axis: axis number from 3 to 5 for scanners
+        :type axis: integer
+
+        :return: True if the INT mode is selected, False if not
+        """
+        self.status = ctypes.c_bool(None)
+        ANC350lib.positionerGetIntEnable(self.handle,axis,ctypes.byref(self.status))
+        return self.status.value
+
+
+
+
+    # ----------------------------------------------------------------------------------------------------
+    # Not (yet) used methods
+    # ----------------------------------------------------------------------------------------------------
+
+    def acInEnable(self, axis, state):
+        '''
+        Activates/deactivates AC input of addressed axis; only applicable for dither axes
+        '''
+        ANC350lib.positionerAcInEnable(self.handle,axis,ctypes.c_bool(state))
+
+
+    def bandwidthLimitEnable(self, axis, state):
+        '''
+        activates/deactivates the bandwidth limiter of the addressed axis. only applicable for scanner axes
+        '''
+        ANC350lib.positionerBandwidthLimitEnable(self.handle,axis,ctypes.c_bool(state))
+
+    def clearStopDetection(self, axis):
+        '''
+        when .setStopDetectionSticky() is enabled, this clears the stop detection status
+        '''
+        ANC350lib.positionerClearStopDetection(self.handle,axis)
+
     def dcInEnable(self, axis, state):
         '''
         Activates/deactivates DC input of addressed axis; only applicable for scanner/dither axes
         '''
         ANC350lib.positionerDcInEnable(self.handle,axis,ctypes.c_bool(state))
-
-    def dcLevel(self, axis, dclev):
-        '''
-        sets the dc level of selected axis. dclevel in mV
-        '''
-        ANC350lib.positionerDCLevel(self.handle,axis,dclev)
 
     def dutyCycleEnable(self, state):
         '''
@@ -179,26 +306,12 @@ class Anc350(BaseController):
         '''
         ANC350lib.positionerExternalStepInputEdge(self.handle,axis,edge)
 
-    def frequency(self, axis, freq):
-        '''
-        sets the frequency of selected axis. frequency in Hz
-        '''
-        ANC350lib.positionerFrequency(self.handle,axis,freq)
-
     def getAcInEnable(self, axis):
         '''
         determines status of ac input of addressed axis. only applicable for dither axes
         '''
         self.status = ctypes.c_bool(None)
         ANC350lib.positionerGetAcInEnable(self.handle,axis,ctypes.byref(self.status))
-        return self.status.value
-
-    def getAmplitude(self, axis):
-        '''
-        determines the actual amplitude. In case of standstill of the actor this is the amplitude setpoint. In case of movement the amplitude set by amplitude control is determined.
-        '''
-        self.status = ANC350lib.Int32(0)
-        ANC350lib.positionerGetAmplitude(self.handle,axis,ctypes.byref(self.status))
         return self.status.value
 
     def getBandwidthLimitEnable(self, axis):
@@ -217,37 +330,13 @@ class Anc350(BaseController):
         ANC350lib.positionerGetDcInEnable(self.handle,axis,ctypes.byref(self.status))
         return self.status.value
 
-    def getDcLevel(self, axis):
-        '''
-        determines the status actual DC level in mV
-        '''
-        self.dclev = ANC350lib.Int32(0)
-        ANC350lib.positionerGetDcLevel(self.handle,axis,ctypes.byref(self.dclev))
-        return self.dclev.value
 
-    def getFrequency(self, axis):
-        '''
-        determines the frequency in Hz
-        '''
-        self.freq = ANC350lib.Int32(0)
-        ANC350lib.positionerGetFrequency(self.handle,axis,ctypes.byref(self.freq))
-        return self.freq.value
 
-    def getIntEnable(self, axis):
-        '''
-        determines status of internal signal generation of addressed axis. only applicable for scanner/dither axes
-        '''
-        self.status = ctypes.c_bool(None)
-        ANC350lib.positionerGetIntEnable(self.handle,axis,ctypes.byref(self.status))
-        return self.status.value
 
-    def getPosition(self, axis):
-        '''
-        determines actual position of addressed axis
-        '''
-        self.pos = ANC350lib.Int32(0)
-        ANC350lib.positionerGetPosition(self.handle,axis,ctypes.byref(self.pos))
-        return self.pos.value
+
+
+
+
 
     def getReference(self, axis):
         '''
@@ -588,22 +677,22 @@ if __name__ == "__main__":
 
         #nr. 1: to an absolute position
 
-        print('moving to x = 2mm')
-        anc.moveAbsolute(ax['x'], 2000000)
-
-        # check what's happening
-        time.sleep(0.5)
-        state = 1
-        while state == 1:
-            newstate = anc.getStatus(ax['x'])  # find bitmask of status
-            if newstate == 1:
-                print('axis moving, currently at', anc.getPosition(ax['x']))
-            elif newstate == 0:
-                print('axis arrived at', anc.getPosition(ax['x']))
-            else:
-                print('axis has value', newstate)
-            state = newstate
-            time.sleep(0.5)
+        # print('moving to x = 2mm')
+        # anc.moveAbsolute(ax['x'], 2000000)
+        #
+        # # check what's happening
+        # time.sleep(0.5)
+        # state = 1
+        # while state == 1:
+        #     newstate = anc.getStatus(ax['x'])  # find bitmask of status
+        #     if newstate == 1:
+        #         print('axis moving, currently at', anc.getPosition(ax['x']))
+        #     elif newstate == 0:
+        #         print('axis arrived at', anc.getPosition(ax['x']))
+        #     else:
+        #         print('axis has value', newstate)
+        #     state = newstate
+        #     time.sleep(0.5)
 
         # #nr. 2: with a step, the stepwidth was determined by the amplitude and frequency
         # #so the step is order of magnitude 300 nm
