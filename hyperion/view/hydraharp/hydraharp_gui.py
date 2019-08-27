@@ -50,6 +50,8 @@ class App(QWidget):
         self.make_channel_label()
         self.make_export_label()
         self.make_remaining_time_label()
+        self.make_progress_label()
+
     def make_textfields(self):
         self.make_array_length_textfield()
         self.make_resolution_textfield()
@@ -61,7 +63,7 @@ class App(QWidget):
         self.save_histogram_button = QPushButton('save histrogram', self)
         self.save_histogram_button.setToolTip('save your histogram in a file')
         #The maek_save_button should be setEnabled False
-        self.save_histogram_button.setEnabled(True)
+        self.save_histogram_button.setEnabled(False)
         self.save_histogram_button.clicked.connect(self.save_histogram)
         self.grid_layout.addWidget(self.save_histogram_button, 1, 0)
     def make_take_histogram_button(self):
@@ -94,6 +96,11 @@ class App(QWidget):
         self.remaining_time_label = QLabel(self)
         self.remaining_time_label.setText("Remaining time:\n")
         self.grid_layout.addWidget(self.remaining_time_label, 2, 0)
+        self.grid_layout.addWidget(self.export_label, 4, 0)
+    def make_progress_label(self):
+        self.make_progress_label = QLabel(self)
+        self.make_progress_label.setText("*")
+        self.grid_layout.addWidget(self.make_progress_label, 2, 0)
 
     def make_array_length_textfield(self):
         self.array_length_textfield = QLineEdit(self)
@@ -114,7 +121,7 @@ class App(QWidget):
     def make_export_textfield(self):
         self.export_textfield = QLineEdit(self)
         self.export_textfield.setText(root_dir)
-        self.grid_layout.addWidget(self.export_textfield, 4, 2)
+        self.grid_layout.addWidget(self.export_textfield, 4, 1, 1, 2)
 
 
     def take_histogram(self):
@@ -131,9 +138,11 @@ class App(QWidget):
         self.remaining_time_label.setText(str(self.hydra_instrument.prepare_to_take_histogram(int(self.integration_time_textfield.text()) * ur('s'))))
         # needs count_channel( 1 or 2)
         self.histogram= self.hydra_instrument.make_histogram(self.channel_combobox.currentText())
+        self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), int(self.channel_combobox.currentText()))
         self.draw.random_plot.plot(self.histogram, clear=True)
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
+        self.make_progress_label.setText("The histogram has been made")
 
     def save_histogram(self):
         """
@@ -142,15 +151,15 @@ class App(QWidget):
         """
         print('save the histogram')
         try:
-            #plt = pg.plot(self.histogram)
-            plt = pg.plot([1,5,2,4,3])
+            plt = pg.plot(self.histogram)
             exporter = pg.exporters.ImageExporter(plt.plotItem)
             # set export parameters if needed
-            exporter.parameters()['height'] = 100  # (note this also affects height parameter)
+            exporter.parameters()['height'] = 100  # (note this also affects width parameter)
             exporter.parameters()['width'] = 100  # (note this also affects height parameter)
             self.actually_save_histogram(exporter)
             #there must first be made another(or the same) histogram before this method can be accessed.(should be False)
-            self.save_histogram_button.setEnabled(True)
+            self.save_histogram_button.setEnabled(False)
+            plt.close()
         except Exception:
             print("There is no picture to export...change that by clicking the button above")
 
@@ -163,8 +172,9 @@ class App(QWidget):
         :param exporter: A exporter object with which you can save data
         :type pyqtgraph.exporter, doesn't say that much, I know
         """
-        # save to file
+
         if self.export_textfield.text() != "":
+            # save to file via the textfield
             file_name = self.export_textfield.text() + "\\histogram_"+str(self.histogram_number)+".png"
             self.histogram_number += 1
             exporter.export(file_name)
@@ -172,6 +182,7 @@ class App(QWidget):
             #a file chooser will be used
             file_name = self.get_file_path_via_filechooser()
             exporter.export(file_name)
+        self.make_progress_label.setText("The histogram has been saved at: \n" + str(file_name))
     def get_file_path_via_filechooser(self):
         """
         This is code plucked from the internet...so I have no clou what is happening and
