@@ -1,7 +1,7 @@
 import sys
 import logging
+from hyperion import ur
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QComboBox, QGridLayout, QLabel, QLineEdit
-
 from hyperion.instrument.positioner.anc_instrument import Anc350Instrument
 
 
@@ -151,12 +151,16 @@ class App(QWidget):
 
     def make_scanner_piezo_combobox(self):
         self.scanner_piezo_combobox = QComboBox(self)
-        self.scanner_piezo_combobox.addItems(["dit", "komt", "later", "nog", "wel"])
+        # print(self.anc350_instrument.attocube_piezo_dict.keys())
+        # for item in self.anc350_instrument.attocube_piezo_dict.keys():
+        #     self.scanner_piezo_combobox.addItem(item)
         self.grid_layout.addWidget(self.scanner_piezo_combobox, 0, 2)
 
 
     def move_absolute_position(self):
         print("move absolute position")
+        #axis = XPiezoStepper, YPiezoStepper or ZPiezoStepper, position = something in nm
+        self.anc350_instrument.move_to(self.scanner_piezo_combobox.currentText(), 2_000_000*ur('nm'))
 
     def move_relative_position(self):
         print("move relative position")
