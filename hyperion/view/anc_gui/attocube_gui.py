@@ -98,11 +98,11 @@ class App(QWidget):
         self.grid_layout.addWidget(self.step_amount_label, 5, 0)
     def make_amplitude_label(self):
         self.amplitude_label = QLabel(self)
-        self.amplitude_label.setText("Amplitude:")
+        self.amplitude_label.setText("Amplitude:\n1V to 60V")
         self.grid_layout.addWidget(self.amplitude_label, 0, 3)
     def make_frequency_label(self):
         self.frequency_label = QLabel(self)
-        self.frequency_label.setText("Frequency:")
+        self.frequency_label.setText("Frequency:\n1Hz to 2kHz")
         self.grid_layout.addWidget(self.frequency_label, 1, 3)
 
     def make_move_to_absolute_position_textfield(self):
@@ -253,9 +253,15 @@ class App(QWidget):
         voltage = self.move_scanner_textfield.text() * ur('mV')
         self.anc350_instrument.move_scanner(axis, voltage)
         self.update_actual_position_label()
-    def configurate_current_stepper(self):
-        pass
 
+    def configurate_current_stepper(self):
+        """
+        Configurate the current stepper to perfection
+        """
+        axis = self.scanner_piezo_combobox.currentText()  # the current stepper
+        amplitude = self.amplitude_textfield.text() * ur('mV')
+        frequency = self.frequency_textfield.text() * ur('Hz')
+        self.anc350_instrument.configurate_stepper(axis, amplitude, frequency)
 
 if __name__ == '__main__':
     anc350_instrument = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'})
