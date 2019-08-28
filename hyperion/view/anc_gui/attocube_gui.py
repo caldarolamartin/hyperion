@@ -31,6 +31,7 @@ class App(QWidget):
         self.make_textfields()
         self.make_buttons()
         self.make_misc_gui_stuff()
+        self.enable_or_disable_scanner_piezo_widgets()
 
         self.show()
 
@@ -152,8 +153,12 @@ class App(QWidget):
         print(self.anc350_instrument.attocube_piezo_dict.keys())
         for item in self.anc350_instrument.attocube_piezo_dict.keys():
             self.scanner_piezo_combobox.addItem(item)
-        self.scanner_piezo_combobox.currentIndexChanged.connect(self.update_actual_position_label)
+        self.scanner_piezo_combobox.currentIndexChanged.connect(self.update_gui)
         self.grid_layout.addWidget(self.scanner_piezo_combobox, 0, 2)
+
+    def update_gui(self):
+        self.update_actual_position_label()
+        self.enable_or_disable_scanner_piezo_widgets()
 
     def update_actual_position_label(self):
         try:
@@ -161,20 +166,52 @@ class App(QWidget):
         except Exception:
             self.actual_position_label.setText("currently\nunavailable")
 
+    def enable_or_disable_scanner_piezo_widgets(self):
+        #make sure that if the scanner stuff is enabled that the piezo stuff is disabled and viceversa
+        if "Stepper" in self.scanner_piezo_combobox.currentText():
+            #set scanner things false
+            self.move_scanner_textfield.setEnabled(False)
+            self.move_scanner_button.setEnabled(False)
+            #set stepper things true
+            self.move_to_absolute_position_textfield.setEnabled(True)
+            self.move_to_absolute_position_button.setEnabled(True)
+            self.move_to_relative_position_textfield.setEnabled(True)
+            self.move_to_relative_position_button.setEnabled(True)
+            self.step_position_left_button.setEnabled(True)
+            self.step_position_right_button.setEnabled(True)
+            self.amplitude_textfield.setEnabled(True)
+            self.amplitude_button.setEnabled(True)
+            self.frequency_textfield.setEnabled(True)
+            self.frequency_button.setEnabled(True)
+        elif "Scanner" in self.scanner_piezo_combobox.currentText():
+            #set stepper things false
+            self.move_to_absolute_position_textfield.setEnabled(False)
+            self.move_to_absolute_position_button.setEnabled(False)
+            self.move_to_relative_position_textfield.setEnabled(False)
+            self.move_to_relative_position_button.setEnabled(False)
+            self.step_position_left_button.setEnabled(False)
+            self.step_position_right_button.setEnabled(False)
+            self.amplitude_textfield.setEnabled(False)
+            self.amplitude_button.setEnabled(False)
+            self.frequency_textfield.setEnabled(False)
+            self.frequency_button.setEnabled(False)
+            #set scanner things true
+            self.move_scanner_textfield.setEnabled(True)
+            self.move_scanner_button.setEnabled(True)
+        else:
+            print("There should not be a different motor besides a\nStepper and a Scanner, so...you should change the .yml file.")
+
     def move_absolute_position(self):
         print("move absolute position")
-        #axis = XPiezoStepper, YPiezoStepper or ZPiezoStepper, position = something in nm
-        axis = self.scanner_piezo_combobox.currentText()
-        position = int(self.move_to_absolute_position_textfield.text())* ur('nm')
+        axis = self.scanner_piezo_combobox.currentText() #axis = XPiezoStepper, YPiezoStepper or ZPiezoStepper
+        position = int(self.move_to_absolute_position_textfield.text())* ur('nm') #position = something in nm
         self.anc350_instrument.move_to(axis, position)
         self.update_actual_position_label()
 
     def move_relative_position(self):
         print("move relative position")
-        #axis, step
-        #step: amount to move in nm, can be both positive and negative
-        axis = self.scanner_piezo_combobox.currentText()
-        step = int(self.move_to_relative_position_textfield.text())* ur('nm')
+        axis = self.scanner_piezo_combobox.currentText() #the current stepper
+        step = int(self.move_to_relative_position_textfield.text())* ur('nm') #step: amount to move in nm, can be both positive and negative
         self.anc350_instrument.move_relative(axis, step)
         self.update_actual_position_label()
     def go_single_step_left(self):
