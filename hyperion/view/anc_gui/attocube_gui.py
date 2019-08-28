@@ -62,15 +62,15 @@ class App(QWidget):
 
     def make_piezo_scanner_position_label(self):
         self.piezo_scanner_postion_label = QLabel(self)
-        self.piezo_scanner_postion_label.setText("postion: ")
+        self.piezo_scanner_postion_label.setText("Postion: ")
         self.grid_layout.addWidget(self.piezo_scanner_postion_label, 0, 0)
     def make_move_to_absolute_position_label(self):
         self.move_to_absolute_position_label = QLabel(self)
-        self.move_to_absolute_position_label.setText("Move to\nabsolute position: ")
+        self.move_to_absolute_position_label.setText("Move to\nabsolute position in nm: ")
         self.grid_layout.addWidget(self.move_to_absolute_position_label, 1, 0)
     def make_move_to_relative_position_label(self):
         self.move_to_relative_position_label = QLabel(self)
-        self.move_to_relative_position_label.setText("Move to\nrelative position: ")
+        self.move_to_relative_position_label.setText("Move to\nrelative position in nm: ")
         self.grid_layout.addWidget(self.move_to_relative_position_label, 2, 0)
     def make_single_step_left_label(self):
         self.pos_single_step_left_label = QLabel(self)
@@ -82,14 +82,12 @@ class App(QWidget):
         self.grid_layout.addWidget(self.pos_single_step_right_label, 4, 0)
     def make_move_scanner_label(self):
         self.move_scanner_label = QLabel(self)
-        self.move_scanner_label.setText("Move scanner: ")
+        self.move_scanner_label.setText("Move scanner in nm: ")
         self.grid_layout.addWidget(self.move_scanner_label, 5, 0)
     def make_actual_position_label(self):
         self.actual_position_label = QLabel(self)
         self.actual_position_label.setText("currently\nunavailable")
         self.grid_layout.addWidget(self.actual_position_label, 0, 1)
-
-        #textfields
 
     def make_move_to_absolute_position_textfield(self):
         self.move_to_absolute_position_textfield = QLineEdit(self)
@@ -151,16 +149,23 @@ class App(QWidget):
 
     def make_scanner_piezo_combobox(self):
         self.scanner_piezo_combobox = QComboBox(self)
-        # print(self.anc350_instrument.attocube_piezo_dict.keys())
-        # for item in self.anc350_instrument.attocube_piezo_dict.keys():
-        #     self.scanner_piezo_combobox.addItem(item)
+        print(self.anc350_instrument.attocube_piezo_dict.keys())
+        for item in self.anc350_instrument.attocube_piezo_dict.keys():
+            self.scanner_piezo_combobox.addItem(item)
+        self.scanner_piezo_combobox.currentIndexChanged.connect(self.update_actual_position_label)
         self.grid_layout.addWidget(self.scanner_piezo_combobox, 0, 2)
 
+    def update_actual_position_label(self):
+        try:
+            self.actual_position_label.setText("Position in nm: "+str(self.anc350_instrument.controller.getPosition(self.anc350_instrument.attocube_piezo_dict[self.scanner_piezo_combobox.currentText()])))
+        except Exception:
+            self.actual_position_label.setText("currently\nunavailable")
 
     def move_absolute_position(self):
         print("move absolute position")
         #axis = XPiezoStepper, YPiezoStepper or ZPiezoStepper, position = something in nm
-        self.anc350_instrument.move_to(self.scanner_piezo_combobox.currentText(), 2_000_000*ur('nm'))
+        self.anc350_instrument.move_to(self.scanner_piezo_combobox.currentText(), int(self.move_to_absolute_position_textfield.text())* ur('nm'))
+        print("Position: "+str(self.anc350_instrument.controller.getPosition(self.anc350_instrument.attocube_piezo_dict[self.scanner_piezo_combobox.currentText()])))
 
     def move_relative_position(self):
         print("move relative position")

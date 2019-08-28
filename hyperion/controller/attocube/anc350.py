@@ -410,6 +410,7 @@ class Anc350(BaseController):
         '''
         starts approach to absolute target position. previous movement will be stopped. rotcount optional argument position units are in 'unit of actor multiplied by 1000' (generally nanometres)
         '''
+        print('I reached the move absolute method')
         ANC350lib.positionerMoveAbsolute(self.handle,axis,position,rotcount)
 
     def moveAbsoluteSync(self, bitmask_of_axes):
