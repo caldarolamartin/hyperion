@@ -652,6 +652,7 @@ class Hydraharp(BaseController):
         min_acqt = self.settings['ACQTMIN'] * ur('ms')
         max_acqt = self.settings['ACQTMAX'] * ur('ms')
         assert (float(tacq.magnitude) >= float(min_acqt.magnitude)) and (float(tacq.magnitude) <= float(max_acqt.magnitude)), "HH_StartMeas, tacq not valid."
+
         func = self.hhlib.HH_StartMeas
         func.argtypes = [ctypes.c_int, ctypes.c_int]
         func.restype = ctypes.c_int
