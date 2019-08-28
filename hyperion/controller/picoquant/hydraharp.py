@@ -647,10 +647,11 @@ class Hydraharp(BaseController):
 
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
-        tacq = acquisition_time * ur('ms')# acquisition time in milisecond
+        tacq = acquisition_time * ur('s')# acquisition time in seconds(later it is converted to miliseconds)
+        tacq = tacq.to('ms')
         min_acqt = self.settings['ACQTMIN'] * ur('ms')
         max_acqt = self.settings['ACQTMAX'] * ur('ms')
-        assert (tacq - min_acqt) and (tacq - max_acqt), "HH_StartMeas, tacq not valid."
+        assert (float(tacq.magnitude) >= float(min_acqt.magnitude)) and (float(tacq.magnitude) <= float(max_acqt.magnitude)), "HH_StartMeas, tacq not valid."
         func = self.hhlib.HH_StartMeas
         func.argtypes = [ctypes.c_int, ctypes.c_int]
         func.restype = ctypes.c_int

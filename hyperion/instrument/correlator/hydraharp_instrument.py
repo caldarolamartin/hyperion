@@ -12,11 +12,10 @@ import yaml           #for the configuration file
 import os             #for playing with files in operation system
 import sys
 import time
-from hyperion import root_dir
+from hyperion import root_dir, ur
 #sys.path.append('D:/TMDmaterials/')
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion import ur
 ureg = ur
 
 #from TMD.Controller.Hydraharp_controller import Hydraharp 
