@@ -131,7 +131,7 @@ DC_JS_DIRSENSE_NEG = 2
 
 import hyperion.controller.thorlabs.TDC001_APTAPI as _APTAPI
 import hyperion.controller.thorlabs.TDC001_error_codes as _error_codes
-
+from hyperion import ur
 import platform
 
 
@@ -962,7 +962,8 @@ class TDC001(BaseController):
             wait until moving is finished.
             Default: False
         """
-        err_code = self._lib.MOT_MoveAbsoluteEx(self._serial_number, value,
+        value = value * ur('micrometer')
+        err_code = self._lib.MOT_MoveAbsoluteEx(self._serial_number, value.m_as("micrometer"),
                 blocking)
         if (err_code != 0):
             raise Exception("Setting absolute position failed: %s" %
@@ -980,7 +981,8 @@ class TDC001(BaseController):
             wait until moving is finished
             Default: False
         """
-        err_code = self._lib.MOT_MoveRelativeEx(self._serial_number, value,
+        value = value * ur('micrometer')
+        err_code = self._lib.MOT_MoveRelativeEx(self._serial_number, value.m_as("micrometer"),
                 blocking)
         if (err_code != 0):
             raise Exception("Setting relative position failed: %s" %

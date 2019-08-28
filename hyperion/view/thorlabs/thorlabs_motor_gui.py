@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QS
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 from hyperion.view.general_worker import WorkThread
 from pynput.keyboard import Listener
+from hyperion import ur
 
 class App(QWidget):
 
@@ -322,8 +323,8 @@ class App(QWidget):
     def go_to_input(self):
         selected_motor = str(self.motor_combobox.currentText())
         try:
-            go_to_input = float(self.input_textfield.text())
-            self.motor_bag[selected_motor].move_relative(go_to_input)
+            go_to_input = self.input_textfield.text() * ur('micrometer')
+            self.motor_bag[selected_motor].move_absolute(go_to_input)
             self.set_current_motor_label()
         except ValueError:
             print("The input is not a float, change this")

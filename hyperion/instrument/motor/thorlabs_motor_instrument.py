@@ -135,8 +135,16 @@ class Thorlabsmotor(BaseInstrument):
         :param distance: relative distance in micro meter
         :type homing: number
         """
-        distance_mm=distance/1000
+        distance = distance * ur('micrometer')
+        distance_mm = distance.to('mm')
         self.controller.move_by(distance_mm)
+    def move_absolute(self, distance):
+        """Moves the motor by the a absolute distance that is given
+            
+        param: distance: a absolute distance
+        type: a pint quantity in micrometer
+        """
+        self.controller.move_to(distance.m_as('micrometer'))
         
 
     def finalize(self):
