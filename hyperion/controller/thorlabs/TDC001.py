@@ -1563,6 +1563,10 @@ if __name__ == "__main__":
 
     with TDC001() as dev:
         print(dev.list_available_devices())
+        dev.initialize(83815760)
+        dev.move_to(0.01)
+        dev.finalize()
+        
 		
 
 

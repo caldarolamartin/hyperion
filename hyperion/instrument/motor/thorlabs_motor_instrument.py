@@ -135,6 +135,7 @@ class Thorlabsmotor(BaseInstrument):
         :param distance: relative distance in micro meter
         :type homing: number
         """
+        self.logger.info("moving: "+str(distance)+" in micrometer")
         distance = distance * ur('micrometer')
         distance_mm = distance.to('mm')
         self.controller.move_by(distance_mm)
@@ -144,7 +145,10 @@ class Thorlabsmotor(BaseInstrument):
         param: distance: a absolute distance
         type: a pint quantity in micrometer
         """
+        self.logger.info("moving: "+str(distance)+" in micrometer")
+        distance = distance * ur("micrometer")
         self.controller.move_to(distance.m_as('micrometer'))
+        self.logger.debug("The motor has moved "+str(distance))
         
 
     def finalize(self):
@@ -189,6 +193,9 @@ if __name__ == "__main__":
 
     with Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}) as dev:
         dev.list_devices()
+        dev.initialize(83815760)
+        dev.move_absolute(0.1)
+        dev.finalize
 
 
 
