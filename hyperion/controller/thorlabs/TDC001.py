@@ -1564,10 +1564,10 @@ if __name__ == "__main__":
 
     with TDC001() as dev:
         print(dev.list_available_devices())
-        for aap in dev.list_available_devices():
-            print(aap)
-            if aap[1] != 81818266:        
-                    dev.initialize(aap[1])
+        for motor in dev.list_available_devices():
+            print(motor)
+            if motor[1] != 81818266:        
+                    dev.initialize(motor[1])
                     
                     dev.move_to(0.01)
                     dev.finalize()

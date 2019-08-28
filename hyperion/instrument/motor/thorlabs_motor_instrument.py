@@ -54,7 +54,7 @@ class Thorlabsmotor(BaseInstrument):
         
         aptmotorlist=self.controller.list_available_devices()
         print(str(len(aptmotorlist)) + ' motor boxes found:')
-        print(aptmotorlist)
+        return aptmotorlist
     
     def initialize(self, port, homing=0):
         """ Starts the connection to the device in port
@@ -143,9 +143,10 @@ class Thorlabsmotor(BaseInstrument):
         param: distance: a absolute distance
         type: a pint quantity in micrometer
         """
-        self.logger.info("moving: "+str(distance)+" in micrometer")
         distance = distance * ur("micrometer")
-        self.controller.move_to(distance.magnitude)
+        #print("some text", distance)
+        self.logger.info("moving: "+str(distance))
+        self.controller.move_to(float(distance.magnitude))
         self.logger.debug("The motor has moved "+str(distance))
         
 
@@ -190,10 +191,13 @@ if __name__ == "__main__":
                   logging.StreamHandler()])
 
     with Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}) as dev:
-        dev.list_devices()
-        dev.initialize(83815760)
-        dev.move_absolute(0.1)
-        dev.finalize
+        for motor in dev.list_devices():
+            print(motor)
+            if motor[1] != 81818266:        
+                    dev.initialize(motor[1])
+                    dev.move_absolute(0.01)
+                    dev.finalize()
+                    print("-"*40)
 
 
 
