@@ -44,6 +44,8 @@ class App(QWidget):
         self.make_move_scanner_label()
         self.make_actual_position_label()
         self.make_step_amount_label()
+        self.make_amplitude_label()
+        self.make_frequency_label()
     def make_textfields(self):
         self.make_move_to_absolute_position_textfield()
         self.make_move_to_relative_position_textfield()
@@ -58,8 +60,7 @@ class App(QWidget):
         self.make_step_position_backward_button()
         self.make_move_scanner_button()
         self.make_move_scanner_button()
-        self.make_frequency_button()
-        self.make_amplitude_button()
+        self.make_configurate_stepper_button()
     def make_misc_gui_stuff(self):
         self.make_scanner_piezo_combobox()
 
@@ -95,6 +96,14 @@ class App(QWidget):
         self.step_amount_label = QLabel(self)
         self.step_amount_label.setText("amount of steps:")
         self.grid_layout.addWidget(self.step_amount_label, 5, 0)
+    def make_amplitude_label(self):
+        self.amplitude_label = QLabel(self)
+        self.amplitude_label.setText("Amplitude:")
+        self.grid_layout.addWidget(self.amplitude_label, 0, 3)
+    def make_frequency_label(self):
+        self.frequency_label = QLabel(self)
+        self.frequency_label.setText("Frequency:")
+        self.grid_layout.addWidget(self.frequency_label, 1, 3)
 
     def make_move_to_absolute_position_textfield(self):
         self.move_to_absolute_position_textfield = QLineEdit(self)
@@ -110,7 +119,7 @@ class App(QWidget):
         self.grid_layout.addWidget(self.move_scanner_textfield, 5, 3)
     def make_amplitude_textfield(self):
         self.amplitude_textfield = QLineEdit(self)
-        self.amplitude_textfield.setText("1000")
+        self.amplitude_textfield.setText("0")
         self.grid_layout.addWidget(self.amplitude_textfield, 0, 4)
     def make_frequency_textfield(self):
         self.frequency_textfield = QLineEdit(self)
@@ -146,16 +155,13 @@ class App(QWidget):
         self.move_scanner_button.setToolTip("Move the scanner as specified in the textfield(which you do, not I)")
         self.move_scanner_button.clicked.connect(self.move_scanner)
         self.grid_layout.addWidget(self.move_scanner_button, 5, 4)
-    def make_amplitude_button(self):
-        self.amplitude_button = QPushButton("set the amplitude", self)
-        self.amplitude_button.setToolTip("Sets the amplitude by clicking it\nbetween 0 and 60 V")
-        self.amplitude_button.clicked.connect(self.set_amplitude)
-        self.grid_layout.addWidget(self.amplitude_button, 0, 3)
-    def make_frequency_button(self):
-        self.frequency_button = QPushButton("set the frequency", self)
-        self.frequency_button.setToolTip("Sets the frequency by clicking it\nbetween 1 and 2000 hz")
-        self.frequency_button.clicked.connect(self.set_frequency)
-        self.grid_layout.addWidget(self.frequency_button, 1, 3)
+    def make_configurate_stepper_button(self):
+        self.configurate_stepper_button = QPushButton("configurate stepper", self)
+        self.configurate_stepper_button.setToolTip("In order to configurate the stepper\nthe frequency and amplitude are also needed")
+        self.configurate_stepper_button.clicked.connect(self.configurate_current_stepper)
+        self.grid_layout.addWidget(self.configurate_stepper_button, 2, 4)
+
+
 
     def make_scanner_piezo_combobox(self):
         self.scanner_piezo_combobox = QComboBox(self)
@@ -187,10 +193,9 @@ class App(QWidget):
             self.step_position_forward_button.setEnabled(True)
             self.step_position_backward_button.setEnabled(True)
             self.amplitude_textfield.setEnabled(True)
-            self.amplitude_button.setEnabled(True)
             self.frequency_textfield.setEnabled(True)
-            self.frequency_button.setEnabled(True)
             self.step_amount_textfield.setEnabled(True)
+            self.configurate_stepper_button.setEnabled(True)
         elif "Scanner" in self.scanner_piezo_combobox.currentText():
             #set stepper things false
             self.move_to_absolute_position_textfield.setEnabled(False)
@@ -200,10 +205,9 @@ class App(QWidget):
             self.step_position_forward_button.setEnabled(False)
             self.step_position_backward_button.setEnabled(False)
             self.amplitude_textfield.setEnabled(False)
-            self.amplitude_button.setEnabled(False)
             self.frequency_textfield.setEnabled(False)
-            self.frequency_button.setEnabled(False)
             self.step_amount_textfield.setEnabled(False)
+            self.configurate_stepper_button.setEnabled(False)
             #set scanner things true
             self.move_scanner_textfield.setEnabled(True)
             self.move_scanner_button.setEnabled(True)
@@ -235,11 +239,7 @@ class App(QWidget):
         direction = 1 # backward = 1
         amount = int(self.step_amount_textfield.text())
         self.anc350_instrument.given_step(axis, direction, amount)
-    def set_amplitude(self):
-        print("set the amplitude for the piezo")
 
-    def set_frequency(self):
-        print("set the frequency of the piezo")
     def move_scanner(self):
         print("move the scanner by a...value")
         """
@@ -253,6 +253,8 @@ class App(QWidget):
         voltage = self.move_scanner_textfield.text() * ur('mV')
         self.anc350_instrument.move_scanner(axis, voltage)
         self.update_actual_position_label()
+    def configurate_current_stepper(self):
+        pass
 
 
 if __name__ == '__main__':
