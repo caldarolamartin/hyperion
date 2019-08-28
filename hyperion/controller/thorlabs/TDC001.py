@@ -963,7 +963,8 @@ class TDC001(BaseController):
             Default: False
         """
         value = value * ur('micrometer')
-        err_code = self._lib.MOT_MoveAbsoluteEx(self._serial_number, value.m_as("micrometer"),
+        print(value)
+        err_code = self._lib.MOT_MoveAbsoluteEx(self._serial_number, value.magnitude,
                 blocking)
         if (err_code != 0):
             raise Exception("Setting absolute position failed: %s" %
@@ -982,7 +983,7 @@ class TDC001(BaseController):
             Default: False
         """
         value = value * ur('micrometer')
-        err_code = self._lib.MOT_MoveRelativeEx(self._serial_number, value.m_as("micrometer"),
+        err_code = self._lib.MOT_MoveRelativeEx(self._serial_number, value.magnitude,
                 blocking)
         if (err_code != 0):
             raise Exception("Setting relative position failed: %s" %
@@ -1563,9 +1564,13 @@ if __name__ == "__main__":
 
     with TDC001() as dev:
         print(dev.list_available_devices())
-        dev.initialize(83815760)
-        dev.move_to(0.01)
-        dev.finalize()
+        for aap in dev.list_available_devices():
+            print(aap)
+            if aap[1] != 81818266:        
+                    dev.initialize(aap[1])
+                    
+                    dev.move_to(0.01)
+                    dev.finalize()
         
 		
 

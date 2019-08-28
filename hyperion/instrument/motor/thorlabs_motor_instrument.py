@@ -42,17 +42,15 @@ class Thorlabsmotor(BaseInstrument):
         
         if 'serial_number' in settings:
             self._serial_number = settings['serial_number']
-        # property
+        # properties
         self._output = False
         self._mode = 0
         self.logger.info('Initializing Thorlabs motoer settings: {}'.format(settings))
 
-        # initialize
-        #self.controller.initialize()
 
 
     def list_devices(self):
-        """ List all available devices. Returns serial numbers"""
+        """ List all available devices"""
         
         aptmotorlist=self.controller.list_available_devices()
         print(str(len(aptmotorlist)) + ' motor boxes found:')
@@ -114,17 +112,17 @@ class Thorlabsmotor(BaseInstrument):
     def make_slider_list(self):
         #[("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
         slider_list = []
-        temporary_lijst = []
-        slider_namen_lijst = ["slider_x","slider_y","slider_z"]
+        temporary_list = []
+        slider_namen_list = ["slider_x","slider_y","slider_z"]
         opteller = 0
         for instrument in self.experiment.properties["MetaInstruments"]:
             if "Motor" in instrument:
                 for motor_naam in self.experiment.properties["MetaInstruments"][instrument].items():
-                    temporary_lijst.append(slider_namen_lijst[opteller])
-                    temporary_lijst.append(motor_naam[1])
-                    slider_list.append(temporary_lijst)
+                    temporary_list.append(slider_namen_list[opteller])
+                    temporary_list.append(motor_naam[1])
+                    slider_list.append(temporary_list)
                     #reset values
-                    temporary_lijst = []
+                    temporary_list = []
                     opteller += 1
         
         return slider_list
@@ -147,7 +145,7 @@ class Thorlabsmotor(BaseInstrument):
         """
         self.logger.info("moving: "+str(distance)+" in micrometer")
         distance = distance * ur("micrometer")
-        self.controller.move_to(distance.m_as('micrometer'))
+        self.controller.move_to(distance.magnitude)
         self.logger.debug("The motor has moved "+str(distance))
         
 
