@@ -164,11 +164,19 @@ class App(QWidget):
     def move_absolute_position(self):
         print("move absolute position")
         #axis = XPiezoStepper, YPiezoStepper or ZPiezoStepper, position = something in nm
-        self.anc350_instrument.move_to(self.scanner_piezo_combobox.currentText(), int(self.move_to_absolute_position_textfield.text())* ur('nm'))
-        print("Position: "+str(self.anc350_instrument.controller.getPosition(self.anc350_instrument.attocube_piezo_dict[self.scanner_piezo_combobox.currentText()])))
+        axis = self.scanner_piezo_combobox.currentText()
+        position = int(self.move_to_absolute_position_textfield.text())* ur('nm')
+        self.anc350_instrument.move_to(axis, position)
+        self.update_actual_position_label()
 
     def move_relative_position(self):
         print("move relative position")
+        #axis, step
+        #step: amount to move in nm, can be both positive and negative
+        axis = self.scanner_piezo_combobox.currentText()
+        step = int(self.move_to_relative_position_textfield.text())* ur('nm')
+        self.anc350_instrument.move_relative(axis, step)
+        self.update_actual_position_label()
     def go_single_step_left(self):
         print("go a single step to the left")
     def go_single_step_right(self):
