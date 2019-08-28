@@ -227,8 +227,14 @@ class Anc350Instrument(BaseInstrument):
         :type axis: string
 
         :param voltage: voltage in mV to move the scanner; from 0-140V
-        :type axis: pint quantity
+        :type voltage: pint quantity
         """
+
+        print(voltage)
+
+        print(type(voltage))
+        print(type(0 * ur('mV')))
+
         if 0 <= voltage.m_as('mV') <= 140000:
             self.logger.info('moving '+ axis +' by putting ' + str(voltage))
             self.controller.dcLevel(self.attocube_piezo_dict[axis], voltage.m_as('mV'))
@@ -263,19 +269,19 @@ if __name__ == "__main__":
 
         q.configurate_stepper(axis,ampl,freq)
 
-        q.move_to(axis,2_000_000*ur('nm'))
-
-        q.move_relative(axis, -2000 * ur('nm'))
-
-        direct = 0  #forward
-        steps = 10  #amount of steps
-
-        q.given_step(axis,direct,steps)
+        # q.move_to(axis,2_000_000*ur('nm'))
+        #
+        # q.move_relative(axis, -2000 * ur('nm'))
+        #
+        # direct = 0  #forward
+        # steps = 10  #amount of steps
+        #
+        # q.given_step(axis,direct,steps)
 
         axis = 'XPiezoScanner'  #x of scanner
 
         q.configurate_scanner(axis)
 
-        volts = 30000*ur('mV')
+        volts = 100000*ur('mV')
         q.move_scanner(axis,volts)
 
