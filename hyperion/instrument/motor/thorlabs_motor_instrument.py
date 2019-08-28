@@ -163,7 +163,7 @@ class Thorlabsmotor(BaseInstrument):
 
         """
         self.logger.debug('Ask IDN to device.')
-        return self.controller.idn()
+        return self.controller.identify()
 
 
     @property
@@ -195,6 +195,7 @@ if __name__ == "__main__":
             print(motor)
             if motor[1] != 81818266:        
                     dev.initialize(motor[1])
+                    dev.idn()
                     dev.move_absolute(0.01)
                     dev.finalize()
                     print("-"*40)

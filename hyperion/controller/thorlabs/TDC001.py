@@ -1568,10 +1568,11 @@ if __name__ == "__main__":
             print(motor)
             if motor[1] != 81818266:        
                     dev.initialize(motor[1])
-                    
+                    dev.idn()
                     dev.move_to(0.01)
+                    dev.position
                     dev.finalize()
-        
+                    print("-"*40)
 		
 
 

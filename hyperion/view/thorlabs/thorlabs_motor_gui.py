@@ -324,7 +324,7 @@ class App(QWidget):
         selected_motor = str(self.motor_combobox.currentText())
         try:
             go_to_input = self.input_textfield.text() * ur('micrometer')
-            self.motor_bag[selected_motor].move_absolute(go_to_input)
+            self.motor_bag[selected_motor].move_absolute(float(go_to_input.magnitude))
             self.set_current_motor_label()
         except ValueError:
             print("The input is not a float, change this")
