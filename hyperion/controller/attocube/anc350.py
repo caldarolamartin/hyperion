@@ -171,7 +171,7 @@ class Anc350(BaseController):
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
 
-        :param amp: amplitude to be set to the Stepper in mV, between 0 and 60mV; needs to be an integer!
+        :param amp: amplitude to be set to the Stepper in mV, between 0 and 60V; needs to be an integer!
         :type amp: integer
         """
         if 0 <= amp <= 60000:
@@ -258,6 +258,7 @@ class Anc350(BaseController):
         """
         self.stepwdth = ANC350lib.Int32(0)
         ANC350lib.positionerGetStepwidth(self.handle,axis,ctypes.byref(self.stepwdth))
+        self.logger.info('stepwidth is here ' + str(self.stepwdth.value))
         return self.stepwdth.value
 
     def moveAbsolute(self, axis, position, rotcount=0):

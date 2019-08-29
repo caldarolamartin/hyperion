@@ -67,16 +67,16 @@ class Anc350Instrument(BaseInstrument):
         -for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
         -loads the actor file, now it's the file called q
         -measures the capacitance of the Stepper; not clear whether it is needed
-        -sets the amplitude and frecuency
+        -sets the amplitude and frequency
         -the amplitude influences the step width, the frequency influences the speed
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
 
-        :param amplitude: amplitude in mV; at room temperature you need 30V-40V, at low temperatures 40V-50V, max 60V; high amplitude is large stepwidth
+        :param amplitude: amplitude voltage; at room temperature you need 30V-40V, at low temperatures 40V-50V, max 60V; high amplitude is large stepwidth
         :type axis: pint quantity
 
-        :param frequency: frequency in Hz; higher means more noise but faster; between 1Hz and 2kHz
+        :param frequency: frequency to be set; higher means more noise but faster; between 1Hz and 2kHz
         :type axis: pint quantity
         """
 
@@ -94,7 +94,6 @@ class Anc350Instrument(BaseInstrument):
             self.controller.amplitude(self.attocube_piezo_dict[axis], int(amplitude.m_as('mV')))  # put the amplitude on the controller, it needs to be an int
 
             self.Amplitude[self.attocube_piezo_dict[axis]] = amplitude.m_as('V')   #remember that amplitude in V
-            print(self.Amplitude)
 
             step = self.controller.getStepwidth(self.attocube_piezo_dict[axis])
             #huh, 0 makes no sense!!!!
@@ -130,7 +129,10 @@ class Anc350Instrument(BaseInstrument):
 
         """
         self.logger.info('Loading Scanner actor file, setting INT mode, measuring capacitances')
-        self.logger.info(str(axis) + ' capacitance: ' + str(self.controller.capMeasure(self.attocube_piezo_dict[axis]) * ur('mF')))
+
+        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF')
+        capacitance = round(capacitance.to('F'),3)
+        self.logger.info(axis+': ' + str(capacitance))
         # self.controller.load(axis,filename=default)
 
         self.controller.intEnable(self.attocube_piezo_dict[axis],True)
@@ -143,7 +145,7 @@ class Anc350Instrument(BaseInstrument):
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
 
-        :param position: absolute position that you want to go to in nm; needs to be an integer, no float!
+        :param position: absolute position that you want to go to; needs to be an integer, no float!
         :type axis: pint quantity
 
         """
@@ -157,11 +159,11 @@ class Anc350Instrument(BaseInstrument):
             newstate = self.controller.getStatus(self.attocube_piezo_dict[axis])  # find bitmask of status
             if newstate == 1:
                 pos = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-                self.logger.info(axis +' moving, currently at ' + str(pos.to('mm')))
+                self.logger.info(axis +' moving, currently at ' + str(round(pos.to('mm'),6)))
             elif newstate == 0:
-                arrival = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-                self.logger.info('axis arrived at ' + str(arrival.to('mm')))
-                self.logger.info('difference is ' + str(position - arrival))
+                end = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
+                self.logger.info('axis arrived at ' + str(round(end.to('mm'),6)))
+                self.logger.info('difference is ' + str(round(position - end,6)))
             else:
                 self.logger.info('axis has value' + str(newstate))
             state = newstate
@@ -174,10 +176,10 @@ class Anc350Instrument(BaseInstrument):
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
 
-        :param step: amount to move in nm, can be both positive and negative; needs to be an integer, no float!
+        :param step: amount to move, can be both positive and negative; needs to be an integer, no float!
         :type step: pint quantity
         """
-        begin = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('mm')
+        begin = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
 
         self.logger.info('moving to a relative position, ' + str(step))
         self.controller.moveRelative(self.attocube_piezo_dict[axis],int(step.m_as('nm')))
@@ -187,11 +189,12 @@ class Anc350Instrument(BaseInstrument):
         while state == 1:
             newstate = self.controller.getStatus(self.attocube_piezo_dict[axis])  # find bitmask of status
             if newstate == 1:
-                self.logger.info(axis+' moving, currently at ' + str(self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')))
+                pos = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
+                self.logger.info(axis+' moving, currently at ' + str(round(pos.to('mm'),6)))
             elif newstate == 0:
                 end = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-                self.logger.info('axis arrived at ' + str(end))
-                self.logger.info('has moved '+ str(begin-end))
+                self.logger.info('axis arrived at ' + str(round(end.to('mm'),6)))
+                self.logger.info('has moved ' + str(round(begin - end,6)))
             else:
                 self.logger.info('axis has value' + str(newstate))
             state = newstate
@@ -217,7 +220,7 @@ class Anc350Instrument(BaseInstrument):
             self.controller.moveSingleStep(self.attocube_piezo_dict[axis],direction)
             time.sleep(0.5)
             position = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-            self.logger.info('step ' + str(ii) + ': we are now at ' + str(position))
+            self.logger.info('step ' + str(ii) + ': we are now at ' + str(round(position.to('mm'),6)))
             Steps.append(position.m_as('nm'))
 
         Steps = np.asarray(Steps)
@@ -232,21 +235,18 @@ class Anc350Instrument(BaseInstrument):
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
 
-        :param voltage: voltage in mV to move the scanner; from 0-140V
+        :param voltage: voltage to move the scanner; from 0-140V
         :type voltage: pint quantity
         """
 
-        print(voltage)
-
-        print(type(voltage))
-        print(type(0 * ur('mV')))
-
-        if 0 <= voltage.m_as('mV') <= 140000:
+        if 0 <= voltage.m_as('V') <= 140:
             self.logger.info('moving '+ axis +' by putting ' + str(voltage))
             self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis], voltage.m_as('mV')))
 
             self.controller.dcLevel(self.attocube_piezo_dict[axis], int(voltage.m_as('mV')))
-            self.logger.info('now the DC level is ' + str(self.controller.getDcLevel(self.attocube_piezo_dict[axis]) * ur('mV')))
+
+            dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]) * ur('mV')
+            self.logger.info('now the DC level is ' + str(round(dc.to('V'),4)))
         else:
             raise Exception('The required voltage is between 0V - 140V')
 
@@ -267,7 +267,7 @@ if __name__ == "__main__":
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
         q.initialize()
 
-        axis = 'XPiezoStepper'       #x of stepper
+        axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
         ampl = 40*ur('V')   #30V
         freq = 1000*ur('Hz')    #Hz
 
@@ -280,16 +280,16 @@ if __name__ == "__main__":
         q.move_to(axis,2*ur('mm'))
 
         q.move_relative(axis, -2 * ur('um'))
-        #
-        # direct = 0  #forward
-        # steps = 10  #amount of steps
-        #
-        # q.given_step(axis,direct,steps)
 
-        axis = 'XPiezoScanner'  #x of scanner
+        direct = 0  #forward
+        steps = 10  #amount of steps
+
+        q.given_step(axis,direct,steps)
+
+        axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
 
         q.configurate_scanner(axis)
 
-        volts = 100000.0*ur('mV')
+        volts = 100*ur('V')
         q.move_scanner(axis,volts)
 
