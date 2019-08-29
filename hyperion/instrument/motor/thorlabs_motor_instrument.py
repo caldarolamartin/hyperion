@@ -42,21 +42,19 @@ class Thorlabsmotor(BaseInstrument):
         
         if 'serial_number' in settings:
             self._serial_number = settings['serial_number']
-        # property
+        # properties
         self._output = False
         self._mode = 0
         self.logger.info('Initializing Thorlabs motoer settings: {}'.format(settings))
 
-        # initialize
-        #self.controller.initialize()
 
 
     def list_devices(self):
-        """ List all available devices. Returns serial numbers"""
+        """ List all available devices"""
         
         aptmotorlist=self.controller.list_available_devices()
         print(str(len(aptmotorlist)) + ' motor boxes found:')
-        print(aptmotorlist)
+        return aptmotorlist
     
     def initialize(self, port, homing=0):
         """ Starts the connection to the device in port
@@ -114,17 +112,17 @@ class Thorlabsmotor(BaseInstrument):
     def make_slider_list(self):
         #[("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z", "testMotor")]
         slider_list = []
-        temporary_lijst = []
-        slider_namen_lijst = ["slider_x","slider_y","slider_z"]
+        temporary_list = []
+        slider_namen_list = ["slider_x","slider_y","slider_z"]
         opteller = 0
         for instrument in self.experiment.properties["MetaInstruments"]:
             if "Motor" in instrument:
                 for motor_naam in self.experiment.properties["MetaInstruments"][instrument].items():
-                    temporary_lijst.append(slider_namen_lijst[opteller])
-                    temporary_lijst.append(motor_naam[1])
-                    slider_list.append(temporary_lijst)
+                    temporary_list.append(slider_namen_list[opteller])
+                    temporary_list.append(motor_naam[1])
+                    slider_list.append(temporary_list)
                     #reset values
-                    temporary_lijst = []
+                    temporary_list = []
                     opteller += 1
         
         return slider_list
@@ -135,8 +133,21 @@ class Thorlabsmotor(BaseInstrument):
         :param distance: relative distance in micro meter
         :type homing: number
         """
-        distance_mm=distance/1000
+        self.logger.info("moving: "+str(distance)+" in micrometer")
+        distance = distance * ur('micrometer')
+        distance_mm = distance.to('mm')
         self.controller.move_by(distance_mm)
+    def move_absolute(self, distance):
+        """Moves the motor by the a absolute distance that is given
+            
+        param: distance: a absolute distance
+        type: a pint quantity in micrometer
+        """
+        distance = distance * ur("micrometer")
+        #print("some text", distance)
+        self.logger.info("moving: "+str(distance))
+        self.controller.move_to(float(distance.magnitude))
+        self.logger.debug("The motor has moved "+str(distance))
         
 
     def finalize(self):
@@ -152,7 +163,7 @@ class Thorlabsmotor(BaseInstrument):
 
         """
         self.logger.debug('Ask IDN to device.')
-        return self.controller.idn()
+        return self.controller.identify()
 
 
     @property
@@ -180,7 +191,14 @@ if __name__ == "__main__":
                   logging.StreamHandler()])
 
     with Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}) as dev:
-        dev.list_devices()
+        for motor in dev.list_devices():
+            print(motor)
+            if motor[1] != 81818266:        
+                    dev.initialize(motor[1])
+                    dev.idn()
+                    dev.move_absolute(0.01)
+                    dev.finalize()
+                    print("-"*40)
 
 
 
