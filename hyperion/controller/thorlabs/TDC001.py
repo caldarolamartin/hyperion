@@ -4,7 +4,7 @@
 Thorlabs TDC001
 ================
 
-Driver for the Thorlabs motor controllers. Imported from https://github.com/qpit/thorlabs_apt around Dec 2018.
+Driver for the Thorlabs thorlabs_motor controllers. Imported from https://github.com/qpit/thorlabs_apt around Dec 2018.
 
 
 Python package wrapping Thorlabs' APT.dll shared library.
@@ -24,7 +24,7 @@ Since this package is based on APT.dll it only works on Windows. For Linux and M
 
 **List of reported working devices**
 
-I have tested thorlabs_apt only with the K10CR1 rotation stage, but it should work with all motor supported by APT. If it works with other motor as well, please let me know and I will add it here. Otherwise file a bug report or fix the problem yourself and open a pull request.
+I have tested thorlabs_apt only with the K10CR1 rotation stage, but it should work with all thorlabs_motor supported by APT. If it works with other thorlabs_motor as well, please let me know and I will add it here. Otherwise file a bug report or fix the problem yourself and open a pull request.
 
 - BSC101
     - NRT150
@@ -44,7 +44,7 @@ I have tested thorlabs_apt only with the K10CR1 rotation stage, but it should wo
 **Example**
 
 The following example checks for all connected devices and then connects
-to the one specified by its serial number. The motor is first homed (blocking)
+to the one specified by its serial number. The thorlabs_motor is first homed (blocking)
 and then moved relative by 45 degree.
 
 ```python
@@ -137,7 +137,7 @@ import platform
 
 class TDC001(BaseController):
     """
-    Class TDC001 to control the DC stepper motor from Thorlabs
+    Class TDC001 to control the DC stepper thorlabs_motor from Thorlabs
     """
     
     _lib = None
@@ -325,7 +325,7 @@ class TDC001(BaseController):
         :param port: port name to connect to
         :type port: string
         """
-        self.logger.info('Opening connection to Thorlabs motor.')
+        self.logger.info('Opening connection to Thorlabs thorlabs_motor.')
 #        self._amplitude = self.query('A?')
         self._is_initialized = True     # this is to prevent you to close the device connection if you
                                             # have not initialized it inside a with statement
@@ -358,7 +358,7 @@ class TDC001(BaseController):
     @property
     def serial_number(self):
         """
-        Returns the serial number of the motor.
+        Returns the serial number of the thorlabs_motor.
 
         Returns
         -------
@@ -370,7 +370,7 @@ class TDC001(BaseController):
     @property
     def hardware_info(self):
         """
-        Returns hardware information about the motor.
+        Returns hardware information about the thorlabs_motor.
 
         Returns
         -------
@@ -386,7 +386,7 @@ class TDC001(BaseController):
     @property
     def _status_bits(self):
         """
-        Returns status bits of motor
+        Returns status bits of thorlabs_motor
 
         Returns
         -------
@@ -422,7 +422,7 @@ class TDC001(BaseController):
     @property
     def is_in_motion(self):
         """
-        Returns whether motor is in motion.
+        Returns whether thorlabs_motor is in motion.
         """
         status_bits = self._status_bits
         mask = 0x00000010 | 0x00000020 | 0x00000040 | 0x00000080 | 0x00000200
@@ -440,7 +440,7 @@ class TDC001(BaseController):
     @property
     def is_tracking(self):
         """
-        Returns whether motor is tracking.
+        Returns whether thorlabs_motor is tracking.
         """
         status_bits = self._status_bits
         mask = 0x00001000
@@ -449,7 +449,7 @@ class TDC001(BaseController):
     @property
     def is_settled(self):
         """
-        Returns whether motor is settled.
+        Returns whether thorlabs_motor is settled.
         """
         status_bits = self._status_bits
         mask = 0x00002000
@@ -458,7 +458,7 @@ class TDC001(BaseController):
     @property
     def motor_current_limit_reached(self):
         """
-        Return whether current limit of motor has been reached.
+        Return whether current limit of thorlabs_motor has been reached.
         """
         status_bits = self._status_bits
         mask = 0x01000000
@@ -489,7 +489,7 @@ class TDC001(BaseController):
     @property
     def active_channel(self):
         """
-        Active channel number. Used with motor having more than 1 channel.
+        Active channel number. Used with thorlabs_motor having more than 1 channel.
 
         CHAN1_INDEX = 0 : channel 1
         CHAN2_INDEX = 1 : channel 2
@@ -506,7 +506,7 @@ class TDC001(BaseController):
 
     def enable(self):
         """
-        Enables the motor (the active channel).
+        Enables the thorlabs_motor (the active channel).
         """
         err_code = self._lib.MOT_EnableHWChannel(self._serial_number)
         if (err_code != 0):
@@ -515,7 +515,7 @@ class TDC001(BaseController):
 
     def disable(self):
         """
-        Disables the motor (the active channel).
+        Disables the thorlabs_motor (the active channel).
         """
         err_code = self._lib.MOT_DisableHWChannel(self._serial_number)
         if (err_code != 0):
@@ -524,7 +524,7 @@ class TDC001(BaseController):
 
     def identify(self):
         """
-        Flashes the 'Active' LED at the motor to identify it.
+        Flashes the 'Active' LED at the thorlabs_motor to identify it.
         """
         err_code = self._lib.MOT_Identify(self._serial_number)
         if (err_code != 0):
@@ -585,7 +585,7 @@ class TDC001(BaseController):
     def get_velocity_parameter_limits(self):
         """
         Returns the maximum acceleration and the maximum velocity of
-        the motor.
+        the thorlabs_motor.
 
         Returns
         -------
@@ -609,7 +609,7 @@ class TDC001(BaseController):
     @property
     def acceleration_upper_limit(self):
         """
-        Returns motor's upper limit of acceleration.
+        Returns thorlabs_motor's upper limit of acceleration.
 
         Returns
         -------
@@ -621,7 +621,7 @@ class TDC001(BaseController):
     @property
     def velocity_upper_limit(self):
         """
-        Returns motor's upper limit of velocity.
+        Returns thorlabs_motor's upper limit of velocity.
 
         Returns
         -------
@@ -671,7 +671,7 @@ class TDC001(BaseController):
             - HOMELIMSW_FWD = 4 : Use forward limit switch for home datum.
             - HOMELIMSW_REV = 1 : Use reverse limit switch for home datum.
         velocity : float
-            velocity of the motor
+            velocity of the thorlabs_motor
         zero_offset : float
             zero offset
         """
@@ -696,7 +696,7 @@ class TDC001(BaseController):
 
     def get_motor_parameters(self):
         """
-        Returns motor parameters.
+        Returns thorlabs_motor parameters.
 
         Returns
         -------
@@ -709,14 +709,14 @@ class TDC001(BaseController):
                 ctypes.byref(steps_per_rev),
                 ctypes.byref(gear_box_ratio))
         if (err_code != 0):
-            raise Exception("Failed getting motor parameters: %s" %
+            raise Exception("Failed getting thorlabs_motor parameters: %s" %
                     self._get_error_text(err_code))
         else:
             return (steps_per_rev.value, gear_box_ratio.value)
 
     def set_motor_parameters(self, steps_per_rev, gear_box_ratio):
         """
-        Sets motor parameters. Note that this is not possible with all motor,
+        Sets thorlabs_motor parameters. Note that this is not possible with all thorlabs_motor,
         see documentation from Thorlabs.
 
         Parameters
@@ -729,7 +729,7 @@ class TDC001(BaseController):
         err_code = self._lib.MOT_SetMotorParams(self._serial_number, steps_per_rev,
                 gear_box_ratio)
         if (err_code != 0):
-            raise Exception("Setting motor parameters failed: %s" %
+            raise Exception("Setting thorlabs_motor parameters failed: %s" %
                     self._get_error_text(err_code))
 
     steps_per_revolution = __property_from_index(0, get_motor_parameters,
@@ -957,7 +957,7 @@ class TDC001(BaseController):
         Parameters
         ----------
         value : float
-            absolute position of the motor
+            absolute position of the thorlabs_motor
         blocking : bool
             wait until moving is finished.
             Default: False
@@ -992,7 +992,7 @@ class TDC001(BaseController):
     @property
     def position(self):
         """
-        Position of motor. Setting the position is absolute and non-blocking.
+        Position of thorlabs_motor. Setting the position is absolute and non-blocking.
         """
         pos = ctypes.c_float()
         err_code = self._lib.MOT_GetPosition(self._serial_number,
@@ -1037,7 +1037,7 @@ class TDC001(BaseController):
 
     def stop_profiled(self):
         """
-        Stop motor but turn down velocity slowly (profiled).
+        Stop thorlabs_motor but turn down velocity slowly (profiled).
         """
         err_code = self._lib.MOT_StopProfiled(self._serial_number)
         if (err_code != 0):
@@ -1219,12 +1219,12 @@ class TDC001(BaseController):
 
     def get_dc_motor_output_parameters(self):
         """
-        Returns DC motor output parameters.
+        Returns DC thorlabs_motor output parameters.
 
         Returns
         -------
         out : tuple
-            (continuous current limit, energy limit, motor limit, motor bias)
+            (continuous current limit, energy limit, thorlabs_motor limit, thorlabs_motor bias)
         """
         continuous_current_limit = ctypes.c_float()
         energy_limit = ctypes.c_float()
@@ -1236,7 +1236,7 @@ class TDC001(BaseController):
                 ctypes.byref(motor_limit),
                 ctypes.byref(motor_bias))
         if (err_code != 0):
-            raise Exception("Getting DC motor output parameters failed: %s" %
+            raise Exception("Getting DC thorlabs_motor output parameters failed: %s" %
                     self._get_error_text(err_code))
         return (continuous_current_limit.value,
                 energy_limit.value,
@@ -1247,7 +1247,7 @@ class TDC001(BaseController):
     def set_dc_motor_output_parameters(self, continuous_current_limit,
             energy_limit, motor_limit, motor_bias):
         """
-        Sets DC motor output parameters.
+        Sets DC thorlabs_motor output parameters.
 
         Parameters
         ----------
@@ -1262,21 +1262,21 @@ class TDC001(BaseController):
                 motor_limit,
                 motor_bias)
         if (err_code != 0):
-            raise Exception("Setting DC motor output parameters failed: %s" %
+            raise Exception("Setting DC thorlabs_motor output parameters failed: %s" %
                     self._get_error_text(err_code))
 
     dc_motor_output_continuous_current_limit = __property_from_index(0,
             get_dc_motor_output_parameters, set_dc_motor_output_parameters)
-    """DC motor output: continuous current limit"""
+    """DC thorlabs_motor output: continuous current limit"""
     dc_motor_output_energy_limit = __property_from_index(1,
             get_dc_motor_output_parameters, set_dc_motor_output_parameters)
-    """DC motor output: energy limit"""
+    """DC thorlabs_motor output: energy limit"""
     dc_motor_output_motor_limit = __property_from_index(2,
             get_dc_motor_output_parameters, set_dc_motor_output_parameters)
-    """DC motor output: motor limit"""
+    """DC thorlabs_motor output: thorlabs_motor limit"""
     dc_motor_output_motor_bias = __property_from_index(3,
             get_dc_motor_output_parameters, set_dc_motor_output_parameters)
-    """DC motor output: motor bias"""
+    """DC thorlabs_motor output: thorlabs_motor bias"""
 
 
     def get_dc_track_settle_parameters(self):

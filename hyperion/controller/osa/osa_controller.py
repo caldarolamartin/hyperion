@@ -93,6 +93,11 @@ class OsaController(BaseController):
 
     @property
     def start_wav(self):
+        """"
+        The start_wav is the start wavelength of the osa.
+        :param start_wav: a value between 600 and 1750
+        :type int
+        """
         self._start_wav = self._osa.query_ascii_values('STAWL?')[0]
         return self._start_wav
 
@@ -110,6 +115,11 @@ class OsaController(BaseController):
 
     @property
     def end_wav(self):
+        """"
+        The end_wav is the end wavelength of the osa.
+        :param end_wav: a value between 600 and 1750, must be greater than start_wav
+        :type int
+        """
         self._end_wav = self._osa.query_ascii_values('STPWL?')[0]
         return self._end_wav
 
@@ -127,6 +137,11 @@ class OsaController(BaseController):
 
     @property
     def optical_resolution(self):
+        """"
+        The optical resolution is the resolution of the spectrum you can take
+        :param optical_resolution: a value that must be : 0.01, 0.02 ,0.05 ,0.1 ,0.2 ,0.5 ,1.0 ,2.0 , 5.0
+        :type float
+        """
         self._optical_resolution = self._osa.query_ascii_values('RESLN?')[0]
         return self._optical_resolution
 
@@ -145,6 +160,11 @@ class OsaController(BaseController):
 
     @property
     def sample_points(self):
+        """"
+        The amount of sample_points the osa machine must use in order to take a spectrum
+        :param sample_points: the amount of points that will be on the x axis
+        :type int
+        """
         self._sample_points = self._osa.query_ascii_values('SMPL?')[0]
         return self._sample_points
 
@@ -159,6 +179,11 @@ class OsaController(BaseController):
 
     @property
     def sensitivity(self):
+        """"
+        The sensitivity of the osa machine
+        :param sensitivity_string: a string that says how much the sensitivity must be
+        :type string
+        """
         self._sensitivity = int(self._osa.query_ascii_values('SENS?')[0])
         return self._sensitivities[self._sensitivity - 1]
 

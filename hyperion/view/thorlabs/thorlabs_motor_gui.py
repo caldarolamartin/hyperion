@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QSlider, QLabel,
                              QComboBox, QLineEdit)
 
-from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
+from hyperion.instrument.thorlabs_motor.thorlabs_motor_instrument import Thorlabsmotor
 from hyperion.view.general_worker import WorkThread
 from pynput.keyboard import Listener
 from hyperion import ur
@@ -11,6 +11,10 @@ from hyperion import ur
 class App(QWidget):
 
     def __init__(self, motor_hub):
+        """
+        This init of this class,
+        make sure that the .yml file is correctly configurated, else it will not work, trust me, I am an expert.
+        """
         super().__init__()
         self.title = 'thorlabs motors GUI'
         self.left = 50
@@ -76,9 +80,8 @@ class App(QWidget):
         """
         In this method th slider and other miscellaneous gui stuff will be made.
         The slider get made by adding a tuple with the name of the slider and the name of the
-        motor that the slider will use. 
+        thorlabs_motor that the slider will use.
         """
-        slider_list = [("slider_x", "xMotor"), ("slider_y", "yMotor"), ("slider_z","zMotor")]
         slider_list = self.motor_hub.make_slider_list()
         opteller = 1
         for slider in slider_list:    
@@ -140,13 +143,16 @@ class App(QWidget):
         self.grid_layout.addWidget(label, 4, 4)
     
     def make_motor_x_current_position_label(self):
+        """
+        update the x position label.
+        The same is done for the y and z in make_motor_y/z_current_position_label
+        """
         self.current_motor_x_position_label = QLabel(self)
         try:
             self.current_motor_x_position_label.setText(self.motor_bag[self.motor_combobox.currentText()].controller.position())
         except Exception:
             self.current_motor_x_position_label.setText("currently\nunavailable")
-        self.grid_layout.addWidget(self.current_motor_x_position_label, 1, 5) 
-        
+        self.grid_layout.addWidget(self.current_motor_x_position_label, 1, 5)
     def make_motor_y_current_position_label(self):
         self.current_motor_y_position_label = QLabel(self)
         try:
@@ -164,11 +170,11 @@ class App(QWidget):
         
     def make_use_keyboard_label(self):
         self.keyboard_label = QLabel(self)
-        self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
+        self.keyboard_label.setText("use keyboard\nto control selected\n combobox thorlabs_motor:")
         self.grid_layout.addWidget(self.keyboard_label, 3, 6)
     def make_go_faster_label(self):
         self.go_faster_label = QLabel(self)
-        self.go_faster_label.setText("change\nmotor speed:")
+        self.go_faster_label.setText("change\nthorlabs_motor speed:")
         self.grid_layout.addWidget(self.go_faster_label, 4, 6)
         
     #make buttons:
@@ -230,7 +236,7 @@ class App(QWidget):
         
         :param slider: a slider name
         :type string
-        :param motor_name: the name of the motor which connects with the slider
+        :param motor_name: the name of the thorlabs_motor which connects with the slider
         :type string
         :param opteller: indication on which grid the slider must be set
         :type int
@@ -256,7 +262,7 @@ class App(QWidget):
         
         :param slider_object: an slider that must be set to it's middle
         :type QSlider
-        :param motor_name: the name of the motor to stop
+        :param motor_name: the name of the thorlabs_motor to stop
         :type string
         """
         self.slider_dict[slider].setValue(5)
@@ -264,11 +270,11 @@ class App(QWidget):
         
     def make_slider_motor_move(self, slider, motor_name):
         """
-        In this method the motor moves if the slider is moved.
+        In this method the thorlabs_motor moves if the slider is moved.
         
         :param slider_object: the slider that is being moved
         :type QSlider
-        :param motor_name: the name of the motor to move
+        :param motor_name: the name of the thorlabs_motor to move
         :type string
         """
         if self.slider_dict[slider].value() > 5:
@@ -278,8 +284,9 @@ class App(QWidget):
             #moving reverse
             self.motor_bag[motor_name].controller.move_velocity(1)    
     def make_go_faster_slider(self):
-        #make a slider go faster
-        
+        """
+
+        """
         self.go_faster_slider = QSlider(Qt.Horizontal, self)
         self.go_faster_slider.setFocusPolicy(Qt.StrongFocus)
         self.go_faster_slider.setTickPosition(QSlider.TicksBelow)
@@ -291,17 +298,17 @@ class App(QWidget):
         self.go_faster_slider.sliderReleased.connect(self.change_motor_speed)
         self.grid_layout.addWidget(self.go_faster_slider, 4, 7)
     def change_motor_speed(self):
-        #print("for motor: "+str(self.motor_combobox.currentText())+" the limits are: "+str(self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameter_limits()))
-        #minimum velocity = output[0]
-        #acceleration = ouput[1]
-        #maximum velocity = output[2]
+        #print("for thorlabs_motor: "+str(self.motor_combobox.currentText())+" the limits are: "+str(self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameter_limits()))
         output = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
+        # minimum velocity = output[0]
+        # acceleration = ouput[1]
+        # maximum velocity = output[2]
         if not self.motor_combobox.currentText() in self.velocity_motors_dict:
-            #setting the original highest value of the motor to prevent degrading in speed.
+            #setting the original highest value of the thorlabs_motor to prevent degrading in speed.
             self.velocity_motors_dict[self.motor_combobox.currentText()] = output[2]
         if (output[0] - output[2]) == 0:
             #the numbers are equal meaning that the speed cannot change
-            print("you cannot change the speed of this motor")
+            print("you cannot change the speed of this thorlabs_motor")
         else:
             #the speed can change
             total_speed = self.velocity_motors_dict[self.motor_combobox.currentText()] - output[0]
@@ -310,8 +317,7 @@ class App(QWidget):
             slider_value = self.go_faster_slider.value()
             print(slider_value)
             new_speed = slider_value * tenth_of_total_speed
-            # minimum_velocity, accelleration, maximum_velocity
-            print("the old max speed: "+str(self.velocity_motors_dict[self.motor_combobox.currentText()])+"the new max speed "+str(new_speed))
+            print("the max speed: "+str(self.velocity_motors_dict[self.motor_combobox.currentText()])+"the new speed "+str(new_speed))
             print("-"*40)
             if new_speed < output[2] and new_speed > output[0]:
                 self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(output[0], output[1], new_speed)
@@ -331,7 +337,10 @@ class App(QWidget):
         self.grid_layout.addWidget(self.input_textfield, 2, 7)
     
     def set_current_motor_label(self):
-        #in this function the position value is retrieved and round + set in a label.
+        """
+        The position for the x, y, z motor will be set in this method.
+        If another motor is found the x label will change. Why x...because, IDK. What else to do.
+        """
         if self.motor_combobox.currentText() == "zMotor":
             self.current_motor_x_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
         elif self.motor_combobox.currentText() == "yMotor": 
@@ -339,7 +348,7 @@ class App(QWidget):
         elif self.motor_combobox.currentText() == "testMotor":
             self.current_motor_z_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
         else:
-            #this is a motor that is not the zMotor, yMotor or the testMotor, so
+            #this is a thorlabs_motor that is not the zMotor, yMotor or the testMotor, so
             #let's set the x position to something else
             self.current_motor_x_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
             
@@ -362,9 +371,9 @@ class App(QWidget):
         
     def on_press(self, key):
         """ 
-        In this method if the w is pressed the motor 
+        In this method if the w is pressed the thorlabs_motor
         selected in the combobox will move forward or if 
-        s is pressed the motor will move backward.
+        s is pressed the thorlabs_motor will move backward.
         The w and s are written as: "'w'"/"'s'" because of syntacs.
         """
         if str(key) == "'w'":
@@ -379,11 +388,11 @@ class App(QWidget):
             self.set_current_motor_label()
     def on_release(self, key):
         """
-        In this method if the w or s is released the motor will stop moving.
+        In this method if the w or s is released the thorlabs_motor will stop moving.
         If q is released the keyboard mode stops. 
         """
         if str(key) == "'w'" or str(key) == "'s'":
-            #stop the motor from going
+            #stop the thorlabs_motor from going
             self.motor_bag[self.motor_combobox.currentText()].controller.stop_profiled()
             self.set_current_motor_label()
         elif str(key) == "'q'":
@@ -396,7 +405,7 @@ class App(QWidget):
     def control_motor_with_keyboard(self):
         """ 
         In this method with the Listener object you can 
-        press a button on the keyboard and with that input a motor will move. 
+        press a button on the keyboard and with that input a thorlabs_motor will move.
         
         """
         #set text of keyboard_label to using keyboard
@@ -406,7 +415,7 @@ class App(QWidget):
         self.worker_thread.start()
         
         #set the text back to you can use the keyboard.
-        self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
+        self.keyboard_label.setText("use keyboard\nto control selected\n combobox thorlabs_motor:")
     def create_keyboard_listener(self):
         with Listener(on_press=self.on_press, on_release=self.on_release) as listener:
             listener.join()
@@ -416,14 +425,14 @@ class App(QWidget):
         button.setStyleSheet("background-color: "+color)
         #get positions
         for motor in self.motor_bag.items():
-            #motor[0] == serial nummer
-            #motor[1] == Thorlabs motor instance
+            #thorlabs_motor[0] == serial nummer
+            #thorlabs_motor[1] == Thorlabs thorlabs_motor instance
             try:
                 position = motor[1].controller.position
             except Exception:
-                #the motor position has not been found, could be because it is a 
-                #piezo motor or because the software is not running as expected. 
-                print("for motor: "+ str(motor[0]) +" the position has not been set")
+                #the thorlabs_motor position has not been found, could be because it is a
+                #piezo thorlabs_motor or because the software is not running as expected.
+                print("for thorlabs_motor: "+ str(motor[0]) +" the position has not been set")
                 position = None
             position_all_motors_dict[motor[0]] = position
     def recover_position_all_motors(self, position_all_motors_dict):
@@ -434,16 +443,12 @@ class App(QWidget):
             print("the positions have not been set!")
             return
         for motor in self.motor_bag.items():
-            #motor[0] == serial nummer
-            #motor[1] == Thorlabs motor instance
+            #thorlabs_motor[0] == serial nummer
+            #thorlabs_motor[1] == Thorlabs thorlabs_motor instance
             retrieved_position = position_all_motors_dict[motor[0]]
             if retrieved_position != None and retrieved_position != motor[1].controller.position:
                 motor[1].controller.set_position = float(retrieved_position)
-        
-        
-        
 
-        
 if __name__ == '__main__':
     motor_hub = Thorlabsmotor()
     app = QApplication(sys.argv)

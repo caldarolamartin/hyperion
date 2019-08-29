@@ -50,6 +50,15 @@ class VariableWaveplateGui(QWidget):
         self.set_quater_waveplate_label()
         self.set_frequency_label()
         self.set_output_label()
+    def set_textfields(self):
+        self.set_voltage_1_textfield()
+        self.set_voltage_2_textfield()
+        self.set_quater_waveplate_textfield()
+        self.set_frequency_textfield()
+    def set_miscelanious_gui_stuff(self):
+        self.set_mode_combobox()
+        self.set_submit_button()
+        self.set_output_dropdown()
     def set_frequency_label(self):
         self.frequency_label = QLabel(self)
         self.frequency_label.setText("freq in Hz:")
@@ -75,11 +84,6 @@ class VariableWaveplateGui(QWidget):
         self.output_label.setText("output:")
         self.grid_layout.addWidget(self.output_label, 1, 2)
 
-    def set_textfields(self):
-        self.set_voltage_1_textfield()
-        self.set_voltage_2_textfield()
-        self.set_quater_waveplate_textfield()
-        self.set_frequency_textfield()
     def set_frequency_textfield(self):
         self.frequency_textfield = QLineEdit(self)
         self.frequency_textfield.setText(str(self.variable_waveplate_ins.controller._properties["freq"]["default"]))
@@ -97,10 +101,6 @@ class VariableWaveplateGui(QWidget):
         self.voltage_1_textfield.setText(str(self.variable_waveplate_ins.controller._properties["volt1"]["default"]))
         self.grid_layout.addWidget(self.voltage_1_textfield, 1, 1)
 
-    def set_miscelanious_gui_stuff(self):
-        self.set_mode_combobox()
-        self.set_submit_button()
-        self.set_output_dropdown()
     def set_submit_button(self):
         submit_button = QPushButton('submit_button', self)
         submit_button.setToolTip('This is an example submit_button')

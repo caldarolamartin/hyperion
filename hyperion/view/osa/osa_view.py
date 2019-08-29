@@ -47,6 +47,7 @@ class App(QWidget):
         self.set_gui_constructor()
 
         self.set_textboxs()
+
         #only works if the pyvisa bug is fixed
         #self.set_textboxs_to_osa_machine_values()
 
@@ -301,7 +302,7 @@ class DrawSpectrum(QWidget):
     """
     def __init__(self):
         super().__init__()
-        self.title = 'PyQt5 simple window - pythonspot.com'
+        self.title = 'Osa graph view'
         self.left = 100
         self.top = 100
         self.width = 640
@@ -321,28 +322,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = DrawSpectrum()
     sys.exit(app.exec_())
-
-
-class PlotCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-
-        FigureCanvas.__init__(self, fig)
-        self.setParent(parent)
-
-        FigureCanvas.setSizePolicy(self,
-                                   QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
-    def plot(self, spec, wav):
-        data = wav
-        ax = self.figure.add_subplot(111)
-        ax.plot(data, spec)
-        ax.set_title('spectrum of light')
-        self.draw()
-        #ax.cla() causes the axes to clear it self from the data given. THIS IS mandatory
-        ax.cla()
 
 
 if __name__ == '__main__':

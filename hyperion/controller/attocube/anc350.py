@@ -276,7 +276,7 @@ class Anc350(BaseController):
 
     def getSpeed(self, axis):
         '''
-        determines the actual speed. In case of standstill of this actor this is the calculated speed resulting	from amplitude setpoint, frequency, and motor parameters. In case of movement this is measured speed.
+        determines the actual speed. In case of standstill of this actor this is the calculated speed resulting	from amplitude setpoint, frequency, and thorlabs_motor parameters. In case of movement this is measured speed.
         '''
         self.spd = ANC350lib.Int32(0)
         ANC350lib.positionerGetSpeed(self.handle,axis,ctypes.byref(self.spd))
@@ -292,7 +292,7 @@ class Anc350(BaseController):
 
     def getStepwidth(self, axis):
         '''
-        determines the step width. In case of standstill of the motor this is the calculated step width	resulting from amplitude setpoint, frequency, and motor parameters. In case of movement this is measured step width
+        determines the step width. In case of standstill of the thorlabs_motor this is the calculated step width	resulting from amplitude setpoint, frequency, and thorlabs_motor parameters. In case of movement this is measured step width
         '''
         self.stepwdth = ANC350lib.Int32(0)
         ANC350lib.positionerGetStepwidth(self.handle,axis,ctypes.byref(self.stepwdth))

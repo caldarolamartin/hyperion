@@ -44,8 +44,6 @@ class Anc350Instrument(BaseInstrument):
             if "Piezo" in instrument:
                 self.attocube_piezo_dict[instrument] = experiment.properties["Instruments"][instrument]["axis_number"]
 
-    #self.attocube_piezo_dict["XPiezoStepper"]
-
     def list_devices(self):
         #if the device is on, all its piezo's should be working
         #in any case, there is no way of checking whether one is not working
@@ -54,8 +52,6 @@ class Anc350Instrument(BaseInstrument):
     def configurate_stepper(self, axis, amplitude, frequency):
         print('capacitances:')
         print(str(axis)+': ' + str(self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF')))
-
-        #self.controller.load(axis,filename=default)
 
         # for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
         self.controller.amplitudeControl(self.attocube_piezo_dict[axis],2)

@@ -8,7 +8,8 @@ from hyperion.view.general_worker import WorkThread
 
 class ExampleGui(QWidget):
     """"
-    This is a very simple pyqt5 gui with little more than basic functionality.
+    This is simple pyqt5 gui with the ability to create threads and stop them,
+    that is harder than it sounds.
     """
 
     def __init__(self, example_ins):
@@ -28,28 +29,40 @@ class ExampleGui(QWidget):
         self.setAutoFillBackground(True)
         self.p = self.palette()
         self.set_color(Qt.red)
+        self.make_button_1()
+        self.make_button_2()
+        self.show()
 
+    def make_button_1(self):
         self.button = QPushButton('start button', self)
         self.button.setToolTip('This is an example button')
         self.button.move(10,10)
         self.button.clicked.connect(self.on_click)
-
+    def make_button_2(self):
         self.button_2 = QPushButton('end button',self)
         self.button_2.setToolTip('end the function')
         self.button_2.move(90, 10)
         self.button_2.clicked.connect(self.stop_on_click_function)
-        self.show()
+
 
     def set_color(self, color):
+        """
+        Set the color of the widget
+        :param color: a color you want the gui to be
+        :type string
+        """
         self.p.setColor(self.backgroundRole(), color)
         self.setPalette(self.p)
 
     def on_click(self):
-        #initialize a long test function.
+        #initialize a long(couple of seconds) test function.
         self.worker_thread = WorkThread(self.go_to_sleep)
         self.worker_thread.start()
 
     def stop_on_click_function(self):
+        """
+        stop a thread if one is running
+        """
         if self.worker_thread.isRunning():
             self.worker_thread.quit()
             self.worker_thread.wait()
@@ -58,10 +71,13 @@ class ExampleGui(QWidget):
             return
 
     def go_to_sleep(self):
+        """
+        function that starts the thread.
+        """
+        print('button click')
         self.button.setEnabled(False)
         self.set_color(Qt.yellow)
         time.sleep(4)
-        print('button click')
         self.set_color(Qt.red)
         self.button.setEnabled(True)
 
