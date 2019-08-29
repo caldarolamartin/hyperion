@@ -1,0 +1,2 @@
+.. automodule:: hyperion.controller.attocube.anc350
+    :members:
