@@ -94,7 +94,7 @@ class Thorlabsmotor(BaseInstrument):
             list_with_actule_serial_numbers.append(i[1])
         
         experiment = BaseExperiment()
-        experiment.load_config("C:\\Users\\LocalAdmin\\Desktop\\hyperion_stuff\\hyperion\\examples\\example_experiment_config.yml")
+        experiment.load_config("D:\\labsoftware\\hyperion\\examples\\example_experiment_config.yml")
         print("-"*40)
         for instrument in experiment.properties["Instruments"]:
             if "Motor" in str(instrument):

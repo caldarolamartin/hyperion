@@ -75,7 +75,7 @@ class App(QWidget):
         Beter code would be to set in the .yml file which motor belongs to which slider.
         But, that is for another time.
         """
-        slider_list = [("slider_x", "zMotor"), ("slider_y", "yMotor"), ("slider_z","testMotor")]
+        slider_list = [("slider_x", "xMotor"), ("slider_y", "yMotor"), ("slider_z","zMotor")]
         opteller = 1
         for slider in slider_list:    
             self.make_slider(lambda: slider[0], slider[1], opteller)
