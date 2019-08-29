@@ -9,50 +9,26 @@ Instruments:
     dummy: True
     enable: True
     settings: # not implemented yet
-    output: True
-    voltage1: 1V
-    voltage2: 1V
+      output: True
+      voltage1: 1V
+      voltage2: 1V
   ExampleInstrument:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
     dummy: True
     settings:
-    output: True
-  XPiezoStepper:
-    axis_number: 0
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  ZPiezoStepper:
-    axis_number: 1
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  YPiezoStepper:
-    axis_number: 2
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  XPiezoScanner:
-    axis_number: 3
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  ZPiezoScanner:
-    axis_number: 4
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  YPiezoScanner:
-    axis_number: 5
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+      output: True
   xMotor:
-    serial_number: 83817644
+    serial_number: 83841160 #83817644
     instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
     controller: hyperion.controller.thorlabs.TDC001/TDC001
   yMotor:
-    serial_number: 83815760
+    serial_number: 83850123 #83815760
     instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
     controller: hyperion.controller.thorlabs.TDC001/TDC001
   zMotor:
-    serial_number: 83815758
+    serial_number: 83850111 #83815758
     instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
     controller: hyperion.controller.thorlabs.TDC001/TDC001
   testMotor:
@@ -70,7 +46,7 @@ Instruments:
     view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
-    output: True
+      output: True
   ExampleInstrument_3:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -78,7 +54,7 @@ Instruments:
     view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
-    output: True
+      output: True
   ExampleInstrument_4:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -86,7 +62,7 @@ Instruments:
     view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
-    output: True
+      output: True
   ExampleInstrument_5:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -94,7 +70,7 @@ Instruments:
     view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
-    output: True
+      output: True
   OsaInstrument:
     port: AUTO
     instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
@@ -109,7 +85,7 @@ Instruments:
     graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
     dummy: True
     settings:
-    output: True
+      output: True
   ExampleInstrument_7:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -117,7 +93,7 @@ Instruments:
     graphView: hyperion.view.osa.osa_view/DrawSpectrum
     dummy: True
     settings:
-    output: True
+      output: True
   ExampleInstrument_8:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -125,8 +101,8 @@ Instruments:
     graphView: hyperion.view.osa.osa_view/DrawSpectrum
     dummy: True
     settings:
-    output: True
- 
+      output: True
+
 
 MetaInstruments:
   SampleXyzStageMotor:
