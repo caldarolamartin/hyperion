@@ -14,8 +14,8 @@ class ExampleGui(QWidget):
     def __init__(self, example_ins):
         super().__init__()
         self.title = 'example gui'
-        self.left = 10
-        self.top = 10
+        self.left = 40
+        self.top = 40
         self.width = 320
         self.height = 200
         self.example_ins = example_ins

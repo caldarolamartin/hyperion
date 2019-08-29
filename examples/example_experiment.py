@@ -82,13 +82,14 @@ class ExampleExperiment(BaseExperiment):
         in the self.ins_bag. This way they are approachable via self.
         The option to set the instruments by hand is still possible. 
         """
-        #self.ins_bag = {}
 
         for instrument in self.properties['Instruments']:
-            if not instrument == 'VariableWaveplate':
-                self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+            try:
+                self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
                 self.logger.debug('Class'+instrument+": {}".format(self.instruments_instances[instrument]))
-
+            except Exception:
+                self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
+                self.instruments_instances[instrument] = None
         # self.vwp = self.load_instrument('VariableWaveplate')
         # self.logger.debug('Class vwp: {}'.format(self.vwp))
         # self.example_instrument = self.load_instrument('ExampleInstrument')
@@ -105,7 +106,7 @@ if __name__ == '__main__':
 
     with ExampleExperiment() as e:
 
-        name = 'example_experiment_config'
+        name = 'second_example_experiment_config_'
         config_folder = os.path.dirname(os.path.abspath(__file__))
         config_file = os.path.join(config_folder, name)
 

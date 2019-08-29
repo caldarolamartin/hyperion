@@ -24,6 +24,7 @@ class App(QWidget):
         self.position_1_all_motors_dict = {}
         self.position_2_all_motors_dict = {}
         self.position_3_all_motors_dict = {}
+        self.velocity_motors_dict = {}
         self.initUI()
         
     def initUI(self):
@@ -54,6 +55,7 @@ class App(QWidget):
         self.make_z_coordinate_second_label()
         self.make_motor_current_position_label()
         self.make_use_keyboard_label()
+        self.make_go_faster_label()
     def make_buttons(self):
         #make buttons
         self.make_save_pos_3_button()
@@ -72,18 +74,16 @@ class App(QWidget):
         In this method th slider and other miscellaneous gui stuff will be made.
         The slider get made by adding a tuple with the name of the slider and the name of the
         motor that the slider will use. 
-        Beter code would be to set in the .yml file which motor belongs to which slider.
-        But, that is for another time.
         """
         slider_list = [("slider_x", "xMotor"), ("slider_y", "yMotor"), ("slider_z","zMotor")]
+        slider_list = self.motor_hub.make_slider_list()
         opteller = 1
         for slider in slider_list:    
             self.make_slider(lambda: slider[0], slider[1], opteller)
             opteller += 2
-            
+        self.make_go_faster_slider()
         self.make_dropdown_motor()
         self.make_go_to_input_textfield()
-    
     def make_save_pos_1_label(self):
         label = QLabel(self)
         label.setText("save pos. 1:")
@@ -147,7 +147,10 @@ class App(QWidget):
         self.keyboard_label = QLabel(self)
         self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
         self.grid_layout.addWidget(self.keyboard_label, 3, 6)
-        
+    def make_go_faster_label(self):
+        self.go_faster_label = QLabel(self)
+        self.go_faster_label.setText("change\nmotor speed:")
+        self.grid_layout.addWidget(self.go_faster_label, 4, 6)
         
     #make buttons:
     def make_save_pos_1_button(self):
@@ -213,20 +216,87 @@ class App(QWidget):
         :param opteller: indication on which grid the slider must be set
         :type int
         """
-        self.slider = slider 
-        self.slider_dict[self.slider] = QSlider(Qt.Vertical, self)
-        self.slider_dict[self.slider].setFocusPolicy(Qt.StrongFocus)
-        self.slider_dict[self.slider].setFocusPolicy(Qt.StrongFocus)
-        self.slider_dict[self.slider].setTickPosition(QSlider.TicksBothSides)
-        self.slider_dict[self.slider].setMinimum(1)
-        self.slider_dict[self.slider].setMaximum(9)
-        self.slider_dict[self.slider].setValue(5)
-        self.slider_dict[self.slider].setTickInterval(1)
-        self.slider_dict[self.slider].setSingleStep(1)
-        self.slider_dict[self.slider].sliderReleased.connect(lambda: self.set_slider_to_middle(self.slider_dict[self.slider], motor_name))
-        self.slider_dict[self.slider].sliderMoved.connect(lambda: self.make_slider_motor_move(self.slider_dict[self.slider], motor_name))
-        self.grid_layout.addWidget(self.slider_dict[self.slider], 4, opteller)
+        self.slider_ding = QSlider(Qt.Vertical, self)
+        self.slider_ding.setFocusPolicy(Qt.StrongFocus)
+        self.slider_ding.setTickPosition(QSlider.TicksBothSides)
+        self.slider_ding.setMinimum(1)
+        self.slider_ding.setMaximum(9)
+        self.slider_ding.setValue(5)
+        self.slider_ding.setTickInterval(1)
+        self.slider_ding.setSingleStep(1)
+        self.slider_ding.sliderReleased.connect(lambda: self.set_slider_to_middle(slider, motor_name))
+        self.slider_ding.sliderMoved.connect(lambda: self.make_slider_motor_move(slider, motor_name))
         
+        self.slider_dict[slider] = self.slider_ding
+        self.grid_layout.addWidget(self.slider_dict[slider], 4, opteller)
+    
+    def set_slider_to_middle(self, slider, motor_name):
+        """
+        In this method an slider is set to the middle. This is done 
+        through connecting a signal and slot.
+        
+        :param slider_object: an slider that must be set to it's middle
+        :type QSlider
+        :param motor_name: the name of the motor to stop
+        :type string
+        """
+        self.slider_dict[slider].setValue(5)
+        self.motor_bag[motor_name].controller.stop_profiled()
+        
+    def make_slider_motor_move(self, slider, motor_name):
+        """
+        In this method the motor moves if the slider is moved.
+        
+        :param slider_object: the slider that is being moved
+        :type QSlider
+        :param motor_name: the name of the motor to move
+        :type string
+        """
+        if self.slider_dict[slider].value() > 5:
+            #moving forward
+            self.motor_bag[motor_name].controller.move_velocity(2)
+        elif self.slider_dict[slider].value() < 5:
+            #moving reverse
+            self.motor_bag[motor_name].controller.move_velocity(1)    
+    def make_go_faster_slider(self):
+        #make a slider go faster
+        
+        self.go_faster_slider = QSlider(Qt.Horizontal, self)
+        self.go_faster_slider.setFocusPolicy(Qt.StrongFocus)
+        self.go_faster_slider.setTickPosition(QSlider.TicksBelow)
+        self.go_faster_slider.setMinimum(0)
+        self.go_faster_slider.setMaximum(10)
+        self.go_faster_slider.setValue(0)
+        self.go_faster_slider.setTickInterval(1)
+        self.go_faster_slider.setSingleStep(1)
+        self.go_faster_slider.sliderReleased.connect(self.change_motor_speed)
+        self.grid_layout.addWidget(self.go_faster_slider, 4, 7)
+    def change_motor_speed(self):
+        #print("for motor: "+str(self.motor_combobox.currentText())+" the limits are: "+str(self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameter_limits()))
+        #minimum velocity = output[0]
+        #acceleration = ouput[1]
+        #maximum velocity = output[2]
+        output = self.motor_bag[self.motor_combobox.currentText()].controller.get_velocity_parameters()
+        if not self.motor_combobox.currentText() in self.velocity_motors_dict:
+            #setting the original highest value of the motor to prevent degrading in speed.
+            self.velocity_motors_dict[self.motor_combobox.currentText()] = output[2]
+        if (output[0] - output[2]) == 0:
+            #the numbers are equal meaning that the speed cannot change
+            print("you cannot change the speed of this motor")
+        else:
+            #the speed can change
+            total_speed = self.velocity_motors_dict[self.motor_combobox.currentText()] - output[0]
+            tenth_of_total_speed = total_speed / 10
+            print(tenth_of_total_speed)
+            slider_value = self.go_faster_slider.value()
+            print(slider_value)
+            new_speed = slider_value * tenth_of_total_speed
+            # minimum_velocity, accelleration, maximum_velocity
+            print("the old max speed: "+str(self.velocity_motors_dict[self.motor_combobox.currentText()])+"the new max speed "+str(new_speed))
+            print("-"*40)
+            if new_speed < output[2] and new_speed > output[0]:
+                self.motor_bag[self.motor_combobox.currentText()].controller.set_velocity_parameters(output[0], output[1], new_speed)
+            
     def make_dropdown_motor(self):    
         list_with_motors = []
         self.motor_combobox = QComboBox(self)
@@ -240,35 +310,6 @@ class App(QWidget):
         self.input_textfield = QLineEdit(self)
         self.input_textfield.setText("0.01")
         self.grid_layout.addWidget(self.input_textfield, 2, 7)
-        
-    def set_slider_to_middle(self, slider_object, motor_name):
-        """
-        In this method an slider is set to the middle. This is done 
-        through connecting a signal and slot.
-        
-        :param slider_object: an slider that must be set to it's middle
-        :type QSlider
-        :param motor_name: the name of the motor to stop
-        :type string
-        """
-        slider_object.setValue(5)
-        self.motor_bag[motor_name].controller.stop_profiled()
-        
-    def make_slider_motor_move(self, slider_object, motor_name):
-        """
-        In this method the motor moves if the slider is moved.
-        
-        :param slider_object: the slider that is being moved
-        :type QSlider
-        :param motor_name: the name of the motor to move
-        :type string
-        """
-        if slider_object.value() > 5:
-            #moving forward
-            self.motor_bag[motor_name].controller.move_velocity(2)
-        elif slider_object.value() < 5:
-            #moving reverse
-            self.motor_bag[motor_name].controller.move_velocity(1)
     
     def set_current_motor_label(self):
         #in this function the position value is retrieved and round + set in a label.
@@ -283,7 +324,7 @@ class App(QWidget):
         selected_motor = str(self.motor_combobox.currentText())
         try:
             go_to_input = float(self.input_textfield.text())
-            self.motor_bag[selected_motor].move_relative_um(go_to_input)
+            self.motor_bag[selected_motor].move_relative(go_to_input)
             self.set_current_motor_label()
         except ValueError:
             print("The input is not a float, change this")
