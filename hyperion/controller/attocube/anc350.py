@@ -362,7 +362,8 @@ class Anc350(BaseController):
     # ----------------------------------------------------------------------------------------------------
 
     def moveAbsoluteSync(self, bitmask_of_axes):
-        """Starts the synchronous approach to absolute target position for selected axis.
+        """UNUSED
+        Starts the synchronous approach to absolute target position for selected axis.
         previous movement will be stopped.
         target position for each axis defined by .setTargetPos() takes a *bitmask* of axes!
         Not clear what's the difference with moveAbsolute
@@ -372,7 +373,8 @@ class Anc350(BaseController):
         ANC350lib.positionerMoveAbsoluteSync(self.handle,bitmask_of_axes)
 
     def moveContinuous(self, axis, direction):
-        """starts continuously positioning with set parameters for ampl and speed and amp control respectively.
+        """UNUSED
+        starts continuously positioning with set parameters for ampl and speed and amp control respectively.
         direction
 
         :param axis: axis number from 0 to 2 for steppers
@@ -384,7 +386,8 @@ class Anc350(BaseController):
         ANC350lib.positionerMoveContinuous(self.handle,axis,direction)
 
     def moveReference(self, axis):
-        """starts approach to reference position.
+        """UNUSED
+        starts approach to reference position.
         previous movement will be stopped.
         No idea whats the difference with moveRelative
 
@@ -394,7 +397,8 @@ class Anc350(BaseController):
         ANC350lib.positionerMoveReference(self.handle,axis)
 
     def resetPosition(self, axis):
-        """sets the origin to the actual position
+        """UNUSED
+        sets the origin to the actual position
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -402,7 +406,8 @@ class Anc350(BaseController):
         ANC350lib.positionerResetPosition(self.handle,axis)
 
     def setOutput(self, axis, state):
-        """activates/deactivates the addressed axis
+        """UNUSED
+        activates/deactivates the addressed axis
         no idea what that means, but sounds interesting
 
         :param axis:
@@ -411,7 +416,8 @@ class Anc350(BaseController):
         ANC350lib.positionerSetOutput(self.handle,axis,ctypes.c_bool(state))
 
     def setStopDetectionSticky(self, axis, state):
-        """when enabled, an active stop detection status remains active until cleared manually by .clearStopDetection()
+        """UNUSED
+        when enabled, an active stop detection status remains active until cleared manually by .clearStopDetection()
         Is this what in Daisy is called hump detection? Than it might be useful
 
         :param axis: axis number from 0 to 2 for steppers
@@ -422,7 +428,8 @@ class Anc350(BaseController):
         ANC350lib.positionerSetStopDetectionSticky(self.handle,axis,state)
 
     def stopApproach(self, axis):
-        """stops approaching target/relative/reference position.
+        """UNUSED
+        stops approaching target/relative/reference position.
         DC level of affected axis after stopping depends on setting by .setTargetGround()
         Dont know whats the difference with stopMoving
 
@@ -432,7 +439,8 @@ class Anc350(BaseController):
         ANC350lib.positionerStopApproach(self.handle,axis)
 
     def stopDetection(self, axis, state):
-        """switches stop detection on/off
+        """UNUSED
+        switches stop detection on/off
         Is this what in Daisy is called hump detection? Than it might be useful
 
         :param axis: axis number from 0 to 2 for steppers
@@ -443,14 +451,16 @@ class Anc350(BaseController):
         ANC350lib.positionerStopDetection(self.handle,axis,ctypes.c_bool(state))
 
     def stopMoving(self, axis):
-        """stops any positioning, DC level of affected axis is set to zero after stopping.
+        """UNUSED
+        stops any positioning, DC level of affected axis is set to zero after stopping.
 
         :param axis:
         """
         ANC350lib.positionerStopMoving(self.handle,axis)
 
     def updateAbsolute(self, axis, position):
-        """update s target position for a *running* approach.
+        """UNUSED
+        update s target position for a *running* approach.
         function has lower performance impact on running approach compared to .moveAbsolute().
         position units are in 'unit of actor multiplied by 1000' (generally nanometres)
 
@@ -464,214 +474,217 @@ class Anc350(BaseController):
     # ----------------------------------------------------------------------------------------------------
 
     def acInEnable(self, axis, state):
-        '''
+        """UNUSED
         Activates/deactivates AC input of addressed axis; only applicable for dither axes
-        '''
+        """
         ANC350lib.positionerAcInEnable(self.handle,axis,ctypes.c_bool(state))
 
     def bandwidthLimitEnable(self, axis, state):
-        '''
+        """UNUSED
         activates/deactivates the bandwidth limiter of the addressed axis. only applicable for scanner axes
-        '''
+        """
         ANC350lib.positionerBandwidthLimitEnable(self.handle,axis,ctypes.c_bool(state))
 
     def clearStopDetection(self, axis):
-        '''
+        """UNUSED
         when .setStopDetectionSticky() is enabled, this clears the stop detection status
-        '''
+        """
         ANC350lib.positionerClearStopDetection(self.handle,axis)
 
     def dcInEnable(self, axis, state):
-        '''
+        """UNUSED
         Activates/deactivates DC input of addressed axis; only applicable for scanner/dither axes
-        '''
+        """
         ANC350lib.positionerDcInEnable(self.handle,axis,ctypes.c_bool(state))
 
     def dutyCycleEnable(self, state):
-        '''
+        """UNUSED
         controls duty cycle mode
-        '''
+        """
         ANC350lib.positionerDutyCycleEnable(self.handle,ctypes.c_bool(state))
 
     def dutyCycleOffTime(self, value):
-        '''
+        """UNUSED
         sets duty cycle off time
-        '''
+        """
         ANC350lib.positionerDutyCycleOffTime(self.handle,value)
 
     def dutyCyclePeriod(self, value):
-        '''
+        """UNUSED
         sets duty cycle period
-        '''
+        """
         ANC350lib.positionerDutyCyclePeriod(self.handle,value)
 
     def externalStepBkwInput(self, axis, input_trigger):
-        '''
+        """UNUSED
         configures external step trigger input for selected axis. a trigger on this input results in a backwards single step. input_trigger: 0 disabled, 1-6 input trigger
-        '''
+
+        """
         ANC350lib.positionerExternalStepBkwInput(self.handle,axis,input_trigger)
 
     def externalStepFwdInput(self, axis, input_trigger):
-        '''
+        """UNUSED
         configures external step trigger input for selected axis. a trigger on this input results in a forward single step. input_trigger: 0 disabled, 1-6 input trigger
-        '''
+
+        """
         ANC350lib.positionerExternalStepFwdInput(self.handle,axis,input_trigger)
 
     def externalStepInputEdge(self, axis, edge):
-        '''
+        """UNUSED
         configures edge sensitivity of external step trigger input for selected axis. edge: 0 rising, 1 falling
-        '''
+        """
         ANC350lib.positionerExternalStepInputEdge(self.handle,axis,edge)
 
     def getAcInEnable(self, axis):
-        '''
+        """UNUSED
         determines status of ac input of addressed axis. only applicable for dither axes
-        '''
+        """
         self.status = ctypes.c_bool(None)
         ANC350lib.positionerGetAcInEnable(self.handle,axis,ctypes.byref(self.status))
         return self.status.value
 
     def getBandwidthLimitEnable(self, axis):
-        '''
+        """UNUSED
         determines status of bandwidth limiter of addressed axis. only applicable for scanner axes
-        '''
+        """
         self.status = ctypes.c_bool(None)
         ANC350lib.positionerGetBandwidthLimitEnable(self.handle,axis,ctypes.byref(self.status))
         return self.status.value
 
     def getDcInEnable(self, axis):
-        '''
+        """UNUSED
         determines status of dc input of addressed axis. only applicable for scanner/dither axes
-        '''
+        """
         self.status = ctypes.c_bool(None)
         ANC350lib.positionerGetDcInEnable(self.handle,axis,ctypes.byref(self.status))
         return self.status.value
 
     def getReference(self, axis):
-        '''
+        """UNUSED
         determines distance of reference mark to origin
-        '''
+        """
         self.pos = ANC350lib.Int32(0)
         self.validity = ctypes.c_bool(None)
         ANC350lib.positionerGetReference(self.handle,axis,ctypes.byref(self.pos),ctypes.byref(self.validity))
         return self.pos.value, self.validity.value
 
     def getReferenceRotCount(self, axis):
-        '''
+        """UNUSED
         determines actual position of addressed axis
-        '''
+        """
         self.rotcount = ANC350lib.Int32(0)
         ANC350lib.positionerGetReferenceRotCount(self.handle,axis,ctypes.byref(self.rotcount))
         return self.rotcount.value
 
     def getRotCount(self, axis):
-        '''
+        """UNUSED
         determines actual number of rotations in case of rotary actuator
-        '''
+        """
         self.rotcount = ANC350lib.Int32(0)
         ANC350lib.positionerGetRotCount(self.handle,axis,ctypes.byref(self.rotcount))
         return self.rotcount.value
 
     def quadratureAxis(self, quadratureno, axis):
-        '''
+        """UNUSED
         selects the axis for use with this trigger in/out pair. quadratureno: number of addressed quadrature unit (0-2)
-        '''
+        """
         ANC350lib.positionerQuadratureAxis(self.handle,quadratureno,axis)
 
     def quadratureInputPeriod(self, quadratureno, period):
-        '''
+        """UNUSED
         selects the stepsize the controller executes when detecting a step on its input AB-signal. quadratureno: number of addressed quadrature unit (0-2). period: stepsize in unit of actor * 1000
-        '''
+
+        """
         ANC350lib.positionerQuadratureInputPeriod(self.handle,quadratureno,period)
 
     def quadratureOutputPeriod(self, quadratureno, period):
-        '''
+        """UNUSED
         selects the position difference which causes a step on the output AB-signal. quadratureno: number of addressed quadrature unit (0-2). period: period in unit of actor * 1000
-        '''
+        """
         ANC350lib.positionerQuadratureOutputPeriod(self.handle,quadratureno,period)
 
     def sensorPowerGroupA(self, state):
-        '''
+        """UNUSED
         switches power of sensor group A. Sensor group A contains either the sensors of axis 1-3 or 1-2 dependent on hardware of controller
-        '''
+        """
         ANC350lib.positionerSensorPowerGroupA(self.handle,ctypes.c_bool(state))
 
     def sensorPowerGroupB(self, state):
-        '''
+        """UNUSED
         switches power of sensor group B. Sensor group B contains either the sensors of axis 4-6 or 3 dependent on hardware of controller
-        '''
+        """
         ANC350lib.positionerSensorPowerGroupB(self.handle,ctypes.c_bool(state))
 
     def setHardwareId(self, hwid):
-        '''
+        """UNUSED
         sets the hardware ID for the device (used to differentiate multiple devices)
-        '''
+        """
         ANC350lib.positionerSetHardwareId(self.handle,hwid)
 
     def setTargetGround(self, axis, state):
-        '''
+        """UNUSED
         when enabled, actor voltage set to zero after closed-loop positioning finished
-        '''
+        """
         ANC350lib.positionerSetTargetGround(self.handle,axis,ctypes.c_bool(state))
 
     def setTargetPos(self, axis, pos, rotcount=0):
-        '''
+        """UNUSED
         sets target position for use with .moveAbsoluteSync()
-        '''
+        """
         ANC350lib.positionerSetTargetPos(self.handle,axis,pos,rotcount)
 
     def singleCircleMode(self, axis, state):
-        '''
+        """UNUSED
         switches single circle mode. In case of activated single circle mode the number of rotations are ignored and the shortest way to target position is used. Only relevant for rotary actors.
-        '''
+        """
         ANC350lib.positionerSingleCircleMode(self.handle,axis,ctypes.c_bool(state))
 
     def staticAmplitude(self, amp):
-        '''
+        """UNUSED
         sets output voltage for resistive sensors
-        '''
+        """
         ANC350lib.positionerStaticAmplitude(self.handle,amp)
 
     def stepCount(self, axis, stps):
-        '''
+        """UNUSED
         configures number of successive step scaused by external trigger or manual step request. steps = 1 to 65535
-        '''
+        """
         ANC350lib.positionerStepCount(self.handle,axis,stps)
 
     def trigger(self, triggerno, lowlevel, highlevel):
-        '''
+        """UNUSED
         sets the trigger thresholds for the external trigger. triggerno is 0-5, lowlevel/highlevel in units of actor * 1000
-        '''
+        """
         ANC350lib.positionerTrigger(self.handle,triggerno,lowlevel,highlevel)
 
     def triggerAxis(self, triggerno, axis):
-        '''
+        """UNUSED
         selects the corresponding axis for the addressed trigger. triggerno is 0-5
-        '''
+        """
         ANC350lib.positionerTriggerAxis(self.handle,triggerno,axis)
 
     def triggerEpsilon(self, triggerno, epsilon):
-        '''
+        """UNUSED
         sets the hysteresis of the external trigger. epsilon in units of actor * 1000
-        '''
+        """
         ANC350lib.positionerTriggerEpsilon(self.handle,triggerno,epsilon)
 
     def triggerModeIn(self, mode):
-        '''
+        """UNUSED
         selects the mode of the input trigger signals. state: 0 disabled - inputs trigger nothing, 1 quadrature - three pairs of trigger in signals are used to accept AB-signals for relative positioning, 2 coarse - trigger in signals are used to generate coarse steps
-        '''
+        """
         ANC350lib.positionerTriggerModeIn(self.handle,mode)
 
     def triggerModeOut(self, mode):
-        '''
+        """UNUSED
         selects the mode of the output trigger signals. state: 0 disabled - inputs trigger nothing, 1 position - the trigger outputs reacts to the defined position ranges with the selected polarity, 2 quadrature - three pairs of trigger out signals are used to signal relative movement as AB-signals, 3 IcHaus - the trigger out signals are used to output the internal position signal of num-sensors
-        '''
+        """
         ANC350lib.positionerTriggerModeOut(self.handle,mode)
 
     def triggerPolarity(self, triggerno, polarity):
-        '''
+        """UNUSED
         sets the polarity of the external trigger, triggerno: 0-5, polarity: 0 low active, 1 high active
-        '''
+        """
         ANC350lib.positionerTriggerPolarity(self.handle,triggerno,polarity)
 
 

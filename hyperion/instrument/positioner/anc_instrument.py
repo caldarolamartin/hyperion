@@ -30,7 +30,7 @@ class Anc350Instrument(BaseInstrument):
         self.Frequency = np.zeros(3)
         self.Speed = np.zeros(3)
 
-        self.logger.info('1. welcome to the instrument level')
+        self.logger.info('1. welcome to the instrument of the Attocube')
         self.logger.debug('Creating the instance of the controller')
 
     def initialize(self):
@@ -81,25 +81,27 @@ class Anc350Instrument(BaseInstrument):
         """
 
         self.logger.info('Loading Stepper actor file, measuring capacitances')
-        print(self.attocube_piezo_dict[axis]*ur('mF'))
-        print(self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF'))
 
-        self.logger.info(axis+': ' + str(self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF')))
+        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF')
+        capacitance = round(capacitance.to('F'),3)
+        self.logger.info(axis+': ' + str(capacitance))
 
         #self.controller.load(axis,filename=default)
         self.controller.amplitudeControl(self.attocube_piezo_dict[axis],2)
         self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
 
         if 0 <= amplitude.m_as('V') <= 60:
-            self.controller.amplitude(self.attocube_piezo_dict[axis], amplitude.m_as('mV'))  # put the amplitude on the controller
+            self.controller.amplitude(self.attocube_piezo_dict[axis], int(amplitude.m_as('mV')))  # put the amplitude on the controller, it needs to be an int
 
-            self.Amplitude[self.attocube_piezo_dict[axis]] = amplitude.m_as('mV')   #remember that amplitude
+            self.Amplitude[self.attocube_piezo_dict[axis]] = amplitude.m_as('V')   #remember that amplitude in V
+            print(self.Amplitude)
 
             step = self.controller.getStepwidth(self.attocube_piezo_dict[axis])
             #huh, 0 makes no sense!!!!
             self.Stepwidth[self.attocube_piezo_dict[axis]] = step                   #remember the associated step width
 
-            self.logger.info('amplitude is now ' + str(self.controller.getAmplitude(self.attocube_piezo_dict[axis]) * ur('mV')))
+            ampl = self.controller.getAmplitude(self.attocube_piezo_dict[axis]) * ur('mV')
+            self.logger.info('amplitude is now ' + str(ampl.to('V')))
             self.logger.info('so the step width is ' + str(step * ur('nm')))
         else:
             raise Exception('The required amplitude needs to be between 0V and 60V')
@@ -109,11 +111,11 @@ class Anc350Instrument(BaseInstrument):
 
             self.Frequency[self.attocube_piezo_dict[axis]] = frequency.m_as('Hz')           #remember that frequency
 
-            speed = self.controller.getSpeed(self.attocube_piezo_dict[axis])                #remember the associated speed
-            self.Speed[self.attocube_piezo_dict[axis]] = speed
+            speed = self.controller.getSpeed(self.attocube_piezo_dict[axis]) *ur('nm/s')               #remember the associated speed
+            self.Speed[self.attocube_piezo_dict[axis]] = speed.m_as('nm/s')
 
             self.logger.info('frequency is ' + str(self.controller.getFrequency(self.attocube_piezo_dict[axis]) * ur('Hz')))
-            self.logger.info('so the speed is ' + str(speed * ur('nm/s')))
+            self.logger.info('so the speed is ' + str(round(speed.to('mm/s'),4)))
         else:
             raise Exception('The required frequency needs to be between 1Hz and 2kHz')
 
@@ -141,7 +143,7 @@ class Anc350Instrument(BaseInstrument):
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
 
-        :param position: absolute position that you want to go to in nm
+        :param position: absolute position that you want to go to in nm; needs to be an integer, no float!
         :type axis: pint quantity
 
         """
@@ -154,10 +156,11 @@ class Anc350Instrument(BaseInstrument):
         while state == 1:
             newstate = self.controller.getStatus(self.attocube_piezo_dict[axis])  # find bitmask of status
             if newstate == 1:
-                self.logger.info(axis +' moving, currently at' + str(self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')))
+                pos = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
+                self.logger.info(axis +' moving, currently at ' + str(pos.to('mm')))
             elif newstate == 0:
                 arrival = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-                self.logger.info('axis arrived at ' + str(arrival))
+                self.logger.info('axis arrived at ' + str(arrival.to('mm')))
                 self.logger.info('difference is ' + str(position - arrival))
             else:
                 self.logger.info('axis has value' + str(newstate))
@@ -171,13 +174,13 @@ class Anc350Instrument(BaseInstrument):
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
 
-        :param step: amount to move in nm, can be both positive and negative
+        :param step: amount to move in nm, can be both positive and negative; needs to be an integer, no float!
         :type step: pint quantity
         """
-        begin = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
+        begin = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('mm')
 
         self.logger.info('moving to a relative position, ' + str(step))
-        self.controller.moveRelative(self.attocube_piezo_dict[axis],step.m_as('nm'))
+        self.controller.moveRelative(self.attocube_piezo_dict[axis],int(step.m_as('nm')))
 
         time.sleep(1)
         state = 1
@@ -265,7 +268,7 @@ if __name__ == "__main__":
         q.initialize()
 
         axis = 'XPiezoStepper'       #x of stepper
-        ampl = 300*ur('mV')   #30V
+        ampl = 40*ur('V')   #30V
         freq = 1000*ur('Hz')    #Hz
 
         q.initialize_available_motors()
@@ -276,7 +279,7 @@ if __name__ == "__main__":
 
         q.move_to(axis,2*ur('mm'))
 
-        # q.move_relative(axis, -2000 * ur('nm'))
+        q.move_relative(axis, -2 * ur('um'))
         #
         # direct = 0  #forward
         # steps = 10  #amount of steps
