@@ -24,7 +24,8 @@ setuptools.setup(
         'lantz_qt',
         'lantz_sims',
         'pyvisa-py',
-        'pyserial'],
+        'pyserial',
+        'pynput'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: BSD License",

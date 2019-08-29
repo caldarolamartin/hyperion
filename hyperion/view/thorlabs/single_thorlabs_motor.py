@@ -3,7 +3,9 @@ from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QL
 
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
 from hyperion.view.general_worker import WorkThread
+from hyperion import ur
 from pynput.keyboard import Listener
+
 
 class App(QWidget):
 
@@ -112,7 +114,7 @@ class App(QWidget):
     def go_to_input(self):
         try:
             go_to_input = float(self.input_textfield.text())
-            self.motor.move_relative_um(go_to_input)
+            self.motor.move_absolute(go_to_input * ur("micrometer"))
             self.set_current_motor_position_label()
         except ValueError:
             print("The input is not a float, change this")
@@ -133,7 +135,8 @@ class App(QWidget):
     def recover_position(self):
         #set position of motors
         #(this only works if the position of the motors is from the home position):
-        #so, that should be changed. 
+        #so, that should be changed.
+        print(self.position)
         if self.position == None:
             print("the positions have not been set!")
             return

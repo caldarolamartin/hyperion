@@ -1,53 +1,14 @@
 User:
-  name: Martin
+  name: Ariel
 
 Instruments:
-  HydraHarp:
-    port: COM0
-    mode: Histogram
-    clock: Internal
-    devidx: 0
-    instrument: hyperion.instrument.correlator.hydraharp_instrument/HydraInstrument
-    controller: hyperion.controller.picoquant.hydraharp/Hydraharp
-    view: hyperion.view.hydraharp.hydraharp_gui/App
-    graphView: hyperion.view.hydraharp.hydraharp_gui/DrawHistogram
-  VariableWaveplate:
-    port: COM8
-    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
-    controller: hyperion.controller.thorlabs.lcc25/Lcc
-    dummy: True
-    enable: True
-    settings: # not implemented yet
-      output: True
-      voltage1: 1V
-      voltage2: 1V
   ExampleInstrument:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
     dummy: True
     settings:
-      output: True
-  xMotor:
-    serial_number: 83841160 #83817644
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  yMotor:
-    serial_number: 83850123 #83815760
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  zMotor:
-    serial_number: 83850111 #83815758
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  testMotor:
-    serial_number: 83817677
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  piezoMotor:
-    serial_number: 81818266
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
+    output: True
   ExampleInstrument_2:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -55,7 +16,7 @@ Instruments:
     view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
-      output: True
+    output: True
   ExampleInstrument_3:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -63,7 +24,7 @@ Instruments:
     view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
-      output: True
+    output: True
   ExampleInstrument_4:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -71,7 +32,7 @@ Instruments:
     view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
-      output: True
+    output: True
   ExampleInstrument_5:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -79,14 +40,7 @@ Instruments:
     view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
     dummy: True
     settings:
-      output: True
-  OsaInstrument:
-    port: AUTO
-    instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
-    controller: hyperion.controller.osa.osa_controller/OsaController
-    view: hyperion.view.osa.osa_view/App
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    dummy: False
+    output: True
   Gui_with_graph:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -94,7 +48,7 @@ Instruments:
     graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
     dummy: True
     settings:
-      output: True
+    output: True
   ExampleInstrument_7:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -102,7 +56,7 @@ Instruments:
     graphView: hyperion.view.osa.osa_view/DrawSpectrum
     dummy: True
     settings:
-      output: True
+    output: True
   ExampleInstrument_8:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -110,7 +64,7 @@ Instruments:
     graphView: hyperion.view.osa.osa_view/DrawSpectrum
     dummy: True
     settings:
-      output: True
+    output: True
 
 
 MetaInstruments:
@@ -125,7 +79,7 @@ Measurements:
   exampleMeasurement:
     view: examples.measurement_gui/App
     graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    
+
 Data:
-  save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
+  save_folder: C:\Users\ariel\Desktop\Delft_code\hyperion\
   data_type: txt

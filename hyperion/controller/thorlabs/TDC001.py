@@ -48,12 +48,14 @@ to the one specified by its serial number. The motor is first homed (blocking)
 and then moved relative by 45 degree.
 
 ```python
-    >>> import thorlabs_apt as apt
-    >>> apt.list_available_devices()
-    [(50, 55000038)]
-    >>> motor = apt.Motor(55000038)
-    >>> motor.move_home(True)
-    >>> motor.move_by(45)
+    >>> from hyperion.controller.thorlabs.TDC001 import TDC001
+	>>> checkdevices = TDC001()
+	>>> checkdevices.list_available_devices()
+	>>> [(31,81818251)]
+    >>> motorx = TDC001()
+	>>> motorx.initialize(83817677)
+    >>> motorx.move_home(True)
+    >>> motorx.move_by(0.01)
 ```
 
 **References**
@@ -129,7 +131,7 @@ DC_JS_DIRSENSE_NEG = 2
 
 import hyperion.controller.thorlabs.TDC001_APTAPI as _APTAPI
 import hyperion.controller.thorlabs.TDC001_error_codes as _error_codes
-
+from hyperion import ur
 import platform
 
 
@@ -156,9 +158,11 @@ class TDC001(BaseController):
         if (filename is not None):
             lib = ctypes.windll.LoadLibrary(filename)
         else:
-            filename = "%s/"% os.path.dirname(__file__)+bitsystem[0]+"APT.dll" 
+            filename = "%s\\"% os.path.dirname(__file__)+bitsystem[0]+"APT.dll"
+            print(filename)
             lib = ctypes.windll.LoadLibrary(filename)
             if (lib is None):
+                print('Lib is none')
                 filename = "%s/" % os.path.dirname(sys.argv[0])+bitsystem[0]+"APT.dll"
                 lib = ctypes.windll.LoadLibrary(lib)
                 if (lib is None):
@@ -301,17 +305,21 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
         return (model.value, swver.value, hwnotes.value)
 
-    def __init__(self):
+    def __init__(self, settings = {}):
         """ Init of the class. """
         self.logger = logging.getLogger(__name__)
         self._is_initialized = False
         self.logger.info('Class ExampleController created.')
+        self.settings = settings
         self._amplitude = []
         self._lib = self._load_library()
+        
+        if 'serial' in self.settings:
+            self._serial_number = self.settings['serial']
+        else:
+            self._serial_number = ''
 
-
-
-    def initialize(self, serial_number):
+    def initialize(self, serial_number=None):
         """ Starts the connection to the device in port
 
         :param port: port name to connect to
@@ -321,9 +329,12 @@ class TDC001(BaseController):
 #        self._amplitude = self.query('A?')
         self._is_initialized = True     # this is to prevent you to close the device connection if you
                                             # have not initialized it inside a with statement
-        self._serial_number = serial_number
+
         self._active_channel = 0
         # initialize device
+        if serial_number is None:
+            serial_number = self._serial_number
+        self._serial_number=serial_number    
         err_code = self._lib.InitHWDevice(serial_number)
         if (err_code != 0):
             raise Exception("Could not initialize device: %s" %
@@ -951,7 +962,9 @@ class TDC001(BaseController):
             wait until moving is finished.
             Default: False
         """
-        err_code = self._lib.MOT_MoveAbsoluteEx(self._serial_number, value,
+        value = value * ur('micrometer')
+        print(value)
+        err_code = self._lib.MOT_MoveAbsoluteEx(self._serial_number, value.magnitude,
                 blocking)
         if (err_code != 0):
             raise Exception("Setting absolute position failed: %s" %
@@ -969,7 +982,8 @@ class TDC001(BaseController):
             wait until moving is finished
             Default: False
         """
-        err_code = self._lib.MOT_MoveRelativeEx(self._serial_number, value,
+        value = value * ur('micrometer')
+        err_code = self._lib.MOT_MoveRelativeEx(self._serial_number, value.magnitude,
                 blocking)
         if (err_code != 0):
             raise Exception("Setting relative position failed: %s" %
@@ -1520,91 +1534,6 @@ class TDC001(BaseController):
             get_dc_settled_current_loop_parameters,
             set_dc_settled_current_loop_parameters)
     """DC settled current loop: fast forward"""
-    def finalize(self):
-        """ This method closes the connection to the device.
-        It is ran automatically if you use a with block
-
-        """
-        self.logger.info('Closing connection to device.')
-
-    def idn(self):
-        """ Identify command
-
-        :return: identification for the device
-        :rtype: string
-        """
-        self.logger.debug('Ask IDN to device.')
-        return 'Dummy Output controller'
-
-    def query(self, msg):
-        """ writes into the device msg
-
-        :param msg: command to write into the device port
-        :type msg: string
-        """
-        self.logger.info('Writing into the example device:{}'.format(msg))
-        self.write(msg)
-        ans = self.read()
-        return ans
-
-    def read(self):
-        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
-        
-        :return: fake result
-        :rtype: string
-        """
-        return self.FAKE_RESPONSES['A']
-
-    def write(self, msg):
-        """ Writes into the device
-        :param msg: message to be written in the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the device:{}'.format(msg))
-
-
-    @property
-    def amplitude(self):
-        """ Gets the amplitude value.
-
-        :getter:
-        :return: amplitude value in Volts
-        :rtype: float
-
-        For example, to use the getter you can do the following
-
-        >>> with DummyOutputController() as dev:
-        >>>    dev.initialize('COM10')
-        >>>    dev.amplitude
-        1
-
-        :setter:
-        :param value: value for the amplitude to set in Volts
-        :type value: float
-
-        For example, using the setter looks like this:
-
-        >>> with DummyOutputController() as dev:
-        >>>    dev.initialize('COM10')
-        >>>    dev.amplitude = 5
-        >>>    dev.amplitude
-        5
-
-
-        """
-        self.logger.debug('Getting the amplitude.')
-        return self._amplitude
-
-    @amplitude.setter
-    def amplitude(self, value):
-        # would be nice to add a way to check that the value is within the limits of the device.
-        if self._amplitude != value:
-            self.logger.info('Setting the amplitude to {}'.format(value))
-            self._amplitude = value
-            self.write('A{}'.format(value))
-        else:
-            self.logger.info('The amplitude is already {}. Not changing the value in the device.'.format(value))
-
 
 class ExampleControllerDummy(TDC001):
     """ A dummy version of the Example Controller.
@@ -1633,10 +1562,17 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-#    with TDC001() as dev:
-#        dev.initialize('COM10')
-#        print(dev.amplitude)
-#        dev.amplitude = 5
-#        print(dev.amplitude)
+    with TDC001() as dev:
+        print(dev.list_available_devices())
+        for motor in dev.list_available_devices():
+            print(motor)
+            if motor[1] != 81818266:        
+                    dev.initialize(motor[1])
+                    dev.idn()
+                    dev.move_to(0.01)
+                    dev.position
+                    dev.finalize()
+                    print("-"*40)
+		
 
 
