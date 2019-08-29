@@ -54,7 +54,9 @@ class App(QWidget):
         self.make_x_coordinate_second_label()
         self.make_y_coordinate_second_label()
         self.make_z_coordinate_second_label()
-        self.make_motor_current_position_label()
+        self.make_motor_x_current_position_label()
+        self.make_motor_y_current_position_label()
+        self.make_motor_z_current_position_label()
         self.make_use_keyboard_label()
         self.make_go_faster_label()
     def make_buttons(self):
@@ -136,13 +138,29 @@ class App(QWidget):
         label.setText("speed\nz: ")
         self.grid_layout.addWidget(label, 4, 4)
     
-    def make_motor_current_position_label(self):
-        self.current_motor_position_label = QLabel(self)
+    def make_motor_x_current_position_label(self):
+        self.current_motor_x_position_label = QLabel(self)
         try:
-            self.current_motor_position_label.setText(self.motor_bag[self.motor_combobox.currentText()].controller.position())
+            self.current_motor_x_position_label.setText(self.motor_bag[self.motor_combobox.currentText()].controller.position())
         except Exception:
-            self.current_motor_position_label.setText("currently\nunavailable")
-        self.grid_layout.addWidget(self.current_motor_position_label, 1, 5)    
+            self.current_motor_x_position_label.setText("currently\nunavailable")
+        self.grid_layout.addWidget(self.current_motor_x_position_label, 1, 5) 
+        
+    def make_motor_y_current_position_label(self):
+        self.current_motor_y_position_label = QLabel(self)
+        try:
+            self.current_motor_y_position_label.setText(self.motor_bag[self.motor_combobox.currentText()].controller.position())    
+        except Exception:
+            self.current_motor_y_position_label.setText("currently\nunavailable")
+        self.grid_layout.addWidget(self.current_motor_y_position_label, 2, 5)
+    def make_motor_z_current_position_label(self):
+        self.current_motor_z_position_label = QLabel(self)
+        try:
+            self.current_motor_z_position_label.setText(self.motor_bag[self.motor_combobox.currentText()].controller.position())    
+        except Exception:
+            self.current_motor_z_position_label.setText("currently\nunavailable")
+        self.grid_layout.addWidget(self.current_motor_z_position_label, 3, 5)
+        
     def make_use_keyboard_label(self):
         self.keyboard_label = QLabel(self)
         self.keyboard_label.setText("use keyboard\nto control selected\n combobox motor:")
@@ -313,7 +331,18 @@ class App(QWidget):
     
     def set_current_motor_label(self):
         #in this function the position value is retrieved and round + set in a label.
-        self.current_motor_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
+        if self.motor_combobox.currentText() == "zMotor":
+            self.current_motor_x_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
+        elif self.motor_combobox.currentText() == "yMotor": 
+            self.current_motor_y_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
+        elif self.motor_combobox.currentText() == "testMotor":
+            self.current_motor_z_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
+        else:
+            #this is a motor that is not the zMotor, yMotor or the testMotor, so
+            #let's set the x position to something else
+            self.current_motor_x_position_label.setText(str(round(self.motor_bag[self.motor_combobox.currentText()].controller.position, 2)))
+            
+            
         
     def go_home_motor(self):
         selected_motor = str(self.motor_combobox.currentText())
