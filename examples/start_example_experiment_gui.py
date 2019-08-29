@@ -24,7 +24,10 @@ def hydraharp_and_thorlabsmotor_experiment():
                                    'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
     motor = Thorlabsmotor()
     #initialize the hydraharp and thorlabsmotor
-    motor.initialize(83815760)
+    #motor.initialize(83815760)
+    print(motor.list_devices())
+
+    motor.initialize(83841160)
     hydra.initialize()
     hydra.configurate()
     #doing something that resembles an experiment:
@@ -36,5 +39,7 @@ def hydraharp_and_thorlabsmotor_experiment():
         hist = hydra.make_histogram(tijd=5 * ureg('s'), count_channel=0)
         #move the motor 0.01 micrometer
         motor.move_relative(0.01)
+    motor.finalize()
+    hydra.finalize()
 
 hydraharp_and_thorlabsmotor_experiment()
