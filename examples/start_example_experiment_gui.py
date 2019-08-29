@@ -8,6 +8,9 @@ from hyperion import ur
 ureg = ur
 
 def main():
+    """"
+    Example of how to call the master_gui in a seperate file
+    """
     experiment = ExampleExperiment()
     app = QApplication(sys.argv)
     main_gui = App(experiment)
@@ -26,7 +29,6 @@ def hydraharp_and_thorlabsmotor_experiment():
     #initialize the hydraharp and thorlabsmotor
     #motor.initialize(83815760)
     print(motor.list_devices())
-
     motor.initialize(83841160)
     hydra.initialize()
     hydra.configurate()

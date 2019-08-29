@@ -26,6 +26,7 @@ class ExampleExperiment(BaseExperiment):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the Base_Experiment class.')
 
+        #initialize dictionaries where instances of instruments and gui's can be found
         self.devices = {}
         self.properties = {}
         self.instruments_instances = {}
@@ -64,7 +65,7 @@ class ExampleExperiment(BaseExperiment):
 
     def make_sound(self):
         """ This methods makes a sound to call the attention of humans
-
+            This method is by far the best method Martin has made, trust me, I am an expert
         """
         self.logger.debug('Making sound')
         winsound.Beep(3000, 800)  # (frequency in Hz, Duration in ms)
@@ -79,20 +80,21 @@ class ExampleExperiment(BaseExperiment):
     def load_instruments(self):
         """"
         This method gets the instance of every instrument and sets this instance
-        in the self.ins_bag. This way they are approachable via self.
-        The option to set the instruments by hand is still possible. 
+        in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
+        The option to set the instruments by hand is still possible, but not necessary because the pointer
+        to the instrument 'lives' in the instruments_instances.
         """
 
         for instrument in self.properties['Instruments']:
             try:
                 self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-                self.logger.debug('Class'+instrument+": {}".format(self.instruments_instances[instrument]))
+                self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
             except Exception:
                 self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
                 self.instruments_instances[instrument] = None
-        # self.vwp = self.load_instrument('VariableWaveplate')
+        # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
         # self.logger.debug('Class vwp: {}'.format(self.vwp))
-        # self.example_instrument = self.load_instrument('ExampleInstrument')
+        # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
         # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
 
 
