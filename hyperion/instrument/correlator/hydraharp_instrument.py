@@ -21,11 +21,6 @@ ureg = ur
 #from TMD.Controller.Hydraharp_controller import Hydraharp 
 #from TMD import ureg, Unit_
 
-#time = ureg('1s')
-#print(time)
-#time = Unit_(1,'s')
-#print(time)
-
 class HydraInstrument(BaseInstrument):  
     def __init__(self, settings):
         """ init of the class"""
@@ -147,7 +142,7 @@ class HydraInstrument(BaseInstrument):
         :rtype: pint quantity
         """
         ended = False
-        t = round(tijd.m_as('s') / 5)
+        t = round(float(tijd.magnitude) / 5)
         total_time_passed = ur('0s')
         while ended == False:
             ended = self.controller.ctc_status

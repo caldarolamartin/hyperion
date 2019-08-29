@@ -664,7 +664,7 @@ class Hydraharp(BaseController):
         func.argtypes = [ctypes.c_int, ctypes.c_int]
         func.restype = ctypes.c_int
         data = ctypes.c_int(devidx)
-        data2 = ctypes.c_int(tacq.m_as('s'))
+        data2 = ctypes.c_int(int(tacq.m_as('s')))
         self.error_code = func(data, data2)
         if self.error_code is not 0:
             warnings.warn(self.error_string)
