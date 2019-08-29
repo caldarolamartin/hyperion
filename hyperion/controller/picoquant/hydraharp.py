@@ -64,7 +64,7 @@ class Hydraharp(BaseController):
                 self.hhlib = ctypes.WinDLL("hhlib.dll")
             except OSError:
                 print("Import local library")
-                self.hhlib = ctypes.WinDLL("./hhlib64.dll")
+                self.hhlib = ctypes.WinDLL("./hhlib.dll")
         elif sys.platform == 'win64':
             print('ik ben hier')
             try:
@@ -75,13 +75,19 @@ class Hydraharp(BaseController):
         else:
             raise NotImplementedError("Not (yet) implemented on your system ({}).".format(sys.platform))
         assert self.__devidx in range(self.settings['MAXDEVNUM']), "devidx should be a int in range 0 ... 8."
+
+        self.logger.debug('Dll object: {}'.format(self.hhlib))
+
         self.error_code = 0  # current error code
         self._histoLen = 65536  # default histogram length = 65536
         assert self.library_version is not self.settings['LIB_VERSION'], \
             "Current code (version {}) may not be compatible with system library " \
             "(version {})".format(LIB_VERSION, self.library_version)
+
+        # open connetiom
         self._open_device()  # initialize communication
         self.initialize(mode=config['mode'], clock=config['clock'])  # initialise the instrument
+
         self.calibrate()  # calibrate it
         self.histogram_length = self._histoLen
         self._binning(0)  # default binning to 0
@@ -122,6 +128,7 @@ class Hydraharp(BaseController):
         """
         Initialise the communication with the device
         """
+        self.logger.debug('Opening connection with device {}'.format(self.__devidx))
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
         func = self.hhlib.HH_OpenDevice
@@ -163,7 +170,7 @@ class Hydraharp(BaseController):
         :param clock: source of the clock, can be: 'External'(default), 'Internal'
         :type clock: string
         """
-        self.logger.info('Opening connection to device.')
+        self.logger.info('Initializing the device.')
         self._is_initialized = True     # this is to prevent you to close the device connection if you
                                         # have not initialized it inside a with statement        
         devidx = self.__devidx
@@ -648,7 +655,7 @@ class Hydraharp(BaseController):
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
         tacq = acquisition_time * ur('s')# acquisition time in seconds(later it is converted to miliseconds)
-        tacq = tacq.to('ms')
+        #tacq = tacq.to('ms')
         min_acqt = self.settings['ACQTMIN'] * ur('ms')
         max_acqt = self.settings['ACQTMAX'] * ur('ms')
         assert (float(tacq.magnitude) >= float(min_acqt.magnitude)) and (float(tacq.magnitude) <= float(max_acqt.magnitude)), "HH_StartMeas, tacq not valid."
@@ -657,7 +664,7 @@ class Hydraharp(BaseController):
         func.argtypes = [ctypes.c_int, ctypes.c_int]
         func.restype = ctypes.c_int
         data = ctypes.c_int(devidx)
-        data2 = ctypes.c_int(tacq)
+        data2 = ctypes.c_int(tacq.m_as('s'))
         self.error_code = func(data, data2)
         if self.error_code is not 0:
             warnings.warn(self.error_string)
@@ -788,7 +795,6 @@ if __name__ == "__main__":
                   logging.StreamHandler()])
     
     with Hydraharp() as q:
-        q.initialize()
         q.calibrate()
         
         print('The sync rate is: ' , q.sync_rate())
@@ -808,3 +814,4 @@ if __name__ == "__main__":
         print(hist)
         
         q.close_device()
+        
