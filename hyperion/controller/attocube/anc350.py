@@ -113,6 +113,45 @@ class Anc350(BaseController):
         self.logger.info('Closing connection to ANC350')
         ANC350lib.positionerClose(self.handle)
 
+    def getStatus(self, axis):
+        """Determines the status of the selected axis.
+        It is not clear whether it also works for the scanner, or only for the stepper
+        result: bit0 (moving), bit1 (stop detected), bit2 (sensor error), bit3 (sensor disconnected)
+
+        :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
+        :type axis: integer
+
+        :return: 0: moving, 1: stop detected, 2: sensor error, 3: sensor disconnected
+        """
+        self.status = ANC350lib.Int32(0)
+        ANC350lib.positionerGetStatus(self.handle,axis,ctypes.byref(self.status))
+        return self.status.value
+
+    def load(self, axis, filename):
+        """Loads a parameter file for actor configuration.
+        note: this requires a pointer to a char datatype.
+        At this moment, this only works if the filename has only one letter, and it in the same folder as this controller
+
+        (having no parameter file to test, I have no way of telling whether this will work, especially with the manual being as erroneous as it is. as such, use at your own (debugging) risk!)
+
+        :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
+        :type axis: integer
+
+        :param filename: name of actor configuration file, which needs to only one letter
+        :type filename: char
+
+        """
+        '''
+                '''
+        ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
+
+        # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(bytearray(filename.encode()))))
+
+        #ANC350lib.positionerLoad(self.handle,axis,ctypes.byref(ctypes.c_char_p(filename.encode('utf-8'))))
+
+        #f = ctypes.create_string_buffer(filename.encode())
+
+
 
     #Used methods only stepper
     #----------------------------------------------------------------------------------------------------
@@ -186,15 +225,85 @@ class Anc350(BaseController):
         """Determines actual position of addressed stepper axis
         Pay attention: the sensor resolution is specified for 200nm
 
-        :param axis:
-        :return:
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :return: position in nm
         """
-        '''
-        
-        '''
         self.pos = ANC350lib.Int32(0)
         ANC350lib.positionerGetPosition(self.handle,axis,ctypes.byref(self.pos))
         return self.pos.value
+
+    def getSpeed(self, axis):
+        """Determines the actual speed.
+        In case of standstill of this actor this is the calculated speed resultingfrom amplitude setpoint, frequency, and motor parameters.
+        In case of movement this is measured speed.
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :return: speed in nm/s
+        """
+        self.spd = ANC350lib.Int32(0)
+        ANC350lib.positionerGetSpeed(self.handle,axis,ctypes.byref(self.spd))
+        return self.spd.value
+
+    def getStepwidth(self, axis):
+        """Determines the step width.
+        In case of standstill of the motor this is the calculated step width resulting from amplitude setpoint, frequency, and motor parameters.
+        In case of movement this is measured step width
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :return: stepwidth in nm
+        """
+        self.stepwdth = ANC350lib.Int32(0)
+        ANC350lib.positionerGetStepwidth(self.handle,axis,ctypes.byref(self.stepwdth))
+        return self.stepwdth.value
+
+    def moveAbsolute(self, axis, position, rotcount=0):
+        """Starts approach to absolute target position
+        previous movement will be stopped
+        rotcount optional argument, not in our case since we dont have rotation options
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param position: absolute target position in nm
+        :type position: integer
+
+        :param rotcount: optional argument position units are in 'unit of actor multiplied by 1000' (generally nanometres)
+        """
+        self.logger.info('Moving to an absolute value')
+        ANC350lib.positionerMoveAbsolute(self.handle,axis,position,rotcount)
+
+    def moveRelative(self, axis, position, rotcount=0):
+        """starts approach to relative target position.
+        previous movement will be stopped.
+        rotcount optional argument, not in our case since we dont have rotation options
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param position: relative target position in nm, can be both positive and negative
+        :type position: integer
+
+        :param rotcount: optional argument position units are in 'unit of actor multiplied by 1000' (generally nanometres)
+        """
+        ANC350lib.positionerMoveRelative(self.handle,axis,position,rotcount)
+
+    def moveSingleStep(self, axis, direction):
+        """starts a one-step positioning, where the stepwidht is determined by the amplitude and frequency
+        Previous movement will be stopped.
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param direction: can be 0 (forward) or 1 (backward)
+        """
+        ANC350lib.positionerMoveSingleStep(self.handle,axis,direction)
+
 
     #Used methods only scanner
     #----------------------------------------------------------------------------------------------------
@@ -238,8 +347,118 @@ class Anc350(BaseController):
         ANC350lib.positionerGetIntEnable(self.handle,axis,ctypes.byref(self.status))
         return self.status.value
 
+    def intEnable(self, axis, state):
+        """Activates/deactivates internal signal generation of addressed axis; only applicable for scanner/dither axes
+
+        :param axis: axis number from 3 to 5 for scanners
+        :type axis: integer
+
+        :param state: True is enabled, False is disabled
+        :type state: bool
+        """
+        ANC350lib.positionerIntEnable(self.handle,axis,ctypes.c_bool(state))
 
 
+    # ----------------------------------------------------------------------------------------------------
+    # Maybe useful methods, but now unused
+    # ----------------------------------------------------------------------------------------------------
+
+    def moveAbsoluteSync(self, bitmask_of_axes):
+        """Starts the synchronous approach to absolute target position for selected axis.
+        previous movement will be stopped.
+        target position for each axis defined by .setTargetPos() takes a *bitmask* of axes!
+        Not clear what's the difference with moveAbsolute
+
+        :param bitmask_of_axes:
+        """
+        ANC350lib.positionerMoveAbsoluteSync(self.handle,bitmask_of_axes)
+
+    def moveContinuous(self, axis, direction):
+        """starts continuously positioning with set parameters for ampl and speed and amp control respectively.
+        direction
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param direction: can be 0 (forward) or 1 (backward)
+        :type direction: integer
+        """
+        ANC350lib.positionerMoveContinuous(self.handle,axis,direction)
+
+    def moveReference(self, axis):
+        """starts approach to reference position.
+        previous movement will be stopped.
+        No idea whats the difference with moveRelative
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+        """
+        ANC350lib.positionerMoveReference(self.handle,axis)
+
+    def resetPosition(self, axis):
+        """sets the origin to the actual position
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+        """
+        ANC350lib.positionerResetPosition(self.handle,axis)
+
+    def setOutput(self, axis, state):
+        """activates/deactivates the addressed axis
+        no idea what that means, but sounds interesting
+
+        :param axis:
+        :param state:
+        """
+        ANC350lib.positionerSetOutput(self.handle,axis,ctypes.c_bool(state))
+
+    def setStopDetectionSticky(self, axis, state):
+        """when enabled, an active stop detection status remains active until cleared manually by .clearStopDetection()
+        Is this what in Daisy is called hump detection? Than it might be useful
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param state:
+        """
+        ANC350lib.positionerSetStopDetectionSticky(self.handle,axis,state)
+
+    def stopApproach(self, axis):
+        """stops approaching target/relative/reference position.
+        DC level of affected axis after stopping depends on setting by .setTargetGround()
+        Dont know whats the difference with stopMoving
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+        """
+        ANC350lib.positionerStopApproach(self.handle,axis)
+
+    def stopDetection(self, axis, state):
+        """switches stop detection on/off
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param state:
+        """
+        ANC350lib.positionerStopDetection(self.handle,axis,ctypes.c_bool(state))
+
+    def stopMoving(self, axis):
+        """stops any positioning, DC level of affected axis is set to zero after stopping.
+
+        :param axis:
+        """
+        ANC350lib.positionerStopMoving(self.handle,axis)
+
+    def updateAbsolute(self, axis, position):
+        """update s target position for a *running* approach.
+        function has lower performance impact on running approach compared to .moveAbsolute().
+        position units are in 'unit of actor multiplied by 1000' (generally nanometres)
+
+        :param axis:
+        :param position:
+        """
+        ANC350lib.positionerUpdateAbsolute(self.handle,axis,position)
 
     # ----------------------------------------------------------------------------------------------------
     # Not (yet) used methods
@@ -250,7 +469,6 @@ class Anc350(BaseController):
         Activates/deactivates AC input of addressed axis; only applicable for dither axes
         '''
         ANC350lib.positionerAcInEnable(self.handle,axis,ctypes.c_bool(state))
-
 
     def bandwidthLimitEnable(self, axis, state):
         '''
@@ -355,86 +573,6 @@ class Anc350(BaseController):
         ANC350lib.positionerGetRotCount(self.handle,axis,ctypes.byref(self.rotcount))
         return self.rotcount.value
 
-    def getSpeed(self, axis):
-        '''
-        determines the actual speed. In case of standstill of this actor this is the calculated speed resulting	from amplitude setpoint, frequency, and motor parameters. In case of movement this is measured speed.
-        '''
-        self.spd = ANC350lib.Int32(0)
-        ANC350lib.positionerGetSpeed(self.handle,axis,ctypes.byref(self.spd))
-        return self.spd.value
-
-    def getStatus(self, axis):
-        '''
-        determines the status of the selected axis. result: bit0 (moving), bit1 (stop detected), bit2 (sensor error), bit3 (sensor disconnected)
-        '''
-        self.status = ANC350lib.Int32(0)
-        ANC350lib.positionerGetStatus(self.handle,axis,ctypes.byref(self.status))
-        return self.status.value
-
-    def getStepwidth(self, axis):
-        '''
-        determines the step width. In case of standstill of the motor this is the calculated step width	resulting from amplitude setpoint, frequency, and motor parameters. In case of movement this is measured step width
-        '''
-        self.stepwdth = ANC350lib.Int32(0)
-        ANC350lib.positionerGetStepwidth(self.handle,axis,ctypes.byref(self.stepwdth))
-        return self.stepwdth.value
-
-    def intEnable(self, axis, state):
-        '''
-        Activates/deactivates internal signal generation of addressed axis; only applicable for scanner/dither axes
-        '''
-        ANC350lib.positionerIntEnable(self.handle,axis,ctypes.c_bool(state))
-
-    def load(self, axis, filename):
-        '''
-        loads a parameter file for actor configuration.	note: this requires a pointer to a char datatype. having no parameter file to test, I have no way of telling whether this will work, especially with the manual being as erroneous as it is. as such, use at your own (debugging) risk!
-        '''
-        ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
-
-        # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(bytearray(filename.encode()))))
-
-        #ANC350lib.positionerLoad(self.handle,axis,ctypes.byref(ctypes.c_char_p(filename.encode('utf-8'))))
-
-        #f = ctypes.create_string_buffer(filename.encode())
-
-
-    def moveAbsolute(self, axis, position, rotcount=0):
-        '''
-        starts approach to absolute target position. previous movement will be stopped. rotcount optional argument position units are in 'unit of actor multiplied by 1000' (generally nanometres)
-        '''
-        print('I reached the move absolute method')
-        ANC350lib.positionerMoveAbsolute(self.handle,axis,position,rotcount)
-
-    def moveAbsoluteSync(self, bitmask_of_axes):
-        '''
-        starts the synchronous approach to absolute target position for selected axis. previous movement will be stopped. target position for each axis defined by .setTargetPos() takes a *bitmask* of axes!
-        '''
-        ANC350lib.positionerMoveAbsoluteSync(self.handle,bitmask_of_axes)
-
-    def moveContinuous(self, axis, direction):
-        '''
-        starts continuously positioning with set parameters for ampl and speed and amp control respectively. direction can be 0 (forward) or 1 (backward)
-        '''
-        ANC350lib.positionerMoveContinuous(self.handle,axis,direction)
-
-    def moveReference(self, axis):
-        '''
-        starts approach to reference position. previous movement will be stopped.
-        '''
-        ANC350lib.positionerMoveReference(self.handle,axis)
-
-    def moveRelative(self, axis, position, rotcount=0):
-        '''
-        starts approach to relative target position. previous movement will be stopped. rotcount optional argument. position units are in 'unit of actor multiplied by 1000' (generally nanometres)
-        '''
-        ANC350lib.positionerMoveRelative(self.handle,axis,position,rotcount)
-
-    def moveSingleStep(self, axis, direction):
-        '''
-        starts a one-step positioning. Previous movement will be stopped. direction can be 0 (forward) or 1 (backward)
-        '''
-        ANC350lib.positionerMoveSingleStep(self.handle,axis,direction)
-
     def quadratureAxis(self, quadratureno, axis):
         '''
         selects the axis for use with this trigger in/out pair. quadratureno: number of addressed quadrature unit (0-2)
@@ -453,12 +591,6 @@ class Anc350(BaseController):
         '''
         ANC350lib.positionerQuadratureOutputPeriod(self.handle,quadratureno,period)
 
-    def resetPosition(self, axis):
-        '''
-        sets the origin to the actual position
-        '''
-        ANC350lib.positionerResetPosition(self.handle,axis)
-
     def sensorPowerGroupA(self, state):
         '''
         switches power of sensor group A. Sensor group A contains either the sensors of axis 1-3 or 1-2 dependent on hardware of controller
@@ -476,18 +608,6 @@ class Anc350(BaseController):
         sets the hardware ID for the device (used to differentiate multiple devices)
         '''
         ANC350lib.positionerSetHardwareId(self.handle,hwid)
-
-    def setOutput(self, axis, state):
-        '''
-        activates/deactivates the addressed axis
-        '''
-        ANC350lib.positionerSetOutput(self.handle,axis,ctypes.c_bool(state))
-
-    def setStopDetectionSticky(self, axis, state):
-        '''
-        when enabled, an active stop detection status remains active until cleared manually by .clearStopDetection()
-        '''
-        ANC350lib.positionerSetStopDetectionSticky(self.handle,axis,state)
 
     def setTargetGround(self, axis, state):
         '''
@@ -518,24 +638,6 @@ class Anc350(BaseController):
         configures number of successive step scaused by external trigger or manual step request. steps = 1 to 65535
         '''
         ANC350lib.positionerStepCount(self.handle,axis,stps)
-
-    def stopApproach(self, axis):
-        '''
-        stops approaching target/relative/reference position. DC level of affected axis after stopping depends on setting by .setTargetGround()
-        '''
-        ANC350lib.positionerStopApproach(self.handle,axis)
-
-    def stopDetection(self, axis, state):
-        '''
-        switches stop detection on/off
-        '''
-        ANC350lib.positionerStopDetection(self.handle,axis,ctypes.c_bool(state))
-
-    def stopMoving(self, axis):
-        '''
-        stops any positioning, DC level of affected axis is set to zero after stopping.
-        '''
-        ANC350lib.positionerStopMoving(self.handle,axis)
 
     def trigger(self, triggerno, lowlevel, highlevel):
         '''
@@ -573,11 +675,7 @@ class Anc350(BaseController):
         '''
         ANC350lib.positionerTriggerPolarity(self.handle,triggerno,polarity)
 
-    def updateAbsolute(self, axis, position):
-        '''
-        updates target position for a *running* approach. function has lower performance impact on running approach compared to .moveAbsolute(). position units are in 'unit of actor multiplied by 1000' (generally nanometres)
-        '''
-        ANC350lib.positionerUpdateAbsolute(self.handle,axis,position)
+
 
 def bitmask(input_array):
     '''
@@ -744,19 +842,19 @@ if __name__ == "__main__":
         # #this means you can apply a voltage of 0-140V to the piezo
         #
         # print('-------------------------------------------------------------')
-        # print('now we start with the SCANNER')
-        # anc.intEnable(3,True)
-        # print('is the scanner on INT mode? ',anc.getIntEnable(3))
-        #
-        # #this one has only one way to make a step: put a voltage
-        #
-        # print('-------------------------------------------------------------')
-        # print('moving something by putting 50V')
-        # anc.dcLevel(0,50000)
-        # print('put a DC level of ',anc.getDcLevel(0),'mV')
-        # print('no way of knowing when and if we ever arrive')
-        #
-        # #but no idea how we know whether it arrived at its position
+        print('now we start with the SCANNER')
+        anc.intEnable(3,True)
+        print('is the scanner on INT mode? ',anc.getIntEnable(3))
+
+        #this one has only one way to make a step: put a voltage
+
+        print('-------------------------------------------------------------')
+        print('moving something by putting 50V')
+        anc.dcLevel(3,10)
+        print('put a DC level of ',anc.getDcLevel(3),'mV')
+        print('no way of knowing when and if we ever arrive')
+
+        #but no idea how we know whether it arrived at its position
 
 
 
