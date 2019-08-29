@@ -2,131 +2,113 @@ User:
   name: Martin
 
 Instruments:
-  VariableWaveplate:
-    port: COM8
-    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
-    controller: hyperion.controller.thorlabs.lcc25/Lcc
-    dummy: True
-    enable: True
-    settings: # not implemented yet
-    output: True
-    voltage1: 1V
-    voltage2: 1V
-  ExampleInstrument:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    dummy: True
-    settings:
-    output: True
-  XPiezoStepper:
-    axis_number: 0
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  ZPiezoStepper:
-    axis_number: 1
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  YPiezoStepper:
-    axis_number: 2
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  XPiezoScanner:
-    axis_number: 3
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  ZPiezoScanner:
-    axis_number: 4
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  YPiezoScanner:
-    axis_number: 5
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
-  xMotor:
-    serial_number: 83817644
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  yMotor:
-    serial_number: 83815760
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  zMotor:
-    serial_number: 83815758
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  testMotor:
-    serial_number: 83817677
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  piezoMotor:
-    serial_number: 81818266
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  ExampleInstrument_2:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_3:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_4:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_5:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
-    dummy: True
-    settings:
-    output: True
-  OsaInstrument:
-    port: AUTO
-    instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
-    controller: hyperion.controller.osa.osa_controller/OsaController
-    view: hyperion.view.osa.osa_view/App
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    dummy: False
-  Gui_with_graph:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_7:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_8:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    dummy: True
-    settings:
-    output: True
- 
+  - VariableWaveplate:
+      port: COM8
+      instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
+      controller: hyperion.controller.thorlabs.lcc25/Lcc
+      dummy: True
+      enable: True
+      settings: # not implemented yet
+        output: True
+        voltage1: 1V
+        voltage2: 1V
+  - ExampleInstrument:
+      port: COM0
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
+      dummy: True
+      settings:
+        output: True
+  - xMotor:
+      serial_number: 83841160 #83817644
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+  - yMotor:
+      serial_number: 83850123 #83815760
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+  - zMotor:
+      serial_number: 83850111 #83815758
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+  - testMotor:
+      serial_number: 83817677
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+  - piezoMotor:
+      serial_number: 81818266
+      instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+      controller: hyperion.controller.thorlabs.TDC001/TDC001
+  - XYZMotor:
+      instrument: hyperion.instrument.xyz_motors/ThorlabsXYZ
+      view: hyperion.view.xyz_motors/Thorlabs3AxisView
+      xMotor: 83815760
+      yMotor: 83815758
+      zMotor: 83817677
+  - ExampleInstrument_2:
+      port: COM0
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
+      view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+      dummy: True
+      settings:
+        output: True
+  - ExampleInstrument_3:
+      port: COM0
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
+      view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+      dummy: True
+      settings:
+        output: True
+  - ExampleInstrument_4:
+      port: COM0
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
+      view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+      dummy: True
+      settings:
+        output: True
+  - ExampleInstrument_5:
+      port: COM0
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
+      view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+      dummy: True
+      settings:
+        output: True
+  - OsaInstrument:
+      port: AUTO
+      instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
+      controller: hyperion.controller.osa.osa_controller/OsaController
+      view: hyperion.view.osa.osa_view/App
+      graphView: hyperion.view.osa.osa_view/DrawSpectrum
+      dummy: False
+  - Gui_with_graph:
+      port: COM0
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
+      graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
+      dummy: True
+      settings:
+        output: True
+  - ExampleInstrument_7:
+      port: COM0
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
+      graphView: hyperion.view.osa.osa_view/DrawSpectrum
+      dummy: True
+      settings:
+        output: True
+  - ExampleInstrument_8:
+      port: COM0
+      instrument: hyperion.instrument.example_instrument/ExampleInstrument
+      controller: hyperion.controller.example_controller/ExampleController
+      graphView: hyperion.view.osa.osa_view/DrawSpectrum
+      dummy: True
+      settings:
+        output: True
+
 
 MetaInstruments:
   SampleXyzStageMotor:

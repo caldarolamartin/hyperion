@@ -75,6 +75,7 @@ class App(QWidget):
         The slider get made by adding a tuple with the name of the slider and the name of the
         motor that the slider will use. 
         """
+        slider_list = [("slider_x", "xMotor"), ("slider_y", "yMotor"), ("slider_z","zMotor")]
         slider_list = self.motor_hub.make_slider_list()
         opteller = 1
         for slider in slider_list:    
