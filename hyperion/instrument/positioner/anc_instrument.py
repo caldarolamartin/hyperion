@@ -42,7 +42,7 @@ class Anc350Instrument(BaseInstrument):
 
     def initialize_available_motors(self):
         """ Start the connection to the device
-        Makes a distionary of axis names based on the example_experiment_config.yml file
+        Makes a dictionary of axis names based on the example_experiment_config.yml file
         """
         experiment = BaseExperiment()
         experiment.load_config("D:\\labsoftware\\hyperion\\examples\\example_experiment_config.yml")
@@ -65,7 +65,7 @@ class Anc350Instrument(BaseInstrument):
     def configurate_stepper(self, axis, amplitude, frequency):
         """ Does the necessary configuration of the Stepper:
         -for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
-        -loads the actor file
+        -loads the actor file, now it's the file called q
         -measures the capacitance of the Stepper; not clear whether it is needed
         -sets the amplitude and frecuency
         -the amplitude influences the step width, the frequency influences the speed
@@ -90,7 +90,7 @@ class Anc350Instrument(BaseInstrument):
         self.controller.amplitudeControl(self.attocube_piezo_dict[axis],2)
         self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
 
-        if 0 <= amplitude.m_as('mV') <= 60000:
+        if 0 <= amplitude.m_as('V') <= 60:
             self.controller.amplitude(self.attocube_piezo_dict[axis], amplitude.m_as('mV'))  # put the amplitude on the controller
 
             self.Amplitude[self.attocube_piezo_dict[axis]] = amplitude.m_as('mV')   #remember that amplitude
@@ -146,7 +146,7 @@ class Anc350Instrument(BaseInstrument):
 
         """
         self.logger.info('Moving ' + axis +' to position: '+ str(position))
-        self.controller.moveAbsolute(self.attocube_piezo_dict[axis], position.m_as('nm'))
+        self.controller.moveAbsolute(self.attocube_piezo_dict[axis], int(position.m_as('nm')))
 
         # check what's happening
         time.sleep(0.5)
@@ -265,7 +265,7 @@ if __name__ == "__main__":
         q.initialize()
 
         axis = 'XPiezoStepper'       #x of stepper
-        ampl = 30000*ur('mV')   #30V
+        ampl = 300*ur('mV')   #30V
         freq = 1000*ur('Hz')    #Hz
 
         q.initialize_available_motors()
@@ -274,7 +274,7 @@ if __name__ == "__main__":
 
         q.configurate_stepper(axis,ampl,freq)
 
-        q.move_to(axis,2_000_000*ur('nm'))
+        q.move_to(axis,2*ur('mm'))
 
         # q.move_relative(axis, -2000 * ur('nm'))
         #

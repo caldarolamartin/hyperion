@@ -273,7 +273,7 @@ class Anc350(BaseController):
 
         :param rotcount: optional argument position units are in 'unit of actor multiplied by 1000' (generally nanometres)
         """
-        self.logger.info('Moving to an absolute value')
+        self.logger.info('Moving axis {} to an absolute value: {}'.format(axis, position))
         ANC350lib.positionerMoveAbsolute(self.handle,axis,position,rotcount)
 
     def moveRelative(self, axis, position, rotcount=0):
