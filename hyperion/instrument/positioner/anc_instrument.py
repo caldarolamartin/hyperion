@@ -81,7 +81,10 @@ class Anc350Instrument(BaseInstrument):
         """
 
         self.logger.info('Loading Stepper actor file, measuring capacitances')
-        self.logger.info(str(axis)+': ' + str(self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF')))
+        print(self.attocube_piezo_dict[axis]*ur('mF'))
+        print(self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF'))
+
+        self.logger.info(axis+': ' + str(self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF')))
 
         #self.controller.load(axis,filename=default)
         self.controller.amplitudeControl(self.attocube_piezo_dict[axis],2)

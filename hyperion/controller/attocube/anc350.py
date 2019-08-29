@@ -78,7 +78,7 @@ class Anc350(BaseController):
         self.posinf = ANC350lib.PositionerInfo() #create PositionerInfo Struct
         self.numconnected = ANC350lib.positionerCheck(ctypes.byref(self.posinf)) #look for positioners!
         if self.numconnected > 0:
-            self.logger.info(self.numconnected,'ANC350 connected')
+            self.logger.info(str(self.numconnected) + 'ANC350 connected')
             self.logger.info('ANC350 with id:'+ str(self.posinf.id) +'has locked state:' + str(self.posinf.locked))
 
     def connect(self):
