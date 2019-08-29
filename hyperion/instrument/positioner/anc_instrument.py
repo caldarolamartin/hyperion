@@ -222,7 +222,7 @@ class Anc350Instrument(BaseInstrument):
         av_steps = np.mean(Stepsize)
         self.logger.info('average step size is ' + str(round(av_steps)*ur('nm')))
 
-    def move_scanner(self,axis,voltage):
+    def move_scanner(self, axis, voltage):
         """ Moves the Scanner by applying a certain voltage
         There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V
 
@@ -240,7 +240,9 @@ class Anc350Instrument(BaseInstrument):
 
         if 0 <= voltage.m_as('mV') <= 140000:
             self.logger.info('moving '+ axis +' by putting ' + str(voltage))
-            self.controller.dcLevel(self.attocube_piezo_dict[axis], voltage.m_as('mV'))
+            self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis], voltage.m_as('mV')))
+
+            self.controller.dcLevel(self.attocube_piezo_dict[axis], int(voltage.m_as('mV')))
             self.logger.info('now the DC level is ' + str(self.controller.getDcLevel(self.attocube_piezo_dict[axis]) * ur('mV')))
         else:
             raise Exception('The required voltage is between 0V - 140V')
@@ -272,8 +274,8 @@ if __name__ == "__main__":
 
         q.configurate_stepper(axis,ampl,freq)
 
-        # q.move_to(axis,2_000_000*ur('nm'))
-        #
+        q.move_to(axis,2_000_000*ur('nm'))
+
         # q.move_relative(axis, -2000 * ur('nm'))
         #
         # direct = 0  #forward
@@ -285,6 +287,6 @@ if __name__ == "__main__":
 
         q.configurate_scanner(axis)
 
-        volts = 100000*ur('mV')
+        volts = 100000.0*ur('mV')
         q.move_scanner(axis,volts)
 

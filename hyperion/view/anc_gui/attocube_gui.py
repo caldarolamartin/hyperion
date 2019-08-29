@@ -241,16 +241,16 @@ class App(QWidget):
         self.anc350_instrument.given_step(axis, direction, amount)
 
     def move_scanner(self):
-        print("move the scanner by a...value")
         """
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
 
         :param voltage: voltage in mV to move the scanner; from 0-140V
-        :type axis: pint quantity
+        :type voltage: pint quantity
         """
+        print("move the scanner by a...value")
         axis = self.scanner_piezo_combobox.currentText()  # the current scanner
-        voltage = self.move_scanner_textfield.text() * ur('mV')
+        voltage = float(self.move_scanner_textfield.text()) * ur('mV')
         self.anc350_instrument.move_scanner(axis, voltage)
         self.update_actual_position_label()
 
@@ -264,6 +264,11 @@ class App(QWidget):
         self.anc350_instrument.configurate_stepper(axis, amplitude, frequency)
 
 if __name__ == '__main__':
+    from hyperion import _logger_format
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
+                  logging.StreamHandler()])
+
     anc350_instrument = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'})
     app = QApplication(sys.argv)
     ex = App(anc350_instrument)

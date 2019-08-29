@@ -330,14 +330,6 @@ class Anc350(BaseController):
         ANC350lib.positionerGetDcInEnable(self.handle,axis,ctypes.byref(self.status))
         return self.status.value
 
-
-
-
-
-
-
-
-
     def getReference(self, axis):
         '''
         determines distance of reference mark to origin
