@@ -40,7 +40,8 @@ def hydraharp_and_thorlabsmotor_experiment():
         hydra.set_histogram(leng=65536, res=8.0 * ureg('ps'))
         hist = hydra.make_histogram(tijd=5 * ureg('s'), count_channel=0)
         #move the motor 0.01 micrometer
-        motor.move_relative(0.01)
+        value = 0.01 *ur('micrometer')
+        motor.move_relative(value.m_as('micrometer'))
     motor.finalize()
     hydra.finalize()
 
