@@ -1,37 +1,31 @@
-#
-#  PyANC350 is a control scheme suitable for the Python coding style
-#    for the attocube ANC350 closed-loop positioner system.
-#
-#  It implements ANC350lib, which in turn depends on anc350v2.dll
-#    which is provided by attocube in the ANC350_DLL folders
-#    on the driver disc.
-#    This in turn requires nhconnect.dll and libusb0.dll. Place all
-#    of these in the same folder as this module (and that of ANC350lib).
-#
-#  Unlike ANC350lib which is effectively a re-imagining of the
-#    C++ header, PyANC350 is intended to behave as one might expect
-#    Python to. This means: returning values; behaving as an object.
-#
-#  At present this only addresses the first ANC350 connected to the
-#    machine.
-#
-#  Usage:
-#  1. instantiate Positioner() class to begin, eg. pos = Positioner().
-#  2. methods from the ANC350v2 documentation are implemented such that
-#      function PositionerGetPosition(handle, axis, &pos)
-#      becomes position = pos.getPosition(axis),
-#      PositionerCapMeasure(handle,axis,&cap) becomes
-#      cap = pos.capMeasure(axis), and so on. Return code handling is
-#      within ANC350lib.
-#  3. bitmask() and debitmask() functions have been added for
-#      convenience when using certain functions
-#      (e.g. getStatus,moveAbsoluteSync)
-#  4. for tidiness remember to Positioner.close() when finished!
-#
-#                PyANC350 is written by Rob Heath
-#                      rob@robheath.me.uk
-#                         24-Feb-2015
-#                       robheath.me.uk
+"""
+====================
+ANC350 Attocube Controller
+====================
+
+This is the controller level of the positioner ANC350 from Attocube (in the Montana)
+
+It was taken from gitlab in August 2019 by Irina Komen and made to work with Hyperion
+
+PyANC350 is written by Rob Heath; rob@robheath.me.uk; 24-Feb-2015
+
+Description from Rob Heath:
+PyANC350 is a control scheme suitable for the Python coding style for the attocube ANC350 closed-loop positioner system.
+
+It implements ANC350lib, which in turn depends on anc350v2.dll which is provided by attocube in the ANC350_DLL folders on the driver disc.
+This in turn requires nhconnect.dll and libusb0.dll. Place all of these in the same folder as this module (and that of ANC350lib).
+
+Unlike ANC350lib which is effectively a re-imagining of the C++ header, PyANC350 is intended to behave as one might expect Python to. This means: returning values; behaving as an object.
+
+At present this only addresses the first ANC350 connected to the machine.
+
+Usage:
+1. instantiate Positioner() class to begin, eg. pos = Positioner().
+2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis),
+ PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
+3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
+4. for tidiness remember to Positioner.close() when finished!
+"""
 
 from hyperion import root_dir
 from hyperion.controller.base_controller import BaseController
@@ -56,6 +50,10 @@ class Anc350(BaseController):
         self.logger = logging.getLogger(__name__)
         self.name = 'ANC350'
         self.dummy = settings['dummy']
+        self.handle = []
+        self.posinf = []
+        self.numconnected = []
+        self.status = []
         self.logger.info('Class ANC350 init. Created object.')
 
     #----------------------------------------------------------------------------------------------------
@@ -173,8 +171,8 @@ class Anc350(BaseController):
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
 
-        :param amp: amplitude to be set to the Stepper in mV, between
-        :type amp: integer or float
+        :param amp: amplitude to be set to the Stepper in mV, between 0 and 60mV; needs to be an integer!
+        :type amp: integer
         """
         if 0 <= amp <= 60000:
             ANC350lib.positionerAmplitude(self.handle,axis,amp)
@@ -201,7 +199,7 @@ class Anc350(BaseController):
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
 
-        :param freq: frequency in Hz, from 1Hz to 2kHz
+        :param freq: frequency in Hz, from 1Hz to 2kHz; needs to be an integer!
         :type freq: integer
         """
         if 1 <= freq <= 2000:
@@ -270,7 +268,7 @@ class Anc350(BaseController):
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
 
-        :param position: absolute target position in nm
+        :param position: absolute target position in nm; needs to be an integer!
         :type position: integer
 
         :param rotcount: optional argument position units are in 'unit of actor multiplied by 1000' (generally nanometres)
@@ -286,7 +284,7 @@ class Anc350(BaseController):
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
 
-        :param position: relative target position in nm, can be both positive and negative
+        :param position: relative target position in nm, can be both positive and negative; needs to be an integer!
         :type position: integer
 
         :param rotcount: optional argument position units are in 'unit of actor multiplied by 1000' (generally nanometres)
@@ -314,7 +312,7 @@ class Anc350(BaseController):
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
 
-        :param dclev: DC level in mV
+        :param dclev: DC level in mV; needs to be an integer!
         :type dclev: integer
         """
         if 0 <= dclev <= 140000:
@@ -435,6 +433,7 @@ class Anc350(BaseController):
 
     def stopDetection(self, axis, state):
         """switches stop detection on/off
+        Is this what in Daisy is called hump detection? Than it might be useful
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -763,6 +762,7 @@ if __name__ == "__main__":
 
         print('so the speed is ',anc.getSpeed(0),'nm/s')
 
+        print('axis is now at', anc.getPosition(ax['x']))
 
         #there are 4 ways in which you can move the stepper
 
