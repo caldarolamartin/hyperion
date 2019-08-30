@@ -22,6 +22,9 @@ class App(QWidget):
 
         vbox = QVBoxLayout()
         self.random_plot = pg.PlotWidget()
+        # setLabel(axis, text=None, units=None, unitPrefix=None, **args)[source]
+        self.random_plot.plotItem.setLabel(axis="bottom", text="art", units="seconds")
+        self.random_plot.plotItem.setLabel(axis="left", text="modern", units="meter")
         vbox.addWidget(self.random_plot)
         self.setLayout(vbox)
         self.show()
