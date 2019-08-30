@@ -11,6 +11,8 @@ It's easiest, safest and cleanest to install these in their own environment.
 We use conda_. Make sure you have an up-to-date
 version  of ``conda`` installed – either from Anaconda_ or miniconda_.
 
+Start up Anaconda Navigator.
+
 To make sure ``conda`` is up-to-date, run::
 
     conda update -n base -c default conda
@@ -54,4 +56,4 @@ called ``doc/build`` and run::
 	sphinx-build -b html docs/source/ docs/build/
 
 This will create a series of html files with the documentation for the project
-in the folder doc/build, you should start at index.html
+in the folder hyperion/docs/build, you should start at index.html

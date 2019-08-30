@@ -296,6 +296,7 @@ class App(QWidget):
         # when the button is clicked this method will be executed
         print('button says something')
         self.statusBar().showMessage("you have clicked the button, nothing happens(yet)")
+
 class DrawSpectrum(QWidget):
     """
     In this class a widget is created to draw a graph on.
@@ -303,6 +304,7 @@ class DrawSpectrum(QWidget):
     def __init__(self):
         super().__init__()
         self.title = 'Osa graph view'
+        self.title = 'draw osa gui'
         self.left = 100
         self.top = 100
         self.width = 640
@@ -317,7 +319,6 @@ class DrawSpectrum(QWidget):
         vbox.addWidget(self.random_plot)
         self.setLayout(vbox)
         self.show()
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = DrawSpectrum()
