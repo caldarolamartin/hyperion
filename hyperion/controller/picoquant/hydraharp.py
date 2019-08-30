@@ -86,7 +86,7 @@ class Hydraharp(BaseController):
 
         # open connetiom
         self._open_device()  # initialize communication
-        self.initialize(mode=config['mode'], clock=config['clock'])  # initialise the instrument
+        self.initialize(mode=config['mode'], clock=config['clock'])  # initialize the instrument
 
         self.calibrate()  # calibrate it
         self.histogram_length = self._histoLen
@@ -126,7 +126,7 @@ class Hydraharp(BaseController):
    
     def _open_device(self):
         """
-        Initialise the communication with the device
+        Open the communication with the device and catch any error messages
         """
         self.logger.debug('Opening connection with device {}'.format(self.__devidx))
         devidx = self.__devidx
@@ -147,19 +147,18 @@ class Hydraharp(BaseController):
         """
         Error messages
         """
+        self.logger.debug('Getting an error')
         func = self.hhlib.HH_GetErrorString
         func.argtypes = [ctypes.c_char_p, ctypes.c_int]
         func.restype = ctypes.c_int
         data = ctypes.create_string_buffer(40)   
         data2 = ctypes.c_int(self.error_code)
         self.error_code = func(data, data2)
-        # error handling
-        # what happens if we have an eror in an error ?
         return data.value.decode('utf-8')
    
     def initialize(self, mode='Histogram', clock='Internal'):
         """
-        Initialise the device
+        Initialize the device
         
         :param devidx: index of the device
         :type devidx: int
@@ -170,7 +169,7 @@ class Hydraharp(BaseController):
         :param clock: source of the clock, can be: 'External'(default), 'Internal'
         :type clock: string
         """
-        self.logger.info('Initializing the device.')
+        self.logger.info('Initializing the hydraharp device.')
         self._is_initialized = True     # this is to prevent you to close the device connection if you
                                         # have not initialized it inside a with statement        
         devidx = self.__devidx
@@ -220,7 +219,7 @@ class Hydraharp(BaseController):
     @property
     def number_input_channels(self):
         """
-        Number of installed input channels
+        Number of installed input channels, in our case should be two (plus sync)
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -237,12 +236,10 @@ class Hydraharp(BaseController):
 
     def calibrate(self):
         """
-        Calibrate the device
+        Calibrate the device; no calibration file needed, this is an internal function
         
-        :param devidx: Index of the device
+        :param devidx: Index of the device (default 0)
         :type devidx: int
-             
-                   
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -256,25 +253,18 @@ class Hydraharp(BaseController):
    
    
     def sync_divider(self, divider=1):
-        """
-        Divider of the sync
-        
-        sync_divider(divider)
-        
-        The sync divider must be used to keep the effective sync rate at values ≤ 12.5 MHz. It should only be used with sync sources
-        of stable period. Using a larger divider than strictly necessary does not do great harm but it may result in slightly larger timing
+        """Divider of the sync
+        Must be used to keep the effective sync rate at values ≤ 12.5 MHz.
+
+        It should only be used with sync sources of stable period. Using a larger divider than strictly necessary does not do great harm but it may result in slightly larger timing
         jitter. The readings obtained with HH_GetCountRate are internally corrected for the divider setting and deliver the external
         (undivided) rate. The sync divider should not be changed while a measurement is running.
-        
-        devidx
-             Positive integer  (default 0)
-             
-             Index of the device      
-             
-        divider
-            1, 2, 4, 8 or 16
-         
-        Sync rate divider
+
+        :param devidx: Index of the device (default 0)
+        :type devidx: int
+
+        :param divider: 1, 2, 4, 8 or 16
+        :type divider: int
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -289,16 +279,15 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
       
     def sync_CFD(self, level=50, zerox=0):
-        """
+        """UNUSED
         Parameters of the sync CFD (constant fraction divicriminator)
-      
-        level
-            CFD discriminator level in millivolts
+        Values are given as a positive number although the electrical signals are actually negative.
 
-        zerox
-            CFD zero cross level in millivolts
-      
-        Values are given as a positive number although the electrical signals are actually negative.      
+        :param level: CFD discriminator level in millivolts
+        :type level: int
+
+        :param zerox: CFD zero cross level in millivolts
+        :type zerox: int
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -315,13 +304,10 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
       
     def sync_offset(self, value=0):
-        """
-        Sync offset in time
-        
-        offset
-             -99999, ..., 99999
-             
-        Sync time offset in ps      
+        """Sync offset in time
+
+        :param offset: time offset in ps -99999, ..., 99999
+        :type offset: int
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -336,21 +322,18 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
       
     def input_CFD(self, channel=0, level=50, zerox=0):
-        """
+        """UNUSED
         Parameters of the input CFD (constant fraction divicriminator)
-      
-        channel
-            0, 1, ... 
-             
-        Input channel index
-         
-        level
-            CFD discriminator level in millivolts
+        Values are given as a positive number although the electrical signals are actually negative.
 
-        zerox
-            CFD zero cross level in millivolts
-      
-        Values are given as a positive number although the electrical signals are actually negative.      
+        :param channel: input channel index; in our case 0 or 1
+        :type channel: int
+
+        :param level: CFD discriminator level in millivolts
+        :type level: int
+
+        :param zerox: CFD zero cross level in millivolts
+        :type zerox: int
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -369,18 +352,13 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
  
     def input_offset(self, channel=0, offset=0):
-        """
-        Input offset in time
+        """Input offset in time
         
-        channel
-            0, 1, ... 
-         
-            Input channel index
-         
-        offset
-            -99999, ..., 99999
-         
-            Input time offset in ps      
+        :param channel: input channel index; in our case 0 or 1
+        :type channel: int
+
+        :param offset: time offset in ps -99999, ..., 99999
+        :type offset: int
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -402,20 +380,14 @@ class Hydraharp(BaseController):
    
     @histogram_length.setter
     def histogram_length(self, length=65536):
-        """
-        Set the histograms length
-        
+        """Set the histograms length (time bin count) of histograms
         actual_length = histogram_length(devidx, length)
-        
-        length
-            1024, 2048, 4096, 8192, 16384, 32768 or 65536  (default 65536)
-             
-        Length (time bin count) of histograms
-         
-        Output:
-             
-        actual_length
-        Actual length of the histograms
+        The histogram length has to do with the resolution in ps; in the hydraharp software it's always 65536 (2^16)
+
+        :param length: array size of histogram, 1024, 2048, 4096, 8192, 16384, 32768 or 65536  (default 65536)
+        :type length: int
+
+        :return: actual_length
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -436,15 +408,14 @@ class Hydraharp(BaseController):
    
    
     def _binning(self, binning=0):
-        """
-        Binning of the histograms
-        
-        binning
-            positive integer
-            0 = 1x base resolution,
-            1 = 2x base resolution,
-            2 = 4x base resolution,
-            3 = 8x base resolution, and so on.
+        """Binning of the histograms; has something to do with the resolution
+        0 = 1x base resolution,
+        1 = 2x base resolution,
+        2 = 4x base resolution,
+        3 = 8x base resolution, and so on.
+
+        :param binning: binning of the histograms, 0,1,...
+        :type binning: integer
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -459,15 +430,11 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
    
     def histogram_offset(self, offset=0):
-        """
-        Histogram time offset    
-        
-        offsetZ
-            0, ... 500000
-            Positive integer
+        """Histogram time offset in ps
+        (Documentation say ns, but it's most probably a typo.)
 
-            Histogram time offset in ps.
-            (Documentation say ns, but it's most probably a typo.)
+        :param offset: Histogram time offset in ps; 0, ... 500000
+        :type offset: int
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -485,6 +452,8 @@ class Hydraharp(BaseController):
     def resolution(self):
         """
         Resolution (in ps) at the current binning
+
+        :return resolution: resolution in ps at current binning
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -501,20 +470,19 @@ class Hydraharp(BaseController):
          
     @resolution.setter
     def resolution(self, resolution):
+        """Resolution (in ps)
+        This is what you can adjust in the hydraharp software, not the binning
+
+        :param resolution: resolution in ps; 1, 2, 4, 8, ... 2^26
+        :type resolution: int
         """
-        Resolution (in ps)
-        
-        resolution
-            1, 2, 4, 8, ... 2^26
-             
-            Resolution in ps
-            """
         self._binning(int(np.log2((resolution/self._base_resolution))))
       
 
     def sync_rate(self):
-        """
-        Current sync rate
+        """Current sync rate
+
+        :return sync rate: measured counts per second on the sync input channel
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -530,16 +498,15 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
    
     def count_rate(self, channel=0):
+        """Current count rate of the input channel
+        Allow at least 100 ms after HH_Initialize or HH_SetSyncDivider to get a stable rate meter readings.
+        Similarly, wait at least 100 ms to get a new reading. This is the gate time of the counters.
+
+        :param channel: input channel index; in our case 0 or 1
+        :type channel: int
+
+        return count rate: measured counts per second on one of the channels
         """
-        Current count rate of the input channel
-        
-        channel
-             0, 1, ... 
-         
-        Input channel index
-        """
-        # Allow at least 100 ms after HH_Initialize or HH_SetSyncDivider to get a stable rate meter readings.
-        # Similarly, wait at least 100 ms to get a new reading. This is the gate time of the counters.
         time.sleep(0.1)
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -558,11 +525,10 @@ class Hydraharp(BaseController):
 
     @property
     def warnings(self):
+        """Warnings, bitwise encoded (see phdefin.h)
+        You must call HH_GetCoutRate and HH_GetCoutRate for all channels prior to this call.
+        :return warming: warning message
         """
-        Warnings, bitwise encoded (see phdefin.h)
-        """
-        # TODO
-        #  You must call HH_GetCoutRate and HH_GetCoutRate for all channels prior to this call.
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
         func = self.hhlib.HH_GetWarnings
@@ -579,8 +545,9 @@ class Hydraharp(BaseController):
 
     @property
     def warnings_text(self, ):
-        """
-        Human readable warnings
+        """Human readable warnings
+
+        :return warning: warning in readable text
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -598,19 +565,14 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
 
     def stop_overflow(self, stop_at_overflow=0, stop_count=0):
-        """
-        Determines if a measurement run will stop if any channel reaches the maximum set by stopcount. 
+        """Determines if a measurement run will stop if any channel reaches the maximum set by stopcount.
+        In case of False, measurement will continue but counts above stop_count in any bin will be clipped.
 
-        stop_at_overflow
-             Bool  (default True)
-             False: do not stop. Measurement will continue but counts above stop_count in any bin will be clipped.
-             True: do stop on overflow
-         
-        Stop if any channel reaches the maximum set by stopcount. 
-         
-        stop_count
-             Integer
-             1, ... 4294967295  (default 4294967295)
+        :param stop_at_overflow: True is stop at overflow, False is do not stop (default True)
+        :type stop_at_overflow: bool
+
+        :param stop_count: Maximum counts at which the program stops because of overflow; 1, ... 4294967295  (default 4294967295)
+        :type stop_count: int
         """
         stop_count = self.settings['STOPCNTMAX']
         devidx = self.__devidx
@@ -642,14 +604,10 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
 
     def start_measurement(self, acquisition_time=1000):
-        """
-        Start acquisition
-        
-        acquisition_time
-            Float
-            0.001, ... 360000
-        
-            Acquisition time in second
+        """Start acquisition
+
+        :param acquisition_time: Acquisition time in seconds; 0.001, ... 360000
+        :type acquisition_time: float
         """
 
         devidx = self.__devidx
@@ -671,12 +629,9 @@ class Hydraharp(BaseController):
 
     @property
     def ctc_status(self):
-        """
-        Acquisition time state
-        
-        Output:
-            False: acquisition time still running
-            True: acquisition time has ended
+        """Acquisition time state
+
+        :return status: False: acquisition time still running; True: acquisition time has ended
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -692,10 +647,9 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
 
     def stop_measurement(self):
-        """
-        Stop acquisition
-        
+        """Stop acquisition
         Can be used before the acquisition time expires.
+
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -708,20 +662,18 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
 
     def histogram(self, channel=0, clear=True):
-        """
-        Histogram of channel
-        
-        channel
-            0..nchannels-1  (default 0)
-         
-            input channel index 
-         
-        clear
-            Bool (default True)
-         
-            denotes the action upon completing the reading process
-            False: keeps the histogram in the acquisition buffer
-            True: clears the acquisition buffer
+        """Histogram of channel
+        Not clear whether you can use this one without first start_measurement
+        The histogram is always taken between one of the input channels and the sync channel
+        To perform start-stop measurements, connect one of the photon detectors to the sync channel
+
+        :param channel: input channel index; in our case 0 or 1
+        :type channel: int
+
+        :param clear: denotes the action upon completing the reading process; False keeps the histogram in the acquisition buffer; True clears the buffer
+        :type clear: bool
+
+        :return histogram: array with the histogram data; size is determined by histogram_length, default 2^16
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -742,8 +694,8 @@ class Hydraharp(BaseController):
 
     @property
     def flags(self):
-        """
-        Use the predefined bit mask values in hhdefin.h (e.g. FLAG_OVERFLOW) to extract individual bits through a bitwise AND.
+        """Use the predefined bit mask values in hhdefin.h (e.g. FLAG_OVERFLOW) to extract individual bits through a bitwise AND.
+
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -758,9 +710,8 @@ class Hydraharp(BaseController):
         else:
             warnings.warn(self.error_string)
 
-    def close_device(self):
-        """
-        Closes and releases the device for use by other programs.
+    def finalize(self):
+        """Closes and releases the device for use by other programs.
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -772,10 +723,6 @@ class Hydraharp(BaseController):
         if self.error_code is not 0:
             warnings.warn(self.error_string)
 
-    def finalize(self):
-        
-        self.close_device()
-        
         
 class Measurement_mode(Enum):
     Histogram = 0
@@ -805,13 +752,21 @@ if __name__ == "__main__":
         
         q.histogram_length = 1024
         
-        q.start_measurement(acquisition_time = 10)
-        
-        print(q.ctc_status)
+        q.start_measurement(acquisition_time = 30)
+
+        status = q.ctc_status
+        # wait_time = 1
+        #
+        # while status == False:
+        #     time.sleep(wait_time)
+        #     status = q.ctc_status
+        #     print('Finished? ', q.ctc_status)
+        #
+        # print('Now finished? ', q.ctc_status)
         
         hist = q.histogram(channel = 0)
         
         print(hist)
         
-        q.close_device()
+        q.finalize()
         
