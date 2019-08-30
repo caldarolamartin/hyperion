@@ -76,7 +76,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -84,7 +84,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -92,7 +92,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -100,7 +100,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -115,7 +115,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
+    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
     dummy: True
     settings:
       output: True
@@ -135,7 +135,6 @@ Instruments:
     dummy: True
     settings:
       output: True
-
 
 MetaInstruments:
   SampleXyzStageMotor:
