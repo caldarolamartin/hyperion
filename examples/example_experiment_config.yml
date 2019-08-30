@@ -48,12 +48,6 @@ Instruments:
     serial_number: 81818266
     instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
     controller: hyperion.controller.thorlabs.TDC001/TDC001
-  XYZMotor:
-    instrument: hyperion.instrument.xyz_motors/ThorlabsXYZ
-    view: hyperion.view.xyz_motors/Thorlabs3AxisView
-    xMotor: 83815760
-    yMotor: 83815758
-    zMotor: 83817677
   XPiezoStepper:
     controller: hyperion.controller.attocube.anc350/Anc350
     instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
@@ -82,7 +76,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -90,7 +84,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -98,7 +92,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -106,7 +100,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
       output: True
@@ -121,7 +115,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
+    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
     dummy: True
     settings:
       output: True
@@ -141,7 +135,6 @@ Instruments:
     dummy: True
     settings:
       output: True
-
 
 MetaInstruments:
   SampleXyzStageMotor:
