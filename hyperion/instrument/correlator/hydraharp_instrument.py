@@ -42,8 +42,8 @@ class HydraInstrument(BaseInstrument):
         self.configurate()
 
     def configurate(self, filename = None):
-        """ Loads the yml configuration file of default intrument settings that probably nobody is going to change
-        File in folder \instrument\correlator\HydrahaInstrument_config.yml
+        """ | Loads the yml configuration file of default intrument settings that probably nobody is going to change
+        | File in folder \instrument\correlator\HydrahaInstrument_config.yml
         
         :param filename: the name of the configuration file
         :type filename: string
@@ -80,8 +80,8 @@ class HydraInstrument(BaseInstrument):
     def sync_rate(self):
         """Asks the controller the rate of counts on the sync channel and adds units
 
-        :return sync rate: counts per second on the sync channel
-        :rtype sync rate: pint quantity
+        :return: counts per second on the sync channel
+        :rtype: pint quantity
         """
         self.sync = self.controller.sync_rate()*ureg('cps')
         return self.sync
@@ -93,16 +93,16 @@ class HydraInstrument(BaseInstrument):
         :param channel: count rate channel 1 or 2 connected to the photon counter
         :type channel: int
         
-        :return count: count rate that is read out in counts per second
-        :rtype count: pint quantity
+        :return: count rate that is read out in counts per second
+        :rtype: pint quantity
         """
         self.count = self.controller.count_rate(channel)*ureg('cps')
         return self.count
 
     def set_histogram(self,leng,res):
-        """ Clears the possible previous histogram, sets the histogram length and resolution
-        Has also to do with the binning and the length of the histogram
-        In the hydraharp software, the length is fixed to 2^16 and the resolution determines the binning and thus the time axis that is plot
+        """ | Clears the possible previous histogram, sets the histogram length and resolution
+        | *Has also to do with the binning and the length of the histogram*
+        | In the hydraharp software, the length is fixed to 2^16 and the resolution determines the binning and thus the time axis that is plot
         
         :param leng: length of histogram
         :type leng: int
@@ -116,17 +116,17 @@ class HydraInstrument(BaseInstrument):
         self.logger.debug('Set the parameters for taking a histogram')
     
     def make_histogram(self, tijd, count_channel):
-        """ Does the histogram measurement, checking for the status, saving the histogram
-        It is not clear however whether you need to start measurement and than make the histogram
-        The start measurement method of the controller is called in prepare_to_take_histogram
+        """ | Does the histogram measurement, checking for the status, saving the histogram
+        | **It is not clear however whether you need to start measurement and than make the histogram**
+        | The start measurement method of the controller is called in prepare_to_take_histogram
         
         :param count_channel: number of channel that is correlated with the sync channel, 1 or 2
         :type count_channel: int
 
-        :param tijd: acquisition time of the histogram; please don't use the English word
+        :param tijd: acquisition time of the histogram; **please don't use the English word**
         :type tijd: pint quantity
 
-        :return histogram: array containing the histogram
+        :return: array containing the histogram
         """
         self.logger.info('Remaining time: ' + str(self.prepare_to_take_histogram(tijd)))
         self.hist = self.controller.histogram(int(count_channel))
@@ -137,10 +137,10 @@ class HydraInstrument(BaseInstrument):
     def prepare_to_take_histogram(self, tijd):
         """This communicates with the controller method start_measurement and then in theory should wait untill it is finished
 
-        :param tijd: acquisition time of the histogram; please don't use the English word
+        :param tijd: acquisition time of the histogram; **please don't use the English word**
         :type tijd: pint quantity
 
-        :return time left: time that is left untill the histogram is finished
+        :return: time that is left until the histogram is finished
         """
         self.logger.debug('Start the histogram measurement')
 
@@ -148,10 +148,10 @@ class HydraInstrument(BaseInstrument):
         return (self.wait_till_finished(tijd))
 
     def wait_till_finished(self, tijd):
-        """This method should ask the device its status and keep asking untill it's finished
-        Doesn't work completely yet
+        """| This method should ask the device its status and keep asking until it's finished
+        | Doesn't work completely yet
 
-        :param tijd: integration time of histogram (please don't use the English word for tijd) in s
+        :param tijd: integration time of histogram in s **(please don't use the English word for tijd)**
         :type tijd: pint quantity
 
         :return: remaining time in seconds

@@ -41,8 +41,8 @@ class Anc350Instrument(BaseInstrument):
         #self.configurate()
 
     def initialize_available_motors(self):
-        """ Start the connection to the device
-        Makes a dictionary of axis names based on the example_experiment_config.yml file
+        """ | Start the connection to the device
+        | Makes a dictionary of axis names based on the example_experiment_config.yml file
         """
         experiment = BaseExperiment()
         experiment.load_config("D:\\labsoftware\\hyperion\\examples\\example_experiment_config.yml")
@@ -54,25 +54,23 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('Started the connection to the device and loaded the yml file')
 
     def list_devices(self):
-        """ Gives a list of the connected piezo's
-        If the device is on, all its piezo's should be working
-        There is no way of checking whether one is not working
-        So just gives the dictionary created in initialize_available_motors
+        """ | Gives a list of the connected piezo's
+        | If the device is on, all its piezo's should be working
+        | **There is no way of checking whether one is not working**
+        | So just gives the dictionary created in initialize_available_motors
         """
         devices = len(self.attocube_piezo_dict)
         self.logger.info(str(devices)+ ' piezos found')
 
     def configurate_stepper(self, axis, amplitude, frequency):
-        """ Does the necessary configuration of the Stepper:
-        -for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
-        -loads the actor file, now it's the file called q
-        -measures the capacitance of the Stepper; not clear whether it is needed
-        -sets the amplitude and frequency
-        -the amplitude influences the step width, the frequency influences the speed
+        """ - Does the necessary configuration of the Stepper:
+        - for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
+        - **loads the actor file, now it's the file called q**
+        - measures the capacitance of the Stepper; **not clear whether it is needed**
+        - sets the amplitude and frequency
+        - the amplitude influences the step width, the frequency influences the speed
+        - *for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2*
 
-<<<<<<< HEAD
-        # for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
-=======
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
 
@@ -122,10 +120,10 @@ class Anc350Instrument(BaseInstrument):
             raise Exception('The required frequency needs to be between 1Hz and 2kHz')
 
     def configurate_scanner(self,axis):
-        """Does the necessary configuration of the Scanner:
-        -you need to set the mode to INT, not DC-IN
-        -loads the actor file
-        -measures the capacitance of the Scanner; not clear whether it is needed
+        """- Does the necessary configuration of the Scanner:
+        - you need to set the mode to INT, not DC-IN
+        - loads the actor file
+        - measures the capacitance of the Scanner; **not clear whether it is needed**
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
@@ -142,8 +140,8 @@ class Anc350Instrument(BaseInstrument):
         self.logger.debug('is the scanner on INT mode? ' + str(self.controller.getIntEnable(self.attocube_piezo_dict[axis])))
 
     def move_to(self,axis,position):
-        """Moves to an absolute position with the Stepper and tells when it arrived
-        Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo
+        """| Moves to an absolute position with the Stepper and tells when it arrived
+        | **Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo**
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -173,8 +171,8 @@ class Anc350Instrument(BaseInstrument):
             time.sleep(0.5)
 
     def move_relative(self, axis, step):
-        """Moves the Stepper by an amount to be given by the user
-        Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo
+        """| Moves the Stepper by an amount to be given by the user
+        | **Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo**
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -204,8 +202,8 @@ class Anc350Instrument(BaseInstrument):
             time.sleep(1)
 
     def given_step(self,axis,direction,amount):
-        """Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different
-        You have to give it a lot of time, things break if you ask too much whether it is finished yet
+        """| Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different
+        | *You have to give it a lot of time, things break if you ask too much whether it is finished yet*
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -232,8 +230,8 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('average step size is ' + str(round(av_steps)*ur('nm')))
 
     def move_scanner(self, axis, voltage):
-        """ Moves the Scanner by applying a certain voltage
-        There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V
+        """ | Moves the Scanner by applying a certain voltage
+        | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V*
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
