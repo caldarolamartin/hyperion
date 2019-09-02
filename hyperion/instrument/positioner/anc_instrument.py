@@ -87,7 +87,7 @@ class Anc350Instrument(BaseInstrument):
         capacitance = round(capacitance.to('F'),3)
         self.logger.info(axis+': ' + str(capacitance))
 
-        #self.controller.load(axis,filename=default)
+        #self.controller.load(axis,filename='q')
         self.controller.amplitudeControl(self.attocube_piezo_dict[axis],2)
         self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
 
@@ -308,15 +308,15 @@ if __name__ == "__main__":
 
         q.move_relative(axis, -50 * ur('um'))
 
-        direct = 0  #forward
-        steps = 10  #amount of steps
-
-        q.given_step(axis,direct,steps)
-
-        axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
-
-        q.configurate_scanner(axis)
-
-        volts = 100*ur('V')
-        q.move_scanner(axis,volts)
+        # direct = 0  #forward
+        # steps = 10  #amount of steps
+        #
+        # q.given_step(axis,direct,steps)
+        #
+        # axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
+        #
+        # q.configurate_scanner(axis)
+        #
+        # volts = 100*ur('V')
+        # q.move_scanner(axis,volts)
 
