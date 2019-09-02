@@ -139,6 +139,55 @@ class Anc350Instrument(BaseInstrument):
         self.controller.intEnable(self.attocube_piezo_dict[axis],True)
         self.logger.debug('is the scanner on INT mode? ' + str(self.controller.getIntEnable(self.attocube_piezo_dict[axis])))
 
+    def check_if_moving(self,axis,position):
+        """
+        | Checks whether the piezo is actually moving
+        | It compares the first 5 positions with each other
+        | If the average moving is below the threshold of 1 um, this method will raise an exception
+
+        :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
+        :type axis: string
+
+        :param position: absolute position that you want to go to; needs to be an integer, no float!
+        :type axis: pint quantity
+
+        :return: The end position, so the moving method can compare that with the start position
+        """
+
+        # check what's happening
+        Positions = np.zeros(6)
+        Positions[0] = self.controller.getPosition(self.attocube_piezo_dict[axis])
+        Diff_pos = np.zeros(5)
+        time.sleep(0.5)
+        state = 1
+        timer = 0
+        while state == 1:
+            newstate = self.controller.getStatus(self.attocube_piezo_dict[axis])  # find bitmask of status
+            if newstate == 1:
+                pos = self.controller.getPosition(self.attocube_piezo_dict[axis]) * ur('nm')
+                self.logger.info(axis + ' moving, currently at ' + str(round(pos.to('mm'), 6)))
+                if timer < 5:
+                    Positions[timer+1] = pos.m_as('nm')
+                    Diff_pos[timer] = Positions[timer+1]-Positions[timer]
+                    print(Positions)
+                    print(Diff_pos)
+                if timer == 5:
+                    if np.mean(np.abs(Diff_pos)) < 500:    #in nm
+                        raise Exception('The piezo is not moving at all!')
+                    else:
+                        timer == 0
+            elif newstate == 0:
+                end = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
+            else:
+                self.logger.info('axis has value' + str(newstate))
+            state = newstate
+            timer += 1
+            print(timer)
+            time.sleep(0.5)
+        return(end)
+
+
+
     def move_to(self,axis,position):
         """| Moves to an absolute position with the Stepper and tells when it arrived
         | **Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo**
@@ -153,22 +202,11 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('Moving ' + axis +' to position: '+ str(position))
         self.controller.moveAbsolute(self.attocube_piezo_dict[axis], int(position.m_as('nm')))
 
-        # check what's happening
-        time.sleep(0.5)
-        state = 1
-        while state == 1:
-            newstate = self.controller.getStatus(self.attocube_piezo_dict[axis])  # find bitmask of status
-            if newstate == 1:
-                pos = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-                self.logger.info(axis +' moving, currently at ' + str(round(pos.to('mm'),6)))
-            elif newstate == 0:
-                end = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-                self.logger.info('axis arrived at ' + str(round(end.to('mm'),6)))
-                self.logger.info('difference is ' + str(round(position - end,6)))
-            else:
-                self.logger.info('axis has value' + str(newstate))
-            state = newstate
-            time.sleep(0.5)
+        end = self.check_if_moving(axis,position)
+
+        self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
+        self.logger.info('difference is ' + str(round(position.to('nm') - end.to('nm'), 6)))
+
 
     def move_relative(self, axis, step):
         """| Moves the Stepper by an amount to be given by the user
@@ -185,21 +223,10 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('moving to a relative position, ' + str(step))
         self.controller.moveRelative(self.attocube_piezo_dict[axis],int(step.m_as('nm')))
 
-        time.sleep(1)
-        state = 1
-        while state == 1:
-            newstate = self.controller.getStatus(self.attocube_piezo_dict[axis])  # find bitmask of status
-            if newstate == 1:
-                pos = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-                self.logger.info(axis+' moving, currently at ' + str(round(pos.to('mm'),6)))
-            elif newstate == 0:
-                end = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-                self.logger.info('axis arrived at ' + str(round(end.to('mm'),6)))
-                self.logger.info('has moved ' + str(round(begin - end,6)))
-            else:
-                self.logger.info('axis has value' + str(newstate))
-            state = newstate
-            time.sleep(1)
+        end = self.check_if_moving(axis,step)
+
+        self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
+        self.logger.info('has moved ' + str(round(begin - end, 6)))
 
     def given_step(self,axis,direction,amount):
         """| Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different
@@ -278,19 +305,19 @@ if __name__ == "__main__":
 
         q.configurate_stepper(axis,ampl,freq)
 
-        q.move_to(axis,2*ur('mm'))
+        q.move_to(axis,2.55*ur('mm'))
 
-        q.move_relative(axis, -2 * ur('um'))
+        q.move_relative(axis, -50 * ur('um'))
 
-        direct = 0  #forward
-        steps = 10  #amount of steps
-
-        q.given_step(axis,direct,steps)
-
-        axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
-
-        q.configurate_scanner(axis)
-
-        volts = 100*ur('V')
-        q.move_scanner(axis,volts)
+        # direct = 0  #forward
+        # steps = 10  #amount of steps
+        #
+        # q.given_step(axis,direct,steps)
+        #
+        # axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
+        #
+        # q.configurate_scanner(axis)
+        #
+        # volts = 100*ur('V')
+        # q.move_scanner(axis,volts)
 
