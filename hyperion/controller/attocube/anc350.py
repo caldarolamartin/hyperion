@@ -300,6 +300,16 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerMoveSingleStep(self.handle,axis,direction)
 
+    def stopApproach(self, axis):
+        """
+        | Stops approaching target/relative/reference position.
+        | DC level of affected axis after stopping depends on setting by .setTargetGround()
+        | *Dont know for sure whats the difference with stopMoving*
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+        """
+        ANC350lib.positionerStopApproach(self.handle,axis)
 
     #Used methods only scanner
     #----------------------------------------------------------------------------------------------------
@@ -353,6 +363,8 @@ class Anc350(BaseController):
         :type state: bool
         """
         ANC350lib.positionerIntEnable(self.handle,axis,ctypes.c_bool(state))
+
+
 
 
     # ----------------------------------------------------------------------------------------------------
@@ -424,16 +436,7 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerSetStopDetectionSticky(self.handle,axis,state)
 
-    def stopApproach(self, axis):
-        """| *UNUSED*
-        | Stops approaching target/relative/reference position.
-        | DC level of affected axis after stopping depends on setting by .setTargetGround()
-        | *Dont know whats the difference with stopMoving*
 
-        :param axis: axis number from 0 to 2 for steppers
-        :type axis: integer
-        """
-        ANC350lib.positionerStopApproach(self.handle,axis)
 
     def stopDetection(self, axis, state):
         """| *UNUSED*

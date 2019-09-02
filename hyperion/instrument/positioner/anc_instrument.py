@@ -169,10 +169,11 @@ class Anc350Instrument(BaseInstrument):
                 if timer < 5:
                     Positions[timer+1] = pos.m_as('nm')
                     Diff_pos[timer] = Positions[timer+1]-Positions[timer]
-                    print(Positions)
-                    print(Diff_pos)
+                    #print(Positions)
+                    #print(Diff_pos)
                 if timer == 5:
-                    if np.mean(np.abs(Diff_pos)) < 500:    #in nm
+                    if np.abs(np.mean(Diff_pos)) < 1000:    #in nm
+                        self.controller.stopApproach(self.attocube_piezo_dict[axis])
                         raise Exception('The piezo is not moving at all!')
                     else:
                         timer == 0
@@ -182,11 +183,9 @@ class Anc350Instrument(BaseInstrument):
                 self.logger.info('axis has value' + str(newstate))
             state = newstate
             timer += 1
-            print(timer)
+            #print(timer)
             time.sleep(0.5)
         return(end)
-
-
 
     def move_to(self,axis,position):
         """| Moves to an absolute position with the Stepper and tells when it arrived
@@ -309,15 +308,15 @@ if __name__ == "__main__":
 
         q.move_relative(axis, -50 * ur('um'))
 
-        # direct = 0  #forward
-        # steps = 10  #amount of steps
-        #
-        # q.given_step(axis,direct,steps)
-        #
-        # axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
-        #
-        # q.configurate_scanner(axis)
-        #
-        # volts = 100*ur('V')
-        # q.move_scanner(axis,volts)
+        direct = 0  #forward
+        steps = 10  #amount of steps
+
+        q.given_step(axis,direct,steps)
+
+        axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
+
+        q.configurate_scanner(axis)
+
+        volts = 100*ur('V')
+        q.move_scanner(axis,volts)
 
