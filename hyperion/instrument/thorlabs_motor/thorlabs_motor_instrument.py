@@ -77,8 +77,7 @@ class Thorlabsmotor(BaseInstrument):
 
     def initialize_available_motors(self, motor_bag):
         """
-        Starts the connection to all motors 
-        and sets the thorlabs_motor object in the motor_bag.
+        Starts the connection to all motors and sets the thorlabs_motor object in the motor_bag.
         
         :param motor_bag: a dictionary with all the available thorlabs_motor instances.
         :type dictionary

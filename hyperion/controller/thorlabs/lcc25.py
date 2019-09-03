@@ -186,9 +186,7 @@ class Lcc(BaseController):
     def freq(self):
         """ Modulation frequency when the operation mode is 'modulation' (mode = 0)
 
-        : getter :
-
-        Asks for the current frequency
+        : getter : Asks for the current frequency
 
         :return: The frequency value
         :rtype: pint quantity
@@ -256,29 +254,18 @@ class Lcc(BaseController):
 
     @property
     def mode(self):
-        """ Operation mode
+        """| Operation mode
+        | The possible modes are:
+        | 1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
+        | 2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
+        | 0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1 is one limit and voltage 2 is the second.
+        | The modulation frequency can be changed with the command 'freq' in the 0.5-150 Hz range.
 
-        The possible modes are:
-
-        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
-
-        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
-
-        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
-        is one limit and voltage 2 is the second. the modulation frequency can be
-        changed with the command 'freq' in the 0.5-150 Hz range.
-
-        : getter :
-
-        Gets the current mode
-
-        : setter :
-
-        Sets the mode
+        : getter : Gets the current mode
+        : setter : Sets the mode
 
         :param mode: type of operation.
         :type mode: int
-
         """
         self.logger.debug('Getting the mode of operation')
         self._mode = int(self.query('mode?'))
@@ -319,8 +306,10 @@ class LccDummy(Lcc):
 
     def __init__(self, settings = {'port':'COM00', 'dummy':True}):
         """ init for the dummy LCC
+
         :param port: fake port name
         :type port: str
+
         :param dummy: indicates the dummy mode. keept for compatibility
         :type dummy: logical
         """
