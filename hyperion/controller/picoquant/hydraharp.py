@@ -635,6 +635,7 @@ class Hydraharp(BaseController):
         data = ctypes.c_int(devidx)
         data2 = ctypes.c_int(int(tacq.m_as('s')))
         self.error_code = func(data, data2)
+        #print(data, data2)
         if self.error_code is not 0:
             warnings.warn(self.error_string)
 
@@ -762,8 +763,12 @@ if __name__ == "__main__":
         q.clear_histogram()
         
         q.histogram_length = 1024
-        
-        q.start_measurement(acquisition_time = 30)
+
+
+
+        q.start_measurement(acquisition_time = 10)
+
+        hist = q.histogram(channel=0)
 
         status = q.ctc_status
         # wait_time = 1
@@ -775,7 +780,7 @@ if __name__ == "__main__":
         #
         # print('Now finished? ', q.ctc_status)
         
-        hist = q.histogram(channel = 0)
+
         
         print(hist)
         
