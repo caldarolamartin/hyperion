@@ -141,6 +141,7 @@ class Lcc(BaseController):
         if self._is_initialized:
             if self.rsc is not None:
                 self.rsc.close()
+                sleep(0.1)
                 self.logger.info('Resource connection closed.')
         else:
             self.logger.warning('Finalizing before initializing the LCC25')

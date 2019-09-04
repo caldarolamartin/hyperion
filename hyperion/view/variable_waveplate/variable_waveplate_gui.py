@@ -120,6 +120,7 @@ class VariableWaveplateGui(QWidget):
         submit_button.setToolTip('This is an example submit_button')
         self.grid_layout.addWidget(submit_button, 3, 3)
         submit_button.clicked.connect(self.submit_button_clicked)
+
     def set_mode_combobox(self):
         """
         With the combobox all the different modes are shown.
@@ -198,11 +199,12 @@ if __name__ == '__main__':
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
+    logging.info('Running vairable waveplate GUI file.')
+    with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : False,
+                                       'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as variable_waveplate_ins:
 
-    variable_waveplate_ins = VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : False,
-                                       'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'})
-    variable_waveplate_ins.initialize()
-    app = QApplication(sys.argv)
-    ex = VariableWaveplateGui(variable_waveplate_ins)
-    variable_waveplate_ins.finalize()
-    sys.exit(app.exec_())
+        variable_waveplate_ins.initialize()
+        app = QApplication(sys.argv)
+        ex = VariableWaveplateGui(variable_waveplate_ins)
+        #variable_waveplate_ins.finalize()
+        sys.exit(app.exec_())
