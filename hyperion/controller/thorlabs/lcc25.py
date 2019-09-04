@@ -67,6 +67,7 @@ class Lcc(BaseController):
                                      baudrate=self.DEFAULTS['baudrate'],
                                      timeout=self.DEFAULTS['read_timeout'],
                                      write_timeout=self.DEFAULTS['write_timeout'])
+            sleep(0.1)
             self.logger.info('Initialized device LCC at port {}.'.format(self._port))
 
         self._is_initialized = True

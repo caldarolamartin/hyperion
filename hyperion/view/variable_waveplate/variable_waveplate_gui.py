@@ -1,10 +1,24 @@
+"""
+======================
+Variable waveplate GUI
+======================
+
+This is the variable waveplate GUI.
+
+
+
+"""
+
+import logging
 import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItem, QColor
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit
 from hyperion.instrument.variable_waveplate.variable_waveplate import VariableWaveplate
 from hyperion import Q_
+
 #todo checkout if the device is on the computer if this class can work with the variablewaveplate/lcc25
+
 
 class VariableWaveplateGui(QWidget):
 
@@ -12,7 +26,7 @@ class VariableWaveplateGui(QWidget):
         """
         Init of the VariableWaveplateGui
 
-        :param variable_waveplate_ins:
+        :param variable_waveplate_ins: instrument
         :type an instance of the variable_waveplate instrument
         """
         super().__init__()
@@ -175,7 +189,18 @@ class VariableWaveplateGui(QWidget):
             self.variable_waveplate_ins.output = False
 
 if __name__ == '__main__':
-    variable_waveplate_ins = VariableWaveplate()
+    from hyperion import _logger_format, _logger_settings
+
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
+                        handlers=[
+                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
+                                                                 maxBytes=_logger_settings['maxBytes'],
+                                                                 backupCount=_logger_settings['backupCount']),
+                            logging.StreamHandler()])
+
+
+    variable_waveplate_ins = VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : False,
+                                       'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'})
     variable_waveplate_ins.initialize()
     app = QApplication(sys.argv)
     ex = VariableWaveplateGui(variable_waveplate_ins)
