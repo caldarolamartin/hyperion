@@ -230,7 +230,7 @@ class VariableWaveplate(BaseInstrument):
     def freq(self, F):
         self._freq = F
         self.controller.freq = F
-        self.logger.debug('Changed frequency to {} '.format(F))
+        self.logger.info('Changed frequency to {} '.format(F))
 
     @property
     def output(self):

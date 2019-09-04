@@ -100,24 +100,27 @@ class VariableWaveplateGui(QWidget):
 
     def set_frequency_textfield(self):
         self.frequency_textfield = QLineEdit(self)
-        self.frequency_textfield.setText(str(self.variable_waveplate_ins.controller._properties["freq"]["default"]))
+        self.frequency_textfield.setText(str(self.variable_waveplate_ins.controller.freq))
         self.grid_layout.addWidget(self.frequency_textfield, 0, 3)
+
     def set_quater_waveplate_textfield(self):
         self.quater_waveplate_textfield = QLineEdit(self)
         self.quater_waveplate_textfield.setText("Idk, ask Martin")
         self.grid_layout.addWidget(self.quater_waveplate_textfield, 3, 1)
-    def set_voltage_2_textfield(self):
-        self.voltage_2_textfield = QLineEdit(self)
-        self.voltage_2_textfield.setText(str(self.variable_waveplate_ins.controller._properties["volt2"]["default"]))
-        self.grid_layout.addWidget(self.voltage_2_textfield, 2, 1)
+
     def set_voltage_1_textfield(self):
         self.voltage_1_textfield = QLineEdit(self)
-        self.voltage_1_textfield.setText(str(self.variable_waveplate_ins.controller._properties["volt1"]["default"]))
+        self.voltage_1_textfield.setText(str(self.variable_waveplate_ins.get_analog_value(1)))
         self.grid_layout.addWidget(self.voltage_1_textfield, 1, 1)
 
+    def set_voltage_2_textfield(self):
+        self.voltage_2_textfield = QLineEdit(self)
+        self.voltage_2_textfield.setText(str(self.variable_waveplate_ins.get_analog_value(2)))
+        self.grid_layout.addWidget(self.voltage_2_textfield, 2, 1)
+
     def set_submit_button(self):
-        submit_button = QPushButton('submit_button', self)
-        submit_button.setToolTip('This is an example submit_button')
+        submit_button = QPushButton('Apply', self)
+        submit_button.setToolTip('Send all settings to device')
         self.grid_layout.addWidget(submit_button, 3, 3)
         submit_button.clicked.connect(self.submit_button_clicked)
 
@@ -132,6 +135,7 @@ class VariableWaveplateGui(QWidget):
         self.voltage_2_textfield.setReadOnly(True)
         self.mode_combobox.currentIndexChanged.connect(self.set_channel_textfield_disabled)
         self.grid_layout.addWidget(self.mode_combobox, 0, 1)
+
     def set_output_dropdown(self):
         """
         The output parameter is made.
@@ -149,6 +153,7 @@ class VariableWaveplateGui(QWidget):
                 item.setForeground(QColor('red'))
             model.appendRow(item)
         self.grid_layout.addWidget(self.output_combobox, 1, 3)
+
     def set_channel_textfield_disabled(self):
         """
         if the mode is Voltage1 than it is not possible to
@@ -173,16 +178,24 @@ class VariableWaveplateGui(QWidget):
         instrument of the variable waveplate.
         :return:
         """
+
         self.set_output_mode()
+
 
         if self.get_mode() == "Voltage1":
             self.variable_waveplate_ins.mode = 1
-            self.variable_waveplate_ins.set_analog_value(1, (self.voltage_1_textfield.text() * Q_("V")))
+            self.variable_waveplate_ins.set_analog_value(1, Q_(self.voltage_1_textfield.text()))
         elif self.get_mode() == "Voltage2":
             self.variable_waveplate_ins.mode = 2
-            self.variable_waveplate_ins.set_analog_value(2, (self.voltage_2_textfield.text() * Q_("V")))
+            self.variable_waveplate_ins.set_analog_value(2, Q_(self.voltage_2_textfield.text()))
         elif self.get_mode() == "Modulation":
             self.variable_waveplate_ins.mode = 0
+
+        self.variable_waveplate_ins.freq = Q_(self.frequency_textfield.text())
+
+
+
+
     def set_output_mode(self):
         if self.output_combobox.currentText() == "On":
             self.variable_waveplate_ins.output = True
@@ -200,7 +213,7 @@ if __name__ == '__main__':
                             logging.StreamHandler()])
 
     logging.info('Running vairable waveplate GUI file.')
-    with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : False,
+    with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : True,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as variable_waveplate_ins:
 
         variable_waveplate_ins.initialize()

@@ -73,7 +73,6 @@ class Lcc(BaseController):
         self._is_initialized = True
         sleep(0.5)
 
-
     def idn(self):
         """ Gets the identification for  the device
 
