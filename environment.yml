@@ -10,6 +10,7 @@ dependencies:
  - pyqtgraph
  - netcdf4
  - matplotlib
+ - pywin32                            # required for winspec
  - pip>=19
  - pip:
    - pyyaml>=5.1
