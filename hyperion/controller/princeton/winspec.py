@@ -98,13 +98,25 @@ class WinspecController(BaseController):
         self.params = {}
         self.params_exp = {}
         self.params_spt = {}
+        self.params_tgc = {}
+        self.params_tgp = {}
+        self.params_dm = {}
+        self.params_other = {}
         for key in _constants:
             if isinstance(_constants[key], int):
                 self.params[key] = _constants[key]
                 if key[:4] == 'EXP_':
                     self.params_exp[key[4:]] = _constants[key]
-                if key[:4] == 'SPT_':
+                elif key[:4] == 'SPT_':
                     self.params_spt[key[4:]] = _constants[key]
+                elif key[:4] == 'TGC_':
+                    self.params_spt[key[4:]] = _constants[key]
+                elif key[:4] == 'TGP_':
+                    self.params_spt[key[4:]] = _constants[key]
+                elif key[:3] == 'DM_':
+                    self.params_dm[key[3:]] = _constants[key]
+                else:
+                    self.params_other[key] = _constants[key]
 
     def docfile(self):
         return self._dispatch('WinX32.DocFile')
