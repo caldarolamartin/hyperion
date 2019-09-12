@@ -27,6 +27,10 @@ This controller connects to the Winspec software (which in turn is used to contr
 # If the name is correct this line does the same:
 # os.system( 'python '+'/'.join(os.path.abspath(win32com.client.__file__).split('\\')[0:-1])+'/makepy.py "Roper Scientific\'s WinX/32 v3.11 Type Library"')
 
+# The stuff above will generate some python code in a location similar to:
+# C:\Users\aopheij\AppData\Local\Temp\gen_py\3.7\1A762221-D8BA-11CF-AFC2-508201C10000x0x3x11/
+# Those files can be used to infer what methods are available and how to use them
+
 # Regarding opening Winspec before accessing it from python or letting python start Winspec:
 # In my tests so far, the order doesn't seem to matter. In both cases python can conrtol Winspec.
 # One difference so far is that killing python kernel closes Winspec only when python opened Winspec
@@ -37,6 +41,10 @@ import sys
 import os.path
 import win32com.client
 from hyperion.controller.base_controller import BaseController
+
+# some tests:
+# import pythoncom
+
 
 class WinspecController(BaseController):
     """ Winspec Controller"""
@@ -60,6 +68,9 @@ class WinspecController(BaseController):
         self.exp = None
         self._spec_mgr = None
         self.spt = None
+        # I don't really understand this stuff, but after a very long search trying many things, this turns out to work for collecting spectral data
+        self._variant_array = win32com.client.VARIANT( win32com.client.pythoncom.VT_BYREF | win32com.client.pythoncom.VT_ARRAY | win32com.client.pythoncom.VT_I4 , [1,2,3,4] )
+        
 
     def initialize(self):
         """ Starts or connects to Winspec software"""

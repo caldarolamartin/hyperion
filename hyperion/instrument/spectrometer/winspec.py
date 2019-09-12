@@ -10,6 +10,8 @@ Aron Opheij, TU Delft 2019
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
+import time
+import numpy as np
 
 class Winspec(BaseInstrument):
     """ Instrument to control Winspec software. """
@@ -19,6 +21,7 @@ class Winspec(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
+        self.default_name = 'temp.SPE'
         
 
     def initialize(self):
@@ -45,6 +48,21 @@ class Winspec(BaseInstrument):
         """
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
+
+
+    def take_spectrum(self, name=None):
+        # very rudimentary version
+        if name==None:
+            name=self.default_name
+        self.doc = self.controller.docfile()
+        self.controller.exp.Start(self.doc)
+        while self.controller.exp_get('RUNNING')[0]:
+            time.sleep(0.02)
+        frame = self.doc.GetFrame(1,self.controller._variant_array)
+        return np.asarray(frame)
+        
+        #self.doc.Set
+    
 
     # Hardware settings:
 
