@@ -8,11 +8,6 @@ This controller connects to the Winspec software (which in turn is used to contr
 
 
 """
-
-# Regarding opening Winspec before accessing it from python or letting python start Winspec:
-# In my tests so far, the order doesn't seem to matter. In both cases python can conrtol Winspec.
-# One difference so far is that killing python kernel closes Winspec only when python opened Winspec
-
 # It has been difficult to get this to work.
 # For example, one approach that worked at some point, did not work anymore on another machine or after re-installing anaconda with(out) admin rights.
 # I've implemented in the code what I think is the most robust approach, but in the following comments I'll mark down some things to try for potential future troubleshooting.
@@ -32,6 +27,9 @@ This controller connects to the Winspec software (which in turn is used to contr
 # If the name is correct this line does the same:
 # os.system( 'python '+'/'.join(os.path.abspath(win32com.client.__file__).split('\\')[0:-1])+'/makepy.py "Roper Scientific\'s WinX/32 v3.11 Type Library"')
 
+# Regarding opening Winspec before accessing it from python or letting python start Winspec:
+# In my tests so far, the order doesn't seem to matter. In both cases python can conrtol Winspec.
+# One difference so far is that killing python kernel closes Winspec only when python opened Winspec
 
 
 import logging
@@ -92,6 +90,7 @@ class WinspecController(BaseController):
         """
         Gets constants from WinX32 com object and stores them in self.params dictionary
         Main reason to do this is so that programmer can use autocomplete (TAB) to view list of parameters.
+        Additionally it generates params_exp and params_SPT with all the EXP and SPT parameters respectively.
         """
         self.logger.info("Generating dictionary of parameters")
         _constants = win32com.client.constants.__dict__['__dicts__'][0]
@@ -131,37 +130,40 @@ class WinspecController(BaseController):
         self.logger.debug('Ask IDN to device.')
         return 'Winspec '+self.ws.Version
 
-    def query(self, msg):
-        """ writes into the device msg
-
-        :param msg: command to write into the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the example device:{}'.format(msg))
-        self.write(msg)
-        ans = self.read()
-        return ans
-
     def exp_get(self, msg, *args, **kwargs):
+        """ Retrieve WinSpec Experiment parameter
+        :param msg: should be a key of self.params_exp
+        :type msg: string
+        :param *args, **kwargs: Any additional arguments are passed along into the self.exp.GetParam()
+        :return: returns Winspec value 
+        :rtype: int or tuple ?
+        """
         if msg.upper() in self.params_exp:
             return self.exp.GetParam(self.params_exp[msg.upper()], *args, **kwargs)[:-1]
         else:
-            self.logger.warning('Unknown EXP parameter')
+            self.logger.warning('Unknown EXP parameter: {}'.format(msg))
             return None
 
     def exp_set(self, msg, value):
-        """ Returns 0 for success, 1 for failure"""
+        """ Retrieve WinSpec Experiment parameter
+        :param msg: should be a key of self.params_exp
+        :type msg: string
+        :param value: The value to set
+        :type value: Depends on parameter, float, what else ????????
+        :return: returns errorvalue, 0 if succeeded
+        :rtype: int?
+        """
         if msg.upper() in self.params_exp:
             return self.exp.SetParam(self.params_exp[msg.upper()], value)
         else:
-            self.logger.warning('Unknown EXP parameter')
+            self.logger.warning('Unknown EXP parameter: {}'.format(msg))
             return None
 
     def spt_get(self, msg, *args, **kwargs):
         if msg.upper() in self.params_spt:
             return self.spt.GetParam(self.params_spt[msg.upper()], *args, **kwargs)[:-1]
         else:
-            self.logger.warning('Unknown SPT parameter')
+            self.logger.warning('Unknown SPT parameter: {}'.format(msg))
             return None
 
     def spt_set(self, msg, value):
@@ -169,24 +171,34 @@ class WinspecController(BaseController):
         if msg.upper() in self.params_spt:
             return self.spt.SetParam(self.params_spt[msg.upper()], value)
         else:
-            self.logger.warning('Unknown SPT parameter')
+            self.logger.warning('Unknown SPT parameter: {}'.format(msg))
             return None
 
-
-    def read(self):
-        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
-        
-        :return: fake result
-        :rtype: string
-        """
-        return self.FAKE_RESPONSES['A']
-
-    def write(self, msg):
-        """ Writes into the device
-        :param msg: message to be written in the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the device:{}'.format(msg))
+    # def query(self, msg):
+    #     """ writes into the device msg
+    #
+    #     :param msg: command to write into the device port
+    #     :type msg: string
+    #     """
+    #     self.logger.debug('Writing into the example device:{}'.format(msg))
+    #     self.write(msg)
+    #     ans = self.read()
+    #     return ans
+    #
+    # def read(self):
+    #     """ Fake read that returns always the value in the dictionary FAKE RESULTS.
+    #
+    #     :return: fake result
+    #     :rtype: string
+    #     """
+    #     return self.FAKE_RESPONSES['A']
+    #
+    # def write(self, msg):
+    #     """ Writes into the device
+    #     :param msg: message to be written in the device port
+    #     :type msg: string
+    #     """
+    #     self.logger.debug('Writing into the device:{}'.format(msg))
 
 
     @property
@@ -270,22 +282,35 @@ if __name__ == "__main__":
     else:
         my_class = WinspecController
 
-    with my_class(settings = {'dummy':dummy}) as dev:
-        dev.initialize()
-        print(dev.idn())
-        print('GRATINGSPERTURRET: {}'.format(dev.spt_get('GRATINGSPERTURRET')))
-        print('INST_GRAT_GROOVES 0: {}'.format(dev.spt_get('INST_GRAT_GROOVES',0)))
-        print('INST_GRAT_GROOVES 1: {}'.format(dev.spt_get('INST_GRAT_GROOVES',1)))
-        print('INST_GRAT_GROOVES 2: {}'.format(dev.spt_get('INST_GRAT_GROOVES',2)))
-        print('CUR_GRATING: {}'.format(dev.spt_get('CUR_GRATING')))
-        print('INST_CUR_GRAT_NUM: {}'.format(dev.spt_get('INST_CUR_GRAT_NUM')))
-        print('CUR_POSITION: {}'.format(dev.spt_get('CUR_POSITION')))
-        print('ACTIVE_GRAT_POS: {}'.format(dev.spt_get('ACTIVE_GRAT_POS')))
-        print('INST_CUR_GRAT_POS: {}'.format(dev.spt_get('INST_CUR_GRAT_POS')))
-        dev.exp_set('EXPOSURETIME',2.0)
-        print('EXPOSURETIME: {}'.format(dev.exp_get('EXPOSURETIME')))
-        doc = dev.docfile()
-        dev.exp.Start(doc)
-        #dev.close() # Note that closeing Winspec is not necessary. Especially for testing it's quicker to leave it open
+#    with my_class(settings = {'dummy':dummy}) as dev:
+#        dev.initialize()
+#        print(dev.idn())
+#        print('GRATINGSPERTURRET: {}'.format(dev.spt_get('GRATINGSPERTURRET')))
+#        print('INST_GRAT_GROOVES 0: {}'.format(dev.spt_get('INST_GRAT_GROOVES',0)))
+#        print('INST_GRAT_GROOVES 1: {}'.format(dev.spt_get('INST_GRAT_GROOVES',1)))
+#        print('INST_GRAT_GROOVES 2: {}'.format(dev.spt_get('INST_GRAT_GROOVES',2)))
+#        print('CUR_GRATING: {}'.format(dev.spt_get('CUR_GRATING')))
+#        print('INST_CUR_GRAT_NUM: {}'.format(dev.spt_get('INST_CUR_GRAT_NUM')))
+#        print('CUR_POSITION: {}'.format(dev.spt_get('CUR_POSITION')))
+#        print('ACTIVE_GRAT_POS: {}'.format(dev.spt_get('ACTIVE_GRAT_POS')))
+#        print('INST_CUR_GRAT_POS: {}'.format(dev.spt_get('INST_CUR_GRAT_POS')))
+#        dev.exp_set('EXPOSURETIME',2.0)
+#        print('EXPOSURETIME: {}'.format(dev.exp_get('EXPOSURETIME')))
+#        doc = dev.docfile()
+#        dev.exp.Start(doc)
+#        #dev.close() # Note that closeing Winspec is not necessary. Especially for testing it's quicker to leave it open
 
 
+    ws = WinspecController()
+    ws.initialize()
+
+
+
+
+
+"""
+Comment
+
+EXP_EXPOSURE seems to contain the exposuretime in seconds, but it appears that it is not always immediately updated, I recommend using EXP_EXPOSURETIME and EXP_EXPOSURETIME_UNITS instead
+
+"""
