@@ -12,7 +12,7 @@ This is the variable waveplate GUI.
 import logging
 import sys
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QStandardItem, QColor
+from PyQt5.QtGui import QStandardItem, QColor, QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit
 from hyperion.instrument.variable_waveplate.variable_waveplate import VariableWaveplate
 from hyperion import Q_, ur
@@ -140,11 +140,9 @@ class VariableWaveplateGui(QWidget):
         self.logger.debug('Setting combobox')
         self.mode_combobox = QComboBox(self)
         self.mode_combobox.addItems(["Voltage1", "Voltage2", "Modulation", "QWP"])
-        #making sure that the user can only enter values in the right textbox when
-        #changes are made to the mode it is in.
-        self.voltage_2_textfield.setReadOnly(True)
         self.mode_combobox.currentIndexChanged.connect(self.set_channel_textfield_disabled)
         self.grid_layout.addWidget(self.mode_combobox, 0, 1)
+        self.set_channel_textfield_disabled()
 
     def set_output_dropdown(self):
         """
@@ -166,18 +164,35 @@ class VariableWaveplateGui(QWidget):
 
     def set_channel_textfield_disabled(self):
         """
-        if the mode is Voltage1 than it is not possible to
-        write something in textbox of Voltage 2
+        if the mode is Voltage1 then it is not possible to
+        write something in textbox of Voltage 2 or the others
         """
         if self.mode_combobox.currentText() == "Voltage1":
-            self.voltage_1_textfield.setReadOnly(False)
-            self.voltage_2_textfield.setReadOnly(True)
+            self.voltage_1_textfield.setEnabled(True)
+            self.voltage_2_textfield.setEnabled(False)
+            self.frequency_textfield.setEnabled(False)
+            self.quater_waveplate_textfield.setEnabled(False)
+
+
         elif self.mode_combobox.currentText() == "Voltage2":
-            self.voltage_1_textfield.setReadOnly(True)
-            self.voltage_2_textfield.setReadOnly(False)
+            self.voltage_1_textfield.setEnabled(False)
+            self.voltage_2_textfield.setEnabled(True)
+            self.frequency_textfield.setEnabled(False)
+            self.quater_waveplate_textfield.setEnabled(False)
+
         elif self.mode_combobox.currentText() == "Modulation":
-            self.voltage_1_textfield.setReadOnly(False)
-            self.voltage_2_textfield.setReadOnly(False)
+            self.voltage_1_textfield.setEnabled(True)
+            self.voltage_2_textfield.setEnabled(True)
+            self.frequency_textfield.setEnabled(True)
+            self.quater_waveplate_textfield.setEnabled(False)
+
+
+        elif self.mode_combobox.currentText() == "QWP":
+            self.voltage_1_textfield.setEnabled(False)
+            self.voltage_2_textfield.setEnabled(False)
+            self.frequency_textfield.setEnabled(False)
+            self.quater_waveplate_textfield.setEnabled(True)
+
 
     def get_mode(self):
         return self.mode_combobox.currentText()
@@ -202,7 +217,7 @@ class VariableWaveplateGui(QWidget):
             self.variable_waveplate_ins.mode = 0
             self.variable_waveplate_ins.freq = Q_(self.frequency_textfield.text())
         elif self.get_mode() == 'QWP':
-            self.variable_waveplate_ins.quarter_waveplate_voltage(Q_(self.quater_waveplate_textfield.text()) )
+            self.variable_waveplate_ins.set_quarter_waveplate_voltage(1, Q_(self.quater_waveplate_textfield.text()) )
 
 
     def set_output_mode(self):
@@ -217,9 +232,10 @@ class VariableWaveplateGui(QWidget):
 
 
 if __name__ == '__main__':
-    from hyperion import _logger_format, _logger_settings
+    from hyperion import _logger_format, _logger_settings, root_dir
+    from os import path
 
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+    logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
@@ -232,6 +248,7 @@ if __name__ == '__main__':
 
         variable_waveplate_ins.initialize()
         app = QApplication(sys.argv)
+        app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','logo_hyperion.png')))
         ex = VariableWaveplateGui(variable_waveplate_ins)
         #variable_waveplate_ins.finalize()
         sys.exit(app.exec_())
