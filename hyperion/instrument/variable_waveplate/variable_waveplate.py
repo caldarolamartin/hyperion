@@ -44,6 +44,7 @@ class VariableWaveplate(BaseInstrument):
         # property
         self._output = False
         self._mode = 0
+        self._wavelength = 532*ur('nm')
 
         self.logger.info('Initializing Variable Waveplate with settings: {}'.format(settings))
         # this is to load the calibration file
@@ -159,6 +160,7 @@ class VariableWaveplate(BaseInstrument):
 
 
         self.logger.debug('The QWP voltage for {} is {}'.format(wavelength, v))
+        self._wavelength = wavelength
         return v
 
     def do_interp(self, w, x, y):

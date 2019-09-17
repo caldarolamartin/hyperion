@@ -31,13 +31,11 @@ class VariableWaveplateGui(QWidget):
         """
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self._wavelength = 532*ur('nm')
-        self.logger.debug('Default wavelength: {}'.format(self._wavelength))
         self.title = 'LCC25 variable waveplate instrument (GUI)'
-        self.left = 40
-        self.top = 40
-        self.width = 320
-        self.height = 200
+        self.left = 10
+        self.top = 60
+        self.width = 850
+        self.height = 250
         self.variable_waveplate_ins = variable_waveplate_ins
         self.initUI()
 
@@ -84,7 +82,7 @@ class VariableWaveplateGui(QWidget):
 
     def set_quater_waveplate_label(self):
         self.quater_waveplate_label = QLabel(self)
-        self.quater_waveplate_label.setText("Wavelength for Quarter-wave plate:")
+        self.quater_waveplate_label.setText("Wavelength for \n Quarter-wave plate:")
         self.grid_layout.addWidget(self.quater_waveplate_label, 3, 0)
 
     def set_voltage_2_label(self):
@@ -114,7 +112,7 @@ class VariableWaveplateGui(QWidget):
 
     def set_quater_waveplate_textfield(self):
         self.quater_waveplate_textfield = QLineEdit(self)
-        self.quater_waveplate_textfield.setText(str(self._wavelength))
+        self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
         self.grid_layout.addWidget(self.quater_waveplate_textfield, 3, 1)
 
     def set_voltage_1_textfield(self):
@@ -201,8 +199,6 @@ class VariableWaveplateGui(QWidget):
         """
         Get the parameters from the gui and sent these to the
         instrument of the variable waveplate.
-
-
         """
         self.logger.debug('Submit button was clicked...')
         self.set_output_mode()
@@ -218,6 +214,7 @@ class VariableWaveplateGui(QWidget):
             self.variable_waveplate_ins.freq = Q_(self.frequency_textfield.text())
         elif self.get_mode() == 'QWP':
             self.variable_waveplate_ins.set_quarter_waveplate_voltage(1, Q_(self.quater_waveplate_textfield.text()) )
+            self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
 
 
     def set_output_mode(self):
@@ -248,7 +245,7 @@ if __name__ == '__main__':
 
         variable_waveplate_ins.initialize()
         app = QApplication(sys.argv)
-        app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','logo_hyperion.png')))
+        app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
         ex = VariableWaveplateGui(variable_waveplate_ins)
         #variable_waveplate_ins.finalize()
         sys.exit(app.exec_())
