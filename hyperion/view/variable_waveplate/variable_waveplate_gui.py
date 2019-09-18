@@ -87,17 +87,17 @@ class VariableWaveplateGui(QWidget):
 
     def set_voltage_2_label(self):
         self.voltage_2_label = QLabel(self)
-        self.voltage_2_label.setText("V_2, in (0, 25) V:")
+        self.voltage_2_label.setText("V2, in (0, 25) V:")
         self.grid_layout.addWidget(self.voltage_2_label, 2, 0)
 
     def set_voltage_1_label(self):
         self.voltage_1_label = QLabel(self)
-        self.voltage_1_label.setText("V_1, in (0, 25) V:")
+        self.voltage_1_label.setText("V1, in (0,25) V:")
         self.grid_layout.addWidget(self.voltage_1_label, 1, 0)
 
     def set_mode_label(self):
         self.mode_label = QLabel(self)
-        self.mode_label.setText("Current working mode:")
+        self.mode_label.setText("mode:")
         self.grid_layout.addWidget(self.mode_label, 0, 0)
 
     def set_output_label(self):
@@ -126,10 +126,10 @@ class VariableWaveplateGui(QWidget):
         self.grid_layout.addWidget(self.voltage_2_textfield, 2, 1)
 
     def set_submit_button(self):
-        self.submit_button = QPushButton('Apply', self)
-        self.submit_button.setToolTip('Send all settings to device')
-        self.grid_layout.addWidget(self.submit_button, 3, 3)
-        self.submit_button.clicked.connect(self.submit_button_clicked)
+        submit_button = QPushButton('Apply', self)
+        submit_button.setToolTip('Send all settings to device')
+        self.grid_layout.addWidget(submit_button, 3, 3)
+        submit_button.clicked.connect(self.submit_button_clicked)
 
     def set_mode_combobox(self):
         """
@@ -163,34 +163,33 @@ class VariableWaveplateGui(QWidget):
     def set_channel_textfield_disabled(self):
         """
         if the mode is Voltage1 then it is not possible to
-        write something in textbox of Voltage 2
+        write something in textbox of Voltage 2 or the others
         """
-        self.logger.debug('Disable the modes that are not in use.')
-
         if self.mode_combobox.currentText() == "Voltage1":
-            self.voltage_1_label.setStyleSheet("color: blue; background-color: yellow")
-            self.voltage_1_textfield.setReadOnly(False)
-            self.voltage_2_textfield.setReadOnly(True)
-            self.frequency_textfield.setReadOnly(True)
-            self.quater_waveplate_textfield.setReadOnly(True)
+            self.voltage_1_textfield.setEnabled(True)
+            self.voltage_2_textfield.setEnabled(False)
+            self.frequency_textfield.setEnabled(False)
+            self.quater_waveplate_textfield.setEnabled(False)
+
 
         elif self.mode_combobox.currentText() == "Voltage2":
-            self.voltage_1_textfield.setReadOnly(True)
-            self.voltage_2_textfield.setReadOnly(False)
-            self.quater_waveplate_textfield.setReadOnly(True)
-            self.frequency_textfield.setReadOnly(True)
+            self.voltage_1_textfield.setEnabled(False)
+            self.voltage_2_textfield.setEnabled(True)
+            self.frequency_textfield.setEnabled(False)
+            self.quater_waveplate_textfield.setEnabled(False)
 
         elif self.mode_combobox.currentText() == "Modulation":
-            self.voltage_1_textfield.setReadOnly(False)
-            self.voltage_2_textfield.setReadOnly(False)
-            self.quater_waveplate_textfield.setReadOnly(True)
-            self.frequency_textfield.setReadOnly(False)
+            self.voltage_1_textfield.setEnabled(True)
+            self.voltage_2_textfield.setEnabled(True)
+            self.frequency_textfield.setEnabled(True)
+            self.quater_waveplate_textfield.setEnabled(False)
 
-        elif self.mode_combobox.currentText() == "Quarter-wave plate":
-            self.voltage_1_textfield.setReadOnly(True)
-            self.voltage_2_textfield.setReadOnly(True)
-            self.quater_waveplate_textfield.setReadOnly(False)
-            self.frequency_textfield.setReadOnly(True)
+
+        elif self.mode_combobox.currentText() == "QWP":
+            self.voltage_1_textfield.setEnabled(False)
+            self.voltage_2_textfield.setEnabled(False)
+            self.frequency_textfield.setEnabled(False)
+            self.quater_waveplate_textfield.setEnabled(True)
 
 
     def get_mode(self):
@@ -201,8 +200,7 @@ class VariableWaveplateGui(QWidget):
         Get the parameters from the gui and sent these to the
         instrument of the variable waveplate.
         """
-
-        self.logger.debug('Apply button clicked!')
+        self.logger.debug('Submit button was clicked...')
         self.set_output_mode()
 
         if self.get_mode() == "Voltage1":
@@ -217,6 +215,7 @@ class VariableWaveplateGui(QWidget):
         elif self.get_mode() == 'QWP':
             self.variable_waveplate_ins.set_quarter_waveplate_voltage(1, Q_(self.quater_waveplate_textfield.text()) )
             self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
+
 
     def set_output_mode(self):
         """Sets the output on or off deppending on the output_combobox state
