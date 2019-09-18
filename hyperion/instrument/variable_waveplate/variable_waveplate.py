@@ -44,6 +44,7 @@ class VariableWaveplate(BaseInstrument):
         # property
         self._output = False
         self._mode = 0
+        self._wavelength = 532*ur('nm')
 
         self.logger.info('Initializing Variable Waveplate with settings: {}'.format(settings))
         # this is to load the calibration file
@@ -138,18 +139,28 @@ class VariableWaveplate(BaseInstrument):
 
         if wavelength.m_as('nm') < self.calibration['wavelength_limits'][0].m_as('nm') or \
                 wavelength.m_as('nm') > self.calibration['wavelength_limits'][1].m_as('nm'):
-
             self.logger.warning('The required wavelength is outside the calibration range for bias voltage')
-            #todo set some value closer to the value that you should have.
+
+            if wavelength.m_as('nm') < self.calibration['wavelength_limits'][0].m_as('nm'):
+                wavelength = self.calibration['wavelength_limits'][0]
+            if wavelength.m_as('nm') > self.calibration['wavelength_limits'][1].m_as('nm'):
+                wavelength = self.calibration['wavelength_limits'][1]
+
+            self.logger.warning('Getting the voltage for {} instead.'.format(wavelength))
+
+        methods = ['lookup']
+        if method not in methods:
+            self.logger.warning('The required method to use for the calibration is not implemented. \n'
+                                'Using lookup method.')
 
         if method == 'lookup':
             x = self.calibration['wavelength']
             y = self.calibration['qwp']
             v = self.do_interp(wavelength, x, y)
-        else:
-            raise Warning('The required method to use for the calibration is not implemented.')
+
 
         self.logger.debug('The QWP voltage for {} is {}'.format(wavelength, v))
+        self._wavelength = wavelength
         return v
 
     def do_interp(self, w, x, y):
@@ -191,9 +202,8 @@ class VariableWaveplate(BaseInstrument):
         self.logger.debug('The QWP voltage for {} is {}'.format(wavelength, v))
         self.logger.debug('Setting the voltage to the QWP voltage on channel {}'.format(ch))
         self.mode = 1
+        self.logger.info('Setting the QWP voltage for {} in channel 1.'.format(wavelength))
         self.set_analog_value(ch, v)
-        self.controller.output = True
-
         return v
 
     def finalize(self, state=False):
@@ -289,7 +299,7 @@ class VariableWaveplate(BaseInstrument):
     @mode.setter
     def mode(self, mode):
         self.controller.mode = mode
-        self.logger.info('Changed to mode "{}" '.format(mode))
+        self.logger.debug('Changed to mode "{}" '.format(mode))
         self._mode = mode
 
 

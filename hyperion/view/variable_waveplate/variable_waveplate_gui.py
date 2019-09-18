@@ -12,10 +12,10 @@ This is the variable waveplate GUI.
 import logging
 import sys
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QStandardItem, QColor
+from PyQt5.QtGui import QStandardItem, QColor, QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit
 from hyperion.instrument.variable_waveplate.variable_waveplate import VariableWaveplate
-from hyperion import Q_
+from hyperion import Q_, ur
 
 #todo checkout if the device is on the computer if this class can work with the variablewaveplate/lcc25
 
@@ -31,12 +31,11 @@ class VariableWaveplateGui(QWidget):
         """
         super().__init__()
         self.logger = logging.getLogger(__name__)
-
-        self.title = 'LCC25 Variable Waveplate Instrument GUI'
-        self.left = 40
-        self.top = 40
-        self.width = 320
-        self.height = 200
+        self.title = 'LCC25 variable waveplate instrument (GUI)'
+        self.left = 10
+        self.top = 60
+        self.width = 850
+        self.height = 250
         self.variable_waveplate_ins = variable_waveplate_ins
         self.initUI()
 
@@ -47,6 +46,7 @@ class VariableWaveplateGui(QWidget):
         self.setLayout(self.grid_layout)
 
     def initUI(self):
+        """ Initializes the gui elements """
         self.set_gui_specifics()
         self.set_elements_in_gui()
         self.show()
@@ -77,12 +77,12 @@ class VariableWaveplateGui(QWidget):
 
     def set_frequency_label(self):
         self.frequency_label = QLabel(self)
-        self.frequency_label.setText("freq in Hz:")
+        self.frequency_label.setText("Freq in Hz:")
         self.grid_layout.addWidget(self.frequency_label, 0, 2)
 
     def set_quater_waveplate_label(self):
         self.quater_waveplate_label = QLabel(self)
-        self.quater_waveplate_label.setText("Wavelength for Quarter-wave plate:")
+        self.quater_waveplate_label.setText("Wavelength for \n Quarter-wave plate:")
         self.grid_layout.addWidget(self.quater_waveplate_label, 3, 0)
 
     def set_voltage_2_label(self):
@@ -112,7 +112,7 @@ class VariableWaveplateGui(QWidget):
 
     def set_quater_waveplate_textfield(self):
         self.quater_waveplate_textfield = QLineEdit(self)
-        self.quater_waveplate_textfield.setText("532.0 nm")
+        self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
         self.grid_layout.addWidget(self.quater_waveplate_textfield, 3, 1)
 
     def set_voltage_1_textfield(self):
@@ -135,19 +135,12 @@ class VariableWaveplateGui(QWidget):
         """
         With the combobox all the different modes are shown.
         """
-        self.logger.debug('Setting mode in the combobox')
+        self.logger.debug('Setting combobox')
         self.mode_combobox = QComboBox(self)
-        self.mode_combobox.addItems(["Voltage 1", "Voltage 2", "Modulation", "Quarter-wave plate"])
-
-        # making sure that the user can only enter values in the right textbox when
-        # changes are made to the mode it is in.
-        self.voltage_1_textfield.setReadOnly(False)
-        self.voltage_2_textfield.setReadOnly(True)
-        self.frequency_textfield.setReadOnly(True)
-        self.quater_waveplate_textfield.setReadOnly(True)
-
+        self.mode_combobox.addItems(["Voltage1", "Voltage2", "Modulation", "QWP"])
         self.mode_combobox.currentIndexChanged.connect(self.set_channel_textfield_disabled)
         self.grid_layout.addWidget(self.mode_combobox, 0, 1)
+        self.set_channel_textfield_disabled()
 
     def set_output_dropdown(self):
         """
@@ -199,15 +192,16 @@ class VariableWaveplateGui(QWidget):
             self.quater_waveplate_textfield.setReadOnly(False)
             self.frequency_textfield.setReadOnly(True)
 
+
     def get_mode(self):
         return self.mode_combobox.currentText()
 
     def submit_button_clicked(self):
         """
-        Get the paramters from the gui and sent these to the
+        Get the parameters from the gui and sent these to the
         instrument of the variable waveplate.
-        :return:
         """
+
         self.logger.debug('Apply button clicked!')
         self.set_output_mode()
 
@@ -220,15 +214,24 @@ class VariableWaveplateGui(QWidget):
         elif self.get_mode() == "Modulation":
             self.variable_waveplate_ins.mode = 0
             self.variable_waveplate_ins.freq = Q_(self.frequency_textfield.text())
+        elif self.get_mode() == 'QWP':
+            self.variable_waveplate_ins.set_quarter_waveplate_voltage(1, Q_(self.quater_waveplate_textfield.text()) )
+            self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
 
     def set_output_mode(self):
+        """Sets the output on or off deppending on the output_combobox state
+
+        """
+        self.logger.info('Setting the output mode to {}'.format(self.output_combobox.currentText()))
         if self.output_combobox.currentText() == "On":
             self.variable_waveplate_ins.output = True
         elif self.output_combobox.currentText() == "Off":
             self.variable_waveplate_ins.output = False
 
+
 if __name__ == '__main__':
-    from hyperion import _logger_format, _logger_settings
+    from hyperion import _logger_format, _logger_settings, root_dir
+    from os import path
 
     logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
@@ -243,6 +246,7 @@ if __name__ == '__main__':
 
         variable_waveplate_ins.initialize()
         app = QApplication(sys.argv)
+        app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
         ex = VariableWaveplateGui(variable_waveplate_ins)
         #variable_waveplate_ins.finalize()
         sys.exit(app.exec_())
