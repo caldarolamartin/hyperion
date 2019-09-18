@@ -114,16 +114,22 @@ class Anc350(BaseController):
     def getStatus(self, axis):
         """| Determines the status of the selected axis.
         | *It is not clear whether it also works for the scanner, or only for the stepper*
-        | result: bit0 (moving), bit1 (stop detected), bit2 (sensor error), bit3 (sensor disconnected)
+        | result: bit0 (moving) (+1), bit1 (stop detected) (+2), bit2 (sensor error) (+4), bit3 (sensor disconnected) (+8)
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
 
-        :return: 0: moving, 1: stop detected, 2: sensor error, 3: sensor disconnected
+        :return: 1: moving, 2: stop detected, 4: sensor error, 8: sensor disconnected
         """
         self.status = ANC350lib.Int32(0)
         ANC350lib.positionerGetStatus(self.handle,axis,ctypes.byref(self.status))
-        return self.status.value
+        status = self.status.value
+        out = {}
+        out['moving'] = (status & 1)==1
+        out['stop'] = (status & 2) == 2
+        out['error'] = (status & 4) == 4
+        out['disconnected'] = (status & 8) == 8
+        return out
 
     def load(self, axis, filename):
         """| Loads a parameter file for actor configuration.
@@ -788,6 +794,8 @@ if __name__ == "__main__":
 
         print('axis is now at', anc.getPosition(ax['x']))
 
+
+
         #there are 4 ways in which you can move the stepper
 
         #nr. 1: to an absolute position
@@ -825,22 +833,42 @@ if __name__ == "__main__":
         # #nr. 3: with a step that you give it by ordering a relative move
         # #but this one takes a very long time
         #
-        # print('-------------------------------------------------------------')
-        # print('moving to a relative position, 5um back')
-        # anc.moveRelative(0,-5000)
-        #
+        print('-------------------------------------------------------------')
+        print('moving to a relative position, 5um back')
+        startpos = anc.getPosition(0)
+        anc.moveRelative(0,1000000)
+        time.sleep(0.4)         #important to have this number, otherwise it already starts asking before the guy even knows whether he moves
+
+        pos = anc.getPosition(0)
+        didntmove = False
+        while anc.getStatus(0)['moving']:
+            time.sleep(0.1)
+            new_pos = anc.getPosition(0)
+            if np.abs(new_pos - pos) < 500:
+                didntmove = True
+                break
+            pos = new_pos
+
+        print(anc.getPosition(0))
+        print(didntmove)
+
+        #np.abs(startpos - pos) <
+
         # time.sleep(1)
         # state = 1
         # while state == 1:
         #     newstate = anc.getStatus(ax['x'])  # find bitmask of status
+        #     print(newstate)
         #     if newstate == 1:
         #         print('axis moving, currently at', anc.getPosition(ax['x']))
         #     elif newstate == 0:
         #         print('axis arrived at', anc.getPosition(ax['x']))
+        #     elif newstate == 2 | 3:
+        #         print('axis arrived at range; ', anc.getStatus(0))
         #     else:
         #         print('axis has value', newstate)
         #     state = newstate
-        #     time.sleep(1)
+        #     time.sleep(0.1)
         #
         # #nr. 4: put a voltage on the piezo
         # #this means it makes a small step too; in theory
