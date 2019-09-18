@@ -34,10 +34,17 @@ class VariableWaveplateGui(QWidget):
         self.title = 'LCC25 variable waveplate instrument (GUI)'
         self.left = 10
         self.top = 60
-        self.width = 850
+        self.width = 450
         self.height = 250
         self.variable_waveplate_ins = variable_waveplate_ins
         self.initUI()
+
+        self._output = self.variable_waveplate_ins.output
+        self._mode = self.variable_waveplate_ins.mode
+        self._analog_value_1 = self.variable_waveplate_ins.get_analog_value(1)
+        self._analog_value_2 = self.variable_waveplate_ins.get_analog_value(2)
+        self._frequency = self.variable_waveplate_ins.freq
+
 
     def set_gui_specifics(self):
         self.setWindowTitle(self.title)
@@ -191,7 +198,6 @@ class VariableWaveplateGui(QWidget):
             self.frequency_textfield.setEnabled(False)
             self.quater_waveplate_textfield.setEnabled(True)
 
-
     def get_mode(self):
         return self.mode_combobox.currentText()
 
@@ -205,17 +211,27 @@ class VariableWaveplateGui(QWidget):
 
         if self.get_mode() == "Voltage1":
             self.variable_waveplate_ins.mode = 1
+            self._mode = 1
             self.variable_waveplate_ins.set_analog_value(1, Q_(self.voltage_1_textfield.text()))
+            self._analog_value_1 = Q_(self.voltage_1_textfield.text())
         elif self.get_mode() == "Voltage2":
             self.variable_waveplate_ins.mode = 2
+            self._mode = 2
             self.variable_waveplate_ins.set_analog_value(2, Q_(self.voltage_2_textfield.text()))
+            self._analog_value_2 = Q_(self.voltage_2_textfield.text())
         elif self.get_mode() == "Modulation":
             self.variable_waveplate_ins.mode = 0
+            self._mode = 0
             self.variable_waveplate_ins.freq = Q_(self.frequency_textfield.text())
+            self._frequency = Q_(self.frequency_textfield.text())
         elif self.get_mode() == 'QWP':
-            self.variable_waveplate_ins.set_quarter_waveplate_voltage(1, Q_(self.quater_waveplate_textfield.text()) )
-            self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
+            self._mode = 1
+            self._analog_value_1 = self.variable_waveplate_ins.set_quarter_waveplate_voltage(1, Q_(self.quater_waveplate_textfield.text()) )
 
+        # update the values
+        self.voltage_1_textfield.setText(str(self._analog_value_1))
+        self.voltage_2_textfield.setText(str(self._analog_value_2))
+        self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
 
     def set_output_mode(self):
         """Sets the output on or off deppending on the output_combobox state
@@ -240,7 +256,7 @@ if __name__ == '__main__':
                             logging.StreamHandler()])
 
     logging.info('Running vairable waveplate GUI file.')
-    with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : True,
+    with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : False,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as variable_waveplate_ins:
 
         variable_waveplate_ins.initialize()

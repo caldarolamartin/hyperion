@@ -182,6 +182,7 @@ class VariableWaveplate(BaseInstrument):
         #self.logger.debug('x: {} \n y: {}'.format(x, y))
         value = np.interp(w.m_as('nm'), x.m_as('nm'), y.m_as('volt') )
         self.logger.debug('interpolated value: {}'.format(value))
+        value = round(value,4)
         return value * ur('volt')
 
     def set_quarter_waveplate_voltage(self, ch, wavelength):
