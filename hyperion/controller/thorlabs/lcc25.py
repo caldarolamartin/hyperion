@@ -67,11 +67,11 @@ class Lcc(BaseController):
                                      baudrate=self.DEFAULTS['baudrate'],
                                      timeout=self.DEFAULTS['read_timeout'],
                                      write_timeout=self.DEFAULTS['write_timeout'])
+            sleep(0.1)
             self.logger.info('Initialized device LCC at port {}.'.format(self._port))
 
         self._is_initialized = True
         sleep(0.5)
-
 
     def idn(self):
         """ Gets the identification for  the device
@@ -140,6 +140,7 @@ class Lcc(BaseController):
         if self._is_initialized:
             if self.rsc is not None:
                 self.rsc.close()
+                sleep(0.1)
                 self.logger.info('Resource connection closed.')
         else:
             self.logger.warning('Finalizing before initializing the LCC25')
