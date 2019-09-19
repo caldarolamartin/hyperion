@@ -63,14 +63,29 @@ class Lcc(BaseController):
         if self.dummy:
             self.logger.info('Dummy device initialized')
         else:
-            self.rsc = serial.Serial(port=self._port,
-                                     baudrate=self.DEFAULTS['baudrate'],
-                                     timeout=self.DEFAULTS['read_timeout'],
-                                     write_timeout=self.DEFAULTS['write_timeout'])
+            self.rsc = serial.Serial()
+            self.rsc.port = self._port
+            self.rsc.baudrate = self.DEFAULTS['baudrate']
+            self.rsc.timeout = self.DEFAULTS['read_timeout']
+            self.rsc.write_timeout = self.DEFAULTS['write_timeout']
             self.logger.info('Initialized device LCC at port {}.'.format(self._port))
 
-        self._is_initialized = True
-        sleep(0.2)
+
+        # try to initi
+
+        self._is_initialized
+        count = 0
+        while not self._is_initialized:
+            try:
+                self.rsc.open()
+                self._is_initialized = True
+
+            except:
+                #self.logger.debug('Initialization Failed')
+                count  += 1
+
+            sleep(0.05)
+        self.logger.debug('Initialization succeded after {} failed attempts'.format(count))
 
     def idn(self):
         """ Gets the identification for  the device
