@@ -20,7 +20,7 @@ class Skpolarimeter(BaseController):
     """ This is the controller for the SK polarimeter. Based on their dll.
 
     """
-    def __init__(self):
+    def __init__(self, settings = {'dll_name': 'SKPolarimeter'}):
         """ Init method for the class
 
         """
@@ -33,7 +33,7 @@ class Skpolarimeter(BaseController):
         # path = 'C:/Users/mcaldarola/Documents/SK Develop/SKPolarizationAnalyzer/'
         # name = 'SKPolarimeterManaged'
         path = 'C:/Users/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeterMFC_VS2015_x64/x64/Release/'
-        name = 'SKPolarimeter'
+        name = settings['dll_name'] # = 'SKPolarimeter'
         self.logger.debug('DLL to use: {}'.format(path + name))
         self.dll = ctypes.CDLL(path + name)
         self.logger.debug('DLL: {}'.format(self.dll))
@@ -196,6 +196,20 @@ class Skpolarimeter(BaseController):
             self.logger.warning('TIMEOUT occurred')
 
         return v
+
+
+class SkpolarimeterDummy(BaseController):
+    """ This is the dummy controller for the SK polarimeter. Based on their dll.
+
+    """
+    def __init__(self):
+        """ Init method for the class
+
+        """
+        super().__init__()  # runs the init of the base_controller class.
+        self.logger = logging.getLogger(__name__)
+        self.name = 'SK polarimeter Dummy'
+        self.logger.warning('Dummy not implemented yet')
 
 
 if __name__ == "__main__":
