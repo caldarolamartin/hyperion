@@ -12,7 +12,6 @@ and error descriptions
 import logging
 from time import time, sleep
 import numpy as np
-from hyperion.controller.sk.sk_pol_ana import Skpolarimeter
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
 
@@ -85,11 +84,11 @@ class Polarimeter(BaseInstrument):
             self._wavelength = wavelength
 
         if self._wavelength.m_as('nm') < self.controller.min_w or self._wavelength.m_as('nm') > self.controller.max_w:
-            raise Warning('The requested wavelength {} is outside the range supported for this device'.format(w))
+            raise Warning('The requested wavelength {} is outside the range supported for this device'.format(self._wavelength))
 
         if not self.controller._is_initialized:
             self.logger.debug('Initializing SK polarimeter with wavelenght {}'.format(self._wavelength))
-            ans = self.controller.initialize(wavelength = w.m_as('nm'))
+            ans = self.controller.initialize(wavelength = self._wavelength.m_as('nm'))
 
         if ans == 0:
             self.logger.debug(
