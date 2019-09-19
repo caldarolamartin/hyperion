@@ -20,12 +20,14 @@ class Skpolarimeter(BaseController):
     """ This is the controller for the SK polarimeter. Based on their dll.
 
     """
-
     def __init__(self):
         """ Init method for the class
 
         """
+        super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
+        self.name = 'SK polarimeter'
+        self.logger.debug('Is initialized state: {}'.format(self._is_initialized))
 
         # TODO: put this in a config_agilent33522A.yml file so the code doe not depend on the location (PC)
         # path = 'C:/Users/mcaldarola/Documents/SK Develop/SKPolarizationAnalyzer/'
@@ -41,6 +43,7 @@ class Skpolarimeter(BaseController):
         self.vector_length = 13
         self.get_data_delay = 0.7   # in sec
         self.start_measurement_time = 0  # initialize the value
+
 
     def wait_to_measure(function):
         def wait_to_measure_wrapper(self, *arg, **kw):
@@ -69,6 +72,8 @@ class Skpolarimeter(BaseController):
 
         ans = func(self.id, br"C:\\unit_test.ini", wave)
         self.logger.debug('Answer from the SkInitPolarimeter: {}'.format(ans))
+        self._is_initialized = True
+        self.logger.debug('_is_initialized state: {}'.format(self._is_initialized))
 
         return ans
 
@@ -112,8 +117,6 @@ class Skpolarimeter(BaseController):
 
         :return: reading answer from the function
         :rtype: int
-
-
         """
         len = ctypes.c_int(0)
         id = ctypes.c_int(0)
@@ -198,7 +201,7 @@ class Skpolarimeter(BaseController):
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
@@ -206,12 +209,9 @@ if __name__ == "__main__":
                             logging.StreamHandler()])
 
     with Skpolarimeter() as s:
-
-        s = Skpolarimeter()
         # get the info needed to open connection
         s.get_number_polarizers()
         s.get_device_information()
-
         # open connection
         s.initialize()
 
@@ -226,7 +226,8 @@ if __name__ == "__main__":
         print('Getting data {} times'.format(N))
         for i in range(N):
             data = s.get_measurement_point()
-            print(time()-t)
+            print('Elapsed time: {}'.format(time()-t))
             t = time()
+            print('Data: {}'.format(data))
 
         s.stop_measurement()
