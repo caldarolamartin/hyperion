@@ -1,0 +1,23 @@
+Instruments:
+  BeamFlags:
+    port: COM4
+    dummy: False
+    instrument: hyperion.instrument.beam_flags.beam_flags_instr/BeamFlags
+    controller: hyperion.controller.generic.genereric_serial_contr/GenericSerialController
+    view: hyperion.view.beam_flags.beam_gui/BeamFlagsGui
+    flags:
+    - controller_id: 1
+      controller_red_command: r
+      controller_green_command: g
+      display_name: Pump
+      red_state_name: Blocked
+      green_state_name: Open
+      pressed_state: red        # red or green determines which state corresponds to button down state
+    - controller_id: 2
+      controller_red_command: r
+      controller_green_command: g
+      display_name: Probe
+      red_state_name: Blocked
+      green_state_name: Open
+
+
