@@ -10,12 +10,15 @@ This is the variable waveplate GUI.
 """
 
 import logging
-import sys
+import sys, os
 from PyQt5.QtCore import Qt
+from PyQt5 import uic
 from PyQt5.QtGui import QStandardItem, QColor, QIcon
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit, QDoubleSpinBox
 from hyperion.instrument.variable_waveplate.variable_waveplate import VariableWaveplate
-from hyperion import Q_, ur
+from hyperion import Q_, ur, root_dir
+
+
 
 #todo checkout if the device is on the computer if this class can work with the variablewaveplate/lcc25
 
@@ -31,13 +34,20 @@ class VariableWaveplateGui(QWidget):
         """
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.test = QDoubleSpinBox()
+        # to load from the UI file
+        gui_file = os.path.join(root_dir,'view', 'variable_waveplate','variable_waveplate_instrument.ui')
+        self.logger.info('Loading the GUI file: {}'.format(gui_file))
+        self.gui = uic.loadUi(gui_file, self)
+
         self.title = 'LCC25 variable waveplate instrument (GUI)'
         self.left = 10
         self.top = 60
         self.width = 450
         self.height = 250
         self.variable_waveplate_ins = variable_waveplate_ins
-        self.initUI()
+        self.customize_gui()
+        self.show()
 
         self._output = self.variable_waveplate_ins.output
         self._mode = self.variable_waveplate_ins.mode
@@ -45,6 +55,53 @@ class VariableWaveplateGui(QWidget):
         self._analog_value_2 = self.variable_waveplate_ins.get_analog_value(2)
         self._frequency = self.variable_waveplate_ins.freq
 
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+       self.logger.debug('Exiting')
+
+    def customize_gui(self):
+        """ Make changes to the gui """
+        self.logger.debug('Setting Voltage spinboxes settings')
+        self.gui.doubleSpinBox_v1.setDecimals(3)
+        self.gui.doubleSpinBox_v1.setSuffix(' V')
+        self.gui.doubleSpinBox_v1.setSingleStep(self.gui.doubleSpinBox_v1_delta.value())
+
+        self.gui.doubleSpinBox_v1_delta.setDecimals(3)
+        self.gui.doubleSpinBox_v1_delta.setSuffix(' V')
+        self.gui.doubleSpinBox_v1_delta.valueChanged.connect( lambda value: self.gui.doubleSpinBox_v1.setSingleStep(value) )
+
+        self.gui.doubleSpinBox_v2.setDecimals(3)
+        self.gui.doubleSpinBox_v2.setSuffix(' V')
+        self.gui.doubleSpinBox_v2.setSingleStep(self.gui.doubleSpinBox_v2_delta.value())
+
+        self.gui.doubleSpinBox_v2_delta.setDecimals(3)
+        self.gui.doubleSpinBox_v2_delta.setSuffix(' V')
+        self.gui.doubleSpinBox_v2_delta.valueChanged.connect(
+            lambda value: self.gui.doubleSpinBox_v2.setSingleStep(value))
+
+        self.gui.doubleSpinBox_frequency_delta.valueChanged.connect(
+            lambda value: self.gui.doubleSpinBox_frequency.setSingleStep(value))
+
+        self.gui.doubleSpinBox_wavelength_delta.valueChanged.connect(
+            lambda value: self.gui.doubleSpinBox_wavelength.setSingleStep(value))
+
+        # combobox
+        self.gui.comboBox_mode.addItems(["Voltage1", "Voltage2", "Modulation", "QWP"])
+        self.gui.comboBox_mode.currentIndexChanged.connect(self.set_channel_textfield_disabled)
+
+        # enable
+        self.gui.pushButton_state.clicked.connect(self.state_clicked)
+
+    def state_clicked(self, state):
+        """ Enable output"""
+        self.variable_waveplate_ins.output = state
+        return state
+
+    def change_step_v1(self, v, obj):
+        self.gui.doubleSpinBox_v1.setDecimals(3)
 
     def set_gui_specifics(self):
         self.setWindowTitle(self.title)
@@ -167,36 +224,51 @@ class VariableWaveplateGui(QWidget):
             model.appendRow(item)
         self.grid_layout.addWidget(self.output_combobox, 1, 3)
 
-    def set_channel_textfield_disabled(self):
+    def set_channel_textfield_disabled(self, v):
         """
         if the mode is Voltage1 then it is not possible to
         write something in textbox of Voltage 2 or the others
         """
-        if self.mode_combobox.currentText() == "Voltage1":
-            self.voltage_1_textfield.setEnabled(True)
-            self.voltage_2_textfield.setEnabled(False)
-            self.frequency_textfield.setEnabled(False)
-            self.quater_waveplate_textfield.setEnabled(False)
+        if self.gui.comboBox_mode.currentText() == "Voltage1":
+            self.gui.doubleSpinBox_v1.setEnabled(True)
+            self.gui.doubleSpinBox_v1_delta.setEnabled(True)
+            self.gui.doubleSpinBox_v2.setEnabled(False)
+            self.gui.doubleSpinBox_v2_delta.setEnabled(False)
+            self.gui.doubleSpinBox_frequency.setEnabled(False)
+            self.gui.doubleSpinBox_frequency_delta.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength_delta.setEnabled(False)
+
+        elif self.gui.comboBox_mode.currentText() == "Voltage2":
+            self.gui.doubleSpinBox_v1.setEnabled(False)
+            self.gui.doubleSpinBox_v1_delta.setEnabled(False)
+            self.gui.doubleSpinBox_v2.setEnabled(True)
+            self.gui.doubleSpinBox_v2_delta.setEnabled(True)
+            self.gui.doubleSpinBox_frequency.setEnabled(False)
+            self.gui.doubleSpinBox_frequency_delta.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength_delta.setEnabled(False)
+
+        elif self.gui.comboBox_mode.currentText() == "Modulation":
+            self.gui.doubleSpinBox_v1.setEnabled(True)
+            self.gui.doubleSpinBox_v1_delta.setEnabled(True)
+            self.gui.doubleSpinBox_v2.setEnabled(True)
+            self.gui.doubleSpinBox_v2_delta.setEnabled(True)
+            self.gui.doubleSpinBox_frequency.setEnabled(True)
+            self.gui.doubleSpinBox_frequency_delta.setEnabled(True)
+            self.gui.doubleSpinBox_wavelength.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength_delta.setEnabled(False)
 
 
-        elif self.mode_combobox.currentText() == "Voltage2":
-            self.voltage_1_textfield.setEnabled(False)
-            self.voltage_2_textfield.setEnabled(True)
-            self.frequency_textfield.setEnabled(False)
-            self.quater_waveplate_textfield.setEnabled(False)
-
-        elif self.mode_combobox.currentText() == "Modulation":
-            self.voltage_1_textfield.setEnabled(True)
-            self.voltage_2_textfield.setEnabled(True)
-            self.frequency_textfield.setEnabled(True)
-            self.quater_waveplate_textfield.setEnabled(False)
-
-
-        elif self.mode_combobox.currentText() == "QWP":
-            self.voltage_1_textfield.setEnabled(False)
-            self.voltage_2_textfield.setEnabled(False)
-            self.frequency_textfield.setEnabled(False)
-            self.quater_waveplate_textfield.setEnabled(True)
+        elif self.gui.comboBox_mode.currentText() == "QWP":
+            self.gui.doubleSpinBox_v1.setEnabled(True)
+            self.gui.doubleSpinBox_v1_delta.setEnabled(True)
+            self.gui.doubleSpinBox_v2.setEnabled(False)
+            self.gui.doubleSpinBox_v2_delta.setEnabled(False)
+            self.gui.doubleSpinBox_frequency.setEnabled(False)
+            self.gui.doubleSpinBox_frequency_delta.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength.setEnabled(True)
+            self.gui.doubleSpinBox_wavelength_delta.setEnabled(True)
 
     def get_mode(self):
         return self.mode_combobox.currentText()
@@ -244,11 +316,12 @@ class VariableWaveplateGui(QWidget):
             self.variable_waveplate_ins.output = False
 
 
+
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings, root_dir
     from os import path
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
@@ -262,6 +335,9 @@ if __name__ == '__main__':
         variable_waveplate_ins.initialize()
         app = QApplication(sys.argv)
         app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
-        ex = VariableWaveplateGui(variable_waveplate_ins)
-        #variable_waveplate_ins.finalize()
+        with VariableWaveplateGui(variable_waveplate_ins) as GUI:
+            print('hello')
+
         sys.exit(app.exec_())
+
+

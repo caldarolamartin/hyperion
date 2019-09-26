@@ -274,7 +274,7 @@ class Lcc(BaseController):
     @freq.setter
     def freq(self, F):
         if F.m_as('hertz') > 150 or F.m_as('hertz') < 0.5:
-            raise NameError('Required Frequency outside limits (0.5,150)Hz')
+            raise NameError('Required Frequency outside limits (0.5, 150) Hz')
         if self._freq != F:
             self._freq = F
             msg = 'freq=' + str(F.m_as('hertz'))

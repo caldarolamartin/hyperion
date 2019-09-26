@@ -62,8 +62,10 @@ class VariableWaveplate(BaseInstrument):
     def initialize(self):
         """ initializes the connection with the controller """
         if not self.controller._is_initialized:
-            self.logger.debug('Initializing')
+            self.logger.info('Initializing')
             self.controller.initialize()
+        else:
+            self.logger.info('Already initialized')
 
     def load_calibration(self, cal_file):
         """ This method loads the calibration file cal_file
@@ -333,10 +335,10 @@ if __name__ == '__main__':
             #     logging.info('The mode is: {}'.format(dev.output))
             #
             # # set voltage for both channels
-            # for ch in range(1, 2):
-            #     logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
-            #     dev.set_analog_value(ch, 1 * ur('volts'))
-            #     logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+            for ch in range(1, 2):
+                logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+                dev.set_analog_value(ch, 1 )
+                logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
             #
             # # unit_test freq
             # logging.info('Current freq: {}'.format(dev.freq))
@@ -346,8 +348,8 @@ if __name__ == '__main__':
             #     logging.info('Current freq: {}'.format(dev.freq))
 
             # set the quater waveplate voltage in voltage1
-            wavelength = 633* ur('nanometer')
-            dev.set_quarter_waveplate_voltage(1, wavelength)
+            # wavelength = 633* ur('nanometer')
+            # dev.set_quarter_waveplate_voltage(1, wavelength)
 
 
         print('Done with dummy={}'.format(dummy))
