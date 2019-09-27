@@ -115,7 +115,7 @@ class Lcc(BaseController):
         msg = msg.encode(self.DEFAULTS['encoding'])
         self.rsc.write(msg)
 
-    def read_serial_buffer_in(self, wait_for_termination_char=True):
+    def read_serial_buffer_in(self):
         """
         Reads everything the device has sent. By default it waits until a line
         is terminated by a termination character (\n or \r), but that check can
@@ -130,14 +130,7 @@ class Lcc(BaseController):
         if not self._is_initialized:
             raise Warning('Trying to read from {} before initializing'.format(self.name))
 
-        # At least for Arduino, it appears the buffer is filled in chuncks of max 32 bytes
-        byte_time = 1 / self.rsc.baudrate * (self.rsc.bytesize + self.rsc.stopbits + (self.rsc.parity != 'N'))
         raw = b''
-        in_buffer = 0
-        # new_in_buffer = 0
-        # term_chars = '\n\r'.encode(self.DEFAULTS['encoding'])
-        # ends_at_term_char = False
-
         # Keep checking
         to = time()
         expire_time = time() + self.DEFAULTS['read_timeout'] + 0.00001 # in case _read_timeout is null
@@ -147,18 +140,6 @@ class Lcc(BaseController):
             if raw[-2:] == '> '.encode(self.DEFAULTS['encoding']):
                 break
         self.logger.debug('Elapsed time: {} s'.format(time()-to))
-        # while (not ends_at_term_char) and (time() < expire_time):
-        #     sleep(byte_time * 8)
-        #     new_in_buffer = self.rsc.in_waiting
-        #     if new_in_buffer > in_buffer:
-        #         # if the buffer has grown make sure the expire_time is at least long enough to read in another 32 bytes
-        #         expire_time = max(expire_time, time() + byte_time * 8)
-        #         in_buffer = new_in_buffer
-        #
-        #     raw += self.rsc.read(self.rsc.in_waiting)
-        #     if not wait_for_termination_char or (len(raw) and (raw[-1] in term_chars)):
-        #         ends_at_term_char = True
-        # self.logger.debug('While loop condition: ends: {}, time: {} s'.format(ends_at_term_char, time()-to))
         self.logger.debug('{} bytes received'.format(len(raw)))
         return raw
 
@@ -172,14 +153,13 @@ class Lcc(BaseController):
         if not self._is_initialized:
             raise Warning('Trying to read from device before initializing')
         #response = self.rsc.readline()
-        response = self.read_serial_buffer_in(wait_for_termination_char=False)
+        response = self.read_serial_buffer_in()
         self.logger.debug('Response: {}'.format(response))
         msg = str(response, encoding=self.DEFAULTS['encoding'])
         #self.logger.debug('Response after decode: {}'.format(msg))
         list = msg.split(self.DEFAULTS['read_termination'])
         self.logger.debug('Split: {}'.format(list))
         return list[-2]
-
 
     def query(self, message):
         """ Writes in the buffer and Reads the response.
@@ -228,6 +208,7 @@ class Lcc(BaseController):
         if Ch > 2:
             raise NameError('Ch can only be 1 or 2')
 
+        V = round(V,3) # round to the max precision of the device
         msg = 'volt' + str(Ch) + '=' + str(V.m_as('volt'))
         self.query(msg)
         self.logger.info('Changed "voltage{}" to {} volt'.format(Ch, V.m_as('volt')))
