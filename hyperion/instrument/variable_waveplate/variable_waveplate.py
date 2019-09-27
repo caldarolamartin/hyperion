@@ -46,6 +46,7 @@ class VariableWaveplate(BaseInstrument):
         # property
         self._output = settings['enable']
         self._mode = None
+        self._freq = None
         self._wavelength = 532*ur('nm') # default wavelength
         self.MODES = ['Modulation', 'Voltage1', 'Voltage2', 'QWP']
 
