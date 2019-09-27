@@ -20,7 +20,7 @@ class BeamFlagsInstr(BaseInstrument):
 
     """
     def __init__(self, settings = {'port':'COM4', 'dummy': True,
-                                   'controller': 'hyperion.controller.generic.generic_serial/GenericSerialController'}):
+                                   'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}):
         """ init of the class"""
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
@@ -34,10 +34,18 @@ class BeamFlagsInstr(BaseInstrument):
 
         # Note that flag names need to be 1 character long
         if 'flag_names' not in self.settings:
-            self.settings['flag_names'] = ['1','2']
+            if 'gui_flags' in self.settings:
+                self.settings['flag_names'] = list( self.settings['gui_flags'].keys() )
+            else:
+                self.settings['flag_names'] = ['1','2']
 
         # Note that flag states need to be 1 character long
         if 'states' not in self.settings:
+            if 'flag_states' in self.settings:
+                states = [self.settings['flag_states']['red'] , self.settings['flag_states']['red'] ]
+                if len(states) != 2:
+                    self.logger.warning('"red" and "green" states not specified correctly in yaml settings file')
+                    self.settings['states'] = ['r', 'g'];
             self.settings['states'] = ['r','g'];
 
         self.flag_states = {}
@@ -243,6 +251,8 @@ class BeamFlagsInstr(BaseInstrument):
 
 
 if __name__ == "__main__":
+
+
     from hyperion import _logger_format, _logger_settings
     logging.basicConfig(level=logging.INFO, format=_logger_format,
                         handlers=[
@@ -254,7 +264,7 @@ if __name__ == "__main__":
     dummy = [False]
     for d in dummy:
         with BeamFlagsInstr(settings = {'port': 'COM4', 'dummy' : d,
-                                   'controller': 'hyperion.controller.generic.generic_serial/GenericSerialController'}) as bf:
+                                   'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}) as bf:
             bf.initialize()
             print( bf.idn() )
             bf.set_specific_flag_state('1','r')
