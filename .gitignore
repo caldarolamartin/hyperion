@@ -17,3 +17,4 @@
 
 # do not keep track of the logger.
 logger.log
+*.log

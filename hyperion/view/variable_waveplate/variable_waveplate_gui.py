@@ -10,12 +10,15 @@ This is the variable waveplate GUI.
 """
 
 import logging
-import sys
+import sys, os
 from PyQt5.QtCore import Qt
+from PyQt5 import uic
 from PyQt5.QtGui import QStandardItem, QColor, QIcon
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit, QDoubleSpinBox
 from hyperion.instrument.variable_waveplate.variable_waveplate import VariableWaveplate
-from hyperion import Q_, ur
+from hyperion import Q_, ur, root_dir
+
+
 
 #todo checkout if the device is on the computer if this class can work with the variablewaveplate/lcc25
 
@@ -31,217 +34,169 @@ class VariableWaveplateGui(QWidget):
         """
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.title = 'LCC25 variable waveplate instrument (GUI)'
-        self.left = 10
-        self.top = 60
-        self.width = 450
-        self.height = 250
-        self.variable_waveplate_ins = variable_waveplate_ins
-        self.initUI()
+        self.test = QDoubleSpinBox() # to be removed
 
+
+        # to load from the UI file
+        gui_file = os.path.join(root_dir,'view', 'variable_waveplate','variable_waveplate_instrument.ui')
+        self.logger.info('Loading the GUI file: {}'.format(gui_file))
+        self.gui = uic.loadUi(gui_file, self)
+        # define internal variables to update the GUI
+        self._output = None
+        self._mode = None
+        self._analog_value_1 = None
+        self._analog_value_2 = None
+
+        # setup the gui
+        self.variable_waveplate_ins = variable_waveplate_ins
+        self.customize_gui()
+        self.get_device_state()
+        self.set_device_state_to_gui()
+        self.show()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+       self.logger.debug('Exiting')
+
+    def customize_gui(self):
+        """ Make changes to the gui """
+        self.logger.debug('Setting Voltage spinboxes settings')
+        self.gui.doubleSpinBox_v1.setDecimals(3)
+        self.gui.doubleSpinBox_v1.setSuffix(' V')
+        self.gui.doubleSpinBox_v1.setSingleStep(self.gui.doubleSpinBox_v1_delta.value())
+
+        self.gui.doubleSpinBox_v1_delta.setDecimals(3)
+        self.gui.doubleSpinBox_v1_delta.setSuffix(' V')
+        self.gui.doubleSpinBox_v1_delta.valueChanged.connect( lambda value: self.gui.doubleSpinBox_v1.setSingleStep(value) )
+
+        self.gui.doubleSpinBox_v2.setDecimals(3)
+        self.gui.doubleSpinBox_v2.setSuffix(' V')
+        self.gui.doubleSpinBox_v2.setSingleStep(self.gui.doubleSpinBox_v2_delta.value())
+
+        self.gui.doubleSpinBox_v2_delta.setDecimals(3)
+        self.gui.doubleSpinBox_v2_delta.setSuffix(' V')
+        self.gui.doubleSpinBox_v2_delta.valueChanged.connect(
+            lambda value: self.gui.doubleSpinBox_v2.setSingleStep(value))
+
+        self.gui.doubleSpinBox_frequency_delta.valueChanged.connect(
+            lambda value: self.gui.doubleSpinBox_frequency.setSingleStep(value))
+
+        self.gui.doubleSpinBox_wavelength_delta.valueChanged.connect(
+            lambda value: self.gui.doubleSpinBox_wavelength.setSingleStep(value))
+
+        # combobox
+        self.gui.comboBox_mode.addItems(self.variable_waveplate_ins.MODES)
+        self.gui.comboBox_mode.currentIndexChanged.connect(self.set_channel_textfield_disabled)
+
+        # enable
+        self.gui.pushButton_state.clicked.connect(self.state_clicked)
+        self.gui.enabled = QWidget()
+
+        # connect the voltage and frequency spinbox a function to send the
+        self.gui.doubleSpinBox_v1.valueChanged.connect(self.send_voltage_v1)
+        self.gui.doubleSpinBox_v2.valueChanged.connect(self.send_voltage_v2)
+        self.gui.doubleSpinBox_frequency.valueChanged.connect(self.send_frequency_value)
+        self.gui.doubleSpinBox_wavelength.valueChanged.connect(self.send_qwp)
+
+    def send_voltage_v1(self, value):
+        """ Sets the voltage 1 to the device"""
+        self.variable_waveplate_ins.set_analog_value(1, Q_(value, self.gui.doubleSpinBox_v1.suffix()))
+
+    def send_voltage_v2(self, value):
+        """ Sets the voltage 2 to the device"""
+        self.variable_waveplate_ins.set_analog_value(2, Q_(value, self.gui.doubleSpinBox_v2.suffix()))
+
+    def send_frequency_value(self, value):
+        """Gets the value from the spinbox in the gui and sends it to the device """
+        freq = Q_(value, self.gui.doubleSpinBox_frequency.suffix())
+        self.logger.debug('Frequency to set: {}'.format(freq))
+
+        if freq.m_as('Hz') != self.variable_waveplate_ins._freq.m_as('Hz'):
+            self.variable_waveplate_ins.freq = freq
+
+    def send_qwp(self, value):
+        """ Sets the QWP wavelength to the device"""
+        self.variable_waveplate_ins.set_quarter_waveplate_voltage(Q_(value, self.gui.doubleSpinBox_wavelength.suffix()))
+        self._analog_value_1 = self.variable_waveplate_ins.get_analog_value(1)
+        self.gui.doubleSpinBox_v1.setValue(self._analog_value_1.m_as('volt'))
+
+    def get_device_state(self):
+        """ Gets the state for all the settings form the device """
         self._output = self.variable_waveplate_ins.output
         self._mode = self.variable_waveplate_ins.mode
         self._analog_value_1 = self.variable_waveplate_ins.get_analog_value(1)
         self._analog_value_2 = self.variable_waveplate_ins.get_analog_value(2)
-        self._frequency = self.variable_waveplate_ins.freq
 
+    def set_device_state_to_gui(self):
+        """ Sets the device state to the GUI """
+        self.state_clicked(self._output)
+        self.gui.pushButton_state.setChecked(self._output)
+        self.gui.doubleSpinBox_v1.setValue(self._analog_value_1.m_as('volt'))
+        self.gui.doubleSpinBox_v2.setValue(self._analog_value_2.m_as('volt'))
+        self.gui.doubleSpinBox_frequency.setValue(self.variable_waveplate_ins.freq.m_as('Hz'))
+        self.gui.comboBox_mode.setCurrentIndex(self.variable_waveplate_ins.MODES.index(self.variable_waveplate_ins.mode))
+        self.gui.doubleSpinBox_wavelength.setValue(self.variable_waveplate_ins._wavelength.m_as('nm'))
 
-    def set_gui_specifics(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.grid_layout = QGridLayout()
-        self.setLayout(self.grid_layout)
+    def state_clicked(self, state):
+        """ Enable output"""
+        self.logger.debug('Send the state to the device')
+        self.variable_waveplate_ins.output = state
+        self._output = state
+        self.logger.debug('Changing apearence of the button')
+        self.gui.pushButton_state.setText(['Disabled','Enabled'][state])
+        self.gui.pushButton_state.setStyleSheet("background-color: "+['red','green'][state])
+        return state
 
-    def initUI(self):
-        """ Initializes the gui elements """
-        self.set_gui_specifics()
-        self.set_elements_in_gui()
-        self.show()
+    def change_step_v1(self, v, obj):
+        self.gui.doubleSpinBox_v1.setDecimals(3)
 
-    def set_elements_in_gui(self):
-        self.set_labels()
-        self.set_textfields()
-        self.set_miscelanious_gui_stuff()
-
-    def set_labels(self):
-        self.set_mode_label()
-        self.set_voltage_1_label()
-        self.set_voltage_2_label()
-        self.set_quater_waveplate_label()
-        self.set_frequency_label()
-        self.set_output_label()
-
-    def set_textfields(self):
-        self.set_voltage_1_textfield()
-        self.set_voltage_2_textfield()
-        self.set_quater_waveplate_textfield()
-        self.set_frequency_textfield()
-
-    def set_miscelanious_gui_stuff(self):
-        self.set_mode_combobox()
-        self.set_submit_button()
-        self.set_output_dropdown()
-
-    def set_frequency_label(self):
-        self.frequency_label = QLabel(self)
-        self.frequency_label.setText("Freq in Hz:")
-        self.grid_layout.addWidget(self.frequency_label, 0, 2)
-
-    def set_quater_waveplate_label(self):
-        self.quater_waveplate_label = QLabel(self)
-        self.quater_waveplate_label.setText("Wavelength for \n Quarter-wave plate:")
-        self.grid_layout.addWidget(self.quater_waveplate_label, 3, 0)
-
-    def set_voltage_2_label(self):
-        self.voltage_2_label = QLabel(self)
-        self.voltage_2_label.setText("V2, in (0, 25) V:")
-        self.grid_layout.addWidget(self.voltage_2_label, 2, 0)
-
-    def set_voltage_1_label(self):
-        self.voltage_1_label = QLabel(self)
-        self.voltage_1_label.setText("V1, in (0,25) V:")
-        self.grid_layout.addWidget(self.voltage_1_label, 1, 0)
-
-    def set_mode_label(self):
-        self.mode_label = QLabel(self)
-        self.mode_label.setText("mode:")
-        self.grid_layout.addWidget(self.mode_label, 0, 0)
-
-    def set_output_label(self):
-        self.output_label = QLabel(self)
-        self.output_label.setText("output:")
-        self.grid_layout.addWidget(self.output_label, 1, 2)
-
-    def set_frequency_textfield(self):
-        self.frequency_textfield = QLineEdit(self)
-        self.frequency_textfield.setText(str(self.variable_waveplate_ins.controller.freq))
-        self.grid_layout.addWidget(self.frequency_textfield, 0, 3)
-
-    def set_quater_waveplate_textfield(self):
-        self.quater_waveplate_textfield = QLineEdit(self)
-        self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
-        self.grid_layout.addWidget(self.quater_waveplate_textfield, 3, 1)
-
-    def set_voltage_1_textfield(self):
-        self.voltage_1_textfield = QLineEdit(self)
-        self.voltage_1_textfield.setText(str(self.variable_waveplate_ins.get_analog_value(1)))
-        self.grid_layout.addWidget(self.voltage_1_textfield, 1, 1)
-
-    def set_voltage_2_textfield(self):
-        self.voltage_2_textfield = QLineEdit(self)
-        self.voltage_2_textfield.setText(str(self.variable_waveplate_ins.get_analog_value(2)))
-        self.grid_layout.addWidget(self.voltage_2_textfield, 2, 1)
-
-    def set_submit_button(self):
-        submit_button = QPushButton('Apply', self)
-        submit_button.setToolTip('Send all settings to device')
-        self.grid_layout.addWidget(submit_button, 3, 3)
-        submit_button.clicked.connect(self.submit_button_clicked)
-
-    def set_mode_combobox(self):
-        """
-        With the combobox all the different modes are shown.
-        """
-        self.logger.debug('Setting combobox')
-        self.mode_combobox = QComboBox(self)
-        self.mode_combobox.addItems(["Voltage1", "Voltage2", "Modulation", "QWP"])
-        self.mode_combobox.currentIndexChanged.connect(self.set_channel_textfield_disabled)
-        self.grid_layout.addWidget(self.mode_combobox, 0, 1)
-        self.set_channel_textfield_disabled()
-
-    def set_output_dropdown(self):
-        """
-        The output parameter is made.
-        The letters of the output combobox change depending on if the name is Onn(green) and
-        Off(red)
-        """
-        self.output_combobox = QComboBox(self)
-        model = self.output_combobox.model()
-        items = ["On", "Off"]
-        for row in items:
-            item = QStandardItem(str(row))
-            if row == "On":
-                item.setForeground(QColor('green'))
-            elif row == "Off":
-                item.setForeground(QColor('red'))
-            model.appendRow(item)
-        self.grid_layout.addWidget(self.output_combobox, 1, 3)
-
-    def set_channel_textfield_disabled(self):
+    def set_channel_textfield_disabled(self, v):
         """
         if the mode is Voltage1 then it is not possible to
         write something in textbox of Voltage 2 or the others
         """
-        if self.mode_combobox.currentText() == "Voltage1":
-            self.voltage_1_textfield.setEnabled(True)
-            self.voltage_2_textfield.setEnabled(False)
-            self.frequency_textfield.setEnabled(False)
-            self.quater_waveplate_textfield.setEnabled(False)
+        if self.gui.comboBox_mode.currentText() == "Voltage1":
+            self.gui.doubleSpinBox_v1.setEnabled(True)
+            self.gui.doubleSpinBox_v1_delta.setEnabled(True)
+            self.gui.doubleSpinBox_v2.setEnabled(False)
+            self.gui.doubleSpinBox_v2_delta.setEnabled(False)
+            self.gui.doubleSpinBox_frequency.setEnabled(False)
+            self.gui.doubleSpinBox_frequency_delta.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength_delta.setEnabled(False)
+
+        elif self.gui.comboBox_mode.currentText() == "Voltage2":
+            self.gui.doubleSpinBox_v1.setEnabled(False)
+            self.gui.doubleSpinBox_v1_delta.setEnabled(False)
+            self.gui.doubleSpinBox_v2.setEnabled(True)
+            self.gui.doubleSpinBox_v2_delta.setEnabled(True)
+            self.gui.doubleSpinBox_frequency.setEnabled(False)
+            self.gui.doubleSpinBox_frequency_delta.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength_delta.setEnabled(False)
+
+        elif self.gui.comboBox_mode.currentText() == "Modulation":
+            self.gui.doubleSpinBox_v1.setEnabled(True)
+            self.gui.doubleSpinBox_v1_delta.setEnabled(True)
+            self.gui.doubleSpinBox_v2.setEnabled(True)
+            self.gui.doubleSpinBox_v2_delta.setEnabled(True)
+            self.gui.doubleSpinBox_frequency.setEnabled(True)
+            self.gui.doubleSpinBox_frequency_delta.setEnabled(True)
+            self.gui.doubleSpinBox_wavelength.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength_delta.setEnabled(False)
 
 
-        elif self.mode_combobox.currentText() == "Voltage2":
-            self.voltage_1_textfield.setEnabled(False)
-            self.voltage_2_textfield.setEnabled(True)
-            self.frequency_textfield.setEnabled(False)
-            self.quater_waveplate_textfield.setEnabled(False)
-
-        elif self.mode_combobox.currentText() == "Modulation":
-            self.voltage_1_textfield.setEnabled(True)
-            self.voltage_2_textfield.setEnabled(True)
-            self.frequency_textfield.setEnabled(True)
-            self.quater_waveplate_textfield.setEnabled(False)
-
-
-        elif self.mode_combobox.currentText() == "QWP":
-            self.voltage_1_textfield.setEnabled(False)
-            self.voltage_2_textfield.setEnabled(False)
-            self.frequency_textfield.setEnabled(False)
-            self.quater_waveplate_textfield.setEnabled(True)
-
-    def get_mode(self):
-        return self.mode_combobox.currentText()
-
-    def submit_button_clicked(self):
-        """
-        Get the parameters from the gui and sent these to the
-        instrument of the variable waveplate.
-        """
-        self.logger.debug('Submit button was clicked...')
-        self.set_output_mode()
-
-        if self.get_mode() == "Voltage1":
-            self.variable_waveplate_ins.mode = 1
-            self._mode = 1
-            self.variable_waveplate_ins.set_analog_value(1, Q_(self.voltage_1_textfield.text()))
-            self._analog_value_1 = Q_(self.voltage_1_textfield.text())
-        elif self.get_mode() == "Voltage2":
-            self.variable_waveplate_ins.mode = 2
-            self._mode = 2
-            self.variable_waveplate_ins.set_analog_value(2, Q_(self.voltage_2_textfield.text()))
-            self._analog_value_2 = Q_(self.voltage_2_textfield.text())
-        elif self.get_mode() == "Modulation":
-            self.variable_waveplate_ins.mode = 0
-            self._mode = 0
-            self.variable_waveplate_ins.freq = Q_(self.frequency_textfield.text())
-            self._frequency = Q_(self.frequency_textfield.text())
-        elif self.get_mode() == 'QWP':
-            self._mode = 1
-            self._analog_value_1 = self.variable_waveplate_ins.set_quarter_waveplate_voltage(1, Q_(self.quater_waveplate_textfield.text()) )
-
-        # update the values
-        self.voltage_1_textfield.setText(str(self._analog_value_1))
-        self.voltage_2_textfield.setText(str(self._analog_value_2))
-        self.quater_waveplate_textfield.setText(str(self.variable_waveplate_ins._wavelength))
-
-    def set_output_mode(self):
-        """Sets the output on or off deppending on the output_combobox state
-
-        """
-        self.logger.info('Setting the output mode to {}'.format(self.output_combobox.currentText()))
-        if self.output_combobox.currentText() == "On":
-            self.variable_waveplate_ins.output = True
-        elif self.output_combobox.currentText() == "Off":
-            self.variable_waveplate_ins.output = False
+        elif self.gui.comboBox_mode.currentText() == "QWP":
+            self.gui.doubleSpinBox_v1.setEnabled(False)
+            self.gui.doubleSpinBox_v1_delta.setEnabled(False)
+            self.gui.doubleSpinBox_v2.setEnabled(False)
+            self.gui.doubleSpinBox_v2_delta.setEnabled(False)
+            self.gui.doubleSpinBox_frequency.setEnabled(False)
+            self.gui.doubleSpinBox_frequency_delta.setEnabled(False)
+            self.gui.doubleSpinBox_wavelength.setEnabled(True)
+            self.gui.doubleSpinBox_wavelength_delta.setEnabled(True)
 
 
 if __name__ == '__main__':
@@ -262,6 +217,9 @@ if __name__ == '__main__':
         variable_waveplate_ins.initialize()
         app = QApplication(sys.argv)
         app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
-        ex = VariableWaveplateGui(variable_waveplate_ins)
-        #variable_waveplate_ins.finalize()
+        with VariableWaveplateGui(variable_waveplate_ins) as GUI:
+            print('hello')
+
         sys.exit(app.exec_())
+
+

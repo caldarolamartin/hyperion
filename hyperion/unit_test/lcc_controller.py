@@ -97,7 +97,7 @@ class UTestLcc():
 
 if __name__ == "__main__":
     from hyperion import _logger_format
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
@@ -108,12 +108,12 @@ if __name__ == "__main__":
         print('Running dummy={} tests.'.format(dummy))
         # run the tests
         with UTestLcc(settings={'port':true_port, 'dummy':dummy}) as t:
-            #t.test_voltage()
-            #t.test_output()
-            #t.test_mode()
+            t.test_voltage()
+            t.test_output()
+            t.test_mode()
             t.test_freq()
 
-        print('done with dummy={} tests.'.format(dummy))
+        print('\n\n\n Done with dummy={} tests. \n\n\n NO PROBLEM, you are great!!!! \n\n\n '.format(dummy))
 
 
 
