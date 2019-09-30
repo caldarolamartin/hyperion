@@ -26,10 +26,10 @@ class BeamFlagsGui(QWidget):
         # uic.loadUi('double_flag.ui', self)
 
         self.title = 'Beam Flags Gui'
-        self.left = 40
-        self.top = 40
-        self.width = 320
-        self.height = 200
+        self.left = 400
+        self.top = 400
+        self.width = 240
+        self.height = 80
 
         self.bfi = beam_flags_instr
         self.bf_settings = self.bfi.settings['gui_flags']

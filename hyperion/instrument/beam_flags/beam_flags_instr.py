@@ -8,77 +8,82 @@ Instrument for homebuilt Arduino based beam flags.
 Designed to work with Arduino running:
     qnd_simple_double_flag_controller.ino
     "QND Simple Double Flag Controller, version 0.1, date 2019-09-17"
-
 """
+
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 import time
-from hyperion import ur
 
 class BeamFlagsInstr(BaseInstrument):
-    """ Example instrument. it is a fake instrument
-
     """
-    def __init__(self, settings = {'port':'COM4', 'dummy': True,
-                                   'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}):
-        """ init of the class"""
+    Beam Flags Instrument
+    Intended to be used with an arduino running:
+        qnd_simple_double_flag_controller.ino
+        "QND Simple Double Flag Controller, version 0.1, date 2019-09-17"
+    """
+    def __init__(self, settings):
+        """ Init of the class.
+
+        :param settings: This includes all the settings needed to connect to the device in question.
+        :type settings: dict
+        """
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Class BeamFlags created.')
-
         self.settings = settings
 
-        # temporary lines for auto completion while developing:
-        from hyperion.controller.generic.generic_serial_contr import GenericSerialController
-        self.controller = GenericSerialController(settings={'port':'COM4'})
-
         # Note that flag names need to be 1 character long
+        # (create and add flag_names to the settings dictionary)
         if 'flag_names' not in self.settings:
             if 'gui_flags' in self.settings:
                 self.settings['flag_names'] = list( self.settings['gui_flags'].keys() )
             else:
-                self.settings['flag_names'] = ['1','2']
+                self.settings['flag_names'] = ['1','2']     # hardcoded default value for this arduino device
 
         # Note that flag states need to be 1 character long
+        # (create and add states to the settings dictionary)
         if 'states' not in self.settings:
             if 'flag_states' in self.settings:
-                states = [self.settings['flag_states']['red'] , self.settings['flag_states']['red'] ]
+                states = [self.settings['flag_states']['red'] , self.settings['flag_states']['green'] ]
                 if len(states) != 2:
                     self.logger.warning('"red" and "green" states not specified correctly in yaml settings file')
-                    self.settings['states'] = ['r', 'g'];
-            self.settings['states'] = ['r','g'];
+                    self.settings['states'] = ['r', 'g'];   # hardcoded default value for this arduino device
+            else:
+                self.settings['states'] = ['r','g'];        # hardcoded default value for this arduino device
 
+        # Dict that represents state of the beam flags.
+        # Can be outdated due to manual changes. Use update_all_states() to make sure it's updated.
         self.flag_states = {}
         for name in self.settings['flag_names']:
             self.flag_states[name] = None
 
         if 'actuator_timeout' not in self.settings:
-            self.settings['actuator_timeout'] = 0.3;
+            self.settings['actuator_timeout'] = 0.3;        # not used
 
-        # In order to keep track of the state of the flags (because they can be altered outside
-        # the control of the python code), one could keep sending queries to the device, but I
-        # recommend this alternative method:
+        # In order to keep track of the state of the flags (because they can be altered manually,
+        # outside the control of the python code), one could keep sending queries to the device,
+        # bu I recommend this alternative method:
         # If self._use_passive_queries is True, the Arduino will send new state info when the
         # state is altered through toggle button. This instrument will then read this state
         # information from the Serial Buffer In whenever the state is required.
-        self._use_passive_queries = False  # True recommended
+        self._use_passive_queries = True  # True recommended
 
     def initialize(self):
         """ Starts the connection to the device"
         """
         self.logger.debug('Opening connection to device.')
         self.controller.initialize()
-        time.sleep(1.6)
-        #self.controller.read_lines()
+        time.sleep(1.5)  # this appears to be a safe delay for the arduino
+        self.controller.read_lines()
 
         #__use_passive_queries = self._use_passive_queries
         #self._use_passive_queries = False
+
         self.update_all_states()
         self._announce(self._use_passive_queries) # make sure "announce" is true
 
-
     def finalize(self):
-        """ this is to close connection to the device."""
+        """ Closes the connection to the device."""
         self.logger.debug('Closing connection to device.')
         self.controller.finalize()
 
@@ -87,20 +92,18 @@ class BeamFlagsInstr(BaseInstrument):
 
         :return: identification for the device
         :rtype: string
-
         """
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
 
     def _announce(self, state):
         """
-        Setting announce true in the Arduino, makes sure it will write
+        Setting announce true in the Arduino. This makes sure it will write
         toggle states to the serial buffer when they're changed manually.
 
         :param state: True of False
         :type state: bool
         """
-
         if state:
             self.controller.write('at')
         else:
@@ -116,16 +119,13 @@ class BeamFlagsInstr(BaseInstrument):
         :return: true if any state has changed
         :rtype: bool
         """
-
         changed = False
         for key in self.flag_states:
             before = self.flag_states[key]
             after = self.get_specific_flag_state(key)
             if after != before:
                 changed = True
-
         self.logger.debug('changes while updating all states = {}'.format(changed))
-
         return changed
 
     def get_specific_flag_state(self, flag_name):
@@ -141,7 +141,7 @@ class BeamFlagsInstr(BaseInstrument):
         :rtype: string
         """
 
-        # If _use_passive_queries: don't actively query but rely on "passive updates"
+        # If _use_passive_queries: don't actively query but rely on "passive updates" (descibed above)
         if flag_name in self.flag_states:
             if self._use_passive_queries and self.flag_states[flag_name] in self.settings['states']:
                 changed = self.passive_update_from_manual_changes()
@@ -160,7 +160,7 @@ class BeamFlagsInstr(BaseInstrument):
         """
         When toggle switches are manually changed, the arduino
         will send messages like 1g or 2r.
-        This method will read the Serial buffer in and update this
+        This method will read the Serial buffer-in and update this
         Instruments internal state of the flags according to the
         last states found in the buffer.
 
@@ -168,7 +168,6 @@ class BeamFlagsInstr(BaseInstrument):
         :rtype: bool
         """
         lines_list = self.controller.read_lines()
-
         changed = False
         for name in self.settings['flag_names']:
             state_lines = [line for line in lines_list if (len(line) == 2 and line[0]==name and line[1] in self.settings['states'])]
@@ -177,7 +176,6 @@ class BeamFlagsInstr(BaseInstrument):
                 if self.flag_states[name] != current_state:
                     changed = True
                     self.flag_states[name] = current_state
-
         return changed
 
     def set_specific_flag_state(self, flag_name, flag_state):
@@ -261,27 +259,30 @@ if __name__ == "__main__":
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
+    example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+                        'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
+
     dummy = [False]
     for d in dummy:
-        with BeamFlagsInstr(settings = {'port': 'COM4', 'dummy' : d,
-                                   'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}) as bf:
+        with BeamFlagsInstr(settings = example_settings) as bf:
             bf.initialize()
             print( bf.idn() )
-            bf.set_specific_flag_state('1','r')
-            print( bf.get_specific_flag_state('1') )
-            time.sleep( bf.settings['actuator_timeout'] )
-            bf.set_flag(1, True)
-            print( bf.get_flag(1))
-            time.sleep(bf.settings['actuator_timeout'])
-            bf.f1 = False
-            print(bf.f1)
-            time.sleep(bf.settings['actuator_timeout'])
-            start_time = time.time()
-            while (time.time() - start_time < 10):
-                print(bf.flag_states)
-                time.sleep(.2)
-                if bf.passive_update_from_manual_changes():
-                    print(bf.flag_states)
+
+            # bf.set_specific_flag_state('1','r')
+            # print( bf.get_specific_flag_state('1') )
+            # time.sleep( bf.settings['actuator_timeout'] )
+            # bf.set_flag(1, True)
+            # print( bf.get_flag(1))
+            # time.sleep(bf.settings['actuator_timeout'])
+            # bf.f1 = False
+            # print(bf.f1)
+            # time.sleep(bf.settings['actuator_timeout'])
+            # start_time = time.time()
+            # while (time.time() - start_time < 10):
+            #     print(bf.flag_states)
+            #     time.sleep(.2)
+            #     if bf.passive_update_from_manual_changes():
+            #         print(bf.flag_states)
 
 
     print('done')

@@ -14,8 +14,8 @@ This controller is however intended to be agnostic of what code/firmware/sketch
 is running on the device. I suggest to keep it that way and put device
 specific functionality in a dedicated instrument.
 This also means Dummy mode needs to be implemented mostly at Instrument level.
-
 """
+
 import serial
 import serial.tools.list_ports
 import time
@@ -25,19 +25,20 @@ from hyperion.controller.base_controller import BaseController
 class GenericSerialController(BaseController):
     """ Generic Serial Controller """
 
-
-    def __init__(self, settings = {'port':'COM4', 'dummy': False, 'baudrate': 9600, 'write_termination': '\n', 'read_timeout':1.0}):
+    def __init__(self, settings):
         """ Init of the class.
 
-        :param settings: this includes all the settings needed to connect to the device in question.
+        :param settings: This includes all the settings needed to connect to the device in question.
         :type settings: dict
-
         """
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
         self.rsc = None
         self.logger.debug('Generic Serial Controller created.')
         self.name = 'Generic Serial Controller'
+
+        # Storing the settings in internal variables.
+        # If they're not specified, default values are used.
 
         if 'dummy' in settings:
             self.dummy = settings['dummy']
@@ -48,22 +49,27 @@ class GenericSerialController(BaseController):
             self._port = settings['port']
         else:
             self._port = None
+            self.logger.warning('Port not specified in settings. This is mandatory')
         
         if 'baudrate' in settings:
             self._baud = settings['baudrate']
         else:
             self._baud = 9600
+            self.logger.debug('Baudrate not specified in settings. Using: {}'.format(self._baud))
             
         if 'write_termination' in settings:
             self._write_termination = settings['write_termination']
         else:
             self._write_termination = '\n'
-            
+            self.logger.debug('Write termination not specified in settings. Using: \\n')
+
+        # The code should be able to deal with different read terminations automatically.
         if 'read_termination' in settings:
             self._read_termination = settings['read_termination']
         else:
             self._read_termination = '\n'
 
+        # Write timeout is not really used, I think.
         if 'write_timeout' in settings:
             self._write_timeout = settings['write_timeout']
         else:
@@ -72,22 +78,22 @@ class GenericSerialController(BaseController):
         if 'read_timeout' in settings:
             self._read_timeout = settings['read_timeout']
         else:
-            self._read_timeout = 0.1
+            self._read_timeout = 0.5        # in seconds
+            self.logger.debug('Read timeout not specified in settings. Using: {}s'.format(self._read_timeout))
             
         if 'encoding' in settings:
             self._encoding = settings['encoding']
         else:
             self._encoding = 'ascii'
+            self.logger.debug('Encoding not specified in settings. Using: {}'.format(self._encoding))
             
         if 'name' in settings:
             self.name = settings['name']
         else:
             self.name = 'Serial Device'
-            
-        
 
     def initialize(self):
-        """ Starts the connection to the device in port """
+        """ Starts the connection to the device using the specified port."""
         self.rsc = serial.Serial(port=self._port,
                                      baudrate=self._baud,
                                      timeout=self._read_timeout,
@@ -99,8 +105,9 @@ class GenericSerialController(BaseController):
 
 
     def finalize(self):
-        """ This method closes the connection to the device.
-        It is ran automatically if you use a with block
+        """
+        This method closes the connection to the device.
+        It is ran automatically if you use a with block.
         """
         
         if self._is_initialized:
@@ -111,32 +118,30 @@ class GenericSerialController(BaseController):
             self.logger.warning('Finalizing before initializing connection to {}'.format(self.name))
 
         self._is_initialized = False
-        
 
     def idn(self):
-        """ Identify command
+        """
+        Identify command
 
         :return: identification for the device
         :rtype: string
         """
         self.logger.debug('Ask *IDN? to device.')
-        return self.query('*IDN?')
+        return self.query('*IDN?')[-1]
 
     def write(self, message):
-        """ Sends the message to the device.
+        """
+        Sends the message to the device.
 
         :param message: the message to write to the device
         :type message: string
-
         """
         if not self._is_initialized:
-            raise Warning('Trying to write to device before initializing')
+            raise Warning('Trying to write to {} before initializing'.format(self.name))
 
         message += self._write_termination
         self.logger.debug('Sending to device: {}'.format(message))
         self.rsc.write( message.encode(self._encoding) )
-
-
 
     def read_serial_buffer_in(self, wait_for_termination_char = True):
         """
@@ -144,11 +149,10 @@ class GenericSerialController(BaseController):
         is terminated by a termination character (\n or \r), but that check can
         be disabled using the input parameter.
 
-        :param untill_at_least_one_termination_char: defaults to True
-        :type untill_at_least_one_termination_char: bool 
+        :param wait_for_termination_char: defaults to True
+        :type wait_for_termination_char: bool
         :return: complete serial buffer from the device
         :rtype: bytes
-
         """
         if not self._is_initialized:
             raise Warning('Trying to read from {} before initializing'.format(self.name))
@@ -199,7 +203,6 @@ class GenericSerialController(BaseController):
                 del response_list[-1]
             if len(response_list) and response_list[0]=='':
                 del response_list[0]
-            
         return response_list
     
     def query(self, message):
@@ -209,12 +212,11 @@ class GenericSerialController(BaseController):
 
         :param message: command to send to the device
         :type message: str
-        :return: response from the device
-        :rtype: str
+        :return: list of responses received from the device
+        :rtype: list of strings
         """
-        
         if not self._is_initialized:
-            raise Warning('Trying to query from the device before initializing.')
+            raise Warning('Trying to query {} before initializing.'.format(self.name))
 
         self.rsc.reset_output_buffer()
         self.rsc.reset_input_buffer()
@@ -228,66 +230,113 @@ class GenericSerialController(BaseController):
 
 class GenericSerialControllerDummy(GenericSerialController):
     """
-    Serial Controller Dummy
-    ========================
+    Generic Serial Controller Dummy
+    ===============================
 
     A dummy version of the Generic Serial Controller.
 
-    In essence we have the same methods and we re-write the query to answer something meaningful but
-    without connecting to the real device.
+    Note that because Generic Serial Controller is supposed to be device agnostic
+    this dummy can't simulate every device. For devices using this Controller,
+    simulation has to be done at Instrument level.
+    This Dummy only stores write messages in a buffer and returns this buffer with
+    the read_serial_buffer_in method.
 
+    All other methods are are kept from GenericSerialController.
     """
 
+    def _empty_buffer(self):
+        self._buffer = ''.encode(self._encoding)
 
-    def query(self, msg):
-        """ writes into the device msg
+    def initialize(self):
+        """ Initializes Generic Serial Controller Dummy device."""
+        self.logger.debug('Dummy Generic Serial Controller device initialized')
+        self._empty_buffer()
+        self._is_initialized = True
 
-        :param msg: command to write into the device port
-        :type msg: string
+    def finalize(self):
+        """ Finalizes Generic Serial Controller Dummy device."""
+        self.logger.debug('Finalizing Dummy Generic Serial Controller device')
+        self._is_initialized = False
+
+    def write(self, message):
+        """Simulates write to dummy device (adds message to an internal buffer).
+        :param message: message to write
+        :type message: string
         """
-        self.logger.debug('Writing into the dummy device:{}'.format(msg))
-        ans = 'A general dummy answer'
+        if not self._is_initialized:
+            raise Warning('Trying to write to DUMMY {} before initializing'.format(self.name))
+        self.logger.debug('Adding message to internal buffer:')
+        self.logger.debug(message)
+        self._buffer.append(message.encode(self._encoding))
+
+    def read_serial_buffer_in(self, wait_for_termination_char=True):
+        """Simulates read from dummy device (returns internal buffer).
+        """
+        if not self._is_initialized:
+            raise Warning('Trying to read from DUMMY {} before initializing'.format(self.name))
+        self.logger.debug('Returning internal buffer')
+        ans = self._buffer
+        self._empty_buffer()
         return ans
 
+    def query(self, message):
+        """
+        Simulates query to dummy device.
+        Clears the internal buffer. Performs a write, followed by a read_lines()
+        Note, it clears the input buffer before sending out the query.
+
+        :param message: command to send to the device
+        :type message: str
+        :return: response from the device
+        :rtype: str
+        """
+        if not self._is_initialized:
+            raise Warning('Trying to query DUMMY {} before initializing.'.format(self.name))
+        self._empty_buffer()
+        self.write(message)
+        return self.read_lines()
 
 
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.ERROR, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
-    dummy = False  # change this to false to work with the real device in the COM specified below.
+    dummy = False  # change this to False to work with the real device in the COM specified below.
 
     if dummy:
         my_class = GenericSerialControllerDummy
     else:
         my_class = GenericSerialController
 
-    with my_class(settings = {'port':'COM4', 'write_termination':'\n'}) as dev:
+    example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n'}
+
+    # some test code for my arduino testing device:
+    with my_class(settings = example_settings) as dev:
         dev.initialize()
-        time.sleep(1.5)
-        print('start')
-        
+        time.sleep(1.5)         # this appears to be a safe waiting time for my arduino testing device
+        print('Start:')
+        # print the startup message in the buffer
+        [print(line) for line in dev.read_lines()]
+
 #        for x in range(2):
 #            time.sleep(.3)
 #            dev.write('2r')
 #            time.sleep(.3)
 #            dev.write('2g')
-        
-        print('after start up: {}'.format(dev.read_lines()))
-        print('ch1: {}'.format(dev.query('1?')))
-        print('ch2: {}'.format(dev.query('2?')))        
-        print('idn: {}'.format(dev.idn()))
+
+        print('ch1: {}'.format( dev.query('1?')[-1] ))
+        print('ch2: {}'.format( dev.query('2?')[-1] ))
+        print('idn: {}'.format( dev.idn() ))
         print('done')
-        
 
 
 """ Tip:
-    Useful featurtes of pyserial are
+    Useful features of pyserial are
     
     To list all devices:
     
