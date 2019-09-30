@@ -32,16 +32,16 @@ class BeamFlagsInstr(BaseInstrument):
         self.logger.debug('Class BeamFlags created.')
         self.settings = settings
 
-        # Note that flag names need to be 1 character long
-        # (create and add flag_names to the settings dictionary)
+        # Create and add flag_names to the settings dictionary.
+        # Note that flag names need to be 1 character long.
         if 'flag_names' not in self.settings:
             if 'gui_flags' in self.settings:
                 self.settings['flag_names'] = list( self.settings['gui_flags'].keys() )
             else:
                 self.settings['flag_names'] = ['1','2']     # hardcoded default value for this arduino device
 
-        # Note that flag states need to be 1 character long
-        # (create and add states to the settings dictionary)
+        # Create and add states to the settings dictionary.
+        # Note that flag states need to be 1 character long.
         if 'states' not in self.settings:
             if 'flag_states' in self.settings:
                 states = [self.settings['flag_states']['red'] , self.settings['flag_states']['green'] ]
@@ -69,18 +69,13 @@ class BeamFlagsInstr(BaseInstrument):
         self._use_passive_queries = True  # True recommended
 
     def initialize(self):
-        """ Starts the connection to the device"
-        """
+        """ Starts the connection to the device."""
         self.logger.debug('Opening connection to device.')
         self.controller.initialize()
         time.sleep(1.5)  # this appears to be a safe delay for the arduino
         self.controller.read_lines()
-
-        #__use_passive_queries = self._use_passive_queries
-        #self._use_passive_queries = False
-
+        self._announce(self._use_passive_queries) # make sure arduino "announce" matches _use_passive_queries
         self.update_all_states()
-        self._announce(self._use_passive_queries) # make sure "announce" is true
 
     def finalize(self):
         """ Closes the connection to the device."""
@@ -88,10 +83,11 @@ class BeamFlagsInstr(BaseInstrument):
         self.controller.finalize()
 
     def idn(self):
-        """ Identify command
+        """
+        Identify command.
 
-        :return: identification for the device
-        :rtype: string
+        :return: Identification string of the device (if it has it)
+        :rtype: str
         """
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
@@ -108,7 +104,6 @@ class BeamFlagsInstr(BaseInstrument):
             self.controller.write('at')
         else:
             self.controller.write('af')
-
         self._use_passive_queries = state
 
     def update_all_states(self):
@@ -141,7 +136,7 @@ class BeamFlagsInstr(BaseInstrument):
         :rtype: string
         """
 
-        # If _use_passive_queries: don't actively query but rely on "passive updates" (descibed above)
+        # If _use_passive_queries: don't actively query but rely on "passive updates" (described in __init__)
         if flag_name in self.flag_states:
             if self._use_passive_queries and self.flag_states[flag_name] in self.settings['states']:
                 changed = self.passive_update_from_manual_changes()
@@ -180,18 +175,17 @@ class BeamFlagsInstr(BaseInstrument):
 
     def set_specific_flag_state(self, flag_name, flag_state):
         """
-        INCOMPLETE
-        NO CHECKS YET
-        :param flag_name:
-        :param flag_state:
-        :return:
-        """
+        Sets a beam flag to a specific state.
 
+        :param flag_name: The one character flag name listed in the settings (i.e. '1' or '2')
+        :type flag_name: str
+        :param flag_state: The one character state string listed in the settings (i.e. 'r' or 'g')
+        :type flag_state: str
+        """
         if self._use_passive_queries:
             changed = self.passive_update_from_manual_changes()
             if self.flag_states[flag_name] == flag_state:
                 return
-
         self.controller.write(flag_name+flag_state)
 
     # Custom methods that assume the names of the flags are numbers.
@@ -200,15 +194,13 @@ class BeamFlagsInstr(BaseInstrument):
 
     def set_flag(self, flag_number, bool_state):
         """
-        Set flag using its number an bool state.
+        Set flag using its number and bool state.
 
         :param flag_number:
         :type flag_number: int
         :param bool_state: flag state (True for 'g', False for 'r')
         :type bool_state: bool
-        :return:
         """
-
         self.set_specific_flag_state(str(flag_number), self.settings['states'][1] if bool_state else self.settings['states'][0])
 
     def get_flag(self, flag_number):
@@ -218,6 +210,7 @@ class BeamFlagsInstr(BaseInstrument):
         :param flag_number: The number indicating the flag
         :type flag_number: int
         :return: True for 'g' and False for 'r', (None for other)
+        :rtype: bool
         """
         bool_state = None
         state = self.get_specific_flag_state( str(flag_number) )
@@ -230,6 +223,7 @@ class BeamFlagsInstr(BaseInstrument):
     @property
     def f1(self):
         """
+        bool: Set/get flag with label '1' (True for 'g', False for 'r')
         """
         return self.get_flag(1)
 
@@ -240,6 +234,7 @@ class BeamFlagsInstr(BaseInstrument):
     @property
     def f2(self):
         """
+        bool: Set/get flag with label '2' (True for 'g', False for 'r')
         """
         return self.get_flag(2)
 
@@ -247,42 +242,45 @@ class BeamFlagsInstr(BaseInstrument):
     def f2(self, bool_state):
         self.set_flag(2,bool_state)
 
-
 if __name__ == "__main__":
 
 
     from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.WARNING, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
+
     example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
-    dummy = [False]
-    for d in dummy:
-        with BeamFlagsInstr(settings = example_settings) as bf:
-            bf.initialize()
-            print( bf.idn() )
+    with BeamFlagsInstr(settings = example_settings) as bf:
+        bf.initialize()
 
-            # bf.set_specific_flag_state('1','r')
-            # print( bf.get_specific_flag_state('1') )
-            # time.sleep( bf.settings['actuator_timeout'] )
-            # bf.set_flag(1, True)
-            # print( bf.get_flag(1))
-            # time.sleep(bf.settings['actuator_timeout'])
-            # bf.f1 = False
-            # print(bf.f1)
-            # time.sleep(bf.settings['actuator_timeout'])
-            # start_time = time.time()
-            # while (time.time() - start_time < 10):
-            #     print(bf.flag_states)
-            #     time.sleep(.2)
-            #     if bf.passive_update_from_manual_changes():
-            #         print(bf.flag_states)
+        # bf._announce(False)   # For testing "dumb" mode without _use_passive_queries
 
+        print( bf.idn() )
+
+        bf.set_specific_flag_state('1','r')
+        print( bf.get_specific_flag_state('1') )
+        time.sleep( bf.settings['actuator_timeout'] )
+
+        bf.set_flag(1, True)
+        print( bf.get_flag(1))
+        time.sleep(bf.settings['actuator_timeout'])
+
+        bf.f1 = False
+        print(bf.f1)
+        time.sleep(bf.settings['actuator_timeout'])
+
+        print('Change manual toggle switch to test detection... (for 10s)')
+        start_time = time.time()
+        while (time.time() - start_time < 10):
+            time.sleep(.2)
+            if bf.passive_update_from_manual_changes():
+                print(bf.flag_states)
 
     print('done')
