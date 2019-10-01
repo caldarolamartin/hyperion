@@ -421,8 +421,16 @@ class App(QMainWindow):
 
 
 if __name__ == '__main__':
+    import os
+    import hyperion
+
+    config_name = 'second_example_experiment_config_.yml'
+    examples_dir = os.path.abspath(os.path.join(hyperion.root_dir, '..', 'examples'))
+    config_path = os.path.join(examples_dir, config_name)
+
     experiment = ExampleExperiment()
-    experiment.load_config("C:\\Users\\ariel\\Desktop\\Delft_code\\hyperion\\examples\\example_experiment_config.yml")
+    experiment.load_config(config_path)
+    experiment.load_instruments()
 
     app = QApplication(sys.argv)
     main_gui = App(experiment)
