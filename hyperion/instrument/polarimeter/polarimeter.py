@@ -22,20 +22,20 @@ class Polarimeter(BaseInstrument):
     """
     DEFAULT_SETTINGS = {'wavelength': 601 * ur('nm')}
 
-    DATA_TYPES = {'0': 'First Stokes component (norm)',
-                  '1': 'Second Stokes component (norm)',
-                  '2': 'Third Stokes component (norm)',
-                  '3': 'PER in units of dB',
-                  '4': 'Lin. PER in units of dB as described in manual page 13',
-                  '5': 'The angle of the main polarization axis. 0deg for vertical polarization',
-                  '6': 'The degree of polarization in %',
-                  '7': 'The intensity of the entrance bean in units of %',
-                  '8': 'V as the ratio of power into the two principal states of polarization',
-                  '9': 'LinV like V above but with DOP taken into account, page 13 from manual.',
-                  '10': 'Ellipticity Etha as an angle, see manual page 33',
-                  '11': 'Power split ratio the current polarization',
-                  '12': 'Retardation of the current state of polarization',
-                  }
+    DATA_TYPES = ['First Stokes component (norm)',
+                  'Second Stokes component (norm)',
+                  'Third Stokes component (norm)',
+                  'PER in units of dB',
+                  'Lin. PER in units of dB as described in manual page 13',
+                  'The angle of the main polarization axis. 0deg for vertical polarization',
+                  'The degree of polarization in %',
+                  'The intensity of the entrance bean in units of %',
+                  'V as the ratio of power into the two principal states of polarization', #8
+                  'LinV like V above but with DOP taken into account, page 13 from manual.', #9
+                  'Ellipticity Etha as an angle, see manual page 33', #10
+                  'Power split ratio the current polarization', # 11
+                  'Retardation of the current state of polarization'] # 12
+
 
 
     def __init__(self, settings = {'dummy' : False,
@@ -216,10 +216,10 @@ class Polarimeter(BaseInstrument):
         """
         self.logger.debug('Creating header with the meaning of the columns.')
         header = '# Data created with polarimeter.py, model for the SK polarization analyzer from PTFL by Authors. \n'
-        header += '#    Meaning of the columns: \n'
+        header += '# Meaning of the columns: \n'
 
-        for k in self.DATA_TYPES:
-            string = '# Col {}: {} \n'.format(k, self.DATA_TYPES[k])
+        for k in range(len(self.DATA_TYPES)):
+            string = '#     Column index {}: {} \n'.format(k, self.DATA_TYPES[k])
             header += string
         header += '# --------------------- End of header --------------------- \n'
 
@@ -252,6 +252,7 @@ if __name__ == "__main__":
 
         for w in wavelengths:
             s.initialize(wavelength = w)
+            print(s.create_header())
             s.start_measurement()
             t = time()
 
