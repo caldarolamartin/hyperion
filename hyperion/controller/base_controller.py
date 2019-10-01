@@ -32,6 +32,7 @@ class BaseController():
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.logger.debug('_is_initialized state: {}'.format(self._is_initialized))
         if self._is_initialized:
             self.finalize()
         else:
