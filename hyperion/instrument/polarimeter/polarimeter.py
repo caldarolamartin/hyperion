@@ -12,7 +12,6 @@ and error descriptions
 import logging
 from time import time, sleep
 import numpy as np
-from hyperion.controller.sk.sk_pol_ana import Skpolarimeter
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
 
@@ -21,50 +20,53 @@ class Polarimeter(BaseInstrument):
     """ This class is the model for the SK polarimeter.
 
     """
+    DEFAULT_SETTINGS = {'wavelength': 601 * ur('nm')}
 
-    def __init__(self):
+    DATA_TYPES = ['First Stokes component (norm)',
+                  'Second Stokes component (norm)',
+                  'Third Stokes component (norm)',
+                  'PER in units of dB',
+                  'Lin. PER in units of dB as described in manual page 13',
+                  'The angle of the main polarization axis. 0deg for vertical polarization',
+                  'The degree of polarization in %',
+                  'The intensity of the entrance bean in units of %',
+                  'V as the ratio of power into the two principal states of polarization', #8
+                  'LinV like V above but with DOP taken into account, page 13 from manual.', #9
+                  'Ellipticity Etha as an angle, see manual page 33', #10
+                  'Power split ratio the current polarization', # 11
+                  'Retardation of the current state of polarization'] # 12
+
+
+
+    def __init__(self, settings = {'dummy' : False,
+                                   'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
+                                   'dll_name': 'SKPolarimeter'} ):
         """
-        Initialize the Model SK polarimeter
+        Init of the class.
 
+        It needs a settings dictionary that contains the following fields (mandatory)
+
+            * dummy: logical to say if the connection is real or dummy (True means dummy)
+            * controller: this should point to the controller to use and with / add the name of the class to use
+
+        Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
+        i.e. the class will automatically overwrite the 'controller' with 'hyperion.controller.sk.sk_pol_ana/SkpolarimeterDummy
 
         """
+        super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-
-        self.DEFAULT_SETTINGS = {'wavelength': 601 * ur('nm'),
-                                 }
-
-        self.DATA_TYPES = {'0': 'First Stokes component (norm)',
-                           '1': 'Second Stokes component (norm)',
-                           '2': 'Third Stokes component (norm)',
-                           '3': 'PER in units of dB',
-                           '4': 'Lin. PER in units of dB as described in manual page 13',
-                           '5': 'The angle of the main polarization axis. 0deg for vertical polarization',
-                           '6': 'The degree of polarization in %',
-                           '7': 'The intensity of the entrance bean in units of %',
-                           '8': 'V as the ratio of power into the two principal states of polarization',
-                           '9': 'LinV like V above but with DOP taken into account, page 13 from manual.',
-                           '10': 'Ellipticity Etha as an angle, see manual page 33',
-                           '11': 'Power split ratio the current polarization',
-                           '12': 'Retardation of the current state of polarization',
-                           }
-
-        # instantiate the class
-        self.driver = Skpolarimeter()
-        self.wavelength = None
-
+        self._wavelength = None
         # get info to initialize
         self.logger.debug('getting information from the device')
         self.get_information()
-
 
     def get_information(self):
         """ gets the information from the device: number of polarizers and id.
 
         """
-
-        self.driver.get_number_polarizers()
-        self.driver.get_device_information()
-        self.id = self.driver.id
+        self.controller.get_number_polarizers()
+        self.controller.get_device_information()
+        self._id = self.controller.id
 
     def initialize(self, wavelength = None):
         """ This is to initialize the model by calling the initizialize function in the controller.
@@ -73,67 +75,69 @@ class Polarimeter(BaseInstrument):
         :param wavelength: the working wavelength
         :type wavelength: pint quantity
         """
-        self.logger.info('Initializing SK polarimeter. Device with id = {}'.format(self.id))
-
+        self.logger.info('Initializing SK polarimeter. Device with id = {}'.format(self._id))
+        ans = None
         if wavelength is None:
-            w = self.DEFAULT_SETTINGS['wavelength']
-            self.logger.debug('Using default setting for wavelength: {}'.format(w))
+            self._wavelength = self.DEFAULT_SETTINGS['wavelength']
+            self.logger.debug('Using default setting for wavelength')
         else:
-            w = wavelength
-            self.logger.debug('Using wavelength = {}'.format(w))
+            self._wavelength = wavelength
 
-        if w.m_as('nm') < self.driver.min_w or w.m_as('nm') > self.driver.max_w:
-            raise Warning('The requested wavelength {} is outside the range supported for this device'.format(w))
+        if self._wavelength.m_as('nm') < self.controller.min_w or self._wavelength.m_as('nm') > self.controller.max_w:
+            raise Warning('The requested wavelength {} is outside the range supported for this device'.format(self._wavelength))
 
-        self.wavelength = w
-        ans = self.driver.initialize(wavelength = w.m_as('nm'))
+        if not self.controller._is_initialized:
+            self.logger.debug('Initializing SK polarimeter with wavelenght {}'.format(self._wavelength))
+            ans = self.controller.initialize(wavelength = self._wavelength.m_as('nm'))
 
         if ans == 0:
             self.logger.debug(
-                'No error found, device {} initialized with wavelength {}.'.format(self.id, self.wavelength))
+                'No error found, device {} initialized with wavelength {}.'.format(self._id, self._wavelength))
         elif ans == -1:
-            raise Warning('The device {} is already initialized.'.format(self.id))
+            raise Warning('The device {} is already initialized.'.format(self._id))
         elif ans == -2:
             raise Warning('No Polarization analyzer is connected properly.')
         elif ans == -3:
             raise Warning('Wavelength asked is outside range.')
         elif ans == -5:
-            raise Warning('Device ID: {} is invalid!'.format(self.id))
+            raise Warning('Device ID: {} is invalid!'.format(self._id))
+        elif ans is None:
+            self.logger.warning('Ans is None')
 
     def finalize(self):
         """ Finishes the connection to the SK polarimeter"""
 
-        ans = self.driver.finalize()
+        ans = self.controller.finalize()
 
         if ans == 0:
             self.logger.debug('No error found, connection closed.')
         elif ans == -5:
-            raise Warning('Device ID: {} is invalid!'.format(self.id))
+            raise Warning('Device ID: {} is invalid!'.format(self._id))
 
     def start_measurement(self):
         """ This method starts the measurement for the polarization analyzer.
 
         """
         self.logger.debug('Starting measurement.')
-        ans = self.driver.start_measurement()
+        ans = self.controller.start_measurement()
 
         if ans == 0:
             self.logger.debug('No error found, device {} started measurement')
         elif ans == -1:
-            raise Warning('The device {} is not yet initialized.'.format(self.id))
+            raise Warning('The device {} is not yet initialized.'.format(self._id))
         elif ans == -2:
-            raise Warning('Polarization analyzer {} is already running.'.format(self.id))
+            raise Warning('Polarization analyzer {} is already running.'.format(self._id))
         elif ans == -3:
             raise Warning('Connection to Polarization analyzer is lost.')
         elif ans == -5:
-            raise Warning('Device ID: {} is invalid!'.format(self.id))
+            raise Warning('Device ID: {} is invalid!'.format(self._id))
 
     def stop_measurement(self):
         """ This method stops the measurement for the polarization analyzer.
 
         """
         self.logger.debug('Stopping measurement.')
-        self.driver.stop_measurement()
+        self.controller.stop_measurement()
 
     def get_data(self):
         """ This methods gets the a single measurement point from the device.
@@ -143,16 +147,16 @@ class Polarimeter(BaseInstrument):
         :rtype: list
         """
         self.logger.debug('Getting data from device')
-        d = self.driver.get_measurement_point()
+        d = self.controller.get_measurement_point()
 
         while np.isinf(d).any():
             self.logger.info('Got an inf in the data!!!')
             self.stop_measurement()
             self.finalize()
             sleep(0.5)
-            self.initialize(self.wavelength)
+            self.initialize(self._wavelength)
             self.start_measurement()
-            d = self.driver.get_measurement_point()
+            d = self.controller.get_measurement_point()
 
         data = np.zeros((1, len(d)))
         data[0, :] = d
@@ -212,10 +216,10 @@ class Polarimeter(BaseInstrument):
         """
         self.logger.debug('Creating header with the meaning of the columns.')
         header = '# Data created with polarimeter.py, model for the SK polarization analyzer from PTFL by Authors. \n'
-        header += '#    Meaning of the columns: \n'
+        header += '# Meaning of the columns: \n'
 
-        for k in self.DATA_TYPES:
-            string = '# Col {}: {} \n'.format(k, self.DATA_TYPES[k])
+        for k in range(len(self.DATA_TYPES)):
+            string = '#     Column index {}: {} \n'.format(k, self.DATA_TYPES[k])
             header += string
         header += '# --------------------- End of header --------------------- \n'
 
@@ -227,33 +231,37 @@ class Polarimeter(BaseInstrument):
         :return: current wavelength
         :rtype: pint quantity
         """
-        ans = self.driver.get_wavelength()
+        ans = self.controller.get_wavelength()
         w = ans * ur('nm')
         return w
 
 if __name__ == "__main__":
     from hyperion import _logger_format
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
 
-    with Polarimeter() as s:
-        wavelengths = np.linspace(500,750,10)* ur('nm')
+    with Polarimeter(settings = {'dummy' : False,
+                                 'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
+                                 'dll_name': 'SKPolarimeter'}) as s:
+
+        wavelengths = np.linspace(500,750,3)* ur('nm')
 
         for w in wavelengths:
             s.initialize(wavelength = w)
+            print(s.create_header())
             s.start_measurement()
             t = time()
 
             print('Getting data for wavelength = {}.'.format(w))
-            data = s.get_multiple_data(10)
+            data = s.get_multiple_data(2)
             print(data)
             print('Elapsed time: {} s'.format(time()-t))
             t = time()
 
             s.stop_measurement()
 
-    print('DONE')
+        print('DONE')
