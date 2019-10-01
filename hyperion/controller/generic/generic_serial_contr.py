@@ -14,6 +14,13 @@ This controller is however intended to be agnostic of what code/firmware/sketch
 is running on the device. I suggest to keep it that way and put device
 specific functionality in a dedicated instrument.
 This also means Dummy mode needs to be implemented mostly at Instrument level.
+
+Development note:
+I've added the experimental decorator _wait_while_busy_and_after.
+If it turns out not to work desirably it can be removed:
+remove the application of the decorator on methods initialize, write and read_serial_buffer_in
+remove the decorator function itself
+remove self._busy and self._additional_timeout from the __init__
 """
 
 import serial
@@ -92,8 +99,35 @@ class GenericSerialController(BaseController):
         else:
             self.name = 'Serial Device'
 
+        # "global" variables for decorator function _wait_while_busy_and_after
+        self._busy = False
+        self._additional_timeout = time.time()
+
+    # define a decorator function to
+    def _wait_while_busy_and_after(additional_timeout=0):
+        """
+        This decorator prevents any method that it is applied to from running simultaneously.
+        Applying this decorator to a method, sets the _busy flag of the object and makes any method
+        that has this decorator wait until the _busy flag is set to false after the previous method
+        has finished. This blocking functionality of a method can be extended by setting the
+        additional_timeout argument > 0. This is useful for the initialize method e.g..
+        """
+        def decorator(fn):
+            def wrapper(*args, **kwargs):
+                while args[0]._busy or time.time() < args[0]._additional_timeout:
+                    pass
+                args[0]._busy = True            # set self._busy True
+                result = fn(*args, **kwargs)    # run the function
+                args[0]._additional_timeout = time.time() + additional_timeout
+                args[0]._busy = False           # set self._busy False
+                return result
+            return wrapper
+        return decorator
+
+    @_wait_while_busy_and_after(additional_timeout=1.5)
     def initialize(self):
         """ Starts the connection to the device using the specified port."""
+
         self.rsc = serial.Serial(port=self._port,
                                      baudrate=self._baud,
                                      timeout=self._read_timeout,
@@ -129,6 +163,7 @@ class GenericSerialController(BaseController):
         self.logger.debug('Ask *IDN? to device.')
         return self.query('*IDN?')[-1]
 
+    @_wait_while_busy_and_after(additional_timeout=0)
     def write(self, message):
         """
         Sends the message to the device.
@@ -143,6 +178,7 @@ class GenericSerialController(BaseController):
         self.logger.debug('Sending to device: {}'.format(message))
         self.rsc.write( message.encode(self._encoding) )
 
+    @_wait_while_busy_and_after(additional_timeout=0)
     def read_serial_buffer_in(self, wait_for_termination_char = True):
         """
         Reads everything the device has sent. By default it waits until a line
@@ -297,9 +333,16 @@ class GenericSerialControllerDummy(GenericSerialController):
         return self.read_lines()
 
 
+    def wait_if_busy(fn):
+        def wrapper(*args, **kwargs):
+            print('before')
+            return fn(*args, **kwargs)
+            print(after)
+        return wrapper
+
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+    logging.basicConfig(level=logging.WARNING, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
@@ -318,16 +361,15 @@ if __name__ == "__main__":
     # some test code for my arduino testing device:
     with my_class(settings = example_settings) as dev:
         dev.initialize()
-        time.sleep(1.5)         # this appears to be a safe waiting time for my arduino testing device
         print('Start:')
         # print the startup message in the buffer
         [print(line) for line in dev.read_lines()]
 
-#        for x in range(2):
-#            time.sleep(.3)
-#            dev.write('2r')
-#            time.sleep(.3)
-#            dev.write('2g')
+       # for x in range(2):
+       #     time.sleep(.3)
+       #     dev.write('2r')
+       #     time.sleep(.3)
+       #     dev.write('2g')
 
         print('ch1: {}'.format( dev.query('1?')[-1] ))
         print('ch2: {}'.format( dev.query('2?')[-1] ))

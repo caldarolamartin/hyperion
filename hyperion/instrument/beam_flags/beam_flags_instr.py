@@ -43,11 +43,8 @@ class BeamFlagsInstr(BaseInstrument):
         # Create and add states to the settings dictionary.
         # Note that flag states need to be 1 character long.
         if 'states' not in self.settings:
-            if 'flag_states' in self.settings:
-                states = [self.settings['flag_states']['red'] , self.settings['flag_states']['green'] ]
-                if len(states) != 2:
-                    self.logger.warning('"red" and "green" states not specified correctly in yaml settings file')
-                    self.settings['states'] = ['r', 'g'];   # hardcoded default value for this arduino device
+            if 'flag_states' in self.settings and 'red' in self.settings['flag_states'] and 'green' in self.settings['flag_states']:
+                self.settings['states'] = [self.settings['flag_states']['red'] , self.settings['flag_states']['green'] ]
             else:
                 self.settings['states'] = ['r','g'];        # hardcoded default value for this arduino device
 
@@ -264,17 +261,17 @@ if __name__ == "__main__":
 
         print( bf.idn() )
 
-        bf.set_specific_flag_state('1','r')
-        print( bf.get_specific_flag_state('1') )
-        time.sleep( bf.settings['actuator_timeout'] )
-
-        bf.set_flag(1, True)
-        print( bf.get_flag(1))
-        time.sleep(bf.settings['actuator_timeout'])
-
-        bf.f1 = False
-        print(bf.f1)
-        time.sleep(bf.settings['actuator_timeout'])
+        # bf.set_specific_flag_state('1','r')
+        # print( bf.get_specific_flag_state('1') )
+        # time.sleep( bf.settings['actuator_timeout'] )
+        #
+        # bf.set_flag(1, True)
+        # print( bf.get_flag(1))
+        # time.sleep(bf.settings['actuator_timeout'])
+        #
+        # bf.f1 = False
+        # print(bf.f1)
+        # time.sleep(bf.settings['actuator_timeout'])
 
         print('Change manual toggle switch to test detection... (for 10s)')
         start_time = time.time()
