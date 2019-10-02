@@ -1,3 +1,5 @@
+import hyperion
+import logging
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -140,20 +142,14 @@ class BeamFlagsGui(QWidget):
 
 
 if __name__ == '__main__':
-    import logging
     import yaml
-    from hyperion import _logger_format, _logger_settings
     import os
-    import hyperion
+    # import hyperion
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    hyperion.set_logfile(os.path.basename(__file__)+'.log')
+    hyperion.stream_logger.setLevel(logging.DEBUG)
+    hyperion.file_logger.setLevel(logging.DEBUG)
 
-    # Load example
 
     example_config_file = 'beam_flags_example_config.yml'
     example_config_filepath = os.path.join(hyperion.root_dir, 'view', 'beam_flags', example_config_file)
@@ -166,5 +162,5 @@ if __name__ == '__main__':
         instr.initialize()
         app = QApplication(sys.argv)
         ex = BeamFlagsGui(instr)
-        sys.exit(app.exec_())
-
+        # sys.exit(app.exec_())
+        app.exec_()
