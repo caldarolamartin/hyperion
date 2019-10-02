@@ -36,7 +36,7 @@ class Polarimeter(BaseInstrument):
                   'Power split ratio the current polarization', # 11
                   'Retardation of the current state of polarization'] # 12
 
-
+    DATA_TYPES_NAME = ['S1','S2','S3','PER','LIN','ANGLE','POL_DEG','INT','V','LINV','ELLIP','POWER_SPLIT','RETARDATION']
 
     def __init__(self, settings = {'dummy' : False,
                                    'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
@@ -149,8 +149,9 @@ class Polarimeter(BaseInstrument):
         self.logger.debug('Getting data from device')
         d = self.controller.get_measurement_point()
 
+        # this is to catch when a Nan value is generated
         while np.isinf(d).any():
-            self.logger.info('Got an inf in the data!!!')
+            self.logger.warning('Got an inf in the data!!!')
             self.stop_measurement()
             self.finalize()
             sleep(0.5)
@@ -193,7 +194,6 @@ class Polarimeter(BaseInstrument):
         if np.isinf(av).any():
             self.looger.info('We got an inf!!!!')
         return av, st
-
 
     def save_data(self, data, file_path = 'polarimeter_test.txt'):
         """ saves the data
