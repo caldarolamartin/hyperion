@@ -12,15 +12,17 @@ This is the variable waveplate GUI.
 import logging
 import sys, os
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit, QDoubleSpinBox
+from PyQt5.QtWidgets import *
 from hyperion.instrument.polarimeter.polarimeter import Polarimeter
-from hyperion import Q_, ur
+from hyperion import Q_, ur, root_dir
 
 
 
 class PolarimeterGui(QWidget):
 
-    def __init__(self, polarimeter_ins):
+    MODES = ['Monitor', 'Time Trace'] # measuring modes
+
+    def __init__(self, polarimeter_ins, draw):      # TRYING SOMETHING: added draw, NOTE that this temporarily breaks running this file directly
         """
         Init of the Polarimeter Gui
 
@@ -36,6 +38,8 @@ class PolarimeterGui(QWidget):
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
 
+        self.draw = draw
+
         # setup the gui
         self.polarimeter_ins = polarimeter_ins
         self.customize_gui()
@@ -49,18 +53,36 @@ class PolarimeterGui(QWidget):
     def __exit__(self, exc_type, exc_val, exc_tb):
        self.logger.debug('Exiting')
 
+    def plot_data(self):        # TRYING SOMETHING: copied and adapted from osa_view
+        raw = self.polarimeter_ins.get_multiple_data(10)
+        y = [elem[2] for elem in raw]       # this line might be wrong
+        x = range(len(y))
+        # import random     # alternative test code to see some change
+        # y=[]
+        # for i in x:
+        #     y.append(random.random())
+        self.draw.random_plot.plot(x, y, clear=True)
+
     def customize_gui(self):
         """ Make changes to the gui """
 
         self.logger.debug('Setting channels to plot')
         self._channels_labels = []
+        self._channels_check_boxes = []
 
-        for a in self.polarimeter_ins.DATA_TYPES_NAME:
+        # add the channels to detect
+        for index, a in enumerate(self.polarimeter_ins.DATA_TYPES_NAME):
             label = QLabel(a)
+            box = QCheckBox()
             self._channels_labels.append(label)
-            self.gui.gridLayout_channels.addWidget(label)
+            self._channels_check_boxes.append(box)
 
+            self.gui.formLayout_channels.addRow(box, label)
 
+        # set the mode
+        self.gui.comboBox_mode.addItems(self.MODES)
+
+        self.gui.pushButton_start.pressed.connect(self.plot_data)
 
         # self.gui.doubleSpinBox_v1.setDecimals(3)
         # self.gui.doubleSpinBox_v1.setSuffix(' V')

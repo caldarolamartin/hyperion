@@ -252,7 +252,6 @@ if __name__ == "__main__":
 
         for w in wavelengths:
             s.initialize(wavelength = w)
-            print(s.create_header())
             s.start_measurement()
             t = time()
 
