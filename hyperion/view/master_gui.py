@@ -2,7 +2,7 @@ import importlib
 import random
 import string
 import sys
-
+import logging
 import pyqtgraph as pg
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -381,6 +381,7 @@ class App(QMainWindow):
         :param name: name of view to load. It has to be specified in the config file under Instruments
         :type name: string
         """
+        self.logger
         try:
             dictionairy = self.experiment.properties['Instruments'][name]
             module_name, class_name = dictionairy['view'].split('/')
@@ -396,8 +397,8 @@ class App(QMainWindow):
                 instance = MyClass(self.experiment.instruments_instances[instr], self.experiment.graph_view_instance[name + "Graph"])
             self.experiment.view_instances[name] = instance
         except KeyError:
-            print("the view key(aka,"+str(name)+") does not exist in properties.\n This not a bad thing, if there is a gui"
-                                                "than you can ignore this message.\n")
+            print("the view key(aka,"+str(name)+") does not exist in properties.\n This not a bad thing, if there is a gui, "
+                                                "then you can ignore this message.\n")
             return None
     def load_measurement_gui(self, name, view_path):
         module_name, class_name = view_path.split('/')

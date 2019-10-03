@@ -75,7 +75,7 @@ class Lcc(BaseController):
 
         self._is_initialized
         count = 0
-        while not self._is_initialized:
+        while not self._is_initialized and count<100:
             try:
                 self.rsc.open()
                 self._is_initialized = True

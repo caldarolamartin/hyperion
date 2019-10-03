@@ -2,13 +2,6 @@ User:
   name: Ariel
 
 Instruments:
-  ExampleInstrument:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    dummy: True
-    settings:
-    output: True
   Polarimeter:
     'dll_name': 'SKPolarimeter'
     instrument: hyperion.instrument.polarimeter.polarimeter/Polarimeter
@@ -16,38 +9,52 @@ Instruments:
     view: hyperion.view.polarimeter.polarimeter_gui/PolarimeterGui
     graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
     dummy: False
-  ExampleInstrument_2:
+  Variable_waveplate:
+    controller: hyperion.controller.thorlabs.lcc25/Lcc
+    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
+    port: COM8
+    enable: False
+    view: hyperion.view.variable_waveplate.variable_waveplate_gui/VariableWaveplateGui
+    dummy: False
+  ExampleInstrument:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
     output: True
-  ExampleInstrument_3:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_4:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_5:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
-    dummy: True
-    settings:
-    output: True
+#  ExampleInstrument_2:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+#    dummy: True
+#    settings:
+#    output: True
+#  ExampleInstrument_3:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+#    dummy: True
+#    settings:
+#    output: True
+#  ExampleInstrument_4:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+#    dummy: True
+#    settings:
+#    output: True
+#  ExampleInstrument_5:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+#    dummy: True
+#    settings:
+#    output: True
   Gui_with_graph:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
