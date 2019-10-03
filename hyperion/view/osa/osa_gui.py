@@ -20,7 +20,7 @@ What goes wrong is that at some point after the gui is initialized the connectio
 An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. 
 Never shot is always mis
 """
-class App(QWidget):
+class OsaGui(QWidget):
 
     def __init__(self, instr, draw):
         """ Init of the class.
@@ -341,7 +341,7 @@ if __name__ == '__main__':
         instr.initialize()
 
         app = QApplication([])
-        ex = App(instr, draw) # mandatory in order to call osainstrument in osa_view class
+        ex = OsaGui(instr, draw) # mandatory in order to call osainstrument in osa_view class
         ex.show()
 
         instr.finalize()
