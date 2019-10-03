@@ -7,9 +7,9 @@ Instruments:
     instrument: hyperion.instrument.polarimeter.polarimeter/Polarimeter
     controller: hyperion.controller.sk.sk_pol_ana/Skpolarimeter
     view: hyperion.view.polarimeter.polarimeter_gui/PolarimeterGui
-    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
+    graphView:  hyperion.view.polarimeter.polarimeter_gui/Graph
     dummy: False
-  Variable_waveplate:
+  VariableWaveplate:
     controller: hyperion.controller.thorlabs.lcc25/Lcc
     instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
     port: COM8

@@ -68,14 +68,11 @@ class Lcc(BaseController):
             self.rsc.baudrate = self.DEFAULTS['baudrate']
             self.rsc.timeout = self.DEFAULTS['read_timeout']
             self.rsc.write_timeout = self.DEFAULTS['write_timeout']
-            self.logger.info('Initialized device LCC at port {}.'.format(self._port))
-
+            self.logger.info('Initializing device LCC at port {}.'.format(self._port))
 
         # try to initi
-
-        self._is_initialized
         count = 0
-        while not self._is_initialized and count<100:
+        while not self._is_initialized and count < 150:
             try:
                 self.rsc.open()
                 self._is_initialized = True
@@ -85,7 +82,11 @@ class Lcc(BaseController):
                 count  += 1
 
             sleep(0.05)
-        self.logger.debug('Initialization succeded after {} failed attempts'.format(count))
+
+        if self._is_initialized:
+            self.logger.debug('Initialization succeded after {} failed attempts'.format(count))
+        else:
+            raise Warning('Connection to device LCC25 failed.')
 
     def idn(self):
         """ Gets the identification for  the device

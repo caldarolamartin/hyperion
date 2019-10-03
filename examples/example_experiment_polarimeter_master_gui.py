@@ -19,9 +19,6 @@ config_filepath = os.path.join(examples_folder, config_file)
 
 with ExampleExperimentPolarimeter() as e:
     e.load_config(config_filepath)
-    e.load_instruments()
-    # e.pol.initialize()
-
     app = QApplication(sys.argv)
-    main_gui = App(e)
-    sys.exit(app.exec_())
+    main_gui = App(e) # remember the main gui initializes the instruments
+    app.exec_()

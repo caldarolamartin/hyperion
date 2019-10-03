@@ -9,11 +9,10 @@
 """
 import os
 import logging
-
 import numpy as np
 import winsound
 from time import sleep
-from hyperion import ur, root_dir
+from hyperion import ur
 from hyperion.experiment.base_experiment import BaseExperiment
 
 
@@ -68,15 +67,14 @@ class ExampleExperimentPolarimeter(BaseExperiment):
             This method is by far the best method Martin has made, trust me, I am an expert
         """
         self.logger.debug('Making sound')
-        winsound.Beep(3000, 800)  # (frequency in Hz, Duration in ms)
+        winsound.Beep(1600, 800)  # (frequency in Hz, Duration in ms)
         winsound.Beep(1500, 200)
-        winsound.Beep(3000, 500)
+        winsound.Beep(1600, 500)
         sleep(0.1)
 
     def measurement(self):
         for i in range(1, 10):
             print(i)
-
 
     def load_instruments(self):
         """"
@@ -96,7 +94,7 @@ class ExampleExperimentPolarimeter(BaseExperiment):
 
         # Adding manual name because I'll always use this instrument with this experiment
         if 'Polarimeter' in self.instruments_instances:
-            self.pol = self.instruments_instances
+            self.pol = self.instruments_instances['Polarimeter']
 
         # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
         # self.logger.debug('Class vwp: {}'.format(self.vwp))
@@ -112,9 +110,9 @@ if __name__ == '__main__':
                             logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
                             logging.StreamHandler()])
 
-    with ExampleExperiment() as e:
+    with ExampleExperimentPolarimeter() as e:
 
-        name = 'second_example_experiment_config_'
+        name = 'example_experiment_polarimeter_config'
         config_folder = os.path.dirname(os.path.abspath(__file__))
         config_file = os.path.join(config_folder, name)
 
@@ -136,13 +134,22 @@ if __name__ == '__main__':
         #
 
         # save metadata
+        #e.save_scan_metadata()
+        #e.save_scan_metadata()
 
-        #e.save_scan_metadata()
-        #e.save_scan_metadata()
-        #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
         # perform scan
         # e.set_scan()
         # e.do_scan()
+
+        # if you want to use the instruments directly, you can:
+        wl = 532*ur('nm')
+        e.instruments_instances['Polarimeter'].initialize(wavelength = wl)
+        data = e.instruments_instances['Polarimeter'].get_multiple_data(2)
+        print('\n\n {} \n\n'.format(data))
+
+        print(e.instruments_instances['VariableWaveplate'].controller._is_initialized)
+
+        # make sound
         e.make_sound()
 
         # # save data

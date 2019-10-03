@@ -319,15 +319,15 @@ class DrawSpectrum(QWidget):
         vbox.addWidget(self.random_plot)
         self.setLayout(vbox)
         self.show()
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = DrawSpectrum()
-    sys.exit(app.exec_())
 
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     ex = DrawSpectrum()
+#     sys.exit(app.exec_())
 
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
@@ -336,12 +336,12 @@ if __name__ == '__main__':
 
     
 
-    with OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as instr:
+    with OsaInstrument(settings ={'dummy': True, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as instr:
         draw = DrawSpectrum()
         instr.initialize()
 
         app = QApplication([])
-        ex = App(instr, draw) #mandatory in order to call osainstrument in osa_view class
+        ex = App(instr, draw) # mandatory in order to call osainstrument in osa_view class
         ex.show()
 
         instr.finalize()

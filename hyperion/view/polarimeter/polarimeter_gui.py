@@ -15,8 +15,7 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from hyperion.instrument.polarimeter.polarimeter import Polarimeter
 from hyperion import Q_, ur, root_dir
-
-
+import pyqtgraph as pg
 
 class PolarimeterGui(QWidget):
 
@@ -61,7 +60,7 @@ class PolarimeterGui(QWidget):
         # y=[]
         # for i in x:
         #     y.append(random.random())
-        self.draw.random_plot.plot(x, y, clear=True)
+        self.draw.pg_plot.plot(x, y, clear=True)
 
     def customize_gui(self):
         """ Make changes to the gui """
@@ -122,6 +121,32 @@ class PolarimeterGui(QWidget):
         # self.gui.doubleSpinBox_wavelength.valueChanged.connect(self.send_qwp)
 
 
+# this is to create a graph output window to dump our data later.
+class Graph(QWidget):
+    """
+    In this class a widget is created to draw a graph on.
+    """
+    def __init__(self):
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Creating the Graph for the polarimeter')
+        self.title = 'Graph view: Polarimeter'
+        self.left = 100
+        self.top = 100
+        self.width = 640
+        self.height = 480
+        self.pg_plot= pg.PlotWidget()
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.pg_plot)
+        self.setLayout(vbox)
+        self.show()
+
+
 
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings, root_dir
@@ -139,8 +164,14 @@ if __name__ == '__main__':
                                  'dll_name': 'SKPolarimeter'}) as polarimeter_ins:
 
         app = QApplication(sys.argv)
+        logging.debug('Creating the graph for the GUI.')
+        graph_window = Graph() # create the plot window
+
+
         #app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
-        polarimeter_ins.initialize(wavelength=500 * ur('nm'))
-        PolarimeterGui(polarimeter_ins)
+#        polarimeter_ins.initialize(wavelength=500 * ur('nm'))
+        logging.debug('Now starting the GUI')
+        PolarimeterGui(polarimeter_ins, draw=graph_window)
+
         sys.exit(app.exec_())
 

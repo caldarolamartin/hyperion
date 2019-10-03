@@ -16,7 +16,8 @@ class App(QMainWindow):
 
     def __init__(self, experiment):
         super().__init__()
-        self.title = 'master gui'
+        self.logger = logging.getLogger(__name__)
+        self.title = 'Master Gui'
         self.left = 40
         self.top = 40
         self.width = 800
@@ -347,7 +348,9 @@ class App(QMainWindow):
         """
 
         self.experiment.load_instruments()
+        self.logger.debug('\n\n\n {} \n\n'.format(self.experiment.instruments_instances))
         self.load_interfaces()
+
     def load_interfaces(self):
         """"
         Method to get instances of instrument and graph gui's through load_gui and load_graph_gui.
@@ -374,6 +377,7 @@ class App(QMainWindow):
                 #check if there is gui available for this instrument
                 if "view" in name_of_instrument:
                     self.load_instrument_gui(instrument_name)
+
     def load_instrument_gui(self, name):
         """
         Create instances of instrument gui's and set these in the self.experiment.view_instaces()
@@ -381,25 +385,30 @@ class App(QMainWindow):
         :param name: name of view to load. It has to be specified in the config file under Instruments
         :type name: string
         """
-        self.logger
+        self.logger.info('Loading instrument: {}'.format(name))
         try:
             dictionairy = self.experiment.properties['Instruments'][name]
+            self.logger.debug('Instruments list: {}'.format(dictionairy))
             module_name, class_name = dictionairy['view'].split('/')
             MyClass = getattr(importlib.import_module(module_name), class_name)
             #instr is variable that will be the instrument name of a device. For example: OsaInstrument.
             instr = ((dictionairy['instrument']).split('/')[1])
             #self.experiment.instruments_instances[instr] = the name of the instrument for a device. This is necessary
             #to communicate between instrument and view. Instance is still an instance of for example OsaView.
+            self.logger.debug('Current view class: {}'.format(MyClass))
             try:
                 instance = MyClass(self.experiment.instruments_instances[instr])
+                self.logger.debug('{} view object created'.format(name))
             except Exception:
                 #this is necessary to initialise gui's which need to connect to a graph gui.
                 instance = MyClass(self.experiment.instruments_instances[instr], self.experiment.graph_view_instance[name + "Graph"])
+                self.logger.debug('Instance in the Exception: {}'.format(instance))
             self.experiment.view_instances[name] = instance
         except KeyError:
             print("the view key(aka,"+str(name)+") does not exist in properties.\n This not a bad thing, if there is a gui, "
                                                 "then you can ignore this message.\n")
             return None
+
     def load_measurement_gui(self, name, view_path):
         module_name, class_name = view_path.split('/')
         MyClass = getattr(importlib.import_module(module_name), class_name)

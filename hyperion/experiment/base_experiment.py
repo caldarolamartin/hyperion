@@ -52,9 +52,10 @@ class BaseExperiment():
 
     def finalize(self):
         """ Finalizing the experiment class """
-        self.logger.info('Finalizing the experiment base class')
-        for inst in self.instruments_instances.values():
-            inst.finalize()
+        self.logger.info('Finalizing the experiment base class. Closing all the devices connected')
+        for name in self.instruments_instances:
+            self.logger.info('Finalizing connection with device: {}'.format(name))
+            self.instruments_instances[name].finalize()
 
     def load_instrument(self, name):
         """ Loads instrument
@@ -92,6 +93,7 @@ class BaseExperiment():
         #
         # self.logger.warning('The name "{}" does not exist in the config file'.format(name))
         # return None
+
     # this next two methods should be moved to tools
     def create_filename(self, file_path):
         """ creates the filename property in the class, so all the methods point to the same folder
