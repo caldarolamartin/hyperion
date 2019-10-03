@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QPu
 from examples.example_experiment import ExampleExperiment
 
 
-class App(QMainWindow):
+class MasterGui(QMainWindow):
     """class to make the master gui"""
 
     def __init__(self, experiment):
@@ -443,5 +443,5 @@ if __name__ == '__main__':
     experiment.load_instruments()
 
     app = QApplication(sys.argv)
-    main_gui = App(experiment)
+    main_gui = MasterGui(experiment)
     sys.exit(app.exec_())

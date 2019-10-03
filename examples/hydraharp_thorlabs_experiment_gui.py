@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from hyperion.view.master_gui import App
+from hyperion.view.master_gui import MasterGui
 from examples.example_experiment import ExampleExperiment
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
@@ -10,7 +10,7 @@ ureg = ur
 def main():
     experiment = ExampleExperiment()
     app = QApplication(sys.argv)
-    main_gui = App(experiment)
+    main_gui = MasterGui(experiment)
     sys.exit(app.exec_())
 
 def hydraharp_and_thorlabsmotor_experiment():

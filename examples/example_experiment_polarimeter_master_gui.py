@@ -1,7 +1,7 @@
 import os, sys
 import logging
 from PyQt5.QtWidgets import QApplication
-from hyperion.view.master_gui import App
+from hyperion.view.master_gui import MasterGui
 from examples.example_experiment_polarimeter import ExampleExperimentPolarimeter
 from hyperion import _logger_format, _logger_settings
 
@@ -20,5 +20,5 @@ config_filepath = os.path.join(examples_folder, config_file)
 with ExampleExperimentPolarimeter() as e:
     e.load_config(config_filepath)
     app = QApplication(sys.argv)
-    main_gui = App(e) # remember the main gui initializes the instruments
+    main_gui = MasterGui(e) # remember the main gui initializes the instruments
     app.exec_()
