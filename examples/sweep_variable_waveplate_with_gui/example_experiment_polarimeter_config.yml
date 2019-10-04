@@ -1,5 +1,5 @@
 User:
-  name: Ariel
+  name: Martin and Aron
 
 Instruments:
   Polarimeter:
@@ -16,13 +16,13 @@ Instruments:
     enable: False
     view: hyperion.view.variable_waveplate.variable_waveplate_gui/VariableWaveplateGui
     dummy: False
-  ExampleInstrument:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    dummy: True
-    settings:
-    output: True
+#  ExampleInstrument:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    dummy: True
+#    settings:
+#    output: True
 #  ExampleInstrument_2:
 #    port: COM0
 #    instrument: hyperion.instrument.example_instrument/ExampleInstrument
@@ -55,31 +55,14 @@ Instruments:
 #    dummy: True
 #    settings:
 #    output: True
-  Gui_with_graph:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_7:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    dummy: True
-    settings:
-    output: True
-  ExampleInstrument_8:
-    port: COM0
-    instrument: hyperion.instrument.example_instrument/ExampleInstrument
-    controller: hyperion.controller.example_controller/ExampleController
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    dummy: True
-    settings:
-    output: True
-
+#  Gui_with_graph:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
+#    dummy: True
+#    settings:
+#    output: True
 
 MetaInstruments:
   SampleXyzStageMotor:
@@ -88,11 +71,19 @@ MetaInstruments:
     z: testMotor
 
 Measurements:
-  #specific for this experiment
-  #list of measurement views which need to be loaded and accesible for the main experiment class.
-  exampleMeasurement:
-    view: examples.measurement_gui/App
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+  # specific for this experiment
+  # list of measurement views which need to be loaded and accessible for the main experiment class.
+  SweepWaveplate:
+    view: examples.sweep_variable_waveplate_with_gui.measurement_guis/SweepWaveplatePolarimeterGui
+    #graphView: hyperion.view.base_plot_windows/BaseGraph
+    settings:
+      start: 2V
+      stop: 3V
+      step: 0.1V
+      stabilization: 10ms
+      average: 1
+      wavelength: 536nm
+
 
 Data:
   save_folder: C:\Users\ariel\Desktop\Delft_code\hyperion\

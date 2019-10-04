@@ -72,9 +72,52 @@ class ExampleExperimentPolarimeter(BaseExperiment):
         winsound.Beep(1600, 500)
         sleep(0.1)
 
-    def measurement(self):
-        for i in range(1, 10):
-            print(i)
+    def sweep_waveplate_polarimeter(self):
+        """ Sweeping """
+        self.logger.info('Starting the Sweep')
+        self.logger.debug('Getting the settings from the config file.')
+        scan_properties = self.properties['Measurements']['SweepWaveplate']['settings']
+        self.logger.debug('Scan properties: {}'.format(scan_properties))
+
+
+        start = ur(scan_properties['start'])
+        unit = start.u
+        stop = ur(scan_properties['stop'])
+        step = ur(scan_properties['step'])
+        n = np.floor(np.abs(stop.m_as(unit)-start.m_as(unit))/step.m_as(unit)) + 1
+        self.xdata = np.linspace(start.m_as(unit),stop.m_as(unit),n)
+        self.xdata_unit = unit
+        self.ydata = np.zeros_like(self.xdata)
+        self.ydata_error = np.zeros_like(self.xdata)
+        self.ydata_unit = 'normalized'
+
+        # set the devices values
+        self.logger.debug('Setting the wavelength for the measurement')
+        wl = ur(scan_properties['wavelength'])
+        self.instruments_instances['Polarimeter'].change_wavelength(wl)
+
+        # turn on the output of the VWP
+        self.instruments_instances['VariableWaveplate'].output = True
+
+
+        self.logger.info('Starting the for loop that measures')
+        for index, value in enumerate(self.xdata):
+            #set
+            self.instruments_instances['VariableWaveplate'].set_analog_value(1,value*unit)
+            sleep(ur(scan_properties['stabilization']).m_as('s'))
+            # colect data
+            av, st = self.instruments_instances['Polarimeter'].get_average_data(scan_properties['average'])
+            self.ydata[index] = av[2]
+            self.ydata_error[index] = st[2]
+
+        self.logger.info('Finished with the for')
+
+        # turn of the VWP
+        self.instruments_instances['VariableWaveplate'].output = False
+        print(self.ydata)
+
+
+
 
     def load_instruments(self):
         """"
@@ -100,7 +143,6 @@ class ExampleExperimentPolarimeter(BaseExperiment):
         # self.logger.debug('Class vwp: {}'.format(self.vwp))
         # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
         # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
-
 
 
 if __name__ == '__main__':
@@ -139,15 +181,15 @@ if __name__ == '__main__':
 
         # perform scan
         # e.set_scan()
-        # e.do_scan()
+        e.sweep_waveplate_polarimeter()
 
         # if you want to use the instruments directly, you can:
-        wl = 532*ur('nm')
-        e.instruments_instances['Polarimeter'].initialize(wavelength = wl)
-        data = e.instruments_instances['Polarimeter'].get_multiple_data(2)
-        print('\n\n {} \n\n'.format(data))
-
-        print(e.instruments_instances['VariableWaveplate'].controller._is_initialized)
+        # wl = 532*ur('nm')
+        # e.instruments_instances['Polarimeter'].initialize(wavelength = wl)
+        # data = e.instruments_instances['Polarimeter'].get_multiple_data(2)
+        # print('\n\n {} \n\n'.format(data))
+        #
+        # print(e.instruments_instances['VariableWaveplate'].controller._is_initialized)
 
         # make sound
         e.make_sound()

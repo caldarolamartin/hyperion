@@ -165,8 +165,6 @@ class Graph(BaseGraph):
         self.height = 480
         self.initUI()
 
-
-
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings, root_dir
 

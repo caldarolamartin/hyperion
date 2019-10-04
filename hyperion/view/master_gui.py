@@ -139,6 +139,7 @@ class MasterGui(QMainWindow):
             elif opteller >= self.right_amount_of_gui:
                 self.make_central_left_dock_widgets(instrument_name, opteller)
             opteller += 1
+
     def get_left_right_amount_of_gui(self, amount_of_gui):
         """"
         Method to see how many gui's there are and divide these to the sides.
@@ -151,6 +152,7 @@ class MasterGui(QMainWindow):
         should be on the right side of the screen.
         :rtype int (both(self.left_amount_of_gui & self.right_amount_of_gui))
         """
+        self.logger.debug('here')
         if amount_of_gui% 2 == 0:
             # there are a even number of gui's
             self.left_amount_of_gui = amount_of_gui / 2
@@ -168,6 +170,7 @@ class MasterGui(QMainWindow):
         :param opteller: the amount of gui this is, used to set some gui's with some QDockWidget features.
         :type int
         """
+        self.logger.debug('here')
         #making sure that the Measurement gui's get set in the measurement menu
         if "Measurement" in instrument_name:
             self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.measurement_menu, instrument_name)
@@ -179,7 +182,9 @@ class MasterGui(QMainWindow):
         elif opteller == 1:
             self.dock_widget_dict[instrument_name].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetClosable)
+
     def make_right_dock_widgets(self, instrument_name, opteller):
+        self.logger.debug('here')
         if "Measurement" in instrument_name:
             self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.measurement_menu, instrument_name)
         else:
@@ -191,6 +196,7 @@ class MasterGui(QMainWindow):
         elif opteller == 4:
             self.dock_widget_dict[instrument_name].setFeatures(
                 QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetFloatable)
+
     def make_central_right_dock_widgets(self, instrument_name, opteller):
         """
 
@@ -199,6 +205,7 @@ class MasterGui(QMainWindow):
         :param opteller: the amount of gui this is, used to set some gui's with some QDockWidget features.
         :type int
         """
+        self.logger.debug('here')
         if "Measurement" in instrument_name:
             self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.measurement_graph_menu, instrument_name)
         else:
@@ -206,6 +213,7 @@ class MasterGui(QMainWindow):
         self.central.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget_dict[instrument_name])
         if opteller == 2:
             self.dock_widget_dict[instrument_name].setFeatures(QDockWidget.NoDockWidgetFeatures)
+
     def make_central_left_dock_widgets(self, instrument_name, opteller):
         if "Measurement" in instrument_name:
             self.dock_widget_dict[instrument_name] = self.randomDockWindow(self.measurement_graph_menu, instrument_name)
@@ -217,6 +225,7 @@ class MasterGui(QMainWindow):
 
     def randomString(self, N):
         return ''.join([random.choice(string.ascii_lowercase) for n in range(N)])
+
     def randomDockWindow(self, menu, name=None):
         """"
         In this method the widget will be made a QDockWidget.
@@ -228,6 +237,7 @@ class MasterGui(QMainWindow):
         :param name: the name of the widget to add
         :type string
         """
+        self.logger.debug('here')
         dock, name = self.setting_standard_dock_settings(name)
 
         self.setting_dock_content(dock, name)
@@ -254,6 +264,7 @@ class MasterGui(QMainWindow):
         action.triggered.connect(toggle_visibility)
         menu.addAction(action)
         return dock
+
     def setting_dock_content(self, dock, name):
         """"
         Setting widgets with gui's from different files using the .yml file.
@@ -264,12 +275,14 @@ class MasterGui(QMainWindow):
         :param name: name of the dock_widget
         :type string
         """
+        self.logger.debug('here')
         if name[-5:] == "Graph":
             #it is a graph widget:
             dock.setWidget(self.experiment.graph_view_instance[name])
         else:
             #it is a instrument widget:
             dock.setWidget(self.experiment.view_instances[name])
+
     def setting_standard_dock_settings(self, name):
         """"
         Setting standard functionality of all QDockWidgets.
@@ -277,6 +290,7 @@ class MasterGui(QMainWindow):
         :return dock, name. dock is a QdockWidget and name is a random name if that is needed.
         :rtype: dock, Qdockwidget. name, string
         """
+        self.logger.debug('here')
         if name == None:
             name = self.randomString(7)
         dock = QDockWidget(name, self)
@@ -291,6 +305,8 @@ class MasterGui(QMainWindow):
         Old code, needed to have an example of how to add a QdockWidget by hand.
         For the rest...yeah, it's not needed.
         """
+        self.logger.debug('here')
+
         """
         # how to add Qobjects to a dockable goes as follows.
         # First you make a Qwidget where the content will be placed in. Call this things something with content in the name
@@ -346,7 +362,7 @@ class MasterGui(QMainWindow):
         The .yml file should be in the same folder as this python file in order to not hard code the
         path to the .yml file.
         """
-
+        self.logger.debug('here')
         self.experiment.load_instruments()
         self.logger.debug('\n\n\n {} \n\n'.format(self.experiment.instruments_instances))
         self.load_interfaces()
@@ -358,7 +374,7 @@ class MasterGui(QMainWindow):
         the measurements will be loaded via load_measurement_gui.
         Through this way they can later be retrieved in the self object.
         """
-
+        self.logger.debug('here')
         for measurement in self.experiment.properties["Measurements"]:
             measurement_name = self.experiment.properties["Measurements"][measurement]
             if 'graphView' in measurement_name:
@@ -410,11 +426,14 @@ class MasterGui(QMainWindow):
             return None
 
     def load_measurement_gui(self, name, view_path):
+
+        self.logger.debug('here')
         module_name, class_name = view_path.split('/')
         MyClass = getattr(importlib.import_module(module_name), class_name)
         instance = MyClass(self.experiment)
         #the measurement_gui is being set in the view_instance dict.
         self.experiment.view_instances[name] = instance
+
     def load_graph_gui(self, name, view_path):
         """
         Create instances of graph gui's and set these in the self.experiment.graph_view_instace()
@@ -423,6 +442,7 @@ class MasterGui(QMainWindow):
         :param name: name of view to load. It has to be specified in the config file under Instruments
         :type name: string
         """
+        self.logger.debug('here')
         module_name, class_name = view_path.split('/')
         MyClass = getattr(importlib.import_module(module_name), class_name)
         instance = MyClass()

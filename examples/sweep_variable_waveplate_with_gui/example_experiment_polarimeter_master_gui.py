@@ -2,7 +2,7 @@ import os, sys
 import logging
 from PyQt5.QtWidgets import QApplication
 from hyperion.view.master_gui import MasterGui
-from examples.example_experiment_polarimeter import ExampleExperimentPolarimeter
+from examples.sweep_variable_waveplate_with_gui.example_experiment_polarimeter import ExampleExperimentPolarimeter
 from hyperion import _logger_format, _logger_settings
 
 logging.basicConfig(level=logging.DEBUG, format=_logger_format,
