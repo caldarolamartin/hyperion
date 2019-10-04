@@ -395,9 +395,9 @@ class MasterGui(QMainWindow):
         for measurement in self.experiment.properties["Measurements"]:
             measurement_name = self.experiment.properties["Measurements"][measurement]
             if 'graphView' in measurement_name:
-                self.load_graph_gui(measurement, measurement_name['graphView'])
+                inst = self.load_graph_gui(measurement, measurement_name['graphView'])
             if 'view' in measurement_name:
-                self.load_measurement_gui(measurement, measurement_name['view'])
+                self.load_measurement_gui(measurement, measurement_name['view'], inst)
 
         for instrument_name in self.experiment.properties['Instruments']:
             name_of_instrument = self.experiment.properties['Instruments'][instrument_name]
@@ -442,12 +442,17 @@ class MasterGui(QMainWindow):
                                                 "then you can ignore this message.\n")
             return None
 
-    def load_measurement_gui(self, name, view_path):
+    def load_measurement_gui(self, name, view_path, graph = None):
+        """ Loads the measurement gui. The controls, called view and the graph.
 
-        self.logger.debug('here')
+        """
+        self.logger.debug('Loading measurement gui: {}, graph = {}'.format(view_path, graph))
         module_name, class_name = view_path.split('/')
         MyClass = getattr(importlib.import_module(module_name), class_name)
-        instance = MyClass(self.experiment)
+        if graph is None:
+            instance = MyClass(self.experiment)
+        else:
+            instance = MyClass(self.experiment, graph)
         #the measurement_gui is being set in the view_instance dict.
         self.experiment.view_instances[name] = instance
 
@@ -465,6 +470,7 @@ class MasterGui(QMainWindow):
         instance = MyClass()
         # Getting certain uniqueness by adding Graph as a name. For example: OsaInstrumentGraph.
         self.experiment.graph_view_instance[name + "Graph"] = instance
+        return instance
 
 
 if __name__ == '__main__':
