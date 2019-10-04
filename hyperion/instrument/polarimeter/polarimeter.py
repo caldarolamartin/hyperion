@@ -62,6 +62,26 @@ class Polarimeter(BaseInstrument):
         self._measuring = False
         self.initialize(wavelength = self._wavelength)
 
+    def change_wavelength(self, w):
+        """Change the current wavelegnth to w
+
+        :param w: wavelength
+        :type w: pint quantity (distance)
+
+        :return: current wavelength
+        :rtype: pint quantity (distance)
+        """
+        self.logger.info('Now changing wavelength.')
+        if self._wavelength==w:
+            self.logger.debug('Not changing the wavelength, it is already set to {}'.format(w))
+        else:
+            self.finalize()
+            sleep(0.1)
+            self.initialize(wavelength = w)
+            self.logger.info('Current wavelength: {}'.format(w))
+
+        return self._wavelength
+
     def get_information(self):
         """ gets the information from the device: number of polarizers and id.
 
@@ -78,7 +98,10 @@ class Polarimeter(BaseInstrument):
         :type wavelength: pint quantity
         """
         self.logger.info('Initializing SK polarimeter. Device with id = {}'.format(self._id))
+        self.logger.debug('Is initialized: {}'.format(self.controller._is_initialized))
+
         ans = None
+
         if wavelength is None:
             self._wavelength = self.DEFAULT_SETTINGS['wavelength']
             self.logger.debug('Using default setting for wavelength')
@@ -89,8 +112,9 @@ class Polarimeter(BaseInstrument):
             raise Warning('The requested wavelength {} is outside the range supported for this device'.format(self._wavelength))
 
         if not self.controller._is_initialized:
-            self.logger.debug('Initializing SK polarimeter with wavelenght {}'.format(self._wavelength))
+            self.logger.debug('Initializing SK polarimeter with wavelength {}'.format(self._wavelength))
             ans = self.controller.initialize(wavelength = self._wavelength.m_as('nm'))
+
 
         if ans == 0:
             self.logger.debug(
@@ -105,6 +129,8 @@ class Polarimeter(BaseInstrument):
             raise Warning('Device ID: {} is invalid!'.format(self._id))
         elif ans is None:
             self.logger.warning('Ans is None')
+
+        sleep(0.1)
 
     def finalize(self):
         """ Finishes the connection to the SK polarimeter"""
@@ -129,6 +155,7 @@ class Polarimeter(BaseInstrument):
 
             if ans == 0:
                 self.logger.debug('No error found, device {} started measurement')
+                self._measuring = True
             elif ans == -1:
                 raise Warning('The device {} is not yet initialized.'.format(self._id))
             elif ans == -2:
@@ -138,7 +165,6 @@ class Polarimeter(BaseInstrument):
             elif ans == -5:
                 raise Warning('Device ID: {} is invalid!'.format(self._id))
 
-            self._measuring = True
 
     def stop_measurement(self):
         """ This method stops the measurement for the polarization analyzer.
@@ -261,9 +287,8 @@ if __name__ == "__main__":
                                  'dll_name': 'SKPolarimeter'}) as s:
 
         wavelengths = np.linspace(500,750,3)* ur('nm')
-
         for w in wavelengths:
-            s.initialize(wavelength = w)
+            s.change_wavelength(w)
             #s.start_measurement()
             t = time()
 

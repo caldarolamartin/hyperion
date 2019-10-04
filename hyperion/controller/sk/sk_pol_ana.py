@@ -44,8 +44,12 @@ class Skpolarimeter(BaseController):
         self.get_data_delay = 0.7   # in sec
         self.start_measurement_time = 0  # initialize the value
 
-
     def wait_to_measure(function):
+        """ This function is meant to be used to delay the first measurement so the device
+        is ready and producing data.
+        It is used as a decorator.
+
+        """
         def wait_to_measure_wrapper(self, *arg, **kw):
             while time() - self.start_measurement_time < self.get_data_delay:
                 pass    # self.logger.debug('Waiting until the time has passed')
@@ -72,8 +76,10 @@ class Skpolarimeter(BaseController):
 
         ans = func(self.id, br"C:\\unit_test.ini", wave)
         self.logger.debug('Answer from the SkInitPolarimeter: {}'.format(ans))
-        self._is_initialized = True
-        self.logger.debug('_is_initialized state: {}'.format(self._is_initialized))
+        if ans == 0:
+            self._is_initialized = True
+
+        self.logger.debug('Contrller _is_initialized state: {}'.format(self._is_initialized))
 
         return ans
 
@@ -97,6 +103,7 @@ class Skpolarimeter(BaseController):
         self.logger.info('Closing connection with device number: {}'.format(self.id))
         ans = self.dll.SkCloseConnectionByID(self.id)
         self.logger.debug('Answer from the SkCloseConnection: {}'.format(ans))
+        self._is_initialized = False
 
         return ans
 
