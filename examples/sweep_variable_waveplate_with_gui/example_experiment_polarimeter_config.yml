@@ -75,7 +75,7 @@ Measurements:
   # list of measurement views which need to be loaded and accessible for the main experiment class.
   SweepWaveplate:
     view: examples.sweep_variable_waveplate_with_gui.measurement_guis/SweepWaveplatePolarimeterGui
-    #graphView: hyperion.view.base_plot_windows/BaseGraph
+    graphView: examples.sweep_variable_waveplate_with_gui.measurement_guis/SweepWaveplatePolarimeterGraph
     settings:
       start: 2V
       stop: 3V

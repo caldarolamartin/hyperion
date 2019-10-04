@@ -84,7 +84,8 @@ class MasterGui(QMainWindow):
         Can be automated as menuaction in RandomDockWidget, with additional code(of course).
         """
         self.dock_widget_dict["ExampleInstrument_3"].setVisible(not self.dock_widget_dict["ExampleInstrument_3"].isVisible())
-    def create_single_qdockwidget(self):
+
+     def create_single_qdockwidget(self):
         """"
         In this method the goal is to create a blank QDockwidget and set this widget in the main_gui.
         It must be done only once because else errors will be created(because there is already some widget).

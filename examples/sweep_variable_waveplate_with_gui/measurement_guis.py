@@ -15,7 +15,7 @@ class SweepWaveplatePolarimeterGui(QWidget):
     """"
     Simple measurement gui which can only be accessed by making an instance of this class.
     """
-    def __init__(self, experiment):
+    def __init__(self, experiment, plot_window):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.title = 'Sweep Waveplate Polarimeter'
@@ -24,7 +24,7 @@ class SweepWaveplatePolarimeterGui(QWidget):
         self.width = 320
         self.height = 200
         self.experiment = experiment
-        #self.plot_window = plot_window
+        self.plot_window = plot_window
         self.initUI()
 
     def initUI(self):
@@ -48,3 +48,18 @@ class SweepWaveplatePolarimeterGui(QWidget):
         self.logger.debug('Experiment properties: {}'.format(self.experiment.properties))
         self.experiment.sweep_waveplate_polarimeter()
         self.logger.debug('Experiment done!')
+
+class SweepWaveplatePolarimeterGraph(BaseGraph):
+    """
+    In this class a widget is created to draw a graph on.
+    """
+    def __init__(self):
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Creating the Graph for the polarimeter vs vwp voltage')
+        self.title = 'Graph view: Polarimeter vs VWP voltage'
+        self.left = 100
+        self.top = 100
+        self.width = 640
+        self.height = 480
+        self.initUI()
