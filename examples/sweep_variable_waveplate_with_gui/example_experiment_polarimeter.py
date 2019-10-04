@@ -22,23 +22,17 @@ class ExampleExperimentPolarimeter(BaseExperiment):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Initializing the Base_Experiment class.')
+        self.logger.info('Initializing the ExampleExperimentPolarimeter class.')
 
         # data
         self.xdata = np.zeros(0)
-        self.ydata = np.zeros(0)
-        self.zdata = np.zeros(0)
-        self.wavelength = []
-        # to save the time
-        self.tdata_h_scan = np.zeros(0)
-        self.tdata_m_scan = np.zeros(0)
-        self.tdata_s_scan = np.zeros(0)
+        self.xdata_unit = ''
+        self.ydata = np.zeros_like(self.xdata)
+        self.ydata_error = np.zeros_like(self.xdata)
+        self.ydata_unit = ''
 
-        # to save the data of the scan
-        self.xdata_scan = np.zeros(0)
-        self.xdata_scan_v = np.zeros(0)
-        self.ydata_scan = np.zeros(0)
-        self.ydata_scan_error = np.zeros(0)
+        self.wavelength = []
+
 
     def __enter__(self):
         return self
@@ -79,6 +73,7 @@ class ExampleExperimentPolarimeter(BaseExperiment):
         self.logger.debug('Setting the wavelength for the measurement')
         wl = ur(scan_properties['wavelength'])
         self.instruments_instances['Polarimeter'].change_wavelength(wl)
+        self.wavelength = wl
 
         # turn on the output of the VWP
         self.instruments_instances['VariableWaveplate'].output = True

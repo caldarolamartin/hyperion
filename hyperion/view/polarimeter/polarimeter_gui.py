@@ -75,20 +75,10 @@ class PolarimeterGui(QWidget):
         self.data[:,:-1] =self.data[:,1:]
         self.data[:,-1] = np.array(raw)
 
-
-    def continuous_data(self):
-        """ Gets the data """
-        while self._is_measuring:
-            #self.update_data()
-            self.update_dummy_data()
-            #self.update_plot()
-            print('Time elapsed: {}'.format(time() - self.to))
-            self.to = time()
-
     def update_plot(self):        # TRYING SOMETHING: copied and adapted from osa_view
         self.update_data()
         index = 2
-        y = self.data[index,:]       # this line might be wrong
+        y = self.data[index,:]
         x = np.array(range(len(y)))
         #self.logger.debug('Data: x = {}, y = {}'.format(x,y))
         #self.draw.pg_plot.plot(x, y, clear=True)

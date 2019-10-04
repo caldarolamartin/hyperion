@@ -8,7 +8,7 @@ This file contains the code to create different guis, one for each measurement y
 """
 import logging
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QTimer
 from hyperion.view.base_plot_windows import BaseGraph
 
 class SweepWaveplatePolarimeterGui(QWidget):
@@ -25,7 +25,15 @@ class SweepWaveplatePolarimeterGui(QWidget):
         self.height = 200
         self.experiment = experiment
         self.plot_window = plot_window
+
         self.initUI()
+        self.plot_window.pg_plot.setData(range(10),[1]*10)
+
+
+        # timer to update
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_plot)
+        self._is_measuring = False
 
     def initUI(self):
         self.logger.debug('Setting up the Measurement GUI')
@@ -41,13 +49,21 @@ class SweepWaveplatePolarimeterGui(QWidget):
 
     @pyqtSlot()
     def on_click(self):
-        """ Action
+        """ Start the measurement and the update of the plot
 
         """
-        self.logger.debug('Experiment class: {}'.format(self.experiment))
-        self.logger.debug('Experiment properties: {}'.format(self.experiment.properties))
+        self.logger.info('Starting experiment: Sweep waveplate polarimeter')
+        self.timer.start(50)
         self.experiment.sweep_waveplate_polarimeter()
-        self.logger.debug('Experiment done!')
+        self.logger.info('Experiment done!')
+        self.timer.stop()
+
+    def update_plot(self):
+
+        x = self.experiment.xdata
+        y = self.experiment.ydata
+        print(y)
+        self.plot_window.pg_plot.setData(x,y)
 
 class SweepWaveplatePolarimeterGraph(BaseGraph):
     """
