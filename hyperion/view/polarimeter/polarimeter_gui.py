@@ -18,7 +18,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import *
 from hyperion.instrument.polarimeter.polarimeter import Polarimeter
 from hyperion import Q_, ur, root_dir
-from hyperion.view.general_worker import WorkThread
+from hyperion.view.base_plot_windows import BaseGraph
 
 class PolarimeterGui(QWidget):
 
@@ -55,8 +55,6 @@ class PolarimeterGui(QWidget):
         # to handle the update of the plot we use a timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_plot)
-
-
 
     def __enter__(self):
         return self
@@ -152,7 +150,7 @@ class PolarimeterGui(QWidget):
 
 
 # this is to create a graph output window to dump our data later.
-class Graph(QWidget):
+class Graph(BaseGraph):
     """
     In this class a widget is created to draw a graph on.
     """
@@ -165,17 +163,7 @@ class Graph(QWidget):
         self.top = 100
         self.width = 640
         self.height = 480
-        self.pg_plot_widget = pg.PlotWidget()
-        self.pg_plot = self.pg_plot_widget.plot([0],[0])
         self.initUI()
-
-    def initUI(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        vbox = QVBoxLayout()
-        vbox.addWidget(self.pg_plot_widget)
-        self.setLayout(vbox)
-        self.show()
 
 
 
