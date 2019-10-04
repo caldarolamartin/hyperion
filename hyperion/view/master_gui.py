@@ -23,9 +23,12 @@ class MasterGui(QMainWindow):
         self.width = 800
         self.height = 500
         self.button_pressed = False
+
+        #
         self.experiment = experiment
 
         self.initUI()
+
     def initUI(self):
         self.set_gui_specifics()
 
@@ -36,6 +39,7 @@ class MasterGui(QMainWindow):
         self.make_automatic_dock_widgets()
 
         self.show()
+        self.logger.debug('This is nice point to put a stop and debug')
 
     def set_gui_specifics(self):
         """"
@@ -85,7 +89,7 @@ class MasterGui(QMainWindow):
         """
         self.dock_widget_dict["ExampleInstrument_3"].setVisible(not self.dock_widget_dict["ExampleInstrument_3"].isVisible())
 
-     def create_single_qdockwidget(self):
+    def create_single_qdockwidget(self):
         """"
         In this method the goal is to create a blank QDockwidget and set this widget in the main_gui.
         It must be done only once because else errors will be created(because there is already some widget).
@@ -391,7 +395,7 @@ class MasterGui(QMainWindow):
                 if "view" in name_of_instrument:
                     self.load_instrument_gui(instrument_name)
             else:
-                #check if there is gui available for this instrument
+                # check if there is gui available for this instrument
                 if "view" in name_of_instrument:
                     self.load_instrument_gui(instrument_name)
 

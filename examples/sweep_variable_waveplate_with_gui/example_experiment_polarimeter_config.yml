@@ -73,16 +73,19 @@ MetaInstruments:
 Measurements:
   # specific for this experiment
   # list of measurement views which need to be loaded and accessible for the main experiment class.
-  SweepWaveplate:
-    view: examples.sweep_variable_waveplate_with_gui.measurement_guis/SweepWaveplatePolarimeterGui
-    graphView: examples.sweep_variable_waveplate_with_gui.measurement_guis/SweepWaveplatePolarimeterGraph
-    settings:
-      start: 2V
-      stop: 3V
-      step: 0.1V
-      stabilization: 10ms
-      average: 1
-      wavelength: 536nm
+  exampleMeasurement:
+    view: examples.measurement_gui/App
+    graphView: hyperion.view.osa.osa_gui/DrawSpectrum
+#  SweepWaveplate:
+#    view: examples.sweep_variable_waveplate_with_gui.measurement_guis/SweepWaveplatePolarimeterGui
+#    graphView: examples.sweep_variable_waveplate_with_gui.measurement_guis/SweepWaveplatePolarimeterGraph
+#    settings:
+#      start: 2V
+#      stop: 3V
+#      step: 0.1V
+#      stabilization: 10ms
+#      average: 1
+#      wavelength: 536nm
 
 
 Data:
