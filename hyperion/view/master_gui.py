@@ -381,7 +381,7 @@ class MasterGui(QMainWindow):
         """
         self.logger.debug('here')
         self.experiment.load_instruments()
-        self.logger.debug('\n\n\n {} \n\n'.format(self.experiment.instruments_instances))
+        self.logger.debug('Instruments: {} '.format(self.experiment.instruments_instances))
         self.load_interfaces()
 
     def load_interfaces(self):
@@ -391,7 +391,7 @@ class MasterGui(QMainWindow):
         the measurements will be loaded via load_measurement_gui.
         Through this way they can later be retrieved in the self object.
         """
-        self.logger.debug('here')
+        self.logger.debug('Loading interfaces')
         for measurement in self.experiment.properties["Measurements"]:
             measurement_name = self.experiment.properties["Measurements"][measurement]
             if 'graphView' in measurement_name:
