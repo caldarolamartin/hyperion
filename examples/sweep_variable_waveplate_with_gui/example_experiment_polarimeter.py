@@ -1,11 +1,11 @@
 """
-    ==================
-    Example Experiment
-    ==================
+    ==============================================================
+    Example Experiment with a variable waveplate and a polarimeter
+    ==============================================================
+
+    This is an example of an experiment class with two devices
 
 
-
-    This is an example of an experiment class.
 """
 import os
 import logging
@@ -17,28 +17,12 @@ from hyperion.experiment.base_experiment import BaseExperiment
 
 
 class ExampleExperimentPolarimeter(BaseExperiment):
-    """ Example class with basic functions """
+    """ Example class  """
 
     def __init__(self):
-        """ initialize the class"""
-
+        super().__init__()
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the Base_Experiment class.')
-
-        #initialize dictionaries where instances of instruments and gui's can be found
-        self.devices = {}
-        self.properties = {}
-        self.instruments_instances = {}
-        self.view_instances = {}
-        self.graph_view_instance = {}
-
-        # scanning variables
-        self.scan = {}
-        self.stop_monitor = False
-        self.scan['detectors'] = []
-        self.scan['detector_units'] = []
-        self.scan['number detectors'] = len(self.scan['detectors'])
-        self.scan['running'] = False
 
         # data
         self.xdata = np.zeros(0)
@@ -76,7 +60,7 @@ class ExampleExperimentPolarimeter(BaseExperiment):
         """ Sweeping """
         self.logger.info('Starting the Sweep')
         self.logger.debug('Getting the settings from the config file.')
-        scan_properties = self.properties['Measurements']['SweepWaveplate']['settings']
+        scan_properties = self.properties['Measurements']['SweepWaveplate']['settings']   # shorthand copy for inside this method only
         self.logger.debug('Scan properties: {}'.format(scan_properties))
 
 
@@ -117,34 +101,6 @@ class ExampleExperimentPolarimeter(BaseExperiment):
         print(self.ydata)
 
 
-
-
-    def load_instruments(self):
-        """"
-        This method gets the instance of every instrument and sets this instance
-        in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
-        The option to set the instruments by hand is still possible, but not necessary because the pointer
-        to the instrument 'lives' in the instruments_instances.
-        """
-
-        for instrument in self.properties['Instruments']:
-            try:
-                self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-                self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
-            except Exception:
-                self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
-                self.instruments_instances[instrument] = None
-
-        # Adding manual name because I'll always use this instrument with this experiment
-        if 'Polarimeter' in self.instruments_instances:
-            self.pol = self.instruments_instances['Polarimeter']
-
-        # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
-        # self.logger.debug('Class vwp: {}'.format(self.vwp))
-        # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
-        # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
-
-
 if __name__ == '__main__':
     from hyperion import _logger_format
     logging.basicConfig(level=logging.DEBUG, format=_logger_format,
@@ -171,7 +127,7 @@ if __name__ == '__main__':
         # # Initialize devices
         print('\n-------------- LOADING DEVICES ----------------\n')
         e.load_instruments()
-        print(e.instruments_instances.keys())
+        print('Loaded instruments: {}'.format(e.instruments_instances.keys()))
         print('-------------- DONE LOADING DEVICES ----------------')
         #
 

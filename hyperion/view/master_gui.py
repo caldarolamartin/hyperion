@@ -1,3 +1,15 @@
+"""
+==========
+Master GUI
+==========
+
+
+This is the code to create the Master GUI that contains all the widgets to perform experiments.
+
+
+
+
+"""
 import importlib
 import random
 import string
