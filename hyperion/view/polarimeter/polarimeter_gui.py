@@ -8,19 +8,23 @@ This is the variable waveplate GUI.
 
 
 """
-
 import logging
 import sys, os
+import pyqtgraph as pg
+import numpy as np
+from time import time
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit, QDoubleSpinBox
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import *
 from hyperion.instrument.polarimeter.polarimeter import Polarimeter
-from hyperion import Q_, ur
-
-
+from hyperion import Q_, ur, root_dir
+from hyperion.view.base_plot_windows import BaseGraph
 
 class PolarimeterGui(QWidget):
 
-    def __init__(self, polarimeter_ins):
+    MODES = ['Monitor', 'Time Trace'] # measuring modes
+
+    def __init__(self, polarimeter_ins, plot_window):
         """
         Init of the Polarimeter Gui
 
@@ -36,6 +40,8 @@ class PolarimeterGui(QWidget):
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
 
+        self.plot_window = plot_window
+
         # setup the gui
         self.polarimeter_ins = polarimeter_ins
         self.customize_gui()
@@ -43,63 +49,111 @@ class PolarimeterGui(QWidget):
         #self.set_device_state_to_gui()
         self.show()
 
+        #
+        self._is_measuring = False
+        self.data = np.zeros((13, self.gui.spinBox_measurement_length.value())) # save data
+        # to handle the update of the plot we use a timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_plot)
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
        self.logger.debug('Exiting')
 
+    def update_dummy_data(self):
+        """ Dummy data update"""
+        raw = np.random.rand(13)
+        self.data[:, :-1] = self.data[:, 1:]
+        self.data[:, -1] = np.array(raw)
+
+
+    def update_data(self):
+        """ sdfsdf """
+        raw = self.polarimeter_ins.get_data()
+        self.data[:,:-1] =self.data[:,1:]
+        self.data[:,-1] = np.array(raw)
+
+    def update_plot(self):
+        self.update_data()
+        index = 2
+        y = self.data[index,:]
+        x = np.array(range(len(y)))
+        #self.logger.debug('Data: x = {}, y = {}'.format(x,y))
+        #self.plot_window.pg_plot.plot(x, y, clear=True)
+        self.plot_window.pg_plot.setData(x, y)
+
     def customize_gui(self):
         """ Make changes to the gui """
 
         self.logger.debug('Setting channels to plot')
         self._channels_labels = []
+        self._channels_check_boxes = []
 
-        for a in self.polarimeter_ins.DATA_TYPES_NAME:
+        self.gui.pushButton_apply_wavelength.clicked.connect(self.change_wavelength)
+
+        # add the channels to detect
+        for index, a in enumerate(self.polarimeter_ins.DATA_TYPES_NAME):
             label = QLabel(a)
+            box = QCheckBox()
             self._channels_labels.append(label)
-            self.gui.gridLayout_channels.addWidget(label)
+            self._channels_check_boxes.append(box)
+
+            self.gui.formLayout_channels.addRow(box, label)
+
+        # set the mode
+        self.gui.comboBox_mode.addItems(self.MODES)
+
+        #self.gui.pushButton_start.pressed.connect(self.plot_data)
+
+        self.gui.pushButton_start.clicked.connect(self.start_button)
+
+    def start_button(self):
+
+        #lenth = self.gui.doubleSpinBox_measurement_length
+        if self._is_measuring:
+            self.logger.debug('Stopping sweep')
+            self._is_measuring = False
+            # change the button text
+            self.gui.pushButton_start.setText('Start')
+            self.timer.stop()
+
+        else:
+            self.logger.debug('Starting measurement')
+            self._is_measuring = True
+            # change the button text
+            self.gui.pushButton_start.setText('Stop')
+            self.timer.start(50)  # in ms
+            # self.measurement_thread = WorkThread(self.continuous_data)
+            # self.measurement_thread.start()
 
 
-
-        # self.gui.doubleSpinBox_v1.setDecimals(3)
-        # self.gui.doubleSpinBox_v1.setSuffix(' V')
-        # self.gui.doubleSpinBox_v1.setSingleStep(self.gui.doubleSpinBox_v1_delta.value())
-        #
-        # self.gui.doubleSpinBox_v1_delta.setDecimals(3)
-        # self.gui.doubleSpinBox_v1_delta.setSuffix(' V')
-        # self.gui.doubleSpinBox_v1_delta.valueChanged.connect( lambda value: self.gui.doubleSpinBox_v1.setSingleStep(value) )
-        #
-        # self.gui.doubleSpinBox_v2.setDecimals(3)
-        # self.gui.doubleSpinBox_v2.setSuffix(' V')
-        # self.gui.doubleSpinBox_v2.setSingleStep(self.gui.doubleSpinBox_v2_delta.value())
-        #
-        # self.gui.doubleSpinBox_v2_delta.setDecimals(3)
-        # self.gui.doubleSpinBox_v2_delta.setSuffix(' V')
-        # self.gui.doubleSpinBox_v2_delta.valueChanged.connect(
-        #     lambda value: self.gui.doubleSpinBox_v2.setSingleStep(value))
-        #
-        # self.gui.doubleSpinBox_frequency_delta.valueChanged.connect(
-        #     lambda value: self.gui.doubleSpinBox_frequency.setSingleStep(value))
-        #
-        # self.gui.doubleSpinBox_wavelength_delta.valueChanged.connect(
-        #     lambda value: self.gui.doubleSpinBox_wavelength.setSingleStep(value))
-        #
-        # # combobox
-        # self.gui.comboBox_mode.addItems(self.variable_waveplate_ins.MODES)
-        # self.gui.comboBox_mode.currentIndexChanged.connect(self.set_channel_textfield_disabled)
-        #
-        # # enable
-        # self.gui.pushButton_state.clicked.connect(self.state_clicked)
-        # self.gui.enabled = QWidget()
-        #
-        # # connect the voltage and frequency spinbox a function to send the
-        # self.gui.doubleSpinBox_v1.valueChanged.connect(self.send_voltage_v1)
-        # self.gui.doubleSpinBox_v2.valueChanged.connect(self.send_voltage_v2)
-        # self.gui.doubleSpinBox_frequency.valueChanged.connect(self.send_frequency_value)
-        # self.gui.doubleSpinBox_wavelength.valueChanged.connect(self.send_qwp)
+    def change_wavelength(self):
+        """ Gui method to set the wavelength to the device
 
 
+        """
+        w = Q_(self.doubleSpinBox_wavelength.value(), self.doubleSpinBox_wavelength.suffix())
+        self.logger.info('Setting the wavelength: {}'.format(w))
+        self.polarimeter_ins.change_wavelength(w)
+
+
+# this is to create a graph output window to dump our data later.
+class Graph(BaseGraph):
+    """
+    In this class a widget is created to draw a graph on.
+    """
+    def __init__(self):
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Creating the Graph for the polarimeter')
+        self.title = 'Graph view: Polarimeter'
+        self.left = 100
+        self.top = 100
+        self.width = 640
+        self.height = 480
+        self.initUI()       # This should be called here (not in the parent)
 
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings, root_dir
@@ -117,8 +171,14 @@ if __name__ == '__main__':
                                  'dll_name': 'SKPolarimeter'}) as polarimeter_ins:
 
         app = QApplication(sys.argv)
+        logging.debug('Creating the graph for the GUI.')
+        plot_window = Graph() # create the plot window
+
+
         #app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
-        polarimeter_ins.initialize(wavelength=500 * ur('nm'))
-        PolarimeterGui(polarimeter_ins)
+#        polarimeter_ins.initialize(wavelength=500 * ur('nm'))
+        logging.debug('Now starting the GUI')
+        PolarimeterGui(polarimeter_ins, plot_window)
+
         sys.exit(app.exec_())
 

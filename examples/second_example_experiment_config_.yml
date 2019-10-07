@@ -78,7 +78,7 @@ Measurements:
   #list of measurement views which need to be loaded and accesible for the main experiment class.
   exampleMeasurement:
     view: examples.measurement_gui/App
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    graphView: hyperion.view.osa.osa_gui/DrawSpectrum
 
 Data:
   save_folder: C:\Users\ariel\Desktop\Delft_code\hyperion\

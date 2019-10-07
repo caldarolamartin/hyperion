@@ -20,7 +20,7 @@ What goes wrong is that at some point after the gui is initialized the connectio
 An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. 
 Never shot is always mis
 """
-class App(QWidget):
+class OsaGui(QWidget):
 
     def __init__(self, instr, draw):
         """ Init of the class.
@@ -319,15 +319,15 @@ class DrawSpectrum(QWidget):
         vbox.addWidget(self.random_plot)
         self.setLayout(vbox)
         self.show()
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = DrawSpectrum()
-    sys.exit(app.exec_())
 
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     ex = DrawSpectrum()
+#     sys.exit(app.exec_())
 
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
@@ -336,12 +336,12 @@ if __name__ == '__main__':
 
     
 
-    with OsaInstrument(settings ={'dummy': False, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as instr:
+    with OsaInstrument(settings ={'dummy': True, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as instr:
         draw = DrawSpectrum()
         instr.initialize()
 
         app = QApplication([])
-        ex = App(instr, draw) #mandatory in order to call osainstrument in osa_view class
+        ex = OsaGui(instr, draw) # mandatory in order to call osainstrument in osa_view class
         ex.show()
 
         instr.finalize()

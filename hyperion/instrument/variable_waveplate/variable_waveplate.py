@@ -23,8 +23,7 @@ class VariableWaveplate(BaseInstrument):
 
 
     """
-    def __init__(self, settings = {'port':'COM8', 'enable': None, 'dummy' : True,
-                                   'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'} ):
+    def __init__(self, settings):
         """
         Init of the class.
 
@@ -37,6 +36,12 @@ class VariableWaveplate(BaseInstrument):
 
         Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
         i.e. the class will automatically overwrite the 'controller' with 'hyperion.controller.thorlabs.lcc25/LccDummy'
+
+        Example:
+
+            settings = {'port':'COM8', 'enable': None, 'dummy' : True,
+                                   'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}
+
 
         """
         super().__init__(settings)
@@ -60,7 +65,7 @@ class VariableWaveplate(BaseInstrument):
         self.load_calibration(cal_file)
 
         # initialize
-        self.initialize()
+        self.initialize() # mandatory!
         if self._output is None:
             self._output = self.output
         else:
@@ -373,7 +378,7 @@ if __name__ == '__main__':
 
             # set the quater waveplate voltage in voltage1
             wavelength = 633* ur('nanometer')
-            dev.set_quarter_waveplate_voltage(1, wavelength)
+            dev.set_quarter_waveplate_voltage(wavelength)
 
 
         print('Done with dummy={}'.format(dummy))

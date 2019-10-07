@@ -202,7 +202,7 @@ if __name__ == "__main__":
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
-    dummy = False
+    dummy = True
     with OsaInstrument(settings={'dummy': dummy, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as dev:
         dev.initialize()
 

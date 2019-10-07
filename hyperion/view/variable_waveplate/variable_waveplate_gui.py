@@ -8,7 +8,6 @@ This is the variable waveplate GUI.
 
 
 """
-
 import logging
 import sys, os
 from PyQt5.QtCore import Qt

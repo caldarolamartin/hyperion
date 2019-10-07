@@ -8,7 +8,7 @@ class App(QWidget):
     """"
     Simple measurement gui which can only be accessed by making an instance of this class.
     """
-    def __init__(self, experiment):
+    def __init__(self, experiment, plot_window):
         super().__init__()
         self.title = 'measurement gui'
         self.left = 50
@@ -16,6 +16,7 @@ class App(QWidget):
         self.width = 320
         self.height = 200
         self.experiment = experiment
+        self.plot_window = plot_window
         self.initUI()
 
     def initUI(self):

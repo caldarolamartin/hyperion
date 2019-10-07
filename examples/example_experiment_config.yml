@@ -108,8 +108,8 @@ Instruments:
     port: AUTO
     instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
     controller: hyperion.controller.osa.osa_controller/OsaController
-    view: hyperion.view.osa.osa_view/App
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    view: hyperion.view.osa.osa_gui/OsaGui
+    graphView: hyperion.view.osa.osa_gui/DrawSpectrum
     dummy: False
   Gui_with_graph:
     port: COM0
