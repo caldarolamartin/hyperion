@@ -59,7 +59,7 @@ def array_from_string_quantities(start, stop, step=None, num=None):
     """
     Wrapper around array_from_pint_quantities() that converts string arguments to pint quantities.
     Arguments start, stop and step should be strings, num could be integer (or string of integer).
-    See array_from_pint_quantities for further details.
+    See array_from_pint_quantities() for further details.
     """
     sta = Q_(start)
     sto = Q_(stop)
@@ -69,3 +69,24 @@ def array_from_string_quantities(start, stop, step=None, num=None):
         ste = Q_(step)
 
     return array_from_pint_quantities(sta, sto, ste, num)
+
+def array_from_settings_dict(sweep_dict):
+    """
+    Wrapper around array_from_string_quantities().
+    sweep_dict should contain 'start' and 'stop' key. And either 'step' or 'num' key.
+    The values may have units (that can be interpreted by pint).
+    See array_from_string_quantities() and array_from_pint_quantities() for further details.
+
+    :param sweep_dict: Dictionary containing start, stop and step or num keys
+    :return: (numpy.array, pint.unit)
+    """
+    if 'start' not in sweep_dict:
+        logger.error('sweep dictionary should contain key start')
+    if 'stop' not in sweep_dict:
+        logger.error('sweep dictionary should contain key stop')
+    if 'step' in sweep_dict:
+        return array_from_string_quantities(sweep_dict['start'], sweep_dict['stop'], step=sweep_dict['step'])
+    elif 'num' in sweep_dict:
+        return array_from_string_quantities(sweep_dict['start'], sweep_dict['stop'], num=sweep_dict['num'])
+    else:
+        return array_from_string_quantities(sweep_dict['start'], sweep_dict['stop'])

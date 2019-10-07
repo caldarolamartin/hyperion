@@ -14,6 +14,7 @@ import winsound
 from time import sleep
 from hyperion import ur
 from hyperion.experiment.base_experiment import BaseExperiment
+from hyperion.tools.array_tools import array_from_pint_quantities, array_from_string_quantities, array_from_settings_dict
 
 
 class ExampleExperimentPolarimeter(BaseExperiment):
@@ -60,14 +61,17 @@ class ExampleExperimentPolarimeter(BaseExperiment):
         scan_properties = self.properties['Measurements']['SweepWaveplate']['settings']   # shorthand copy for inside this method only
         self.logger.debug('Scan properties: {}'.format(scan_properties))
 
+        self.xdata, self.xdata_unit = array_from_settings_dict(scan_properties)
 
-        start = ur(scan_properties['start'])
-        unit = start.u
-        stop = ur(scan_properties['stop'])
-        step = ur(scan_properties['step'])
-        n = np.floor(np.abs(stop.m_as(unit)-start.m_as(unit))/step.m_as(unit)) + 1
-        self.xdata = np.linspace(start.m_as(unit),stop.m_as(unit),n)
-        self.xdata_unit = unit
+        # # The line above replaces the commented section below
+
+        # start = ur(scan_properties['start'])
+        # unit = start.u
+        # stop = ur(scan_properties['stop'])
+        # step = ur(scan_properties['step'])
+        # n = np.floor(np.abs(stop.m_as(unit)-start.m_as(unit))/step.m_as(unit)) + 1
+        # self.xdata = np.linspace(start.m_as(unit),stop.m_as(unit),n)
+        # self.xdata_unit = unit
         self.ydata = np.zeros_like(self.xdata)
         self.ydata_error = np.zeros_like(self.xdata)
         self.ydata_unit = 'normalized'
@@ -85,7 +89,7 @@ class ExampleExperimentPolarimeter(BaseExperiment):
         self.logger.info('Starting the for loop that measures')
         for index, value in enumerate(self.xdata):
             #set
-            self.instruments_instances['VariableWaveplate'].set_analog_value(1,value*unit)
+            self.instruments_instances['VariableWaveplate'].set_analog_value(1,value*self.xdata_unit)
             sleep(ur(scan_properties['stabilization']).m_as('s'))
             # colect data
             av, st = self.instruments_instances['Polarimeter'].get_average_data(scan_properties['average'])
