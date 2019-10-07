@@ -24,7 +24,7 @@ class PolarimeterGui(QWidget):
 
     MODES = ['Monitor', 'Time Trace'] # measuring modes
 
-    def __init__(self, polarimeter_ins, draw):      # TRYING SOMETHING: added draw, NOTE that this temporarily breaks running this file directly
+    def __init__(self, polarimeter_ins, plot_window):
         """
         Init of the Polarimeter Gui
 
@@ -40,7 +40,7 @@ class PolarimeterGui(QWidget):
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
 
-        self.draw = draw
+        self.plot_window = plot_window
 
         # setup the gui
         self.polarimeter_ins = polarimeter_ins
@@ -81,8 +81,8 @@ class PolarimeterGui(QWidget):
         y = self.data[index,:]
         x = np.array(range(len(y)))
         #self.logger.debug('Data: x = {}, y = {}'.format(x,y))
-        #self.draw.pg_plot.plot(x, y, clear=True)
-        self.draw.pg_plot.setData(x, y)
+        #self.plot_window.pg_plot.plot(x, y, clear=True)
+        self.plot_window.pg_plot.setData(x, y)
 
     def customize_gui(self):
         """ Make changes to the gui """
@@ -172,13 +172,13 @@ if __name__ == '__main__':
 
         app = QApplication(sys.argv)
         logging.debug('Creating the graph for the GUI.')
-        graph_window = Graph() # create the plot window
+        plot_window = Graph() # create the plot window
 
 
         #app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
 #        polarimeter_ins.initialize(wavelength=500 * ur('nm'))
         logging.debug('Now starting the GUI')
-        PolarimeterGui(polarimeter_ins, draw=graph_window)
+        PolarimeterGui(polarimeter_ins, plot_window)
 
         sys.exit(app.exec_())
 
