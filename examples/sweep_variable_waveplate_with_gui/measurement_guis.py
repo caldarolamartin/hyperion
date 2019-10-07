@@ -10,6 +10,7 @@ import logging
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 from PyQt5.QtCore import pyqtSlot, QTimer
 from hyperion.view.base_plot_windows import BaseGraph
+from hyperion.view.general_worker import WorkThread
 
 class SweepWaveplatePolarimeterGui(QWidget):
     """"
@@ -27,43 +28,68 @@ class SweepWaveplatePolarimeterGui(QWidget):
         self.plot_window = plot_window
 
         self.initUI()
-        self.plot_window.pg_plot.setData(range(10),[1]*10)
+        # self.plot_window.pg_plot.setData(range(10),[1]*10)  # trying this out
 
 
         # timer to update
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_plot)
-        self._is_measuring = False
+        # self._is_measuring = False
 
     def initUI(self):
         self.logger.debug('Setting up the Measurement GUI')
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        button = QPushButton('Start', self)
-        button.setToolTip('This is an example button')
-        button.move(100, 70)
-        button.clicked.connect(self.on_click)
+        self.start_button = QPushButton('Start sweep', self)
+        self.start_button.setToolTip('This is an example button')
+        self.start_button.move(100, 70)
+        self.start_button.clicked.connect(self.start_button_clicked)
 
         self.show()
 
-    # @pyqtSlot() # not sure if this is necessary
-    def on_click(self):
-        """ Start the measurement and the update of the plot
+    # # @pyqtSlot() # not sure if this is necessary
+    # def on_click(self):
+    #     """ Start the measurement and the update of the plot
+    #
+    #     """
+    #     self._is_measuring = True
+    #     self.logger.info('Starting experiment: Sweep waveplate polarimeter')
+    #     self.timer.start(50)
+    #     self.experiment.sweep_waveplate_polarimeter()
+    #     self.logger.info('Experiment done!')
+    #     # self.timer.stop()
 
-        """
-        self.logger.info('Starting experiment: Sweep waveplate polarimeter')
-        self.timer.start(50)
-        self.experiment.sweep_waveplate_polarimeter()
-        self.logger.info('Experiment done!')
-        self.timer.stop()
+    def start_button_clicked(self):
+
+        if self.experiment._sweep_waveplate_polarimeter_in_progress:
+            self.logger.debug('Aborting sweep')
+            self.experiment._sweep_waveplate_polarimeter_in_progress = False
+            # change the button text
+            # self.start_button.setText('Abort sweep')
+            # self.timer.stop()
+
+        else:
+            self.logger.debug('Starting sweep')
+            self.sweep_thread = WorkThread(self.experiment.sweep_waveplate_polarimeter)
+            self.sweep_thread.start()
+            self.start_button.setText('Abort sweep')
+            self.timer.start(50)  # in ms
+            # change the button text
+            # self.start_button.setText('Start sweep')
+            # self.measurement_thread = WorkThread(self.continuous_data)
+            # self.measurement_thread.start()
 
     def update_plot(self):
 
-        x = self.experiment.xdata
-        y = self.experiment.ydata
-        print(y)
-        self.plot_window.pg_plot.setData(x,y)
+        if not self.experiment._sweep_waveplate_polarimeter_in_progress:
+            # The sweep has ended: reset button text and stop updating graph
+            self.start_button.setText('Start sweep')
+            self.timer.stop()
+        else:
+            x = self.experiment.xdata
+            y = self.experiment.ydata
+            self.plot_window.pg_plot.setData(x, y)
 
 class SweepWaveplatePolarimeterGraph(BaseGraph):
     """

@@ -75,7 +75,7 @@ class PolarimeterGui(QWidget):
         self.data[:,:-1] =self.data[:,1:]
         self.data[:,-1] = np.array(raw)
 
-    def update_plot(self):        # TRYING SOMETHING: copied and adapted from osa_view
+    def update_plot(self):
         self.update_data()
         index = 2
         y = self.data[index,:]
@@ -113,7 +113,7 @@ class PolarimeterGui(QWidget):
 
         #lenth = self.gui.doubleSpinBox_measurement_length
         if self._is_measuring:
-            self.logger.debug('Stopping measurement')
+            self.logger.debug('Stopping sweep')
             self._is_measuring = False
             # change the button text
             self.gui.pushButton_start.setText('Start')
@@ -153,7 +153,7 @@ class Graph(BaseGraph):
         self.top = 100
         self.width = 640
         self.height = 480
-        self.initUI()
+        self.initUI()       # This should be called here (not in the parent)
 
 if __name__ == '__main__':
     from hyperion import _logger_format, _logger_settings, root_dir

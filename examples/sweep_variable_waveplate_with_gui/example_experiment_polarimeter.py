@@ -33,6 +33,8 @@ class ExampleExperimentPolarimeter(BaseExperiment):
 
         self.wavelength = []
 
+        self._sweep_waveplate_polarimeter_in_progress = False
+
 
     def __enter__(self):
         return self
@@ -52,6 +54,7 @@ class ExampleExperimentPolarimeter(BaseExperiment):
 
     def sweep_waveplate_polarimeter(self):
         """ Sweeping """
+        self._sweep_waveplate_polarimeter_in_progress = True        # always set the "in progress" flag True at the start of a measurement method
         self.logger.info('Starting the Sweep')
         self.logger.debug('Getting the settings from the config file.')
         scan_properties = self.properties['Measurements']['SweepWaveplate']['settings']   # shorthand copy for inside this method only
@@ -88,12 +91,15 @@ class ExampleExperimentPolarimeter(BaseExperiment):
             av, st = self.instruments_instances['Polarimeter'].get_average_data(scan_properties['average'])
             self.ydata[index] = av[2]
             self.ydata_error[index] = st[2]
+            if not self._sweep_waveplate_polarimeter_in_progress:
+                self.logger.info('VWP sweep aborted')
+                break
 
-        self.logger.info('Finished with the for')
+        self.logger.info('Finished looping over VWP voltages')
 
         # turn of the VWP
         self.instruments_instances['VariableWaveplate'].output = False
-        print(self.ydata)
+        self._sweep_waveplate_polarimeter_in_progress = False           # always set the "in progress" flag False at the end of a measurement method
 
 
 if __name__ == '__main__':

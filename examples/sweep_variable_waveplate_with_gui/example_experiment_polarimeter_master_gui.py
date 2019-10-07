@@ -5,7 +5,7 @@ from hyperion.view.master_gui import MasterGui
 from examples.sweep_variable_waveplate_with_gui.example_experiment_polarimeter import ExampleExperimentPolarimeter
 from hyperion import _logger_format, _logger_settings
 
-logging.basicConfig(level=logging.WARNING, format=_logger_format,
+logging.basicConfig(level=logging.INFO, format=_logger_format,
                     handlers=[
                         logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                              maxBytes=_logger_settings['maxBytes'],

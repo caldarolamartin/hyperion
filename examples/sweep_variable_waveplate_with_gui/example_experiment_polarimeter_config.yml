@@ -12,9 +12,9 @@ Instruments:
   VariableWaveplate:
     controller: hyperion.controller.thorlabs.lcc25/Lcc
     instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
+    view: hyperion.view.variable_waveplate.variable_waveplate_gui/VariableWaveplateGui
     port: COM8
     enable: False
-    view: hyperion.view.variable_waveplate.variable_waveplate_gui/VariableWaveplateGui
     dummy: False
 #  ExampleInstrument:
 #    port: COM0
@@ -82,7 +82,7 @@ Measurements:
     settings:
       start: 2V
       stop: 3V
-      step: 0.1V
+      step: 0.02V
       stabilization: 10ms
       average: 1
       wavelength: 536nm

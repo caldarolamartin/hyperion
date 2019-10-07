@@ -29,7 +29,7 @@ class BaseGraph(QWidget):
         self.height = 480
         self.pg_plot_widget = pg.PlotWidget()
         self.pg_plot = self.pg_plot_widget.plot([0],[0])
-        self.initUI()
+        # self.initUI()     # Removed this. It should be called by the child
 
     def initUI(self):
         self.setWindowTitle(self.title)
