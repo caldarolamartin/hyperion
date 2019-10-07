@@ -47,7 +47,7 @@ class SweepWaveplatePolarimeterGui(QWidget):
 
         self.show()
 
-    @pyqtSlot()
+    # @pyqtSlot() # not sure if this is necessary
     def on_click(self):
         """ Start the measurement and the update of the plot
 
