@@ -166,19 +166,21 @@ if __name__ == '__main__':
                             logging.StreamHandler()])
 
     logging.info('Running Polarimeter GUI file.')
+
+    # Create the Instrument (in this case we use the with statement)
     with Polarimeter(settings = {'dummy' : False,
                                  'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
                                  'dll_name': 'SKPolarimeter'}) as polarimeter_ins:
-
+        # Mandatory line for gui
         app = QApplication(sys.argv)
+
         logging.debug('Creating the graph for the GUI.')
-        plot_window = Graph() # create the plot window
+        plot_window = Graph()
 
-
-        #app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
-#        polarimeter_ins.initialize(wavelength=500 * ur('nm'))
         logging.debug('Now starting the GUI')
         PolarimeterGui(polarimeter_ins, plot_window)
 
-        sys.exit(app.exec_())
+        # Mandatory line for gui
+        # app.exec_()               # if you don't want it to close the python kernel afterwards
+        sys.exit(app.exec_())       # if you do want it to close the python kernal afterwards
 
