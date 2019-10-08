@@ -213,7 +213,7 @@ if __name__ == '__main__':
     with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : False,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as variable_waveplate_ins:
 
-        variable_waveplate_ins.initialize()
+        # variable_waveplate_ins.initialize() this should already happen in the __init__
         app = QApplication(sys.argv)
         app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
         with VariableWaveplateGui(variable_waveplate_ins) as GUI:
