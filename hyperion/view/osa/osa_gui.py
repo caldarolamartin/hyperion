@@ -1,3 +1,22 @@
+"""
+=======
+OSA GUI
+=======
+
+This is the class to build a GUI for the OSA.
+
+
+THere is a bug here that we do not understand:
+
+    An idea is that something with the signal goes wrong which causes the pyvisa things to go invalid.
+    This is true, I think I confirmed this, maybe it is just a concidence, I am not really sure.
+    What goes wrong is that at some point after the gui is initialized the connection becomes invalid. But why would this be?
+    An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem.
+    Never shot is always mis
+
+"""
+
+
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, \
     QSizePolicy, QGridLayout, QVBoxLayout
 
@@ -8,19 +27,17 @@ from hyperion.instrument.osa.osa_instrument import OsaInstrument
 from hyperion import ur, Q_
 from hyperion.view.general_worker import WorkThread
 import matplotlib.pyplot as plt
-
 import pyqtgraph as pg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-#todo figure out what goes wrong with the instr. in the view.
-"""
-An idea is that something with the signal goes wrong which causes the pyvisa things to go invalid. 
-This is true, I think I confirmed this, maybe it is just a concidence, I am not really sure.  
-What goes wrong is that at some point after the gui is initialized the connection becomes invalid. But why would this be?  
-An idea is to put this question on stackoverflow, maybe somebody does know the answer to this problem. 
-Never shot is always mis
-"""
+
+# todo figure out what goes wrong with the instr. in the view.
+
 class OsaGui(QWidget):
+    """ OSA Gui class.
+    It builds the GUI for the OSA instrument.
+
+    """
 
     def __init__(self, instr, draw):
         """ Init of the class.

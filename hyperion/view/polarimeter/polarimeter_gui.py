@@ -1,18 +1,15 @@
 """
 ===============
 Polarimeter GUI
-======================
+===============
 
 This is the variable waveplate GUI.
-
 
 
 """
 import logging
 import sys, os
-import pyqtgraph as pg
 import numpy as np
-from time import time
 from PyQt5 import uic
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import *
@@ -21,6 +18,10 @@ from hyperion import Q_, ur, root_dir
 from hyperion.view.base_plot_windows import BaseGraph
 
 class PolarimeterGui(QWidget):
+    """ This is the Polarimeter GUI class.
+    It builds the GUI for the instrument: polarimeter.
+
+    """
 
     MODES = ['Monitor', 'Time Trace'] # measuring modes
 

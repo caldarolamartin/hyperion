@@ -9,7 +9,8 @@ cases is not needed.
 
 .. toctree::
     :maxdepth: 2
-    :caption: Current gui's:
+    :caption: Current GUIs:
 
-    view/osa
-    view/variable_waveplate
+    view/osa_gui
+    view/variable_waveplate_gui
+    view/polarimeter_gui

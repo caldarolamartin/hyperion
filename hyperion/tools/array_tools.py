@@ -1,9 +1,15 @@
+"""
+===========
+Array Tools
+===========
 
+Here we group some array tools that we use in the project.
+
+
+"""
 import logging
 import numpy as np
 from hyperion import Q_
-
-
 
 def array_from_pint_quantities(start, stop, step=None, num=None):
     """

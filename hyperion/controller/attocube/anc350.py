@@ -1,7 +1,7 @@
 """
-====================
+==========================
 ANC350 Attocube Controller
-====================
+==========================
 
 This is the controller level of the positioner ANC350 from Attocube (in the Montana)
 
@@ -26,10 +26,7 @@ Usage:
 3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
 4. for tidiness remember to Positioner.close() when finished!
 """
-
-from hyperion import root_dir
 from hyperion.controller.base_controller import BaseController
-
 import hyperion.controller.attocube.ANC350lib as ANC350lib
 import ctypes
 import math
@@ -40,6 +37,10 @@ import logging
 
 
 class Anc350(BaseController):
+    """
+    This is the Controller class for the attocube piezo motors
+
+    """
     def __init__(self, settings={'dummy': False}):
         """ INIT of the class
 
