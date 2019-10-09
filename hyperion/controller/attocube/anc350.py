@@ -20,11 +20,13 @@ Unlike ANC350lib which is effectively a re-imagining of the C++ header, PyANC350
 At present this only addresses the first ANC350 connected to the machine.
 
 Usage:
-1. instantiate Positioner() class to begin, eg. pos = Positioner().
-2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis),
- PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
-3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
-4. for tidiness remember to Positioner.close() when finished!
+    1. instantiate Positioner() class to begin, eg. pos = Positioner().
+    2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis),
+     PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
+    3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
+    4. for tidiness remember to Positioner.close() when finished!
+
+
 """
 from hyperion.controller.base_controller import BaseController
 import hyperion.controller.attocube.ANC350lib as ANC350lib
@@ -38,15 +40,13 @@ import logging
 
 class Anc350(BaseController):
     """
-    This is the Controller class for the attocube piezo motors
+    This is the Controller class for the attocube piezo motors.
 
+    :param settings: this includes all the settings needed to connect to the device in question.
+    :type settings: dict
     """
     def __init__(self, settings={'dummy': False}):
-        """ INIT of the class
-
-        :param settings: this includes all the settings needed to connect to the device in question.
-        :type settings: dict
-        """
+        """ INIT of the class """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
         self.name = 'ANC350'
