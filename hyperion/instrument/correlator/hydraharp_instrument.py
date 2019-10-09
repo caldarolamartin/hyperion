@@ -6,11 +6,9 @@ Hydraharp Instrument
 This is the instrument level of the correlator Hydraharp400 from Picoquant
 
 """
-
 import logging
 import yaml           #for the configuration file
 import os             #for playing with files in operation system
-import sys
 import time
 from hyperion import root_dir, ur
 #sys.path.append('D:/TMDmaterials/')
@@ -21,7 +19,13 @@ ureg = ur
 #from TMD.Controller.Hydraharp_controller import Hydraharp 
 #from TMD import ureg, Unit_
 
-class HydraInstrument(BaseInstrument):  
+class HydraInstrument(BaseInstrument):
+    """
+    A class for the Hydraharp instrument.
+
+    :param settings: to parse the needed settings.
+    :type settings: dict
+    """
     def __init__(self, settings):
         """ init of the class"""
         super().__init__(settings)

@@ -34,8 +34,8 @@ from matplotlib.figure import Figure
 # todo figure out what goes wrong with the instr. in the view.
 
 class OsaGui(QWidget):
-    """ OSA Gui class.
-    It builds the GUI for the OSA instrument.
+    """
+    OSA Gui class. It builds the GUI for the OSA instrument.
 
     """
 

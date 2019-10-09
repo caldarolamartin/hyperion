@@ -9,6 +9,9 @@ class BeamFlagsGui(QWidget):
     """
     Gui for beam blocker flags.
     Requires hyperion.instrument.beam_flags.beam_flags_instr/BeamFlagsInstr instrument as input.
+
+    :param beam_flags_instr: instrument object to control
+    :type beam_flags_instr: an instance of the class
     """
 
     def __init__(self, beam_flags_instr):

@@ -14,3 +14,5 @@ cases is not needed.
     view/osa_gui
     view/variable_waveplate_gui
     view/polarimeter_gui
+    view/hydraharp_gui
+    view/attocube_gui

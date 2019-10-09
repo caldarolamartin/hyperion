@@ -1,3 +1,13 @@
+"""
+============
+Attocube GUI
+============
+
+This is to build a gui for the instrument piezo motor attocube.
+
+
+"""
+
 import sys
 import logging
 from hyperion import ur
@@ -6,7 +16,14 @@ from hyperion.instrument.positioner.anc_instrument import Anc350Instrument
 
 
 class App(QWidget):
+    """
+    Attocube motor GUI for the instrument
 
+
+    :param anc350_instrument: class for the instrument to control.
+    :type anc350_instrument: instance of the instrument class
+
+    """
     def __init__(self, anc350_instrument):
         super().__init__()
         self.title = 'attocube gui'

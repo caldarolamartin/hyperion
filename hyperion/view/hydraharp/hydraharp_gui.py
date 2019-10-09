@@ -1,3 +1,13 @@
+"""
+=============
+Hydraharp GUI
+=============
+
+This is to build a gui for the instrument correlator hydraharp.
+
+
+"""
+
 import sys
 
 from PyQt5.QtCore import Qt, QTimer
@@ -9,6 +19,15 @@ import pyqtgraph as pg
 import pyqtgraph.exporters
 
 class App(QWidget):
+    """
+    GUI class for the Hydraharp correlator instrument
+
+    :param hydra_instrument: instrument to control with the GUI
+    :type hydra_instrument: instance of the class for the instrument to control
+    :param draw: a window where the plotting o the data acquired will be shown.
+    :type draw: a plot widget class
+
+    """
 
     def __init__(self, hydra_instrument, draw):
         super().__init__()
