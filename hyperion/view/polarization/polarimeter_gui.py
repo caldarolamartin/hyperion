@@ -37,7 +37,7 @@ class PolarimeterGui(QWidget):
         self.test = QDoubleSpinBox() # to be removed
 
         # to load from the UI file
-        gui_file = os.path.join(root_dir,'view', 'polarization','polarization.ui')
+        gui_file = os.path.join(root_dir,'view', 'polarization','polarimeter.ui')
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
 

@@ -18,7 +18,7 @@ class CoboltLaser(BaseInstrument, Cobolt08NLD):
 
     """
     def __init__(self, settings={'dummy': False,
-                                 'controller': 'hyperion.controller.laser.cobolt08NLD/Cobolt08NLD',
+                                 'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD',
                                  'via_serial': 'COM5'}):
         """ init of the class"""
         super().__init__(settings)
@@ -71,7 +71,7 @@ if __name__ == '__main__':
                             logging.StreamHandler()])
 
     with CoboltLaser(settings={'dummy': False,
-                               'controller': 'hyperion.controller.laser.cobolt08NLD/Cobolt08NLD',
+                               'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD',
                                'via_serial': 'COM5'}) as d:
 
         # #### test idn

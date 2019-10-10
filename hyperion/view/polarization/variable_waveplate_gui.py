@@ -35,7 +35,7 @@ class VariableWaveplateGui(QWidget):
 
 
         # to load from the UI file
-        gui_file = os.path.join(root_dir,'view', 'variable_waveplate','variable_waveplate_instrument.ui')
+        gui_file = os.path.join(root_dir,'view', 'polarization','variable_waveplate_instrument.ui')
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
         # define internal variables to update the GUI
