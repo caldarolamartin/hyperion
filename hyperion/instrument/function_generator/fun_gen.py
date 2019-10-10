@@ -5,7 +5,8 @@ Instrument for the function generator
 =====================================
 
 This class (fun_gen.py) is the model to control the function generator agilent33522A
-It ads the use of units with pint
+It ads the use of units with pint.
+
 """
 import os
 import yaml
@@ -18,6 +19,8 @@ from hyperion.instrument.base_instrument import BaseInstrument
 class FunGen(BaseInstrument):
     """ This class is to control the function generator.
 
+    :param settings: to parse the settings needed. Some keys are needed: 'controller' and 'instrument_id'
+    :type settings: dict
     """
     def __init__(self, settings = {'instrument_id' : '8967', 'dummy' : False,
                                    'controller' : 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
@@ -191,11 +194,9 @@ class FunGen(BaseInstrument):
         :type channel: int
         :param value: The input value in Volts
         :type pint quantity
-
         :return: current offset for the channel
         :rtype: pint quantity
         """
-
         self.controller.set_voltage_offset(channel, value.m_as('volt'))
         return value
 

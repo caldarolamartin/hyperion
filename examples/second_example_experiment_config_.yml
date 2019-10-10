@@ -13,7 +13,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
     output: True
@@ -21,7 +21,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
     output: True
@@ -29,7 +29,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
     output: True
@@ -37,7 +37,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_gui/ExampleGui
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
     dummy: True
     settings:
     output: True
@@ -45,7 +45,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView:  hyperion.view.simple_gui_examples.gui_with_graph/App
+    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
     dummy: True
     settings:
     output: True
@@ -78,7 +78,7 @@ Measurements:
   #list of measurement views which need to be loaded and accesible for the main experiment class.
   exampleMeasurement:
     view: examples.measurement_gui/App
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    graphView: hyperion.view.osa.osa_gui/DrawSpectrum
 
 Data:
   save_folder: C:\Users\ariel\Desktop\Delft_code\hyperion\

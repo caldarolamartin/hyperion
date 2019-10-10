@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 =====================
-SK polarimeter driver
+SK polarization driver
 =====================
 
-This class uses the 64bit dll from SK to use the SK polarimeter. For more details refer to the manual
+This class uses the 64bit dll from SK to use the SK polarization. For more details refer to the manual
 of the device.
 
 For now it only supports one polarization analyzer connected.
@@ -17,21 +17,23 @@ from time import time, sleep
 from hyperion.controller.base_controller import BaseController
 
 class Skpolarimeter(BaseController):
-    """ This is the controller for the SK polarimeter. Based on their dll.
+    """ This is the controller for the SK polarization. Based on their dll.
 
     """
-
-    def __init__(self):
+    def __init__(self, settings = {'dll_name': 'SKPolarimeter'}):
         """ Init method for the class
 
         """
+        super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
+        self.name = 'SK polarization'
+        self.logger.debug('Is initialized state: {}'.format(self._is_initialized))
 
         # TODO: put this in a config_agilent33522A.yml file so the code doe not depend on the location (PC)
         # path = 'C:/Users/mcaldarola/Documents/SK Develop/SKPolarizationAnalyzer/'
         # name = 'SKPolarimeterManaged'
         path = 'C:/Users/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeterMFC_VS2015_x64/x64/Release/'
-        name = 'SKPolarimeter'
+        name = settings['dll_name'] # = 'SKPolarimeter'
         self.logger.debug('DLL to use: {}'.format(path + name))
         self.dll = ctypes.CDLL(path + name)
         self.logger.debug('DLL: {}'.format(self.dll))
@@ -43,6 +45,11 @@ class Skpolarimeter(BaseController):
         self.start_measurement_time = 0  # initialize the value
 
     def wait_to_measure(function):
+        """ This function is meant to be used to delay the first measurement so the device
+        is ready and producing data.
+        It is used as a decorator.
+
+        """
         def wait_to_measure_wrapper(self, *arg, **kw):
             while time() - self.start_measurement_time < self.get_data_delay:
                 pass    # self.logger.debug('Waiting until the time has passed')
@@ -69,6 +76,10 @@ class Skpolarimeter(BaseController):
 
         ans = func(self.id, br"C:\\unit_test.ini", wave)
         self.logger.debug('Answer from the SkInitPolarimeter: {}'.format(ans))
+        if ans == 0:
+            self._is_initialized = True
+
+        self.logger.debug('Contrller _is_initialized state: {}'.format(self._is_initialized))
 
         return ans
 
@@ -92,6 +103,7 @@ class Skpolarimeter(BaseController):
         self.logger.info('Closing connection with device number: {}'.format(self.id))
         ans = self.dll.SkCloseConnectionByID(self.id)
         self.logger.debug('Answer from the SkCloseConnection: {}'.format(ans))
+        self._is_initialized = False
 
         return ans
 
@@ -112,8 +124,6 @@ class Skpolarimeter(BaseController):
 
         :return: reading answer from the function
         :rtype: int
-
-
         """
         len = ctypes.c_int(0)
         id = ctypes.c_int(0)
@@ -195,10 +205,24 @@ class Skpolarimeter(BaseController):
         return v
 
 
+class SkpolarimeterDummy(BaseController):
+    """ This is the dummy controller for the SK polarization. Based on their dll.
+
+    """
+    def __init__(self):
+        """ Init method for the class
+
+        """
+        super().__init__()  # runs the init of the base_controller class.
+        self.logger = logging.getLogger(__name__)
+        self.name = 'SK polarization Dummy'
+        self.logger.warning('Dummy not implemented yet')
+
+
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
@@ -206,12 +230,9 @@ if __name__ == "__main__":
                             logging.StreamHandler()])
 
     with Skpolarimeter() as s:
-
-        s = Skpolarimeter()
         # get the info needed to open connection
         s.get_number_polarizers()
         s.get_device_information()
-
         # open connection
         s.initialize()
 
@@ -226,7 +247,8 @@ if __name__ == "__main__":
         print('Getting data {} times'.format(N))
         for i in range(N):
             data = s.get_measurement_point()
-            print(time()-t)
+            print('Elapsed time: {}'.format(time()-t))
             t = time()
+            print('Data: {}'.format(data))
 
         s.stop_measurement()
