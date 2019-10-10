@@ -11,6 +11,8 @@ It's easiest, safest and cleanest to install these in their own environment.
 We use conda_. Make sure you have an up-to-date
 version  of ``conda`` installed – either from Anaconda_ or miniconda_.
 
+Start up Anaconda Navigator.
+
 To make sure ``conda`` is up-to-date, run::
 
     conda update -n base -c default conda
@@ -31,26 +33,27 @@ Before working you need to **Enter the environment**::
     
     conda activate hyperion
 
-Then you need to install the hyperion package, you should do
+Then you need to install the hyperion package, you should do::
 
     pip install -e .
 
-Check that the installation is correct by doing
+Check that the installation is correct by doing::
 
     conda list
 
 You should see a list of all the packages installed in the environment, including hyperion.
 
 To keep a close track of the version off **all** the packages that were installed, you
-should run
+should run::
 
     conda env export > environment_output/pc-YOURPCNAME.yml
 
 replacing YOURPCNAME for the name of your PC.
 
-Finally, in order to have the documentation, you need to create a folder called ``doc/build`` and run
+Finally, in order to have the documentation, you need to create a folder
+called ``doc/build`` and run::
 
 	sphinx-build -b html docs/source/ docs/build/
 
 This will create a series of html files with the documentation for the project
-in the folder doc/build, you should start at index.html
+in the folder hyperion/docs/build, you should start at index.html

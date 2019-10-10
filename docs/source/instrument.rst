@@ -18,3 +18,5 @@ in another setup.
     instrument/polarimeter
     instrument/variable_waveplate
     instrument/hydraharp_instrument
+    instrument/osa
+    instrument/anc_instrument

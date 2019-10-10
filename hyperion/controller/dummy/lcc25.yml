@@ -1,0 +1,28 @@
+enable:
+  default: 0
+  possible:
+    - 0
+    - 1
+volt1:
+  default: 0
+  limits:
+    - 0
+    - 25
+volt2:
+  default: 0
+  limits:
+    - 0
+    - 25
+  units: Volt
+mode:
+  default: 0
+  posible:
+    - 0
+    - 1
+    - 2
+freq:
+  default: 1
+  limits:
+    - 0.5
+    - 150
+  units: Hertz

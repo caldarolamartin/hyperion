@@ -9,6 +9,8 @@ dependencies:
  - qt=5
  - pyqtgraph
  - netcdf4
+ - matplotlib
+ - pywin32                            # required for winspec
  - pip>=19
  - pip:
    - pyyaml>=5.1
@@ -21,3 +23,4 @@ dependencies:
    - https://github.com/qpit/thorlabs_apt/archive/master.tar.gz
    - pyvisa-py
    - pyserial
+   - pynput

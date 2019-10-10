@@ -13,25 +13,41 @@ you wrote the driver by hand (not using other library but the communication).
 """
 import logging
 import importlib
-import yaml
-
 
 class BaseInstrument():
     """ General class for Instrument
 
     """
     def __init__(self, settings = {'port':'COM10', 'dummy': True,
-                                   'controller': 'hyperion.controller.base_controller/BaseController'}):
+                                   'controller': 'hyperion.controller.folder.file/ClassName'}):
         """ Init for the class
 
         """
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Class BaseInstrument created.')
-        self.logger.warning('Method used from the BaseInstrument class')
-        self._port = settings['port']
-        self.dummy = settings['dummy']
-        self.controller_class = self.load_controller(settings['controller'])
-        self.controller = self.controller_class()
+        self.logger.info('Class BaseInstrument created with settings: {}'.format(settings))
+        self.settings = settings
+
+        if 'dummy' in settings and settings['dummy']==True:
+            if 'controller' in settings:
+                if len(settings['controller']) < 5 or settings['controller'][-4]!='Dummy':
+                    settings['controller'] += 'Dummy'
+
+        self.controller_class = self.load_controller(settings)
+        self.logger.debug('Controller class: {}'.format(self.controller_class))
+
+        if 'via_serial' in settings:
+            port = settings['via_serial'].split('COM')[-1]
+            self.controller = self.controller_class.via_serial(port)
+        elif 'via_gpib' in settings:
+            self.logger.warning('NOT TESTED')
+            port = settings['via_gpib'].split('COM')[-1]
+            self.controller = self.controller_class.via_gpib(port) # to do
+        elif 'via_usb' in settings:
+            self.logger.warning('NOT TESTED')
+            port = settings['via_usb'].split('COM')[-1]
+            self.controller = self.controller_class.via_usb(port)  # to do
+        else:
+            self.controller = self.controller_class(settings)
 
     def __enter__(self):
         return self
@@ -40,14 +56,21 @@ class BaseInstrument():
         self.finalize()
 
     def initialize(self):
-        """ Starts the connection to the device """
-        self.logger.warning('Method used from the BaseInstrument class')
-        self.logger.info('Opening connection to device using driver.')
-        self.controller.initialize(self._port)
+        """ Starts the connection to the device.
+
+        If you need to parse arguments to the initialize, make your own initialize method in
+        your instrument class.
+        """
+        self.logger.warning('Initialization done from the BaseInstrument class.')
+        self.controller.initialize()
 
     def finalize(self):
-        """ this is to close connection to the device."""
-        self.logger.warning('Method used from the BaseInstrument class')
+        """ This is to close connection to the device.
+
+        If you need to parse arguments to the finalize, make your own finalize method in
+        your instrument class.
+        """
+        self.logger.warning('Finalization done from the BaseInstrument class.')
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
@@ -59,29 +82,27 @@ class BaseInstrument():
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
 
-    def load_controller(self, controller_string):
+    def load_controller(self, settings):
         """ Loads controller
 
-        :param controller_string: dictionary with the field controller
-        :type controller_string: dict
+        :param settings: dictionary with the field controller
+        :type settings: dict
 
         :return: controller class
         :rtype: class
         """
-        self.logger.debug('Loading the controller: {}'.format(controller_string))
-        controller_name, class_name = controller_string.split('/')
-        self.logger.debug('Controller name: {}. Class name: {}'.format(controller_name, class_name))
-        my_class = getattr(importlib.import_module(controller_name), class_name)
-        return my_class
+        if 'controller' not in settings:
+            raise NameError('The input dictionary needs to have a key called "controller" with a string pointing to the'
+                            'right controller and the name of the class to use. ')
+        else:
+            self.logger.debug('Loading the controller: {}'.format(settings['controller']))
+            controller_name, class_name = settings['controller'].split('/')
+            self.logger.debug('Controller name: {}. Class name: {}'.format(controller_name, class_name))
+            my_class = getattr(importlib.import_module(controller_name), class_name)
+            return my_class
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                  logging.StreamHandler()])
+    print('you should not be running this file alone')
 
-    with BaseInstrument() as dev:
-        dev.initialize()
-        dev.idn()
 

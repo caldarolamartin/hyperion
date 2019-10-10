@@ -39,8 +39,7 @@ def create_filename(self, file_path):
     self.logger.debug('New filename: {}'.format(self.filename))
     return file_path
 
-
-def save_scan_metadata(self):
+def save_metadata(self):
     """ Saves the config file information with the same name as the data and extension .yml
 
 
@@ -55,3 +54,7 @@ def save_scan_metadata(self):
         yaml.dump(self.properties, f, default_flow_style=False)
 
     self.logger.info('Metadata saved to {}'.format(file_path))
+
+
+def save(self, data):
+    pass
