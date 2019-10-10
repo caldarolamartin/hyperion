@@ -1,16 +1,16 @@
 """
-===========================
+==========================
 ANC350 Attocube Controller
 ===========================
 
-This is the controller level of the positioner ANC350 from Attocube (in the Montana)
+This is the controller level of the position ANC350 from Attocube (in the Montana)
 
 It was taken from gitlab in August 2019 by Irina Komen and made to work with Hyperion
 
 PyANC350 is written by Rob Heath; rob@robheath.me.uk; 24-Feb-2015
 
 Description from Rob Heath:
-PyANC350 is a control scheme suitable for the Python coding style for the attocube ANC350 closed-loop positioner system.
+PyANC350 is a control scheme suitable for the Python coding style for the attocube ANC350 closed-loop position system.
 
 It implements ANC350lib, which in turn depends on anc350v2.dll which is provided by attocube in the ANC350_DLL folders on the driver disc.
 This in turn requires nhconnect.dll and libusb0.dll. Place all of these in the same folder as this module (and that of ANC350lib).
@@ -20,16 +20,15 @@ Unlike ANC350lib which is effectively a re-imagining of the C++ header, PyANC350
 At present this only addresses the first ANC350 connected to the machine.
 
 Usage:
-1. instantiate Positioner() class to begin, eg. pos = Positioner().
-2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis),
- PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
-3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
-4. for tidiness remember to Positioner.close() when finished!
+    1. instantiate Positioner() class to begin, eg. pos = Positioner().
+    2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis),
+     PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
+    3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
+    4. for tidiness remember to Positioner.close() when finished!
+
+
 """
-
-from hyperion import root_dir
 from hyperion.controller.base_controller import BaseController
-
 import hyperion.controller.attocube.ANC350lib as ANC350lib
 import ctypes
 import math
@@ -47,9 +46,7 @@ class Anc350(BaseController):
     :type settings: dict
     """
     def __init__(self, settings={'dummy': False}):
-        """ INIT of the class
-
-        """
+        """ INIT of the class """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
         self.name = 'ANC350'
@@ -91,7 +88,7 @@ class Anc350(BaseController):
         'I am reaching the handle'
         try:
             ANC350lib.positionerConnect(0,ctypes.byref(self.handle)) #0 means "first device"
-            self.logger.info('connected to first positioner')
+            self.logger.info('connected to first position')
         except Exception as e:
             self.logger.error('unable to connect!')
             raise e
@@ -776,7 +773,7 @@ if __name__ == "__main__":
         ax = {'x': 0, 'y': 1, 'z': 2}
         # define a dict of axes to make things simpler
 
-        # instantiate positioner as anc
+        # instantiate position as anc
         print('-------------------------------------------------------------')
         print('capacitances:')
         for axis in sorted(ax.keys()):

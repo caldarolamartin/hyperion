@@ -17,7 +17,7 @@ anc = Positioner()		#it goes to init and executes .check()
 #it would be usefull to load the actor configuration here
 #anc.load(ax['x'],'ANPx101res.aps')
 
-#instantiate positioner as anc
+#instantiate position as anc
 print('-------------------------------------------------------------')
 print('capacitances:')
 for axis in sorted(ax.keys()):

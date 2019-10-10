@@ -14,7 +14,7 @@ import os
 import serial
 import yaml
 import logging
-from time import sleep
+from time import sleep, time
 from hyperion import ur, root_dir
 from hyperion.controller.base_controller import BaseController
 
@@ -30,7 +30,7 @@ class Lcc(BaseController):
                 'encoding': 'ascii',
                 'baudrate': 115200,
                 'write_timeout': 2,
-                'read_timeout': 2}
+                'read_timeout': 3}
 
     OUTPUT_MODE = {'Voltage1': 1,
                    'Voltage2': 2,
@@ -63,15 +63,30 @@ class Lcc(BaseController):
         if self.dummy:
             self.logger.info('Dummy device initialized')
         else:
-            self.rsc = serial.Serial(port=self._port,
-                                     baudrate=self.DEFAULTS['baudrate'],
-                                     timeout=self.DEFAULTS['read_timeout'],
-                                     write_timeout=self.DEFAULTS['write_timeout'])
-            self.logger.info('Initialized device LCC at port {}.'.format(self._port))
+            self.rsc = serial.Serial()
+            self.rsc.port = self._port
+            self.rsc.baudrate = self.DEFAULTS['baudrate']
+            self.rsc.timeout = self.DEFAULTS['read_timeout']
+            self.rsc.write_timeout = self.DEFAULTS['write_timeout']
+            self.logger.info('Initializing device LCC at port {}.'.format(self._port))
 
-        self._is_initialized = True
-        sleep(0.5)
+        # try to initi
+        count = 0
+        while not self._is_initialized and count < 150:
+            try:
+                self.rsc.open()
+                self._is_initialized = True
 
+            except:
+                #self.logger.debug('Initialization Failed')
+                count  += 1
+
+            sleep(0.05)
+
+        if self._is_initialized:
+            self.logger.debug('Initialization succeded after {} failed attempts'.format(count))
+        else:
+            raise Warning('Connection to device LCC25 failed.')
 
     def idn(self):
         """ Gets the identification for  the device
@@ -85,7 +100,6 @@ class Lcc(BaseController):
             raise Warning('Trying to write to device before initializing')
 
         ans = self.query('*idn?')
-        sleep(0.1)
         return ans
 
     def write(self, message):
@@ -102,6 +116,34 @@ class Lcc(BaseController):
         msg = msg.encode(self.DEFAULTS['encoding'])
         self.rsc.write(msg)
 
+    def read_serial_buffer_in(self):
+        """
+        Reads everything the device has sent. By default it waits until a line
+        is terminated by a termination character (\n or \r), but that check can
+        be disabled using the input parameter.
+
+        :param untill_at_least_one_termination_char: defaults to True
+        :type untill_at_least_one_termination_char: bool
+        :return: complete serial buffer from the device
+        :rtype: bytes
+
+        """
+        if not self._is_initialized:
+            raise Warning('Trying to read from {} before initializing'.format(self.name))
+
+        raw = b''
+        # Keep checking
+        to = time()
+        expire_time = time() + self.DEFAULTS['read_timeout'] + 0.00001 # in case _read_timeout is null
+
+        while (time() < expire_time):
+            raw += self.rsc.read(1)
+            if raw[-2:] == '> '.encode(self.DEFAULTS['encoding']):
+                break
+        self.logger.debug('Elapsed time: {} s'.format(time()-to))
+        self.logger.debug('{} bytes received'.format(len(raw)))
+        return raw
+
     def read(self):
         """ Reads message from the device
 
@@ -111,11 +153,14 @@ class Lcc(BaseController):
         """
         if not self._is_initialized:
             raise Warning('Trying to read from device before initializing')
-        response = self.rsc.readline()
-        self.logger.debug('Response from readline: {}'.format(response))
+        #response = self.rsc.readline()
+        response = self.read_serial_buffer_in()
+        self.logger.debug('Response: {}'.format(response))
         msg = str(response, encoding=self.DEFAULTS['encoding'])
-        self.logger.debug('Response after decode: {}'.format(msg))
-        return msg.split(self.DEFAULTS['read_termination'])[1]
+        #self.logger.debug('Response after decode: {}'.format(msg))
+        list = msg.split(self.DEFAULTS['read_termination'])
+        self.logger.debug('Split: {}'.format(list))
+        return list[-2]
 
     def query(self, message):
         """ Writes in the buffer and Reads the response.
@@ -128,23 +173,27 @@ class Lcc(BaseController):
         if not self._is_initialized:
             raise Warning('Trying to query from device before initializing.')
 
+        self.rsc.reset_input_buffer()
+        buf_size = self.rsc.in_waiting
+        self.logger.debug('The buffer size before query is: {}'.format(buf_size))
         self.write(message)
         self.logger.debug('Sent message: {}.'.format(message))
-        sleep(0.2)
+        self.logger.debug('The buffer size after writing, before reading is: {}'.format(self.rsc.in_waiting))
         ans = self.read()
         self.logger.debug('Received message: {}.'.format(ans))
+
         return ans
 
     def finalize(self):
         """ Closes the connection to the device """
         if self._is_initialized:
             if self.rsc is not None:
+                self.logger.debug('Is open? = {}'.format(self.rsc.is_open))
                 self.rsc.close()
                 self.logger.info('Resource connection closed.')
+                self.logger.debug('Is open? = {}'.format(self.rsc.is_open))
         else:
             self.logger.warning('Finalizing before initializing the LCC25')
-
-
 
     def set_voltage(self, Ch, V):
         """ Sets the voltage value for Ch where Ch = 1 or 2 for Voltage1 or Voltage2
@@ -160,6 +209,7 @@ class Lcc(BaseController):
         if Ch > 2:
             raise NameError('Ch can only be 1 or 2')
 
+        V = round(V,3) # round to the max precision of the device
         msg = 'volt' + str(Ch) + '=' + str(V.m_as('volt'))
         self.query(msg)
         self.logger.info('Changed "voltage{}" to {} volt'.format(Ch, V.m_as('volt')))
@@ -176,6 +226,7 @@ class Lcc(BaseController):
         if Ch > 2:
             raise NameError('Ch can only be 1 or 2')
 
+        self.logger.debug('getting for channel {}'.format(Ch))
         msg = 'volt' + str(Ch) + '?'
         ans = self.query(msg)
         self.logger.debug('"voltage{}"={} Volt'.format(Ch, ans))
@@ -186,9 +237,7 @@ class Lcc(BaseController):
     def freq(self):
         """ Modulation frequency when the operation mode is 'modulation' (mode = 0)
 
-        : getter :
-
-        Asks for the current frequency
+        : getter : Asks for the current frequency
 
         :return: The frequency value
         :rtype: pint quantity
@@ -207,12 +256,15 @@ class Lcc(BaseController):
     @freq.setter
     def freq(self, F):
         if F.m_as('hertz') > 150 or F.m_as('hertz') < 0.5:
-            raise NameError('Required Frequency outside limits (0.5,150)Hz')
+            raise NameError('Required Frequency outside limits (0.5, 150) Hz')
+        if self._freq != F:
+            self._freq = F
+            msg = 'freq=' + str(F.m_as('hertz'))
+            self.query(msg)
+            self.logger.debug('Changed frequency to {} '.format(F))
+        else:
+            self.logger.debug('Tried to set freq, but it was already set to that value.')
 
-        self._freq = F
-        msg = 'freq=' + str(F.m_as('hertz'))
-        self.query(msg)
-        self.logger.debug('Changed frequency to {} '.format(F))
 
     def get_commands(self):
         """ Gives a list of all the commands available
@@ -256,29 +308,18 @@ class Lcc(BaseController):
 
     @property
     def mode(self):
-        """ Operation mode
+        """| Operation mode
+        | The possible modes are:
+        | 1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
+        | 2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
+        | 0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1 is one limit and voltage 2 is the second.
+        | The modulation frequency can be changed with the command 'freq' in the 0.5-150 Hz range.
 
-        The possible modes are:
-
-        1 = 'Voltage1' : sends a 2kHz sin wave with RMS value set by voltage 1
-
-        2 = 'Voltage2' : sends a 2kHz sin wave with RMS value set by voltage 2
-
-        0 = 'Modulation': sends a 2kHz sin wave modulated with a square wave where voltage 1
-        is one limit and voltage 2 is the second. the modulation frequency can be
-        changed with the command 'freq' in the 0.5-150 Hz range.
-
-        : getter :
-
-        Gets the current mode
-
-        : setter :
-
-        Sets the mode
+        : getter : Gets the current mode
+        : setter : Sets the mode
 
         :param mode: type of operation.
         :type mode: int
-
         """
         self.logger.debug('Getting the mode of operation')
         self._mode = int(self.query('mode?'))
@@ -319,8 +360,10 @@ class LccDummy(Lcc):
 
     def __init__(self, settings = {'port':'COM00', 'dummy':True}):
         """ init for the dummy LCC
+
         :param port: fake port name
         :type port: str
+
         :param dummy: indicates the dummy mode. keept for compatibility
         :type dummy: logical
         """
@@ -406,14 +449,30 @@ class LccDummy(Lcc):
 if __name__ == "__main__":
     from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
+    import serial.tools.list_ports
+
+    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
                         handlers=[
                             logging.handlers.RotatingFileHandler(_logger_settings['filename'],
                                                                  maxBytes=_logger_settings['maxBytes'],
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
 
-    dummy = True  # change this to false to work with the real device in the COM specified below.
+
+
+    comports = serial.tools.list_ports.comports()
+    for port, desc, hwid in comports:
+        print((port, desc, hwid))
+
+    # part_of_name = 'rduino'
+    # usb_dev = next(serial.tools.list_ports.grep(part_of_name))
+    # print(usb_dev.description)
+    # print(usb_dev.hwid)
+    # print(usb_dev.device)
+
+
+
+    dummy = False  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = LccDummy
@@ -424,28 +483,29 @@ if __name__ == "__main__":
         dev.initialize()
         print(dev.get_voltage(1))
         # output status and set
-        logging.info('The output is: {}'.format(dev.output))
-        dev.output = True
-        logging.info('The output is: {}'.format(dev.output))
-
-        # mode
-        logging.info('The mode is: {}'.format(dev.output))
-        for m in range(3):
-            dev.mode = m
-            logging.info('The mode is: {}'.format(dev.output))
+        # logging.info('The output is: {}'.format(dev.output))
+        # dev.output = True
+        # logging.info('The output is: {}'.format(dev.output))
+        #
+        # # mode
+        # logging.info('The mode is: {}'.format(dev.output))
+        # for m in range(3):
+        #     dev.mode = m
+        #     logging.info('The mode is: {}'.format(dev.output))
 
         # set voltage for both channels
         for ch in range(1,2):
             logging.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
             dev.set_voltage(ch, 1*ur('volts'))
+            #print( dev.read_serial_buffer_in() )
             logging.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
 
         # unit_test freq
-        logging.info('Current freq: {}'.format(dev.freq))
-        Freqs = [1, 10, 20, 60, 100]*ur('Hz')
-        for f in Freqs:
-            dev.freq = f
-            logging.info('Current freq: {}'.format(dev.freq))
+        # logging.info('Current freq: {}'.format(dev.freq))
+        # Freqs = [1, 10, 20, 60, 100]*ur('Hz')
+        # for f in Freqs:
+        #     dev.freq = f
+        #     logging.info('Current freq: {}'.format(dev.freq))
 
 
 

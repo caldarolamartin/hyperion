@@ -1,6 +1,6 @@
 #
 #  ANC350lib is a Python implementation of the C++ header provided
-#     with the attocube ANC350 closed-loop positioner system.
+#     with the attocube ANC350 closed-loop position system.
 #
 #  It depends on anc350v2.dll which is provided by attocube in the
 #     ANC350_DLL folders on the driver disc.
@@ -26,7 +26,7 @@ import time
 NCB_Ok = 0 #                    No error
 NCB_Error = -1 #                Unknown / other error
 NCB_Timeout = 1 #               Timeout during data retrieval
-NCB_NotConnected = 2 #          No contact with the positioner via USB
+NCB_NotConnected = 2 #          No contact with the position via USB
 NCB_DriverError = 3 #           Error in the driver response
 NCB_BootIgnored	= 4 #           Ignored boot, equipment was already running
 NCB_FileNotFound = 5 #          Boot image not found
