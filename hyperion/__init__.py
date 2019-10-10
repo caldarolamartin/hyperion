@@ -91,7 +91,7 @@ stream_logger.setLevel(logging.DEBUG)    # default level for stream handler
 stream_logger.addFilter(DuplicateFilter())
 
 # create handler for file logging:
-_default_log_filename = "logger.log"
+_default_log_filename = "{}logger.log".format(root_dir)
 file_logger = logging.handlers.RotatingFileHandler(filename = _default_log_filename, maxBytes = (2*1024*1024), backupCount = 9)
 # file_logger.setFormatter(logging.Formatter(_logger_format_long))
 file_logger.setFormatter(CustomFormatter())
