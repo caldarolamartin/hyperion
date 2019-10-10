@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QLabe
 import logging
 import sys
 
-from hyperion.instrument.osa import OsaInstrument
+from hyperion.instrument.spectrometer.osa_instrument import OsaInstrument
 from hyperion import Q_
 from hyperion.view.general_worker import WorkThread
 import pyqtgraph as pg
@@ -348,8 +348,6 @@ if __name__ == '__main__':
                                                                  maxBytes=_logger_settings['maxBytes'],
                                                                  backupCount=_logger_settings['backupCount']),
                             logging.StreamHandler()])
-
-    
 
     with OsaInstrument(settings ={'dummy': True, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as instr:
         draw = DrawSpectrum()
