@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication
 from hyperion.view.master_gui import MasterGui
 from examples.example_experiment import ExampleExperiment
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
-from hyperion.instrument.thorlabs_motor.thorlabs_motor_instrument import Thorlabsmotor
+from hyperion.instrument.thorlabs_motor import Thorlabsmotor
 from hyperion import ur
 ureg = ur
 

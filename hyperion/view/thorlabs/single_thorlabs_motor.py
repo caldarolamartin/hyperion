@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QLabel, QLineEdit)
 
-from hyperion.instrument.thorlabs_motor.thorlabs_motor_instrument import Thorlabsmotor
+from hyperion.instrument.thorlabs_motor import Thorlabsmotor
 from hyperion.view.general_worker import WorkThread
 from hyperion import ur
 from pynput.keyboard import Listener
