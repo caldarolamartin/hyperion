@@ -20,6 +20,9 @@ from hyperion.experiment.base_experiment import BaseExperiment
 from hyperion import ur
 
 class Anc350Instrument(BaseInstrument):
+    """
+    Anc 350 instrument class
+    """
     def __init__(self, settings):
         """ init of the class"""
         super().__init__(settings)

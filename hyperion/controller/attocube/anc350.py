@@ -1,7 +1,7 @@
 """
-====================
+===========================
 ANC350 Attocube Controller
-====================
+===========================
 
 This is the controller level of the positioner ANC350 from Attocube (in the Montana)
 
@@ -40,11 +40,15 @@ import logging
 
 
 class Anc350(BaseController):
+    """
+    Class for the controller
+
+    :param settings: this includes all the settings needed to connect to the device in question.
+    :type settings: dict
+    """
     def __init__(self, settings={'dummy': False}):
         """ INIT of the class
 
-        :param settings: this includes all the settings needed to connect to the device in question.
-        :type settings: dict
         """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
@@ -834,16 +838,22 @@ if __name__ == "__main__":
         # #but this one takes a very long time
         #
         print('-------------------------------------------------------------')
-        print('moving to a relative position, 5um back')
+
+        position = 1000000
+
+        print('moving to a relative position, ...um back')
         startpos = anc.getPosition(0)
-        anc.moveRelative(0,1000000)
+        anc.moveRelative(0,position)
         time.sleep(0.4)         #important to have this number, otherwise it already starts asking before the guy even knows whether he moves
 
         pos = anc.getPosition(0)
         didntmove = False
         while anc.getStatus(0)['moving']:
+            if pos
+
             time.sleep(0.1)
             new_pos = anc.getPosition(0)
+            print(new_pos)
             if np.abs(new_pos - pos) < 500:
                 didntmove = True
                 break
