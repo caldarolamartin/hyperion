@@ -4,15 +4,15 @@ User:
 Instruments:
   Polarimeter:
     'dll_name': 'SKPolarimeter'
-    instrument: hyperion.instrument.polarization.polarization/Polarimeter
+    instrument: hyperion.instrument.polarization.polarimeter/Polarimeter
     controller: hyperion.controller.sk.sk_pol_ana/Skpolarimeter
     view: hyperion.view.polarization.polarimeter_gui/PolarimeterGui
     graphView:  hyperion.view.polarization.polarimeter_gui/Graph
     dummy: False
   VariableWaveplate:
     controller: hyperion.controller.thorlabs.lcc25/Lcc
-    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
-    view: hyperion.view.variable_waveplate.variable_waveplate_gui/VariableWaveplateGui
+    instrument: hyperion.instrument.polarization.variable_waveplate/VariableWaveplate
+    view: hyperion.view.polarization.variable_waveplate_gui/VariableWaveplateGui
     port: COM8
     enable: False
     dummy: False
