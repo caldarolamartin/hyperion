@@ -17,19 +17,17 @@ THere is a bug here that we do not understand:
 """
 
 
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, \
-    QSizePolicy, QGridLayout, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, \
+    QGridLayout, QVBoxLayout
 
 import logging
 import sys
 
-from hyperion.instrument.osa.osa_instrument import OsaInstrument
-from hyperion import ur, Q_
+from hyperion.instrument.osa import OsaInstrument
+from hyperion import Q_
 from hyperion.view.general_worker import WorkThread
-import matplotlib.pyplot as plt
 import pyqtgraph as pg
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+
 
 # todo figure out what goes wrong with the instr. in the view.
 
