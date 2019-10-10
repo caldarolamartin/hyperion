@@ -36,7 +36,7 @@ class HydraInstrument(BaseInstrument):
         self.sync = 0
         self.count = 0
         self.hist = []
-        #self.initialize()
+        self.initialize()
 
     def initialize(self):
         """ Starts the connection to the device, calibrates it and configurates based on the yml file

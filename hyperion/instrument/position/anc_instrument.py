@@ -36,6 +36,8 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('1. welcome to the instrument of the Attocube')
         self.logger.debug('Creating the instance of the controller')
 
+        self.initialize()
+
     def initialize(self):
         """ Starts the connection to the device
         """
