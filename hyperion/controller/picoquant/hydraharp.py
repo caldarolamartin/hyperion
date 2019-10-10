@@ -42,7 +42,7 @@ class Hydraharp(BaseController):
         """
         super().__init__(config)
         self.logger = logging.getLogger(__name__)
-        self.logger.info('0. hello, this is the hydraharp (controller) speaking')
+        self.logger.info('0. hello, this is the correlator (controller) speaking')
 
         # read the configuration
         self._config = config
@@ -170,7 +170,7 @@ class Hydraharp(BaseController):
         :param clock: source of the clock, can be: 'External'(default), 'Internal'
         :type clock: string
         """
-        self.logger.info('Initializing the hydraharp device.')
+        self.logger.info('Initializing the correlator device.')
         self._is_initialized = True     # this is to prevent you to close the device connection if you
                                         # have not initialized it inside a with statement        
         devidx = self.__devidx
@@ -387,7 +387,7 @@ class Hydraharp(BaseController):
         """
         | Set the histograms length (time bin count) of histograms
         | actual_length = histogram_length(devidx, length)
-        | The histogram length has to do with the resolution in ps; in the hydraharp software it's always 65536 (2^16)
+        | The histogram length has to do with the resolution in ps; in the correlator software it's always 65536 (2^16)
 
         :param length: array size of histogram, 1024, 2048, 4096, 8192, 16384, 32768 or 65536  (default 65536)
         :type length: int
@@ -479,7 +479,7 @@ class Hydraharp(BaseController):
     def resolution(self, resolution):
         """
         | Resolution (in ps)
-        | This is what you can adjust in the hydraharp software, not the binning
+        | This is what you can adjust in the correlator software, not the binning
 
         :param resolution: resolution in ps; 1, 2, 4, 8, ... 2^26
         :type resolution: int

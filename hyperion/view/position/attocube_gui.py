@@ -7,15 +7,14 @@ This is to build a gui for the instrument piezo motor attocube.
 
 
 """
-
 import sys
 import logging
 from hyperion import ur
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QComboBox, QGridLayout, QLabel, QLineEdit
-from hyperion.instrument.positioner.anc_instrument import Anc350Instrument
+from hyperion.instrument.position.anc_instrument import Anc350Instrument
 
 
-class App(QWidget):
+class App(QWidget): # CHANGE THIS F##%% name!!!
     """
     Attocube motor GUI for the instrument
 

@@ -13,13 +13,13 @@ import numpy as np
 from PyQt5 import uic
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import *
-from hyperion.instrument.polarimeter.polarimeter import Polarimeter
+from hyperion.instrument.polarization.polarimeter import Polarimeter
 from hyperion import Q_, ur, root_dir
 from hyperion.view.base_plot_windows import BaseGraph
 
 class PolarimeterGui(QWidget):
     """ This is the Polarimeter GUI class.
-    It builds the GUI for the instrument: polarimeter.
+    It builds the GUI for the instrument: polarization.
 
     """
 
@@ -30,14 +30,14 @@ class PolarimeterGui(QWidget):
         Init of the Polarimeter Gui
 
         :param polarimeter_ins: instrument
-        :type an instance of the polarimeter instrument
+        :type an instance of the polarization instrument
         """
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.test = QDoubleSpinBox() # to be removed
 
         # to load from the UI file
-        gui_file = os.path.join(root_dir,'view', 'polarimeter','polarimeter.ui')
+        gui_file = os.path.join(root_dir,'view', 'polarization','polarization.ui')
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
 
@@ -148,7 +148,7 @@ class Graph(BaseGraph):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.logger.debug('Creating the Graph for the polarimeter')
+        self.logger.debug('Creating the Graph for the polarization')
         self.title = 'Graph view: Polarimeter'
         self.left = 100
         self.top = 100

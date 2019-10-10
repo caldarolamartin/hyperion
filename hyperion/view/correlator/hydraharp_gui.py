@@ -3,7 +3,7 @@
 Hydraharp GUI
 =============
 
-This is to build a gui for the instrument correlator hydraharp.
+This is to build a gui for the instrument correlator correlator.
 
 
 """
@@ -31,7 +31,7 @@ class App(QWidget):
 
     def __init__(self, hydra_instrument, draw):
         super().__init__()
-        self.title = 'hydraharp gui, hail hydra'
+        self.title = 'correlator gui, hail hydra'
         self.left = 50
         self.top = 50
         self.width = 320
@@ -46,7 +46,7 @@ class App(QWidget):
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-        #initialize and configurate the settings of the hydraharp
+        #initialize and configurate the settings of the correlator
         self.hydra_instrument.initialize()
         self.hydra_instrument.configurate()
 
@@ -223,7 +223,7 @@ class DrawHistogram(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.title = 'draw hydraharp gui'
+        self.title = 'draw correlator gui'
         self.left = 100
         self.top = 100
         self.width = 640
@@ -240,7 +240,7 @@ class DrawHistogram(QWidget):
         self.show()
 
 if __name__ == '__main__':
-    hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
+    hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.correlator/Hydraharp'})
     app = QApplication(sys.argv)
     draw = DrawHistogram()
     ex = App(hydra_instrument, draw)

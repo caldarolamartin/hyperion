@@ -26,27 +26,27 @@ Instruments:
     controller: hyperion.controller.thorlabs.TDC001/TDC001
   XPiezoStepper:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 0
   YPiezoStepper:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 2
   ZPiezoStepper:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 1
   XPiezoScanner:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 3
   YPiezoScanner:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 5
   ZPiezoScanner:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 4
   Gui_with_graph:
     port: COM0

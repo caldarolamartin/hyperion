@@ -1,13 +1,12 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QGridLayout, QPushButton, QWidget, QLabel, QLineEdit)
-
-from hyperion.instrument.thorlabs_motor import Thorlabsmotor
+from hyperion.instrument.position.thorlabs_motor_instrument import Thorlabsmotor
 from hyperion.view.general_worker import WorkThread
 from hyperion import ur
 from pynput.keyboard import Listener
 
 
-class App(QWidget):
+class App(QWidget): # CHANGE THIS F##%% name!!!
 
     def __init__(self, serial_number):
         """

@@ -3,7 +3,7 @@
 SK Polarimeter
 ==============
 
-This class (polarimeter.py) is the model to connect to the SK Polarization analyzer from SK.
+This class (polarization.py) is the model to connect to the SK Polarization analyzer from SK.
 
 The model is similar to the controller, but it adds specific functionalities such as units with Pint
 and error descriptions
@@ -17,7 +17,7 @@ from hyperion import ur
 
 
 class Polarimeter(BaseInstrument):
-    """ This class is the model for the SK polarimeter.
+    """ This class is the model for the SK polarization.
 
     """
     DEFAULT_SETTINGS = {'wavelength': 532 * ur('nm')}
@@ -97,7 +97,7 @@ class Polarimeter(BaseInstrument):
         :param wavelength: the working wavelength
         :type wavelength: pint quantity
         """
-        self.logger.info('Initializing SK polarimeter. Device with id = {}'.format(self._id))
+        self.logger.info('Initializing SK polarization. Device with id = {}'.format(self._id))
         self.logger.debug('Is initialized: {}'.format(self.controller._is_initialized))
 
         ans = None
@@ -112,7 +112,7 @@ class Polarimeter(BaseInstrument):
             raise Warning('The requested wavelength {} is outside the range supported for this device'.format(self._wavelength))
 
         if not self.controller._is_initialized:
-            self.logger.debug('Initializing SK polarimeter with wavelength {}'.format(self._wavelength))
+            self.logger.debug('Initializing SK polarization with wavelength {}'.format(self._wavelength))
             ans = self.controller.initialize(wavelength = self._wavelength.m_as('nm'))
 
 
@@ -133,7 +133,7 @@ class Polarimeter(BaseInstrument):
         sleep(0.1)
 
     def finalize(self):
-        """ Finishes the connection to the SK polarimeter"""
+        """ Finishes the connection to the SK polarization"""
 
         ans = self.controller.finalize()
 
@@ -253,7 +253,7 @@ class Polarimeter(BaseInstrument):
         :rtype: string
         """
         self.logger.debug('Creating header with the meaning of the columns.')
-        header = '# Data created with polarimeter.py, model for the SK polarization analyzer from Hyperion by Authors. \n'
+        header = '# Data created with polarization.py, model for the SK polarization analyzer from Hyperion by Authors. \n'
         header += '# Meaning of the columns: \n'
 
         for k in range(len(self.DATA_TYPES)):

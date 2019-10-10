@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QLabe
 import logging
 import sys
 
-from hyperion.instrument.spectrometer.osa_instrument import OsaInstrument
+from hyperion.instrument.spectrum.osa_instrument import OsaInstrument
 from hyperion import Q_
 from hyperion.view.general_worker import WorkThread
 import pyqtgraph as pg
@@ -291,7 +291,7 @@ class OsaGui(QWidget):
     def plot_data(self):
         """
         Plot the data. On the x axis there is the wavelength and the y axis is the
-        spectrometer data.
+        spectrum data.
         """
         wav = self.instr.wav
         spec = self.instr.spec

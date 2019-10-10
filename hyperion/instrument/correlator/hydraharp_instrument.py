@@ -41,7 +41,7 @@ class HydraInstrument(BaseInstrument):
     def initialize(self):
         """ Starts the connection to the device, calibrates it and configurates based on the yml file
         """        
-        self.logger.info('Opening connection to hydraharp.')
+        self.logger.info('Opening connection to correlator.')
         self.controller.calibrate()
         self.configurate()
 
@@ -106,7 +106,7 @@ class HydraInstrument(BaseInstrument):
     def set_histogram(self,leng,res):
         """ | Clears the possible previous histogram, sets the histogram length and resolution
         | *Has also to do with the binning and the length of the histogram*
-        | In the hydraharp software, the length is fixed to 2^16 and the resolution determines the binning and thus the time axis that is plot
+        | In the correlator software, the length is fixed to 2^16 and the resolution determines the binning and thus the time axis that is plot
         
         :param leng: length of histogram
         :type leng: int
@@ -185,7 +185,7 @@ if __name__ == "__main__":
                   logging.StreamHandler()])
 
     with HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
-                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as q:
+                                   'controller': 'hyperion.controller.picoquant.correlator/Hydraharp'}) as q:
         q.initialize()
 
         print('The sync rate is: ' , q.sync_rate())

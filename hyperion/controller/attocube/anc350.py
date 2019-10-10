@@ -3,14 +3,14 @@
 ANC350 Attocube Controller
 ==========================
 
-This is the controller level of the positioner ANC350 from Attocube (in the Montana)
+This is the controller level of the position ANC350 from Attocube (in the Montana)
 
 It was taken from gitlab in August 2019 by Irina Komen and made to work with Hyperion
 
 PyANC350 is written by Rob Heath; rob@robheath.me.uk; 24-Feb-2015
 
 Description from Rob Heath:
-PyANC350 is a control scheme suitable for the Python coding style for the attocube ANC350 closed-loop positioner system.
+PyANC350 is a control scheme suitable for the Python coding style for the attocube ANC350 closed-loop position system.
 
 It implements ANC350lib, which in turn depends on anc350v2.dll which is provided by attocube in the ANC350_DLL folders on the driver disc.
 This in turn requires nhconnect.dll and libusb0.dll. Place all of these in the same folder as this module (and that of ANC350lib).
@@ -88,7 +88,7 @@ class Anc350(BaseController):
         'I am reaching the handle'
         try:
             ANC350lib.positionerConnect(0,ctypes.byref(self.handle)) #0 means "first device"
-            self.logger.info('connected to first positioner')
+            self.logger.info('connected to first position')
         except Exception as e:
             self.logger.error('unable to connect!')
             raise e
@@ -153,7 +153,7 @@ class Anc350(BaseController):
     #----------------------------------------------------------------------------------------------------
     def amplitudeControl(self, axis, mode):
         """| Selects the type of amplitude control in the stepper
-        | The amplitude is controlled by the positioner to hold the value constant determined by the selected type of amplitude control.
+        | The amplitude is controlled by the position to hold the value constant determined by the selected type of amplitude control.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -758,7 +758,7 @@ if __name__ == "__main__":
         ax = {'x': 0, 'y': 1, 'z': 2}
         # define a dict of axes to make things simpler
 
-        # instantiate positioner as anc
+        # instantiate position as anc
         print('-------------------------------------------------------------')
         print('capacitances:')
         for axis in sorted(ax.keys()):

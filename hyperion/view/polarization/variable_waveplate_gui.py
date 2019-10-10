@@ -10,13 +10,11 @@ This is the variable waveplate GUI.
 """
 import logging
 import sys, os
-from PyQt5.QtCore import Qt
 from PyQt5 import uic
-from PyQt5.QtGui import QStandardItem, QColor, QIcon
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QGridLayout, QComboBox, QLabel, QLineEdit, QDoubleSpinBox
-from hyperion.instrument.variable_waveplate.variable_waveplate import VariableWaveplate
-from hyperion import Q_, ur, root_dir
-
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QWidget, QDoubleSpinBox
+from hyperion.instrument.polarization.variable_waveplate import VariableWaveplate
+from hyperion import Q_
 
 
 #todo checkout if the device is on the computer if this class can work with the variablewaveplate/lcc25

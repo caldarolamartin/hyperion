@@ -2,13 +2,13 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from hyperion.instrument.beam_flags.beam_flags_instr import BeamFlagsInstr
+from hyperion.instrument.misc.beam_flags_instr import BeamFlagsInstr
 from hyperion.view.general_worker import WorkThread
 
 class BeamFlagsGui(QWidget):
     """
     Gui for beam blocker flags.
-    Requires hyperion.instrument.beam_flags.beam_flags_instr/BeamFlagsInstr instrument as input.
+    Requires hyperion.instrument.misc.beam_flags_instr/BeamFlagsInstr instrument as input.
 
     :param beam_flags_instr: instrument object to control
     :type beam_flags_instr: an instance of the class
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     # Load example
 
     example_config_file = 'beam_flags_example_config.yml'
-    example_config_filepath = os.path.join(hyperion.root_dir, 'view', 'beam_flags', example_config_file)
+    example_config_filepath = os.path.join(hyperion.root_dir, 'view', 'misc', example_config_file)
     with open(example_config_filepath,'r') as file:
         example_config = yaml.full_load(file)
     beam_flag_settings = example_config['Instruments']['BeamFlags']

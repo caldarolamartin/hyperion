@@ -3,7 +3,7 @@
 ANC350 Attocube Instrument
 ====================
 
-This is the instrument level of the positioner ANC350 from Attocube (in the Montana)
+This is the instrument level of the position ANC350 from Attocube (in the Montana)
 
 """
 

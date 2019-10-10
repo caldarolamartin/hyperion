@@ -1,6 +1,6 @@
 """
     ==============================================================
-    Example Experiment with a variable waveplate and a polarimeter
+    Example Experiment with a variable waveplate and a polarization
     ==============================================================
 
     This is an example of an experiment class with two devices
