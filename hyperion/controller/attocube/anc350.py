@@ -212,6 +212,7 @@ class Anc350(BaseController):
         :param freq: frequency in Hz, from 1Hz to 2kHz; needs to be an integer!
         :type freq: integer
         """
+        self.logger.debug('putting the frequency in the controller level')
         if 1 <= freq <= 2000:
             ANC350lib.positionerFrequency(self.handle,axis,freq)
         else:
@@ -322,6 +323,7 @@ class Anc350(BaseController):
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
         """
+        self.logger.info('Stopping the Approach of Stepper')
         ANC350lib.positionerStopApproach(self.handle,axis)
 
     #Used methods only scanner
@@ -846,8 +848,6 @@ if __name__ == "__main__":
         pos = anc.getPosition(0)
         didntmove = False
         while anc.getStatus(0)['moving']:
-            if pos
-
             time.sleep(0.1)
             new_pos = anc.getPosition(0)
             print(new_pos)
