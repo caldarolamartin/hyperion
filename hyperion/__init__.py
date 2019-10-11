@@ -9,7 +9,14 @@ __version__ = 0.2
 ur = UnitRegistry()
 # logger format
 
+# new
+package_path = os.path.dirname(__file__)            #   ###/###/hyperion/hyperion/
+repository_path = os.path.dirname(package_path)     #   ###/###/hyperion/
+parent_path = os.path.dirname(repository_path)      #   ###/###/
+
+# keep root_dir for backward compatability
 root_dir = os.path.dirname(__file__)
+
 ls = os.pardir
 
 # Setting up logging =================================================
@@ -91,7 +98,7 @@ stream_logger.setLevel(logging.DEBUG)    # default level for stream handler
 stream_logger.addFilter(DuplicateFilter())
 
 # create handler for file logging:
-_default_log_filename = "{}logger.log".format(root_dir)
+_default_log_filename = os.path.join( parent_path , 'hyperion.log')
 file_logger = logging.handlers.RotatingFileHandler(filename = _default_log_filename, maxBytes = (2*1024*1024), backupCount = 9)
 # file_logger.setFormatter(logging.Formatter(_logger_format_long))
 file_logger.setFormatter(CustomFormatter())
@@ -104,7 +111,7 @@ logging.basicConfig(level=logging.DEBUG, handlers=[file_logger, stream_logger])
 
 # Function for changing the logger file:
 # (apparently you have to remove, re-create and add the handler )
-def set_logfile(filepathname='logger.log'):
+def set_logfile(filepathname=_default_log_filename):
     global file_logger
     # first store the level and formatter
     level = file_logger.level
@@ -127,8 +134,8 @@ def set_logfile(filepathname='logger.log'):
 # That will retrieve the
 # To modify the levels use this anywhere :
 # hyperion.stream_logger.setLevel( logging.WARNING )
-# hyperion.file_logger.setLevel( logging.INFO )
-# To change the logging file use this anywhere:
-# hyperion.set_logfile('my_new_file_path_and_name.log')
+# # hyperion.file_logger.setLevel( logging.INFO )
+# # To change the logging file use this anywhere:
+# # hyperion.set_logfile('my_new_file_path_and_name.log')
 
 
