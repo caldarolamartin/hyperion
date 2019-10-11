@@ -16,8 +16,15 @@ from hyperion.controller.base_controller import BaseController
 
 
 class Agilent33522A(BaseController):
-    """Agilent 33522A arbitrary waveform generator, 30MHz, 2 channels.
+    """
+    Agilent 33522A arbitrary waveform generator, 30MHz, 2 channels.
+    It takes a dictionary that passes the settings needed. In this case it needs
 
+        instrument_id : '8967' # instrument id for the device you have
+        dummy : False
+
+    :param settings: a dictionary for the settings you need to send to the device
+    :type settings: dict
     """
     DEFAULTS = {'instrument_id': '8967'
                 }
@@ -26,15 +33,8 @@ class Agilent33522A(BaseController):
     FUNCTIONS = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
 
     def __init__(self, settings = {'instrument_id':'8967', 'dummy': True}):
-        """ Init for the class. It takes a dictionary that passes the settings needed. In this case
-        it needs
-
-        instrument_id : '8967' # instrument id for the device you have
-        dummy : False
-
-
-        """
         super().__init__()
+        self.logger = logging.getLogger(__name__)
         self.rsc = None
         self.instrument_id = settings['instrument_id']
         self.dummy = settings['dummy']
@@ -418,8 +418,6 @@ class Agilent33522A(BaseController):
         self.logger.info('Frequency for channel {} is {} Hz. '.format(channel, ans[:-1]))
         return ans[:-1]
 
-
-
 class Agilent33522ADummy(Agilent33522A):
     """
     ===================
@@ -535,16 +533,9 @@ class Agilent33522ADummy(Agilent33522A):
         return self._response[-1]
 
 
-
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
-
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    import hyperion
+    hyperion.stream_logger.setLevel(logging.INFO)
 
     with Agilent33522A(settings = {'instrument_id':'8967', 'dummy': False}) as gen:
         # initialize

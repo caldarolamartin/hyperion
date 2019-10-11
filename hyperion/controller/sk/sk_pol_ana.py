@@ -220,14 +220,8 @@ class SkpolarimeterDummy(BaseController):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
-
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    import hyperion
+    hyperion.stream_logger.setLevel(logging.DEBUG)
 
     with Skpolarimeter() as s:
         # get the info needed to open connection

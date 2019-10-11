@@ -60,8 +60,11 @@ class Lcc(BaseController):
         """ Initialize the device
 
         """
+        count = 0
         if self.dummy:
             self.logger.info('Dummy device initialized')
+            self._is_initialized = True
+
         else:
             self.rsc = serial.Serial()
             self.rsc.port = self._port
@@ -69,19 +72,17 @@ class Lcc(BaseController):
             self.rsc.timeout = self.DEFAULTS['read_timeout']
             self.rsc.write_timeout = self.DEFAULTS['write_timeout']
             self.logger.info('Initializing device LCC at port {}.'.format(self._port))
+            # try to init
+            while not self._is_initialized and count < 150:
+                try:
+                    self.rsc.open()
+                    self._is_initialized = True
 
-        # try to initi
-        count = 0
-        while not self._is_initialized and count < 150:
-            try:
-                self.rsc.open()
-                self._is_initialized = True
+                except:
+                    #self.logger.debug('Initialization Failed')
+                    count  += 1
 
-            except:
-                #self.logger.debug('Initialization Failed')
-                count  += 1
-
-            sleep(0.05)
+                sleep(0.05)
 
         if self._is_initialized:
             self.logger.debug('Initialization succeded after {} failed attempts'.format(count))
@@ -265,7 +266,6 @@ class Lcc(BaseController):
         else:
             self.logger.debug('Tried to set freq, but it was already set to that value.')
 
-
     def get_commands(self):
         """ Gives a list of all the commands available
         :return: list with the commands available
@@ -354,21 +354,18 @@ class LccDummy(Lcc):
     commands: voltage1? to ask what is the value and voltage1=1 to set it to the value 1. So we build a command
     list using the CHAR ? and = for each of this properties.
 
+
+    :param port: fake port name
+    :type port: str
+
+    :param dummy: indicates the dummy mode. keept for compatibility
+    :type dummy: logical
     """
 
     CHAR = {'ask' : '?', 'set' : '='}
 
     def __init__(self, settings = {'port':'COM00', 'dummy':True}):
-        """ init for the dummy LCC
-
-        :param port: fake port name
-        :type port: str
-
-        :param dummy: indicates the dummy mode. keept for compatibility
-        :type dummy: logical
-        """
         super().__init__(settings=settings)
-        self.logger = logging.getLogger(__name__)
         self.name = 'Dummy LCC25'
         self._buffer = []
         self._response = []
@@ -447,29 +444,15 @@ class LccDummy(Lcc):
         return self._response[-1]
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
+    import hyperion
+    hyperion.stream_logger.setLevel(logging.DEBUG)
 
+    # this is to print the serial ports connected to the PC
     import serial.tools.list_ports
-
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
-
-
 
     comports = serial.tools.list_ports.comports()
     for port, desc, hwid in comports:
         print((port, desc, hwid))
-
-    # part_of_name = 'rduino'
-    # usb_dev = next(serial.tools.list_ports.grep(part_of_name))
-    # print(usb_dev.description)
-    # print(usb_dev.hwid)
-    # print(usb_dev.device)
-
 
 
     dummy = False  # change this to false to work with the real device in the COM specified below.
