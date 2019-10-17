@@ -51,21 +51,6 @@ class Anc350Instrument(BaseInstrument):
 
         self.logger.info('Started the connection to the device and loaded the axis names yml file')
 
-
-
-    # def initialize_available_motors(self):
-    #     """ | Start the connection to the device
-    #     | Makes a dictionary of axis names based on the example_experiment_config.yml file
-    #     """
-    #     experiment = BaseExperiment()
-    #     experiment.load_config("D:\\labsoftware\\hyperion\\examples\\example_experiment_config.yml")
-    #
-    #     for instrument in experiment.properties["Instruments"]:
-    #         if "Piezo" in instrument:
-    #             self.attocube_piezo_dict[instrument] = experiment.properties["Instruments"][instrument]["axis_number"]
-    #
-    #     self.logger.info('Started the connection to the device and loaded the yml file')
-
     def configurate_stepper(self, axis, amplitude, frequency):
         """ - Does the necessary configuration of the Stepper:
         - for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
