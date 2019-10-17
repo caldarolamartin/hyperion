@@ -20,13 +20,12 @@ class BeamFlagsInstr(BaseInstrument):
     Intended to be used with an arduino running:
         qnd_simple_double_flag_controller.ino
         "QND Simple Double Flag Controller, version 0.1, date 2019-09-17"
+
+    :param settings: This includes all the settings needed to connect to the device in question.
+    :type settings: dict
+
     """
     def __init__(self, settings):
-        """ Init of the class.
-
-        :param settings: This includes all the settings needed to connect to the device in question.
-        :type settings: dict
-        """
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Class BeamFlags created.')
@@ -240,16 +239,8 @@ class BeamFlagsInstr(BaseInstrument):
         self.set_flag(2,bool_state)
 
 if __name__ == "__main__":
-
-
-    from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.WARNING, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
-
+    import hyperion
+    hyperion.stream_logger.setLevel(logging.DEBUG)
 
     example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}

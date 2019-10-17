@@ -424,16 +424,9 @@ class FunGen(BaseInstrument):
         return self.controller.get_voltage_limits_state(channel)
 
 
-
-
-
 if __name__ == '__main__':
-    from hyperion import _logger_format
-
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
+    import hyperion
+    hyperion.stream_logger.setLevel(logging.INFO)
 
     with FunGen(settings={'instrument_id' : '8967', 'dummy' : False,
                           'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A',

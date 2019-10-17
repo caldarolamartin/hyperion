@@ -13,7 +13,7 @@ import logging
 import numpy as np
 import winsound
 from time import sleep
-from hyperion import ur, root_dir
+# from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
 
 
@@ -100,11 +100,14 @@ class ExampleExperiment(BaseExperiment):
 
 
 if __name__ == '__main__':
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
+
+    # For the new of logging: import hyperion
+    import hyperion
+
+    # That will be enough for default logging, but if you want to change level or the location of the file:
+    hyperion.stream_logger.setLevel( logging.WARNING )          # To change logging level on the console
+    # hyperion.file_logger.setLevel( logging.INFO )             # To change logging level in the file (default is DEBUG)
+    # hyperion.set_logfile('my_new_file_path_and_name.log')     # To change the logging file (default is DEBUG)
 
     with ExampleExperiment() as e:
 
