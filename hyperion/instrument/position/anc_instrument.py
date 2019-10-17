@@ -16,7 +16,7 @@ import numpy as np
 from hyperion import root_dir
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.experiment.base_experiment import BaseExperiment
+
 from hyperion import ur
 
 class Anc350Instrument(BaseInstrument):
@@ -43,20 +43,28 @@ class Anc350Instrument(BaseInstrument):
         """
         self.logger.info('Opening connection to anc350.')
         self.controller.initialize()
-        #self.configurate()
 
-    def initialize_available_motors(self):
-        """ | Start the connection to the device
-        | Makes a dictionary of axis names based on the example_experiment_config.yml file
-        """
-        experiment = BaseExperiment()
-        experiment.load_config("D:\\labsoftware\\hyperion\\examples\\example_experiment_config.yml")
+        filename = os.path.join(root_dir, 'instrument', 'position', 'attocube_config.yml')
 
-        for instrument in experiment.properties["Instruments"]:
-            if "Piezo" in instrument:
-                self.attocube_piezo_dict[instrument] = experiment.properties["Instruments"][instrument]["axis_number"]
+        with open(filename, 'r') as f:
+            self.attocube_piezo_dict = yaml.load(f, Loader=yaml.FullLoader)
 
-        self.logger.info('Started the connection to the device and loaded the yml file')
+        self.logger.info('Started the connection to the device and loaded the axis names yml file')
+
+
+
+    # def initialize_available_motors(self):
+    #     """ | Start the connection to the device
+    #     | Makes a dictionary of axis names based on the example_experiment_config.yml file
+    #     """
+    #     experiment = BaseExperiment()
+    #     experiment.load_config("D:\\labsoftware\\hyperion\\examples\\example_experiment_config.yml")
+    #
+    #     for instrument in experiment.properties["Instruments"]:
+    #         if "Piezo" in instrument:
+    #             self.attocube_piezo_dict[instrument] = experiment.properties["Instruments"][instrument]["axis_number"]
+    #
+    #     self.logger.info('Started the connection to the device and loaded the yml file')
 
     def configurate_stepper(self, axis, amplitude, frequency):
         """ - Does the necessary configuration of the Stepper:
@@ -366,13 +374,13 @@ if __name__ == "__main__":
         ampl = 40*ur('V')   #30V
         freq = 1000*ur('Hz')    #Hz
 
-        q.initialize_available_motors()
+        #q.initialize_available_motors()
 
         q.configurate_stepper(axis,ampl,freq)
 
-        q.move_to(axis,4.0*ur('mm'))
+        #q.move_to(axis,4.0*ur('mm'))
 
-        #q.move_relative(axis, -50 * ur('um'))
+        q.move_relative(axis, -50 * ur('um'))
 
         # direct = 0  #forward
         # steps = 10  #amount of steps

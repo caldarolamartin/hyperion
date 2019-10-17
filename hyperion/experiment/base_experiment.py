@@ -75,7 +75,10 @@ class BaseExperiment():
             module_name, class_name = di['instrument'].split('/')
             self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
             MyClass = getattr(importlib.import_module(module_name), class_name)
+            self.logger.debug('class: {}'.format(MyClass))
+            self.logger.debug('settings used to create instrument: {}'.format(di))
             instance = MyClass(di)
+            self.logger.debug('instance: {}'.format(instance))
             #self.instruments.append(name)
             self.instruments_instances[name] = instance
             return instance
