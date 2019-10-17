@@ -313,6 +313,7 @@ class Anc350Instrument(BaseInstrument):
     def move_scanner(self, axis, voltage):
         """ | Moves the Scanner by applying a certain voltage
         | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V*
+        | Pay attention: if you put this one to 0V, it sort of turns itself off; and it takes a lot of time to get it running again, if you make a large step (10V or so)
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
@@ -327,7 +328,22 @@ class Anc350Instrument(BaseInstrument):
 
             self.controller.dcLevel(self.attocube_piezo_dict[axis], int(voltage.m_as('mV')))
 
-            dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]) * ur('mV')
+            # dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]) * ur('mV')
+
+            # while abs(dc.m_as('mV')-voltage.m_as('mV')) > 1:
+            t0 = time.time()
+            notreached = True
+            while time.time() - t0 < 3:
+                dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]) * ur('mV')
+                if abs(dc.m_as('mV') - voltage.m_as('mV')) <= 1:
+                    notreached = False
+                    break
+                time.sleep(0.1)
+                #self.logger.debug('DC level' + str(round(dc.to('V'), 4)))
+
+            if notreached:
+                self.logger.warning('time out for piezo movement')
+
             self.logger.info('now the DC level is ' + str(round(dc.to('V'),4)))
         else:
             self.logger.warning('The required voltage is between 0V - 140V')

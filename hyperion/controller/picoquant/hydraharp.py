@@ -26,7 +26,7 @@ c_int_p = ctypes.POINTER(ctypes.c_int)
 class Hydraharp(BaseController):
     """ Hydraharp 400 controller """
 
-    def __init__(self, config = {'devidx':0, 'mode':'Histogram', 'clock':'Internal'} ):
+    def __init__(self, config ):
         """
         Initialise communication with hydraharp400 device
       
@@ -92,6 +92,8 @@ class Hydraharp(BaseController):
         self.histogram_length = self._histoLen
         self._binning(0)  # default binning to 0
         self._base_resolution = self.resolution  # base resolution of the device
+
+        self.logger.debug('Hydraharp controller fully created')
      
     def load_config(self, filename = None):
         """
@@ -109,6 +111,8 @@ class Hydraharp(BaseController):
             d = yaml.load(f, Loader=yaml.FullLoader)
     
         self.settings = d['settings']
+
+        self.logger.debug('Hydraharp instrument config file is loaded')
        
     @property     
     def library_version(self):
@@ -753,7 +757,7 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
     
-    with Hydraharp() as q:
+    with Hydraharp({'devidx':0, 'mode':'Histogram', 'clock':'Internal'}) as q:
         q.calibrate()
         
         print('The sync rate is: ' , q.sync_rate())
