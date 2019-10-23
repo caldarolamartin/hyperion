@@ -1,6 +1,18 @@
-XPiezoStepper: 0
-YPiezoStepper: 2
-ZPiezoStepper: 1
-XPiezoScanner: 3
-YPiezoScanner: 5
-ZPiezoScanner: 4
+XPiezoStepper:
+  axis: 0
+  start_range: 0.0mm
+  stop_range: 5.0mm
+YPiezoStepper:
+  axis: 2
+  start_range: 0.0mm
+  stop_range: 5.0mm
+ZPiezoStepper:
+  axis: 1
+  start_range: 0.0mm
+  stop_range: 5.0mm
+XPiezoScanner:
+  axis: 3
+YPiezoScanner:
+  axis: 5
+ZPiezoScanner:
+  axis: 4

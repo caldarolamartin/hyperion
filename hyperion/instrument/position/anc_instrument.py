@@ -47,7 +47,23 @@ class Anc350Instrument(BaseInstrument):
         filename = os.path.join(root_dir, 'instrument', 'position', 'attocube_config.yml')
 
         with open(filename, 'r') as f:
-            self.attocube_piezo_dict = yaml.load(f, Loader=yaml.FullLoader)
+            info = yaml.load(f, Loader=yaml.FullLoader)
+
+        print(info)
+
+        for key in info:
+            self.attocube_piezo_dict[key] = info[key]['axis']
+            print(self.attocube_piezo_dict)
+
+        #
+        # with open(filename, 'r') as f:
+        #     d = yaml.load(f, Loader=yaml.FullLoader)
+        #
+        # self.settings = d['settings']
+        #
+        # # put units after all things in config file
+        # for key in self.settings:
+        #     self.settings[key] = ureg(self.settings[key])
 
         self.logger.info('Started the connection to the device and loaded the axis names yml file')
 
