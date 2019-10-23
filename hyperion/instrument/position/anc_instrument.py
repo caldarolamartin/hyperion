@@ -16,10 +16,13 @@ import numpy as np
 from hyperion import root_dir
 
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion.experiment.base_experiment import BaseExperiment
+
 from hyperion import ur
 
 class Anc350Instrument(BaseInstrument):
+    """
+    Anc 350 instrument class
+    """
     def __init__(self, settings):
         """ init of the class"""
         super().__init__(settings)
@@ -40,29 +43,23 @@ class Anc350Instrument(BaseInstrument):
         """
         self.logger.info('Opening connection to anc350.')
         self.controller.initialize()
-        #self.configurate()
 
-    def initialize_available_motors(self):
-        """ | Start the connection to the device
-        | Makes a dictionary of axis names based on the example_experiment_config.yml file
-        """
-        experiment = BaseExperiment()
-        experiment.load_config("D:\\labsoftware\\hyperion\\examples\\example_experiment_config.yml")
+        filename = os.path.join(root_dir, 'instrument', 'position', 'attocube_config.yml')
 
-        for instrument in experiment.properties["Instruments"]:
-            if "Piezo" in instrument:
-                self.attocube_piezo_dict[instrument] = experiment.properties["Instruments"][instrument]["axis_number"]
+        with open(filename, 'r') as f:
+            info = yaml.load(f, Loader=yaml.FullLoader)
 
-        self.logger.info('Started the connection to the device and loaded the yml file')
+        # for module in info:
+        #     if 'Piezo' in module:
+        #         self.attocube_piezo_dict[module] = info[module]['axis']
+        #         print(self.attocube_piezo_dict)
 
-    def list_devices(self):
-        """ | Gives a list of the connected piezo's
-        | If the device is on, all its piezo's should be working
-        | **There is no way of checking whether one is not working**
-        | So just gives the dictionary created in initialize_available_motors
-        """
-        devices = len(self.attocube_piezo_dict)
-        self.logger.info(str(devices)+ ' piezos found')
+
+        with open(filename, 'r') as f:
+            self.attocube_piezo_dict = yaml.load(f, Loader=yaml.FullLoader)
+
+
+        self.logger.info('Started the connection to the device and loaded the axis names yml file')
 
     def configurate_stepper(self, axis, amplitude, frequency):
         """ - Does the necessary configuration of the Stepper:
@@ -82,44 +79,53 @@ class Anc350Instrument(BaseInstrument):
         :param frequency: frequency to be set; higher means more noise but faster; between 1Hz and 2kHz
         :type axis: pint quantity
         """
+        ax = self.attocube_piezo_dict[axis]['axis']  # otherwise you keep typing this
 
         self.logger.info('Loading Stepper actor file, measuring capacitances')
 
-        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF')
+        capacitance = self.controller.capMeasure(ax)*ur('mF')
         capacitance = round(capacitance.to('F'),3)
         self.logger.info(axis+': ' + str(capacitance))
 
-        #self.controller.load(axis,filename=default)
-        self.controller.amplitudeControl(self.attocube_piezo_dict[axis],2)
+        #self.controller.load(axis,filename='q')
+        self.controller.amplitudeControl(ax,2)
         self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
 
+        print(type(amplitude.m_as('V')))
+
         if 0 <= amplitude.m_as('V') <= 60:
-            self.controller.amplitude(self.attocube_piezo_dict[axis], int(amplitude.m_as('mV')))  # put the amplitude on the controller, it needs to be an int
+            self.logger.debug('checking if the amplitude is okay')
 
-            self.Amplitude[self.attocube_piezo_dict[axis]] = amplitude.m_as('V')   #remember that amplitude in V
+            self.controller.amplitude(ax, int(amplitude.m_as('mV')))  # put the amplitude on the controller, it needs to be an int
 
-            step = self.controller.getStepwidth(self.attocube_piezo_dict[axis])
+            self.Amplitude[ax] = amplitude.m_as('V')   #remember that amplitude in V
+
+            step = self.controller.getStepwidth(ax)
             #huh, 0 makes no sense!!!!
-            self.Stepwidth[self.attocube_piezo_dict[axis]] = step                   #remember the associated step width
+            self.Stepwidth[ax] = step                   #remember the associated step width
 
-            ampl = self.controller.getAmplitude(self.attocube_piezo_dict[axis]) * ur('mV')
+            ampl = self.controller.getAmplitude(ax) * ur('mV')
             self.logger.info('amplitude is now ' + str(ampl.to('V')))
             self.logger.info('so the step width is ' + str(step * ur('nm')))
         else:
-            raise Exception('The required amplitude needs to be between 0V and 60V')
+            self.logger.warning('The required amplitude needs to be between 0V and 60V')
+            return
 
         if 1 <= frequency.m_as('Hz') <= 2000:
-            self.controller.frequency(self.attocube_piezo_dict[axis], frequency.m_as('Hz'))     #put the frequency on the controller
+            self.logger.debug('checking if the frequency is okay')
+            self.logger.debug(str(frequency))
 
-            self.Frequency[self.attocube_piezo_dict[axis]] = frequency.m_as('Hz')           #remember that frequency
+            self.controller.frequency(ax, frequency.m_as('Hz'))     #put the frequency on the controller; this needs to be an int (not float)
+            self.Frequency[ax] = frequency.m_as('Hz')           #remember that frequency
 
-            speed = self.controller.getSpeed(self.attocube_piezo_dict[axis]) *ur('nm/s')               #remember the associated speed
-            self.Speed[self.attocube_piezo_dict[axis]] = speed.m_as('nm/s')
+            speed = self.controller.getSpeed(ax) *ur('nm/s')               #remember the associated speed
+            self.Speed[ax] = speed.m_as('nm/s')
 
-            self.logger.info('frequency is ' + str(self.controller.getFrequency(self.attocube_piezo_dict[axis]) * ur('Hz')))
+            self.logger.info('frequency is ' + str(self.controller.getFrequency(ax) * ur('Hz')))
             self.logger.info('so the speed is ' + str(round(speed.to('mm/s'),4)))
         else:
-            raise Exception('The required frequency needs to be between 1Hz and 2kHz')
+            self.logger.warning('The required frequency needs to be between 1Hz and 2kHz')
+            return
 
     def configurate_scanner(self,axis):
         """- Does the necessary configuration of the Scanner:
@@ -133,18 +139,19 @@ class Anc350Instrument(BaseInstrument):
         """
         self.logger.info('Loading Scanner actor file, setting INT mode, measuring capacitances')
 
-        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis])*ur('mF')
+        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis]['axis'])*ur('mF')
         capacitance = round(capacitance.to('F'),3)
         self.logger.info(axis+': ' + str(capacitance))
         # self.controller.load(axis,filename=default)
 
-        self.controller.intEnable(self.attocube_piezo_dict[axis],True)
-        self.logger.debug('is the scanner on INT mode? ' + str(self.controller.getIntEnable(self.attocube_piezo_dict[axis])))
+        self.controller.intEnable(self.attocube_piezo_dict[axis]['axis'],True)
+        self.logger.debug('is the scanner on INT mode? ' + str(self.controller.getIntEnable(self.attocube_piezo_dict[axis]['axis'])))
 
     def check_if_moving(self,axis,position):
         """
         | Checks whether the piezo is actually moving
-        | It compares the first 5 positions with each other
+        | It checks if you are not out of range, or putting a too low voltage
+        | if that's okay, it keeps checking whether you are actually moving
         | If the average moving is below the threshold of 1 um, this method will raise an exception
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
@@ -155,39 +162,100 @@ class Anc350Instrument(BaseInstrument):
 
         :return: The end position, so the moving method can compare that with the start position
         """
+        Position = np.zeros(5)
+        ax = self.attocube_piezo_dict[axis]['axis']     #otherwise you keep typing this
+        start_range = ur(self.attocube_piezo_dict[axis]['start_range'])
+        end_range = ur(self.attocube_piezo_dict[axis]['end_range'])
 
         # check what's happening
-        Positions = np.zeros(6)
-        Positions[0] = self.controller.getPosition(self.attocube_piezo_dict[axis])
-        Diff_pos = np.zeros(5)
-        time.sleep(0.5)
-        state = 1
-        timer = 0
-        while state == 1:
-            newstate = self.controller.getStatus(self.attocube_piezo_dict[axis])  # find bitmask of status
-            if newstate == 1:
-                pos = self.controller.getPosition(self.attocube_piezo_dict[axis]) * ur('nm')
-                self.logger.info(axis + ' moving, currently at ' + str(round(pos.to('mm'), 6)))
-                if timer < 5:
-                    Positions[timer+1] = pos.m_as('nm')
-                    Diff_pos[timer] = Positions[timer+1]-Positions[timer]
-                    print(Positions)
-                    print(Diff_pos)
-                if timer == 5:
-                    if np.mean(np.abs(Diff_pos)) < 500:    #in nm
-                        raise Exception('The piezo is not moving at all!')
-                    else:
-                        timer == 0
-            elif newstate == 0:
-                end = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
-            else:
-                self.logger.info('axis has value' + str(newstate))
-            state = newstate
-            timer += 1
-            print(timer)
-            time.sleep(0.5)
-        return(end)
+        current_pos = self.controller.getPosition(ax)*ur('nm')
+        self.logger.info(axis + 'starts at position ' + str(round(current_pos.to('mm'),6)))
+        ismoved = False
 
+        self.logger.debug('0 < current_pos > 5mm? ' + str(position < 0.0*ur('mm') or position > 5.0*ur('mm')))
+
+        # pay attention: position is what you gave to this method, the position where you want to move to
+        # current_pos is what you asked the positioner is at now
+        # new_pos is the position to compare the old position with, to check whether you are actually moving at all
+
+        self.logger.debug('start of range: '+str(ur(self.attocube_piezo_dict[axis]['start_range']).m_as('mm')))
+        self.logger.debug('stop of range: ' + str(ur(self.attocube_piezo_dict[axis]['end_range'])))
+
+        if position.m_as('mm') < start_range.m_as('mm') or position.m_as('mm') > end_range.m_as('mm'):
+            self.logger.warning('Trying to move out of range')
+            self.stop_moving(axis)      #you have to do this, otherwise it keeps trying forever
+            end = current_pos
+            return (end, ismoved)
+        elif self.Amplitude[ax] < 1.0*ur('V'):    #if you forgot, it might be 0 V
+            self.stop_moving(axis)      #you have to do this, otherwise it keeps trying forever
+            end = current_pos
+            self.logger.warning('Maybe you should configurate this Stepper axis and set a voltage')
+            return (end, ismoved)
+        else:
+            # time.sleep(0.5)
+            # while self.controller.getStatus(ax)['moving']:
+            #     self.logger.debug('status of controller: ' + str(self.controller.getStatus(ax)['moving']))
+            #
+            #     sleeptime = 1.0
+            #     time.sleep(sleeptime)
+            #     new_pos = self.controller.getPosition(ax)*ur('nm')
+            #     self.logger.info(axis + 'moving, currently at ' + str(round(new_pos.to('mm'), 6)))
+            #
+            #     self.logger.debug(self.Speed[ax]*sleeptime*ur('nm'))
+            #
+            #
+            #
+            #     current_pos = new_pos
+            # ismoved = True
+            # end = current_pos
+            # return (end, ismoved)
+            # time.sleep(0.5)  # important not to put too short, otherwise it already starts asking before the guy even knows whether he moves
+            # while self.controller.getStatus(ax)['moving']:
+            #     self.logger.debug('status of controller: '+str(self.controller.getStatus(ax)['moving']))
+            #     time.sleep(1.0)     #important not to put too short, otherwise it doesnt move in between comparing
+            #     new_pos = self.controller.getPosition(ax)*ur('nm')
+            #     self.logger.info(axis + 'moving, currently at ' + str(round(new_pos.to('mm'),6)))
+            #
+            #     if np.abs(new_pos - current_pos) < 200*ur('nm'):
+            #         self.logger.debug('new position - old: '+ str(np.abs(new_pos - current_pos)))
+            #         self.logger.warning('Stepper is not moving, check voltage')
+            #         end = new_pos
+            #         return (end, ismoved)
+            #     current_pos = new_pos
+            #
+            # ismoved = True
+            # end = current_pos
+            # self.logger.debug('type of end is ' + str(type(end)))
+            # return (end, ismoved)
+            time.sleep(0.5)  # important not to put too short, otherwise it already starts asking before the guy even knows whether he moves
+            while self.controller.getStatus(ax)['moving']:
+                self.logger.debug('status of controller: '+str(self.controller.getStatus(ax)['moving']))
+
+                for ii in range(5):
+                    new_pos = self.controller.getPosition(ax)*ur('nm')
+                    self.logger.info(axis + 'moving, currently at ' + str(round(new_pos.to('mm'),6)))
+                    Position[ii]=new_pos.m_as('nm')
+                    self.logger.debug(Position)
+                    time.sleep(0.5)  # important not to put too short, otherwise it doesnt move in between comparing
+
+                current_pos = self.controller.getPosition(ax)*ur('nm')
+                average = np.mean(Position)
+                standard = np.std(Position)
+
+                self.logger.debug('current pos - average moved pos'+str(np.abs(current_pos.m_as('nm')-average)))
+                self.logger.debug('standard deviation'+str(standard))
+
+                if np.abs(current_pos.m_as('nm')-average) < standard/1.5:
+                    self.logger.warning('Stepper is not moving, check voltage and range')
+                    end = new_pos
+                    return (end, ismoved)
+                else:
+                    Position = np.zeros(5)
+
+            ismoved = True
+            end = current_pos
+            self.logger.debug('type of end is ' + str(type(end)))
+            return (end, ismoved)
 
 
     def move_to(self,axis,position):
@@ -202,12 +270,13 @@ class Anc350Instrument(BaseInstrument):
 
         """
         self.logger.info('Moving ' + axis +' to position: '+ str(position))
-        self.controller.moveAbsolute(self.attocube_piezo_dict[axis], int(position.m_as('nm')))
+        self.controller.moveAbsolute(self.attocube_piezo_dict[axis]['axis'], int(position.m_as('nm')))
 
-        end = self.check_if_moving(axis,position)
+        [end,ismoved] = self.check_if_moving(axis,position)
 
-        self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
-        self.logger.info('difference is ' + str(round(position.to('nm') - end.to('nm'), 6)))
+        if ismoved:
+            self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
+            self.logger.info('difference is ' + str(round(position.to('nm') - end.to('nm'), 6)))
 
 
     def move_relative(self, axis, step):
@@ -220,15 +289,16 @@ class Anc350Instrument(BaseInstrument):
         :param step: amount to move, can be both positive and negative; needs to be an integer, no float!
         :type step: pint quantity
         """
-        begin = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
+        begin = self.controller.getPosition(self.attocube_piezo_dict[axis]['axis'])*ur('nm')
 
         self.logger.info('moving to a relative position, ' + str(step))
-        self.controller.moveRelative(self.attocube_piezo_dict[axis],int(step.m_as('nm')))
+        self.controller.moveRelative(self.attocube_piezo_dict[axis]['axis'],int(step.m_as('nm')))
 
-        end = self.check_if_moving(axis,step)
+        [end,ismoved] = self.check_if_moving(axis,step+begin)
 
-        self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
-        self.logger.info('has moved ' + str(round(begin - end, 6)))
+        if ismoved:
+            self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
+            self.logger.info('has moved ' + str(round(begin - end, 6)))
 
     def given_step(self,axis,direction,amount):
         """| Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different
@@ -244,12 +314,12 @@ class Anc350Instrument(BaseInstrument):
         :type amount: integer
         """
         Steps = []
-        self.logger.info('moving ' + axis + ' by ' + str(amount) + ' steps of stepwidth '+ str(self.Stepwidth[self.attocube_piezo_dict[axis]]))
+        self.logger.info('moving ' + axis + ' by ' + str(amount) + ' steps of stepwidth '+ str(self.Stepwidth[self.attocube_piezo_dict[axis]['axis']]))
 
         for ii in range(amount):
-            self.controller.moveSingleStep(self.attocube_piezo_dict[axis],direction)
+            self.controller.moveSingleStep(self.attocube_piezo_dict[axis]['axis'],direction)
             time.sleep(0.5)
-            position = self.controller.getPosition(self.attocube_piezo_dict[axis])*ur('nm')
+            position = self.controller.getPosition(self.attocube_piezo_dict[axis]['axis'])*ur('nm')
             self.logger.info('step ' + str(ii) + ': we are now at ' + str(round(position.to('mm'),6)))
             Steps.append(position.m_as('nm'))
 
@@ -261,6 +331,7 @@ class Anc350Instrument(BaseInstrument):
     def move_scanner(self, axis, voltage):
         """ | Moves the Scanner by applying a certain voltage
         | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V*
+        | Pay attention: if you put this one to 0V, it sort of turns itself off; and it takes a lot of time to get it running again, if you make a large step (10V or so)
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
@@ -271,15 +342,38 @@ class Anc350Instrument(BaseInstrument):
 
         if 0 <= voltage.m_as('V') <= 140:
             self.logger.info('moving '+ axis +' by putting ' + str(voltage))
-            self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis], voltage.m_as('mV')))
+            self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis]['axis'], voltage.m_as('mV')))
 
-            self.controller.dcLevel(self.attocube_piezo_dict[axis], int(voltage.m_as('mV')))
+            self.controller.dcLevel(self.attocube_piezo_dict[axis]['axis'], int(voltage.m_as('mV')))
 
-            dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]) * ur('mV')
+            # dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
+
+            # while abs(dc.m_as('mV')-voltage.m_as('mV')) > 1:
+            t0 = time.time()
+            notreached = True
+            while time.time() - t0 < 3:
+                dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
+                if abs(dc.m_as('mV') - voltage.m_as('mV')) <= 1:
+                    notreached = False
+                    break
+                time.sleep(0.1)
+                #self.logger.debug('DC level' + str(round(dc.to('V'), 4)))
+
+            if notreached:
+                self.logger.warning('time out for piezo movement')
+
             self.logger.info('now the DC level is ' + str(round(dc.to('V'),4)))
         else:
-            raise Exception('The required voltage is between 0V - 140V')
+            self.logger.warning('The required voltage is between 0V - 140V')
+            return
 
+    def stop_moving(self, axis):
+        """Stops moving to target/relative/reference position
+
+        :param axis: scanner or stepper axis to be set, XPiezoStepper, XPiezoScanner, YPiezoScanner etc
+        :type axis: string
+        """
+        self.controller.stopApproach(self.attocube_piezo_dict[axis]['axis'])
 
     def finalize(self):
         """ This is to close connection to the device
@@ -295,31 +389,27 @@ if __name__ == "__main__":
                   logging.StreamHandler()])
 
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
-        q.initialize()
-
         axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
         ampl = 40*ur('V')   #30V
         freq = 1000*ur('Hz')    #Hz
 
-        q.initialize_available_motors()
-
-        q.list_devices()
+        #q.initialize_available_motors()
 
         q.configurate_stepper(axis,ampl,freq)
 
-        q.move_to(axis,2.55*ur('mm'))
+        #q.move_to(axis,5.1*ur('mm'))
 
-        q.move_relative(axis, -50 * ur('um'))
+        q.move_relative(axis, 10 * ur('um'))
 
         # direct = 0  #forward
         # steps = 10  #amount of steps
         #
         # q.given_step(axis,direct,steps)
         #
-        # axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
-        #
-        # q.configurate_scanner(axis)
-        #
-        # volts = 100*ur('V')
-        # q.move_scanner(axis,volts)
+        axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
+
+        q.configurate_scanner(axis)
+
+        volts = 10*ur('V')
+        q.move_scanner(axis,volts)
 

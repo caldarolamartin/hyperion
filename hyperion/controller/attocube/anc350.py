@@ -1,7 +1,7 @@
 """
 ==========================
 ANC350 Attocube Controller
-==========================
+===========================
 
 This is the controller level of the position ANC350 from Attocube (in the Montana)
 
@@ -40,7 +40,7 @@ import logging
 
 class Anc350(BaseController):
     """
-    This is the Controller class for the attocube piezo motors.
+    Class for the controller
 
     :param settings: this includes all the settings needed to connect to the device in question.
     :type settings: dict
@@ -115,16 +115,22 @@ class Anc350(BaseController):
     def getStatus(self, axis):
         """| Determines the status of the selected axis.
         | *It is not clear whether it also works for the scanner, or only for the stepper*
-        | result: bit0 (moving), bit1 (stop detected), bit2 (sensor error), bit3 (sensor disconnected)
+        | result: bit0 (moving) (+1), bit1 (stop detected) (+2), bit2 (sensor error) (+4), bit3 (sensor disconnected) (+8)
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
 
-        :return: 0: moving, 1: stop detected, 2: sensor error, 3: sensor disconnected
+        :return: 1: moving, 2: stop detected, 4: sensor error, 8: sensor disconnected
         """
         self.status = ANC350lib.Int32(0)
         ANC350lib.positionerGetStatus(self.handle,axis,ctypes.byref(self.status))
-        return self.status.value
+        status = self.status.value
+        out = {}
+        out['moving'] = (status & 1)==1
+        out['stop'] = (status & 2) == 2
+        out['error'] = (status & 4) == 4
+        out['disconnected'] = (status & 8) == 8
+        return out
 
     def load(self, axis, filename):
         """| Loads a parameter file for actor configuration.
@@ -153,7 +159,8 @@ class Anc350(BaseController):
     #----------------------------------------------------------------------------------------------------
     def amplitudeControl(self, axis, mode):
         """| Selects the type of amplitude control in the stepper
-        | The amplitude is controlled by the position to hold the value constant determined by the selected type of amplitude control.
+        | The amplitude is controlled by the positioner to hold the value constant determined by the selected type of amplitude control.
+        | We think for closed look it needs to be set in Step Width mode, nr. 2
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -164,7 +171,11 @@ class Anc350(BaseController):
         ANC350lib.positionerAmplitudeControl(self.handle,axis,mode)
 
     def amplitude(self, axis, amp):
-        """Set the amplitude setpoint of the Stepper in mV
+        """| Set the amplitude setpoint of the Stepper in mV
+        | You need to set the amplitude, max 60V
+        | At room temperature you need 30V for x and y and 40V for z
+        | At low temperature that is higher, 40V or even 50V
+        | Higher amplitude influences step size though
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -192,7 +203,8 @@ class Anc350(BaseController):
         return self.status.value
 
     def frequency(self, axis, freq):
-        """Sets the frequency of selected stepper axis
+        """| Sets the frequency of selected stepper axis
+        | Higher means more noise and faster (= less precise?)
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -200,6 +212,7 @@ class Anc350(BaseController):
         :param freq: frequency in Hz, from 1Hz to 2kHz; needs to be an integer!
         :type freq: integer
         """
+        self.logger.debug('putting the frequency in the controller level')
         if 1 <= freq <= 2000:
             ANC350lib.positionerFrequency(self.handle,axis,freq)
         else:
@@ -301,6 +314,17 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerMoveSingleStep(self.handle,axis,direction)
 
+    def stopApproach(self, axis):
+        """
+        | Stops approaching target/relative/reference position.
+        | DC level of affected axis after stopping depends on setting by .setTargetGround()
+        | *Dont know for sure whats the difference with stopMoving*
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+        """
+        self.logger.info('Stopping the Approach of Stepper')
+        ANC350lib.positionerStopApproach(self.handle,axis)
 
     #Used methods only scanner
     #----------------------------------------------------------------------------------------------------
@@ -354,6 +378,8 @@ class Anc350(BaseController):
         :type state: bool
         """
         ANC350lib.positionerIntEnable(self.handle,axis,ctypes.c_bool(state))
+
+
 
 
     # ----------------------------------------------------------------------------------------------------
@@ -425,16 +451,7 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerSetStopDetectionSticky(self.handle,axis,state)
 
-    def stopApproach(self, axis):
-        """| *UNUSED*
-        | Stops approaching target/relative/reference position.
-        | DC level of affected axis after stopping depends on setting by .setTargetGround()
-        | *Dont know whats the difference with stopMoving*
 
-        :param axis: axis number from 0 to 2 for steppers
-        :type axis: integer
-        """
-        ANC350lib.positionerStopApproach(self.handle,axis)
 
     def stopDetection(self, axis, state):
         """| *UNUSED*
@@ -764,34 +781,23 @@ if __name__ == "__main__":
         for axis in sorted(ax.keys()):
             print(axis, anc.capMeasure(ax[axis]))
         print('-------------------------------------------------------------')
-        # print('setting static amplitude to 2V')
-        # anc.staticAmplitude(2000)
-        # # set staticAmplitude to 2V to ensure accurate positioning info
-        # print('-------------------------------------------------------------')
 
-
-        #for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
         print('setting Amplitude Control to StepWidth mode, which seems to be the close loop one')
         anc.amplitudeControl(0,2)
 
-        #you need to set the amplitude, max 60V
-        #at room temperature you need 30V for x and y and 40V for z
-        #at low temperature that is higher, 40V or even 50V
-        #higher amplitude influences step size though
         anc.amplitude(0,30000)      #30V
         print('amplitude is ',anc.getAmplitude(0),'mV')
 
         print('so the step width is ',anc.getStepwidth(0),'nm')
 
-
-        #you also need to set the frequency
-        #higher means more noise and faster (= less precise?)
         anc.frequency(0,1000)
         print('frequency is ',anc.getFrequency(0),'Hz')
 
         print('so the speed is ',anc.getSpeed(0),'nm/s')
 
         print('axis is now at', anc.getPosition(ax['x']))
+
+
 
         #there are 4 ways in which you can move the stepper
 
@@ -830,22 +836,46 @@ if __name__ == "__main__":
         # #nr. 3: with a step that you give it by ordering a relative move
         # #but this one takes a very long time
         #
-        # print('-------------------------------------------------------------')
-        # print('moving to a relative position, 5um back')
-        # anc.moveRelative(0,-5000)
-        #
+        print('-------------------------------------------------------------')
+
+        position = 1000000
+
+        print('moving to a relative position, ...um back')
+        startpos = anc.getPosition(0)
+        anc.moveRelative(0,position)
+        time.sleep(0.4)         #important to have this number, otherwise it already starts asking before the guy even knows whether he moves
+
+        pos = anc.getPosition(0)
+        didntmove = False
+        while anc.getStatus(0)['moving']:
+            time.sleep(0.1)
+            new_pos = anc.getPosition(0)
+            print(new_pos)
+            if np.abs(new_pos - pos) < 500:
+                didntmove = True
+                break
+            pos = new_pos
+
+        print(anc.getPosition(0))
+        print(didntmove)
+
+        #np.abs(startpos - pos) <
+
         # time.sleep(1)
         # state = 1
         # while state == 1:
         #     newstate = anc.getStatus(ax['x'])  # find bitmask of status
+        #     print(newstate)
         #     if newstate == 1:
         #         print('axis moving, currently at', anc.getPosition(ax['x']))
         #     elif newstate == 0:
         #         print('axis arrived at', anc.getPosition(ax['x']))
+        #     elif newstate == 2 | 3:
+        #         print('axis arrived at range; ', anc.getStatus(0))
         #     else:
         #         print('axis has value', newstate)
         #     state = newstate
-        #     time.sleep(1)
+        #     time.sleep(0.1)
         #
         # #nr. 4: put a voltage on the piezo
         # #this means it makes a small step too; in theory
@@ -871,17 +901,17 @@ if __name__ == "__main__":
         # #this means you can apply a voltage of 0-140V to the piezo
         #
         # print('-------------------------------------------------------------')
-        print('now we start with the SCANNER')
-        anc.intEnable(3,True)
-        print('is the scanner on INT mode? ',anc.getIntEnable(3))
-
-        #this one has only one way to make a step: put a voltage
-
-        print('-------------------------------------------------------------')
-        print('moving something by putting 50V')
-        anc.dcLevel(3,10)
-        print('put a DC level of ',anc.getDcLevel(3),'mV')
-        print('no way of knowing when and if we ever arrive')
+        # print('now we start with the SCANNER')
+        # anc.intEnable(3,True)
+        # print('is the scanner on INT mode? ',anc.getIntEnable(3))
+        #
+        # #this one has only one way to make a step: put a voltage
+        #
+        # print('-------------------------------------------------------------')
+        # print('moving something by putting 50V')
+        # anc.dcLevel(3,10)
+        # print('put a DC level of ',anc.getDcLevel(3),'mV')
+        # print('no way of knowing when and if we ever arrive')
 
         #but no idea how we know whether it arrived at its position
 
