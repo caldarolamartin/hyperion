@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 =====================
-SK polarimeter driver
+SK polarization driver
 =====================
 
-This class uses the 64bit dll from SK to use the SK polarimeter. For more details refer to the manual
+This class uses the 64bit dll from SK to use the SK polarization. For more details refer to the manual
 of the device.
 
 For now it only supports one polarization analyzer connected.
@@ -17,7 +17,7 @@ from time import time, sleep
 from hyperion.controller.base_controller import BaseController
 
 class Skpolarimeter(BaseController):
-    """ This is the controller for the SK polarimeter. Based on their dll.
+    """ This is the controller for the SK polarization. Based on their dll.
 
     """
     def __init__(self, settings = {'dll_name': 'SKPolarimeter'}):
@@ -26,7 +26,7 @@ class Skpolarimeter(BaseController):
         """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
-        self.name = 'SK polarimeter'
+        self.name = 'SK polarization'
         self.logger.debug('Is initialized state: {}'.format(self._is_initialized))
 
         # TODO: put this in a config_agilent33522A.yml file so the code doe not depend on the location (PC)
@@ -206,7 +206,7 @@ class Skpolarimeter(BaseController):
 
 
 class SkpolarimeterDummy(BaseController):
-    """ This is the dummy controller for the SK polarimeter. Based on their dll.
+    """ This is the dummy controller for the SK polarization. Based on their dll.
 
     """
     def __init__(self):
@@ -215,19 +215,13 @@ class SkpolarimeterDummy(BaseController):
         """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
-        self.name = 'SK polarimeter Dummy'
+        self.name = 'SK polarization Dummy'
         self.logger.warning('Dummy not implemented yet')
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
-
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    import hyperion
+    hyperion.stream_logger.setLevel(logging.DEBUG)
 
     with Skpolarimeter() as s:
         # get the info needed to open connection

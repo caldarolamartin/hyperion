@@ -54,7 +54,7 @@ class SweepWaveplatePolarimeterGui(QWidget):
     #
     #     """
     #     self._is_measuring = True
-    #     self.logger.info('Starting experiment: Sweep waveplate polarimeter')
+    #     self.logger.info('Starting experiment: Sweep waveplate polarization')
     #     self.timer.start(50)
     #     self.experiment.sweep_waveplate_polarimeter()
     #     self.logger.info('Experiment done!')
@@ -98,7 +98,7 @@ class SweepWaveplatePolarimeterGraph(BaseGraph):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.logger.debug('Creating the Graph for the polarimeter vs vwp voltage')
+        self.logger.debug('Creating the Graph for the polarization vs vwp voltage')
         self.title = 'Graph view: Polarimeter vs VWP voltage'
         self.left = 100
         self.top = 100

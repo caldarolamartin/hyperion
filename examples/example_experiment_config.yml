@@ -8,9 +8,9 @@ Instruments:
     clock: Internal
     devidx: 0
     instrument: hyperion.instrument.correlator.hydraharp_instrument/HydraInstrument
-    controller: hyperion.controller.picoquant.hydraharp/Hydraharp
-    view: hyperion.view.hydraharp.hydraharp_gui/App
-    graphView: hyperion.view.hydraharp.hydraharp_gui/DrawHistogram
+    controller: hyperion.controller.picoquant.correlator/Hydraharp
+    view: hyperion.view.correlator.hydraharp_gui/App
+    graphView: hyperion.view.correlator.hydraharp_gui/DrawHistogram
   VariableWaveplate:
     port: COM8
     instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
@@ -50,27 +50,27 @@ Instruments:
     controller: hyperion.controller.thorlabs.TDC001/TDC001
   XPiezoStepper:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 0
   YPiezoStepper:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 2
   ZPiezoStepper:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 1
   XPiezoScanner:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 3
   YPiezoScanner:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 5
   ZPiezoScanner:
     controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.positioner.anc_instrument/Anc350Instrument
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
     axis_number: 4
   ExampleInstrument_2:
     port: COM0

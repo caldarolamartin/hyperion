@@ -14,7 +14,7 @@ a method to unit_test the new methods in the instrument, if any.
 import logging
 from time import sleep
 from hyperion import ur
-from hyperion.instrument.variable_waveplate.variable_waveplate import VariableWaveplate
+from hyperion.instrument.polarization.variable_waveplate import VariableWaveplate
 
 class UTestVariableWaveplate():
     """ Class to unit_test the LCC25 controller."""
