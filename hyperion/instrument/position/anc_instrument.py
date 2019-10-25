@@ -294,11 +294,11 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('moving to a relative position, ' + str(step))
         self.controller.moveRelative(self.attocube_piezo_dict[axis]['axis'],int(step.m_as('nm')))
 
-        [end,ismoved] = self.check_if_moving(axis,step+begin)
+        #[end,ismoved] = self.check_if_moving(axis, step + begin)
 
-        if ismoved:
-            self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
-            self.logger.info('has moved ' + str(round(begin - end, 6)))
+        # if ismoved:
+        #     self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
+        #     self.logger.info('has moved ' + str(round(begin - end, 6)))
 
     def given_step(self,axis,direction,amount):
         """| Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different
@@ -399,7 +399,7 @@ if __name__ == "__main__":
 
         #q.move_to(axis,5.1*ur('mm'))
 
-        q.move_relative(axis, 10 * ur('um'))
+        #q.move_relative(axis, 10 * ur('um'))
 
         # direct = 0  #forward
         # steps = 10  #amount of steps

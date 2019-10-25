@@ -240,7 +240,7 @@ class DrawHistogram(QWidget):
         self.show()
 
 if __name__ == '__main__':
-    hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.correlator/Hydraharp'})
+    hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
     app = QApplication(sys.argv)
     draw = DrawHistogram()
     ex = Hydraharp_GUI(hydra_instrument, draw)
