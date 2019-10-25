@@ -87,13 +87,18 @@ class Anc350Instrument(BaseInstrument):
         capacitance = round(capacitance.to('F'),3)
         self.logger.info(axis+': ' + str(capacitance))
 
-        #self.controller.load(axis,filename='q')
+
+        filename = 'q_test_long_name'
+        complete_filename = os.path.join(root_dir, 'controller', 'attocube', filename)
+        self.controller.load(ax, complete_filename)
+
+        # self.controller.load(axis,'q')
         self.controller.amplitudeControl(ax,2)
         self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
 
         print(type(amplitude.m_as('V')))
 
-        if 0 <= amplitude.m_as('V') <= 60:
+        if 0 <= amplitude.m_as('mV') <= self.controller.max_amplitude_mV:
             self.logger.debug('checking if the amplitude is okay')
 
             self.controller.amplitude(ax, int(amplitude.m_as('mV')))  # put the amplitude on the controller, it needs to be an int
@@ -111,7 +116,7 @@ class Anc350Instrument(BaseInstrument):
             self.logger.warning('The required amplitude needs to be between 0V and 60V')
             return
 
-        if 1 <= frequency.m_as('Hz') <= 2000:
+        if 1 <= frequency.m_as('Hz') <= self.controller.max_frequency_Hz:
             self.logger.debug('checking if the frequency is okay')
             self.logger.debug(str(frequency))
 
@@ -340,7 +345,7 @@ class Anc350Instrument(BaseInstrument):
         :type voltage: pint quantity
         """
 
-        if 0 <= voltage.m_as('V') <= 140:
+        if 0 <= voltage.m_as('mV') <= self.controller.max_dclevel_mV:
             self.logger.info('moving '+ axis +' by putting ' + str(voltage))
             self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis]['axis'], voltage.m_as('mV')))
 
@@ -390,7 +395,7 @@ if __name__ == "__main__":
 
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
         axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
-        ampl = 40*ur('V')   #30V
+        ampl = 60*ur('V')   #30V
         freq = 1000*ur('Hz')    #Hz
 
         #q.initialize_available_motors()
@@ -410,6 +415,6 @@ if __name__ == "__main__":
 
         q.configurate_scanner(axis)
 
-        volts = 10*ur('V')
+        volts = 140*ur('V')
         q.move_scanner(axis,volts)
 

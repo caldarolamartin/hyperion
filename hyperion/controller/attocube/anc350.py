@@ -57,6 +57,11 @@ class Anc350(BaseController):
         self.status = []
         self.logger.info('Class ANC350 init. Created object.')
 
+        self.max_dclevel_mV = 140000
+        self.max_amplitude_mV = 60000
+        self.max_frequency_Hz = 2000
+
+
     #----------------------------------------------------------------------------------------------------
     #Used methods both stepper and scanner
     #----------------------------------------------------------------------------------------------------
@@ -145,7 +150,15 @@ class Anc350(BaseController):
         :param filename: name of actor configuration file, which needs to only one letter
         :type filename: char
         """
-        ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
+        # The old one letter version:
+        # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
+
+        self.logger.debug('loading actor file: {}'.format(filename))
+        filestring = filename.encode('utf8')                    # convert python string to bytes
+        filestring_pointer = ctypes.c_char_p(filestring)        # create c pointer to variable length char array
+        ANC350lib.positionerLoad(self.handle, ctypes.c_int(axis), filestring_pointer)
+        self.logger.debug('loading actor appears to have succeeded')
+
 
         # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(bytearray(filename.encode()))))
 
@@ -183,7 +196,7 @@ class Anc350(BaseController):
         :param amp: amplitude to be set to the Stepper in mV, between 0 and 60V; needs to be an integer!
         :type amp: integer
         """
-        if 0 <= amp <= 60000:
+        if 0 <= amp <= self.max_amplitude_mV:
             ANC350lib.positionerAmplitude(self.handle,axis,amp)
         else:
             raise Exception('The required amplitude needs to be between 0V and 60V')
@@ -213,7 +226,7 @@ class Anc350(BaseController):
         :type freq: integer
         """
         self.logger.debug('putting the frequency in the controller level')
-        if 1 <= freq <= 2000:
+        if 1 <= freq <= self.max_frequency_Hz:
             ANC350lib.positionerFrequency(self.handle,axis,freq)
         else:
             raise Exception('The required frequency needs to be between 1Hz and 2kHz')
@@ -338,7 +351,7 @@ class Anc350(BaseController):
         :param dclev: DC level in mV; needs to be an integer!
         :type dclev: integer
         """
-        if 0 <= dclev <= 140000:
+        if 0 <= dclev <= self.max_dclevel_mV:
             ANC350lib.positionerDCLevel(self.handle, axis, dclev)
         else:
             raise Exception('The required voltage is between 0V - 140V')
@@ -718,7 +731,8 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerTriggerPolarity(self.handle,triggerno,polarity)
 
-
+class Anc350Dummy(Anc350):
+    pass
 
 def bitmask(input_array):
     """
@@ -753,6 +767,7 @@ def debitmask(input_int,num_bits = False):
 
 if __name__ == "__main__":
     from hyperion import _logger_format
+    import hyperion
 
     import time
 
@@ -769,8 +784,10 @@ if __name__ == "__main__":
         #-------------------------------
 
         #filename = 'C:\\Program Files\\Attocube positioners\\ANC350_GUI\\general_APS_files\\ANPx101res.aps'
-        filename = 'q'
-        anc.load(0, filename)
+        filename = 'q_test_long_name'
+        complete_filename = os.path.join(hyperion.root_dir, 'controller', 'attocube', filename)
+
+        anc.load(0, complete_filename)
 
         ax = {'x': 0, 'y': 1, 'z': 2}
         # define a dict of axes to make things simpler
@@ -838,7 +855,7 @@ if __name__ == "__main__":
         #
         print('-------------------------------------------------------------')
 
-        position = 1000000
+        position = -10000
 
         print('moving to a relative position, ...um back')
         startpos = anc.getPosition(0)
