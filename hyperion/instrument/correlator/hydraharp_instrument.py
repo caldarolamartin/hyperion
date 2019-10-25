@@ -11,13 +11,10 @@ import yaml           #for the configuration file
 import os             #for playing with files in operation system
 import time
 from hyperion import root_dir, ur
-#sys.path.append('D:/TMDmaterials/')
+import matplotlib.pyplot as plt
 
 from hyperion.instrument.base_instrument import BaseInstrument
 ureg = ur
-
-#from TMD.Controller.Hydraharp_controller import Hydraharp 
-#from TMD import ureg, Unit_
 
 class HydraInstrument(BaseInstrument):
     """
@@ -162,7 +159,7 @@ class HydraInstrument(BaseInstrument):
         :rtype: pint quantity
         """
         ended = False
-        t = round(float(tijd.magnitude) / 5)
+        t = round(float(tijd.magnitude) / 20)
         total_time_passed = ur('0s')
         while ended == False:
             ended = self.controller.ctc_status
@@ -170,8 +167,14 @@ class HydraInstrument(BaseInstrument):
             time.sleep(t)
             total_time_passed += t * ur('s')
             #this line returns a pint quantity which tells the user how much time the program needs before it can take the histogram
-            self.logger.debug('Is the histogram finished? ' + str(ended))
-            return (tijd - total_time_passed,ended)
+            self.logger.debug('time passed ' + str(total_time_passed))
+        return (tijd - total_time_passed,ended)
+
+    def stop_histogram(self):
+        """| This method stops taking the histogram
+        | in theory, I didn't test it yet with threads
+        """
+        self.controller.stop_measurement()
 
     def finalize(self):
         """ this is to close connection to the device."""
@@ -185,8 +188,7 @@ if __name__ == "__main__":
                   logging.StreamHandler()])
 
     with HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
-                                   'controller': 'hyperion.controller.picoquant.correlator/Hydraharp'}) as q:
-        q.initialize()
+                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as q:
 
         print('The sync rate is: ' , q.sync_rate())
         print('The count rate is: ' , q.count_rate(0))
@@ -196,3 +198,6 @@ if __name__ == "__main__":
         hist = q.make_histogram(20*ur('s'), count_channel = 0)
         print('The histogram: ', hist)
 
+        plt.figure()
+        plt.plot(hist)
+        plt.show()
