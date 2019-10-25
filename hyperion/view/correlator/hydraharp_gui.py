@@ -18,7 +18,7 @@ from hyperion import ur, root_dir
 import pyqtgraph as pg
 import pyqtgraph.exporters
 
-class App(QWidget):
+class Hydraharp_GUI(QWidget):
     """
     GUI class for the Hydraharp correlator instrument
 
@@ -243,5 +243,5 @@ if __name__ == '__main__':
     hydra_instrument = HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.correlator/Hydraharp'})
     app = QApplication(sys.argv)
     draw = DrawHistogram()
-    ex = App(hydra_instrument, draw)
+    ex = Hydraharp_GUI(hydra_instrument, draw)
     sys.exit(app.exec_())

@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QComboBox, QGrid
 from hyperion.instrument.position.anc_instrument import Anc350Instrument
 import numpy as np
 
-class App(QWidget): # CHANGE THIS F##%% name!!!
+class Attocube_GUI(QWidget):
     """
     Attocube motor GUI for the instrument
 
@@ -343,5 +343,5 @@ if __name__ == '__main__':
 
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as anc350_instrument:
         app = QApplication(sys.argv)
-        ex = App(anc350_instrument)
+        ex = Attocube_GUI(anc350_instrument)
         sys.exit(app.exec_())
