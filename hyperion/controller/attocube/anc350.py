@@ -344,6 +344,18 @@ class Anc350(BaseController):
         self.logger.info('Stopping the Approach of Stepper')
         ANC350lib.positionerStopApproach(self.handle,axis)
 
+    def moveContinuous(self, axis, direction):
+        """Starts continuously positioning with set parameters for ampl and speed and amp control respectively.
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param direction: can be 0 (forward) or 1 (backward)
+        :type direction: integer
+        """
+        ANC350lib.positionerMoveContinuous(self.handle,axis,direction)
+
+
     #Used methods only scanner
     #----------------------------------------------------------------------------------------------------
 
@@ -415,17 +427,7 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerMoveAbsoluteSync(self.handle,bitmask_of_axes)
 
-    def moveContinuous(self, axis, direction):
-        """| *UNUSED*
-        | Starts continuously positioning with set parameters for ampl and speed and amp control respectively.
 
-        :param axis: axis number from 0 to 2 for steppers
-        :type axis: integer
-
-        :param direction: can be 0 (forward) or 1 (backward)
-        :type direction: integer
-        """
-        ANC350lib.positionerMoveContinuous(self.handle,axis,direction)
 
     def moveReference(self, axis):
         """| *UNUSED*

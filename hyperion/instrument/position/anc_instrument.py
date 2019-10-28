@@ -327,6 +327,11 @@ class Anc350Instrument(BaseInstrument):
         av_steps = np.mean(Stepsize)
         self.logger.info('average step size is ' + str(round(av_steps)*ur('nm')))
 
+    def move_continuous(self, axis, direction):
+        pass
+
+
+
     def move_scanner(self, axis, voltage):
         """ | Moves the Scanner by applying a certain voltage
         | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V*
@@ -392,13 +397,11 @@ if __name__ == "__main__":
         ampl = 60*ur('V')   #30V
         freq = 1000*ur('Hz')    #Hz
 
-        #q.initialize_available_motors()
-
         q.configurate_stepper(axis,ampl,freq)
 
         #q.move_to(axis,5.1*ur('mm'))
 
-        #q.move_relative(axis, 10 * ur('um'))
+        q.move_relative(axis, 100 * ur('um'))
 
         # direct = 0  #forward
         # steps = 10  #amount of steps
