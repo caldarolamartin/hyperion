@@ -58,17 +58,14 @@ class Anc350Instrument(BaseInstrument):
         with open(filename, 'r') as f:
             self.attocube_piezo_dict = yaml.load(f, Loader=yaml.FullLoader)
 
-
         self.logger.info('Started the connection to the device and loaded the axis names yml file')
 
     def configurate_stepper(self, axis, amplitude, frequency):
         """ - Does the necessary configuration of the Stepper:
         - for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
-        - **loads the actor file, now it's the file called q**
-        - measures the capacitance of the Stepper; **not clear whether it is needed**
+        - loads the actor file, files are in controller folder, their names hardcoded in controller init
         - sets the amplitude and frequency
         - the amplitude influences the step width, the frequency influences the speed
-        - *for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2*
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -81,18 +78,12 @@ class Anc350Instrument(BaseInstrument):
         """
         ax = self.attocube_piezo_dict[axis]['axis']  # otherwise you keep typing this
 
-        self.logger.info('Loading Stepper actor file, measuring capacitances')
+        self.logger.info('Loading Stepper actor file, putting amplitude and frequency')
 
-        capacitance = self.controller.capMeasure(ax)*ur('mF')
-        capacitance = round(capacitance.to('F'),3)
-        self.logger.info(axis+': ' + str(capacitance))
+        # filename = 'q_test_long_name'
+        # path = os.path.join(root_dir, 'controller', 'attocube')
+        self.controller.load(ax)
 
-
-        filename = 'q_test_long_name'
-        complete_filename = os.path.join(root_dir, 'controller', 'attocube', filename)
-        self.controller.load(ax, complete_filename)
-
-        # self.controller.load(axis,'q')
         self.controller.amplitudeControl(ax,2)
         self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
 
@@ -132,22 +123,25 @@ class Anc350Instrument(BaseInstrument):
             self.logger.warning('The required frequency needs to be between 1Hz and 2kHz')
             return
 
+    def capacitance(self,axis):
+        """Measures the capacitance of the stepper or scanner; no idea why you would want to do that
+
+        :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner, XPiezoStepper, etc.
+        :type axis: string
+        """
+        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis]['axis']) * ur('mF')
+        capacitance = round(capacitance.to('F'), 3)
+        self.logger.info(axis + ': ' + str(capacitance))
+
     def configurate_scanner(self,axis):
         """- Does the necessary configuration of the Scanner:
         - you need to set the mode to INT, not DC-IN
-        - loads the actor file
-        - measures the capacitance of the Scanner; **not clear whether it is needed**
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
 
         """
-        self.logger.info('Loading Scanner actor file, setting INT mode, measuring capacitances')
-
-        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis]['axis'])*ur('mF')
-        capacitance = round(capacitance.to('F'),3)
-        self.logger.info(axis+': ' + str(capacitance))
-        # self.controller.load(axis,filename=default)
+        self.logger.info('Putting Scanner setting in INT mode')
 
         self.controller.intEnable(self.attocube_piezo_dict[axis]['axis'],True)
         self.logger.debug('is the scanner on INT mode? ' + str(self.controller.getIntEnable(self.attocube_piezo_dict[axis]['axis'])))

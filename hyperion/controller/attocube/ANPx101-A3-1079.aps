@@ -15,7 +15,7 @@ actordir 0
 transfertype 1
 positionmin -10000000
 positionmax 10000000
-transfergain 6135355
+transfergain 7703287
 transferoffs 5944
 singlecircle 0
 maxfrequ 2000
@@ -26,7 +26,7 @@ sensoravg 6
 amplctrl 1
 targetrange 200
 targettime 300
-refoffset -40888
+refoffset -1207937
 sensorres 6
 poslooptime 500
 humpsensitivity 200
