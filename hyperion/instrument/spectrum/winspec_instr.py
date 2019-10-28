@@ -9,11 +9,11 @@ Aron Opheij, TU Delft 2019
 """
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion import ur
+from hyperion import ur, Q_
 import time
 import numpy as np
 
-class Winspec(BaseInstrument):
+class WinspecInstr(BaseInstrument):
     """ Instrument to control Winspec software. """
     def __init__(self, settings = {'port':None, 'dummy': False,
                                    'controller': 'hyperion.controller.princeton.winspec/WinspecController'}):
@@ -22,7 +22,8 @@ class Winspec(BaseInstrument):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
         self.default_name = 'temp.SPE'
-        
+
+        self.initialize()
 
     def initialize(self):
         """ Starts the connection to the Winspec softare and retrieves parameters. """
@@ -64,7 +65,7 @@ class Winspec(BaseInstrument):
         #self.doc.Set
     
 
-    # Hardware settings:
+    # Hardware settings:   ---------------------------------------------------------------------------------------
 
     @property
     def current_temp(self):
@@ -105,12 +106,6 @@ class Winspec(BaseInstrument):
                 self.logger.warning('error setting value: {}'.format(value))
             if self.target_temp != value:          # this line also makes sure self._target_temp contains the actual Winspec value
                 self.logger.warning('attempted to set target temperature to {}, but Winspec is at {}'.format(self._gain, value))
-
-#display:
-#ROTATE
-#FLIP
-#REVERSE
-#
 
     @property
     def display_rotate(self):
@@ -156,10 +151,10 @@ class Winspec(BaseInstrument):
     @display_flip.setter
     def display_flip(self, value):
         self.controller.exp_set('FLIP', value!=0)     # the value!=0 converts it to a bool
-        
 
 
-    # Experiment / ADC settings
+
+    # Experiment / ADC settings   -------------------------------------------------------------------------------------
 
     @property
     def gain(self):
@@ -179,7 +174,7 @@ class Winspec(BaseInstrument):
             if self.controller.exp_set('GAIN', value):        # this line also sets the value in winspec
                 self.logger.warning('error setting value: {}'.format(value))
             if self.gain != value:          # this line also makes sure self._gain contains the actual Winspec value
-                self.logger.warning('attempted to set gain to {}, but Winspec is at {}'.format(self._gain, value))
+                self.logger.warning('attempted to set gain to {}, but Winspec is at {}'.format(value, self._gain))
 
     @property
     def accumulations(self):
@@ -219,12 +214,12 @@ class Winspec(BaseInstrument):
         
     @exposure_time.setter
     def exposure_time(self, value):
-        if type(value) is not type(ur('s')):
+        if type(value) is not type(Q_('s')):
             self.logger.error('exposure_time should be Pint quantity')
-        elif value.dimensionality != ur('s').dimensionality:
-            self.logger.error('exposure_time should have unit of time')
+        if value.dimensionality != Q_('s').dimensionality:
+            self.logger.error('exposure_time should be Pint quantity with unit of time')
         else:
-            if value < 1*ur('microsecond'):                                         # remove this if necessary
+            if value.m_as('us') < 1:                                                    # remove this if necessary
                 self.logger.warning('WinSpec will not accept exposuretime smaller than 1 us')
             
             if value != self._exposure_time or value.m != self._exposure_time.m:
@@ -310,9 +305,17 @@ class Winspec(BaseInstrument):
 
 if __name__ == "__main__":
     from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                  logging.StreamHandler()])
+#   from hyperion import Q_
+    import hyperion
+
+#    hyperion.set_logfile('winspec_instr.log')    
+    hyperion.file_logger.setLevel( logging.WARNING )
+    hyperion.stream_logger.setLevel( logging.DEBUG )
+    
+
+
+
+
 
 #    dummy = [False]
 #    for d in dummy:
@@ -328,6 +331,9 @@ if __name__ == "__main__":
 #
 #    print('done')
     
-    ws = Winspec(settings = {'port':'None', 'dummy' : False,
-                                   'controller': 'hyperion.controller.princeton.winspec/WinspecController'})
-    ws.initialize()
+    ws = WinspecInstr(settings = {'port': 'None', 'dummy' : False,
+                                   'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'})
+    # ws.initialize() # this is done in the __init__ now
+
+    ws.exposure_time = Q_('300ms')
+

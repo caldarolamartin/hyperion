@@ -46,7 +46,7 @@ from hyperion.controller.base_controller import BaseController
 # import pythoncom
 
 
-class WinspecController(BaseController):
+class WinspecContr(BaseController):
     """ Winspec Controller"""
 
 
@@ -267,7 +267,7 @@ class WinspecController(BaseController):
             self.logger.info('The amplitude is already {}. Not changing the value in the device.'.format(value))
 
 
-class WinspecControllerDummy(WinspecController):
+class WinspecContrDummy(WinspecContr):
     """
     Example Controller Dummy
     ========================
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     if dummy:
         my_class = WinspecControllerDummy
     else:
-        my_class = WinspecController
+        my_class = WinspecContr
 
 #    with my_class(settings = {'dummy':dummy}) as dev:
 #        dev.initialize()
@@ -324,7 +324,7 @@ if __name__ == "__main__":
 #        #dev.close() # Note that closeing Winspec is not necessary. Especially for testing it's quicker to leave it open
 
 
-    ws = WinspecController()
+    ws = WinspecContr()
     ws.initialize()
 
 
