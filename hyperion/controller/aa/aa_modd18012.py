@@ -24,6 +24,9 @@ class AaModd18012(BaseController):
     NOTE: Our model has different ranges of frequency (see data sheet)
             Line 1 to 6: 82-151 MHz (this drives short wavelengths)
             Line 7 to 8: 68-82 MHz  (this drives long wavelengths)
+
+    :param settings: this includes all the settings needed to connect to the device in question.
+    :type settings: dict
     """
 
     # here some parameters I need
@@ -55,8 +58,7 @@ class AaModd18012(BaseController):
     def __init__(self, settings):
         """ INIT of the class
 
-        :param settings: this includes all the settings needed to connect to the device in question.
-        :type settings: dict
+
         """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
@@ -485,14 +487,8 @@ class AaModd18012Dummy(AaModd18012):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
-
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    import hyperion
+    hyperion.stream_logger.setLevel(logging.DEBUG)
 
     with AaModd18012(settings={'port':'COM10', 'dummy': False}) as dev:
         dev.initialize()

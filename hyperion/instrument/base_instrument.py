@@ -18,7 +18,8 @@ class BaseInstrument():
     """ General class for Instrument
 
     """
-    def __init__(self, settings = {'port':'COM10', 'dummy': True}):
+    def __init__(self, settings = {'port':'COM10', 'dummy': True,
+                                   'controller': 'hyperion.controller.folder.file/ClassName'}):
         """ Init for the class
 
         """
@@ -32,6 +33,7 @@ class BaseInstrument():
                     settings['controller'] += 'Dummy'
 
         self.controller_class = self.load_controller(settings)
+        self.logger.debug('Controller class: {}'.format(self.controller_class))
 
         if 'via_serial' in settings:
             port = settings['via_serial'].split('COM')[-1]

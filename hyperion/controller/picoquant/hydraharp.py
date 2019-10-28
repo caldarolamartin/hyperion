@@ -26,7 +26,7 @@ c_int_p = ctypes.POINTER(ctypes.c_int)
 class Hydraharp(BaseController):
     """ Hydraharp 400 controller """
 
-    def __init__(self, config = {'devidx':0, 'mode':'Histogram', 'clock':'Internal'} ):
+    def __init__(self, config ):
         """
         Initialise communication with hydraharp400 device
       
@@ -42,7 +42,7 @@ class Hydraharp(BaseController):
         """
         super().__init__(config)
         self.logger = logging.getLogger(__name__)
-        self.logger.info('0. hello, this is the hydraharp (controller) speaking')
+        self.logger.info('0. hello, this is the correlator (controller) speaking')
 
         # read the configuration
         self._config = config
@@ -92,6 +92,8 @@ class Hydraharp(BaseController):
         self.histogram_length = self._histoLen
         self._binning(0)  # default binning to 0
         self._base_resolution = self.resolution  # base resolution of the device
+
+        self.logger.debug('Hydraharp controller fully created')
      
     def load_config(self, filename = None):
         """
@@ -109,6 +111,8 @@ class Hydraharp(BaseController):
             d = yaml.load(f, Loader=yaml.FullLoader)
     
         self.settings = d['settings']
+
+        self.logger.debug('Hydraharp instrument config file is loaded')
        
     @property     
     def library_version(self):
@@ -170,7 +174,7 @@ class Hydraharp(BaseController):
         :param clock: source of the clock, can be: 'External'(default), 'Internal'
         :type clock: string
         """
-        self.logger.info('Initializing the hydraharp device.')
+        self.logger.info('Initializing the correlator device.')
         self._is_initialized = True     # this is to prevent you to close the device connection if you
                                         # have not initialized it inside a with statement        
         devidx = self.__devidx
@@ -387,7 +391,7 @@ class Hydraharp(BaseController):
         """
         | Set the histograms length (time bin count) of histograms
         | actual_length = histogram_length(devidx, length)
-        | The histogram length has to do with the resolution in ps; in the hydraharp software it's always 65536 (2^16)
+        | The histogram length has to do with the resolution in ps; in the correlator software it's always 65536 (2^16)
 
         :param length: array size of histogram, 1024, 2048, 4096, 8192, 16384, 32768 or 65536  (default 65536)
         :type length: int
@@ -479,7 +483,7 @@ class Hydraharp(BaseController):
     def resolution(self, resolution):
         """
         | Resolution (in ps)
-        | This is what you can adjust in the hydraharp software, not the binning
+        | This is what you can adjust in the correlator software, not the binning
 
         :param resolution: resolution in ps; 1, 2, 4, 8, ... 2^26
         :type resolution: int
@@ -635,6 +639,7 @@ class Hydraharp(BaseController):
         data = ctypes.c_int(devidx)
         data2 = ctypes.c_int(int(tacq.m_as('s')))
         self.error_code = func(data, data2)
+        #print(data, data2)
         if self.error_code is not 0:
             warnings.warn(self.error_string)
 
@@ -752,7 +757,7 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
     
-    with Hydraharp() as q:
+    with Hydraharp({'devidx':0, 'mode':'Histogram', 'clock':'Internal'}) as q:
         q.calibrate()
         
         print('The sync rate is: ' , q.sync_rate())
@@ -762,8 +767,12 @@ if __name__ == "__main__":
         q.clear_histogram()
         
         q.histogram_length = 1024
-        
-        q.start_measurement(acquisition_time = 30)
+
+
+
+        q.start_measurement(acquisition_time = 10)
+
+        hist = q.histogram(channel=0)
 
         status = q.ctc_status
         # wait_time = 1
@@ -775,7 +784,7 @@ if __name__ == "__main__":
         #
         # print('Now finished? ', q.ctc_status)
         
-        hist = q.histogram(channel = 0)
+
         
         print(hist)
         

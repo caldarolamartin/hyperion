@@ -13,7 +13,7 @@ anc = Anc350()
 
 anc.initialize()
 
-#instantiate positioner as anc
+#instantiate position as anc
 print('-------------------------------------------------------------')
 print('capacitances:')
 for axis in sorted(ax.keys()):

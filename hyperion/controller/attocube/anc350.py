@@ -1,16 +1,16 @@
 """
-====================
+==========================
 ANC350 Attocube Controller
-====================
+===========================
 
-This is the controller level of the positioner ANC350 from Attocube (in the Montana)
+This is the controller level of the position ANC350 from Attocube (in the Montana)
 
 It was taken from gitlab in August 2019 by Irina Komen and made to work with Hyperion
 
 PyANC350 is written by Rob Heath; rob@robheath.me.uk; 24-Feb-2015
 
 Description from Rob Heath:
-PyANC350 is a control scheme suitable for the Python coding style for the attocube ANC350 closed-loop positioner system.
+PyANC350 is a control scheme suitable for the Python coding style for the attocube ANC350 closed-loop position system.
 
 It implements ANC350lib, which in turn depends on anc350v2.dll which is provided by attocube in the ANC350_DLL folders on the driver disc.
 This in turn requires nhconnect.dll and libusb0.dll. Place all of these in the same folder as this module (and that of ANC350lib).
@@ -20,16 +20,15 @@ Unlike ANC350lib which is effectively a re-imagining of the C++ header, PyANC350
 At present this only addresses the first ANC350 connected to the machine.
 
 Usage:
-1. instantiate Positioner() class to begin, eg. pos = Positioner().
-2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis),
- PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
-3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
-4. for tidiness remember to Positioner.close() when finished!
+    1. instantiate Positioner() class to begin, eg. pos = Positioner().
+    2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis),
+     PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
+    3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
+    4. for tidiness remember to Positioner.close() when finished!
+
+
 """
-
-from hyperion import root_dir
 from hyperion.controller.base_controller import BaseController
-
 import hyperion.controller.attocube.ANC350lib as ANC350lib
 import ctypes
 import math
@@ -37,15 +36,18 @@ import os
 import sys
 import numpy as np
 import logging
+from hyperion import root_dir
 
 
 class Anc350(BaseController):
-    def __init__(self, settings={'dummy': False}):
-        """ INIT of the class
+    """
+    Class for the controller
 
-        :param settings: this includes all the settings needed to connect to the device in question.
-        :type settings: dict
-        """
+    :param settings: this includes all the settings needed to connect to the device in question.
+    :type settings: dict
+    """
+    def __init__(self, settings={'dummy': False}):
+        """ INIT of the class """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
         self.name = 'ANC350'
@@ -55,6 +57,12 @@ class Anc350(BaseController):
         self.numconnected = []
         self.status = []
         self.logger.info('Class ANC350 init. Created object.')
+
+        self.max_dclevel_mV = 140000
+        self.max_amplitude_mV = 60000
+        self.max_frequency_Hz = 2000
+        self.actor_name = ['ANPx101-A3-1079.aps','ANPx101-A3-1087.aps','ANPz102-F8-393.aps']
+
 
     #----------------------------------------------------------------------------------------------------
     #Used methods both stepper and scanner
@@ -87,7 +95,7 @@ class Anc350(BaseController):
         'I am reaching the handle'
         try:
             ANC350lib.positionerConnect(0,ctypes.byref(self.handle)) #0 means "first device"
-            self.logger.info('connected to first positioner')
+            self.logger.info('connected to first (and only) attocube device')
         except Exception as e:
             self.logger.error('unable to connect!')
             raise e
@@ -114,31 +122,48 @@ class Anc350(BaseController):
     def getStatus(self, axis):
         """| Determines the status of the selected axis.
         | *It is not clear whether it also works for the scanner, or only for the stepper*
-        | result: bit0 (moving), bit1 (stop detected), bit2 (sensor error), bit3 (sensor disconnected)
+        | result: bit0 (moving) (+1), bit1 (stop detected) (+2), bit2 (sensor error) (+4), bit3 (sensor disconnected) (+8)
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
 
-        :return: 0: moving, 1: stop detected, 2: sensor error, 3: sensor disconnected
+        :return: 1: moving, 2: stop detected, 4: sensor error, 8: sensor disconnected
         """
         self.status = ANC350lib.Int32(0)
         ANC350lib.positionerGetStatus(self.handle,axis,ctypes.byref(self.status))
-        return self.status.value
+        status = self.status.value
+        out = {}
+        out['moving'] = (status & 1)==1
+        out['stop'] = (status & 2) == 2
+        out['error'] = (status & 4) == 4
+        out['disconnected'] = (status & 8) == 8
+        return out
 
-    def load(self, axis, filename):
+    def load(self, axis):
         """| Loads a parameter file for actor configuration.
         | *note: this requires a pointer to a char datatype.*
-        | **At this moment, this only works if the filename has only one letter, and it in the same folder as this controller**
-
-        | *(having no parameter file to test, I have no way of telling whether this will work, especially with the manual being as erroneous as it is. as such, use at your own (debugging) risk!)*
+        | the actor files are in this controller folder, their names are hard coded in the init
+        | *note: attocube called the up-down actor file ANPz, I called that axis YPiezo*
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
-
-        :param filename: name of actor configuration file, which needs to only one letter
-        :type filename: char
         """
-        ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
+        if axis < 3:
+            filename = self.actor_name[axis]
+
+            complete_filename = os.path.join(root_dir, 'controller', 'attocube', filename)
+
+            self.logger.debug('loading actor file: {}'.format(complete_filename))
+            filestring = complete_filename.encode('utf8')  # convert python string to bytes
+            filestring_pointer = ctypes.c_char_p(filestring)  # create c pointer to variable length char array
+            ANC350lib.positionerLoad(self.handle, ctypes.c_int(axis), filestring_pointer)
+
+            self.logger.debug('loading actor appears to have succeeded')
+        else:
+            self.logger.warning('you are trying to load an actor file for a Scanner, that doesnt need any')
+
+        # The old one letter version:
+        # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
 
         # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(bytearray(filename.encode()))))
 
@@ -153,6 +178,7 @@ class Anc350(BaseController):
     def amplitudeControl(self, axis, mode):
         """| Selects the type of amplitude control in the stepper
         | The amplitude is controlled by the positioner to hold the value constant determined by the selected type of amplitude control.
+        | We think for closed look it needs to be set in Step Width mode, nr. 2
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -163,7 +189,11 @@ class Anc350(BaseController):
         ANC350lib.positionerAmplitudeControl(self.handle,axis,mode)
 
     def amplitude(self, axis, amp):
-        """Set the amplitude setpoint of the Stepper in mV
+        """| Set the amplitude setpoint of the Stepper in mV
+        | You need to set the amplitude, max 60V
+        | At room temperature you need 30V for x and y and 40V for z
+        | At low temperature that is higher, 40V or even 50V
+        | Higher amplitude influences step size though
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -171,7 +201,7 @@ class Anc350(BaseController):
         :param amp: amplitude to be set to the Stepper in mV, between 0 and 60V; needs to be an integer!
         :type amp: integer
         """
-        if 0 <= amp <= 60000:
+        if 0 <= amp <= self.max_amplitude_mV:
             ANC350lib.positionerAmplitude(self.handle,axis,amp)
         else:
             raise Exception('The required amplitude needs to be between 0V and 60V')
@@ -191,7 +221,8 @@ class Anc350(BaseController):
         return self.status.value
 
     def frequency(self, axis, freq):
-        """Sets the frequency of selected stepper axis
+        """| Sets the frequency of selected stepper axis
+        | Higher means more noise and faster (= less precise?)
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -199,7 +230,8 @@ class Anc350(BaseController):
         :param freq: frequency in Hz, from 1Hz to 2kHz; needs to be an integer!
         :type freq: integer
         """
-        if 1 <= freq <= 2000:
+        self.logger.debug('putting the frequency in the controller level')
+        if 1 <= freq <= self.max_frequency_Hz:
             ANC350lib.positionerFrequency(self.handle,axis,freq)
         else:
             raise Exception('The required frequency needs to be between 1Hz and 2kHz')
@@ -300,6 +332,29 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerMoveSingleStep(self.handle,axis,direction)
 
+    def stopApproach(self, axis):
+        """
+        | Stops approaching target/relative/reference position.
+        | DC level of affected axis after stopping depends on setting by .setTargetGround()
+        | *Dont know for sure whats the difference with stopMoving*
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+        """
+        self.logger.info('Stopping the Approach of Stepper')
+        ANC350lib.positionerStopApproach(self.handle,axis)
+
+    def moveContinuous(self, axis, direction):
+        """Starts continuously positioning with set parameters for ampl and speed and amp control respectively.
+
+        :param axis: axis number from 0 to 2 for steppers
+        :type axis: integer
+
+        :param direction: can be 0 (forward) or 1 (backward)
+        :type direction: integer
+        """
+        ANC350lib.positionerMoveContinuous(self.handle,axis,direction)
+
 
     #Used methods only scanner
     #----------------------------------------------------------------------------------------------------
@@ -313,7 +368,7 @@ class Anc350(BaseController):
         :param dclev: DC level in mV; needs to be an integer!
         :type dclev: integer
         """
-        if 0 <= dclev <= 140000:
+        if 0 <= dclev <= self.max_dclevel_mV:
             ANC350lib.positionerDCLevel(self.handle, axis, dclev)
         else:
             raise Exception('The required voltage is between 0V - 140V')
@@ -355,6 +410,8 @@ class Anc350(BaseController):
         ANC350lib.positionerIntEnable(self.handle,axis,ctypes.c_bool(state))
 
 
+
+
     # ----------------------------------------------------------------------------------------------------
     # Maybe useful methods, but now unused
     # ----------------------------------------------------------------------------------------------------
@@ -370,17 +427,7 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerMoveAbsoluteSync(self.handle,bitmask_of_axes)
 
-    def moveContinuous(self, axis, direction):
-        """| *UNUSED*
-        | Starts continuously positioning with set parameters for ampl and speed and amp control respectively.
 
-        :param axis: axis number from 0 to 2 for steppers
-        :type axis: integer
-
-        :param direction: can be 0 (forward) or 1 (backward)
-        :type direction: integer
-        """
-        ANC350lib.positionerMoveContinuous(self.handle,axis,direction)
 
     def moveReference(self, axis):
         """| *UNUSED*
@@ -424,16 +471,7 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerSetStopDetectionSticky(self.handle,axis,state)
 
-    def stopApproach(self, axis):
-        """| *UNUSED*
-        | Stops approaching target/relative/reference position.
-        | DC level of affected axis after stopping depends on setting by .setTargetGround()
-        | *Dont know whats the difference with stopMoving*
 
-        :param axis: axis number from 0 to 2 for steppers
-        :type axis: integer
-        """
-        ANC350lib.positionerStopApproach(self.handle,axis)
 
     def stopDetection(self, axis, state):
         """| *UNUSED*
@@ -700,7 +738,8 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerTriggerPolarity(self.handle,triggerno,polarity)
 
-
+class Anc350Dummy(Anc350):
+    pass
 
 def bitmask(input_array):
     """
@@ -735,6 +774,7 @@ def debitmask(input_int,num_bits = False):
 
 if __name__ == "__main__":
     from hyperion import _logger_format
+    import hyperion
 
     import time
 
@@ -750,47 +790,32 @@ if __name__ == "__main__":
         #controlling the stepper
         #-------------------------------
 
-        #filename = 'C:\\Program Files\\Attocube positioners\\ANC350_GUI\\general_APS_files\\ANPx101res.aps'
-        filename = 'q'
-        anc.load(0, filename)
 
-        ax = {'x': 0, 'y': 1, 'z': 2}
-        # define a dict of axes to make things simpler
+        anc.load(0)
 
-        # instantiate positioner as anc
+        # instantiate position as anc
         print('-------------------------------------------------------------')
         print('capacitances:')
-        for axis in sorted(ax.keys()):
-            print(axis, anc.capMeasure(ax[axis]))
+        for axis in range(2):
+            print(axis, anc.capMeasure(axis))
         print('-------------------------------------------------------------')
-        # print('setting static amplitude to 2V')
-        # anc.staticAmplitude(2000)
-        # # set staticAmplitude to 2V to ensure accurate positioning info
-        # print('-------------------------------------------------------------')
 
-
-        #for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
         print('setting Amplitude Control to StepWidth mode, which seems to be the close loop one')
         anc.amplitudeControl(0,2)
 
-        #you need to set the amplitude, max 60V
-        #at room temperature you need 30V for x and y and 40V for z
-        #at low temperature that is higher, 40V or even 50V
-        #higher amplitude influences step size though
         anc.amplitude(0,30000)      #30V
         print('amplitude is ',anc.getAmplitude(0),'mV')
 
         print('so the step width is ',anc.getStepwidth(0),'nm')
 
-
-        #you also need to set the frequency
-        #higher means more noise and faster (= less precise?)
         anc.frequency(0,1000)
         print('frequency is ',anc.getFrequency(0),'Hz')
 
         print('so the speed is ',anc.getSpeed(0),'nm/s')
 
-        print('axis is now at', anc.getPosition(ax['x']))
+        print('axis is now at', anc.getPosition(0))
+
+
 
         #there are 4 ways in which you can move the stepper
 
@@ -829,22 +854,46 @@ if __name__ == "__main__":
         # #nr. 3: with a step that you give it by ordering a relative move
         # #but this one takes a very long time
         #
-        # print('-------------------------------------------------------------')
-        # print('moving to a relative position, 5um back')
-        # anc.moveRelative(0,-5000)
-        #
+        print('-------------------------------------------------------------')
+
+        position = -10000
+
+        print('moving to a relative position, ...um back')
+        startpos = anc.getPosition(0)
+        anc.moveRelative(0,position)
+        time.sleep(0.4)         #important to have this number, otherwise it already starts asking before the guy even knows whether he moves
+
+        pos = anc.getPosition(0)
+        didntmove = False
+        while anc.getStatus(0)['moving']:
+            time.sleep(0.1)
+            new_pos = anc.getPosition(0)
+            print(new_pos)
+            if np.abs(new_pos - pos) < 500:
+                didntmove = True
+                break
+            pos = new_pos
+
+        print(anc.getPosition(0))
+        print(didntmove)
+
+        #np.abs(startpos - pos) <
+
         # time.sleep(1)
         # state = 1
         # while state == 1:
         #     newstate = anc.getStatus(ax['x'])  # find bitmask of status
+        #     print(newstate)
         #     if newstate == 1:
         #         print('axis moving, currently at', anc.getPosition(ax['x']))
         #     elif newstate == 0:
         #         print('axis arrived at', anc.getPosition(ax['x']))
+        #     elif newstate == 2 | 3:
+        #         print('axis arrived at range; ', anc.getStatus(0))
         #     else:
         #         print('axis has value', newstate)
         #     state = newstate
-        #     time.sleep(1)
+        #     time.sleep(0.1)
         #
         # #nr. 4: put a voltage on the piezo
         # #this means it makes a small step too; in theory
@@ -856,20 +905,11 @@ if __name__ == "__main__":
         # print('moving in fine positioning mode by putting 10V')
         # anc.dcLevel(0,10000)
         # print('put a DC level of ',anc.getDcLevel(0),'mV')
-        #
-        #
-        # #-------------------------------
-        # #controlling the scanner
-        # #-------------------------------
-        #
-        # # filename = 'q'
-        # # anc.load(0, filename)
-        #
-        #
-        # #you need to set the mode to INT
-        # #this means you can apply a voltage of 0-140V to the piezo
-        #
-        # print('-------------------------------------------------------------')
+
+        #you need to set the mode to INT
+        #this means you can apply a voltage of 0-140V to the piezo
+
+        print('-------------------------------------------------------------')
         print('now we start with the SCANNER')
         anc.intEnable(3,True)
         print('is the scanner on INT mode? ',anc.getIntEnable(3))
@@ -882,7 +922,6 @@ if __name__ == "__main__":
         print('put a DC level of ',anc.getDcLevel(3),'mV')
         print('no way of knowing when and if we ever arrive')
 
-        #but no idea how we know whether it arrived at its position
 
 
 

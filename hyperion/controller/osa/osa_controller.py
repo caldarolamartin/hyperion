@@ -301,18 +301,17 @@ class OsaControllerDummy(OsaController):
         self.logger.debug('Ask id to example device.')
         return 'ExampleController device'
 
+    def initialize(self):
+        """ Dummy initialize"""
+        self.logger.info('Dummy initialize')
+        self._is_initialized = True
+
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
+    import hyperion
+    hyperion.stream_logger.setLevel(logging.DEBUG)
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
-
-    dummy = False  # change this to false to work with the real device in the COM specified below.
+    dummy = True  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = OsaControllerDummy
