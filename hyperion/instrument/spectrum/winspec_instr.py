@@ -38,6 +38,8 @@ class WinspecInstr(BaseInstrument):
         self._accums = self.accumulations
         self._target_temp = self.target_temp
 
+        self.gratings
+
     def finalize(self):
         """ Finalizes Winspec Controller. """
         self.logger.info('Closing connection to device.')
@@ -51,7 +53,7 @@ class WinspecInstr(BaseInstrument):
                     default_options_list[index] = index
         return default_options_list
 
-
+    def get_gratings_info
 
     def idn(self):
         """
@@ -77,6 +79,19 @@ class WinspecInstr(BaseInstrument):
 
         #self.doc.Set
 
+
+    # Grating Settings:  -----------------------------------------------------------------------------------------
+
+    # ws.controller.spt.Move()
+
+    #        print('GRATINGSPERTURRET: {}'.format(dev.spt_get('GRATINGSPERTURRET')))
+    #        print('INST_GRAT_GROOVES 0: {}'.format(dev.spt_get('INST_GRAT_GROOVES',0)))
+    #        print('INST_GRAT_GROOVES 1: {}'.format(dev.spt_get('INST_GRAT_GROOVES',1)))
+    #        print('INST_GRAT_GROOVES 2: {}'.format(dev.spt_get('INST_GRAT_GROOVES',2)))
+    #        print('CUR_GRATING: {}'.format(dev.spt_get('CUR_GRATING')))
+    #        print('INST_CUR_GRAT_NUM: {}'.format(dev.spt_get('INST_CUR_GRAT_NUM')))
+    #        print('CUR_POSITION: {}'.format(dev.spt_get('CUR_POSITION')))                  <<  in nm
+    #        print('ACTIVE_GRAT_POS: {}'.format(dev.spt_get('ACTIVE_GRAT_POS')))            <<  in ???
 
     # Hardware settings:   ---------------------------------------------------------------------------------------
 
@@ -351,9 +366,11 @@ class WinspecInstr(BaseInstrument):
             self.controller.exp_set('SYNC_ASYNC', number)
 
 
-# Could add
-#edge_trigger
+    # Could add
+    #edge_trigger
 
+
+    # Experiment Setup / ROI Setup -------------------------------------------------
 
 
 #XDIM
@@ -367,22 +384,6 @@ class WinspecInstr(BaseInstrument):
 
 
 
-#    @property
-#    def amplitude(self):
-#        """ Gets the amplitude value
-#        :return: voltage amplitude value
-#        :rtype: pint quantity
-#        """
-#        self.logger.debug('Getting the amplitude.')
-#        return self.controller.amplitude * ur('volts')
-#
-#    @amplitude.setter
-#    def amplitude(self, value):
-#        """ This method is to set the amplitude
-#        :param value: voltage value to set for the amplitude
-#        :type value: pint quantity
-#        """
-#        self.controller.amplitude = value.m_as('volts')
 
 
 if __name__ == "__main__":

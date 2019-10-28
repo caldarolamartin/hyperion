@@ -121,9 +121,9 @@ class WinspecContr(BaseController):
                 elif key[:4] == 'SPT_':
                     self.params_spt[key[4:]] = _constants[key]
                 elif key[:4] == 'TGC_':
-                    self.params_spt[key[4:]] = _constants[key]
+                    self.params_tgc[key[4:]] = _constants[key]
                 elif key[:4] == 'TGP_':
-                    self.params_spt[key[4:]] = _constants[key]
+                    self.params_tgp[key[4:]] = _constants[key]
                 elif key[:3] == 'DM_':
                     self.params_dm[key[3:]] = _constants[key]
                 else:
@@ -314,8 +314,8 @@ if __name__ == "__main__":
 #        print('INST_GRAT_GROOVES 2: {}'.format(dev.spt_get('INST_GRAT_GROOVES',2)))
 #        print('CUR_GRATING: {}'.format(dev.spt_get('CUR_GRATING')))
 #        print('INST_CUR_GRAT_NUM: {}'.format(dev.spt_get('INST_CUR_GRAT_NUM')))
-#        print('CUR_POSITION: {}'.format(dev.spt_get('CUR_POSITION')))
-#        print('ACTIVE_GRAT_POS: {}'.format(dev.spt_get('ACTIVE_GRAT_POS')))
+#        print('CUR_POSITION: {}'.format(dev.spt_get('CUR_POSITION')))                  <<  in nm
+#        print('ACTIVE_GRAT_POS: {}'.format(dev.spt_get('ACTIVE_GRAT_POS')))            <<  in ???
 #        print('INST_CUR_GRAT_POS: {}'.format(dev.spt_get('INST_CUR_GRAT_POS')))
 #        dev.exp_set('EXPOSURETIME',2.0)
 #        print('EXPOSURETIME: {}'.format(dev.exp_get('EXPOSURETIME')))
