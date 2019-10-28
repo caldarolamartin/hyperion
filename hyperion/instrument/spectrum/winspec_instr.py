@@ -21,8 +21,31 @@ class WinspecInstr(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
+        self.settings = settings
         self.default_name = 'temp.SPE'
-
+        
+        self.timing_modes = [0, 'Free Run', 2, 'External Sync']
+        def remove_unavailable_options(self, settings_key, list):
+        
+        self.shutter_controls = [0, 'Normal', 'Disabled Closed', 'Disabled Opened']
+        
+        
+        # QUESTION: how to disable some options for specific cameras?
+        # for example: some do and some don't have 'normal' mode
+        
+        # remove timing modes that are not in yaml file (and replace with number)
+        if 'timing_modes' in self.settings:
+            for index, value in enumerate(self.timing_modes):
+                if value not in self.settings['timing_modes']:
+                    self.timing_modes = index
+    
+        # remove shutter controls that are not in yaml file (and replace with number)
+        if 'shutter_controls' in self.settings:
+            for index, value in enumerate(self.shutter_controls):
+                if value not in self.settings['shutter_controls']:
+                    self.shutter_controls = index
+                
+        
         self.initialize()
 
     def initialize(self):
@@ -34,11 +57,14 @@ class WinspecInstr(BaseInstrument):
         self._accums = self.accumulations
         self._target_temp = self.target_temp
         
-
     def finalize(self):
         """ Finalizes Winspec Controller. """
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
+
+    def remove_unavailable_options(self, settings_key, list):
+        
+        
 
     def idn(self):
         """
@@ -70,7 +96,7 @@ class WinspecInstr(BaseInstrument):
     @property
     def current_temp(self):
         """
-        read-only attribute: Temperature measured by Winspec.
+        read-only attribute: Temperature measured by Winspec in degrees Celcius.
         
         getter: Returns the Temperature measued by Winspec.
         type: float
@@ -80,7 +106,7 @@ class WinspecInstr(BaseInstrument):
     @property
     def temp_locked(self):
         """
-        read-only attribute: Temperature locked state measured by Winspec.
+        read-only attribute: Temperature locked state measured by Winspec in degrees Celcius.
         
         getter: Returns True is the Temperature is "locked"
         type: bool
@@ -90,7 +116,7 @@ class WinspecInstr(BaseInstrument):
     @property
     def target_temp(self):
         """
-        attribute: Detector target temperature in degrees Celcius
+        attribute: Detector target temperature in degrees Celcius.
         
         getter: Returns Target Temperature set in Winspec
         setter: Attempts to updates Target Temperature in Winspec if required. Gives warning if failed.
@@ -154,7 +180,7 @@ class WinspecInstr(BaseInstrument):
 
 
 
-    # Experiment / ADC settings   -------------------------------------------------------------------------------------
+    # Experiment / ADC settings:   --------------------------------------------
 
     @property
     def gain(self):
@@ -175,6 +201,8 @@ class WinspecInstr(BaseInstrument):
                 self.logger.warning('error setting value: {}'.format(value))
             if self.gain != value:          # this line also makes sure self._gain contains the actual Winspec value
                 self.logger.warning('attempted to set gain to {}, but Winspec is at {}'.format(value, self._gain))
+
+    # Experiment / Main settings:  --------------------------------------------
 
     @property
     def accumulations(self):
@@ -251,23 +279,76 @@ class WinspecInstr(BaseInstrument):
         if self.exposure_time != value:     # this line also makes sure self._exposuretime gets the real Winspec value
             self.logger.warning('attempted to set exposure time to {}, but Winspec is at {}'.format(value, self._exposure_time))
             
-
+    # Experiment / Data Correction settings: ----------------------------------
             
-            
-    def timing_mode():
-        # 1 Free Run
-        # 3 External Sync
-        pass
+    @property
+    def bg_subtract(self):
+        return self.controller.exp_get('BBACKSUBTRACT')[0] == 1     # turn it into bool
         
+    @bg_subtract.setter
+    def bg_subtract(self, value):
+        self.controller.exp_set('BBACKSUBTRACT',value!=0)       # !=0  forces it to be bool
+
+    @property
+    def bg_file(self):
+        return self.controller.exp_get('DARKNAME')[0]
+        
+    @bg_file.setter
+    def bg_file(self, filename):
+        # NOTE, this does not check if the file exists
+        return self.controller.exp_set('DARKNAME', filename)
+        
+# Could repeat this for flatfield and blemish
+#        FLATFLDNAME
+#        BDOFLATFIELD
+#        BLEMISHFILENAME
+#        DOBLEMISH
+        
+
+# BGTYPE ??
+
+    # Experiment / Timing settings: ----------------------------------
+
+    @property         
+    def delay_time_s(self):
+        # Experiment / Timing / Delay Time in seconds
+        return self.controller.exp_get('DELAY_TIME')[0]
+
+    @delay_time_s.setter         
+    def delay_time_s(self, seconds):
+        # Experiment / Timing / Delay Time in seconds
+        self.controller.exp_set('DELAY_TIME', seconds)
+    
+    
+    @property      
+    def timing_mode(self):
+        mode_number = self.controller.exp_get('TIMING_MODE')[0]
+        return self.timing_modes[mode_number]
+        
+    @timing_mode.setter      
+    def timing_mode(self, string):
+        # setter also allows the integer value
+        if type(string)==int:
+            timing_number = string
+        else:
+            if string not in self.timing_modes:
+                self.logger.warning('Unknown timing_mode. It should be 1 or 3 or {} or {}',format(self.timing_modes[1], self.timing_modes[3]))
+                return                
+            else:
+                timing_number = self.timing_modes.index(string)
+        self.controller.exp_set('TIMING_MODE', timing_number)
+                    
+            
+    
+    
     def shutter_control():
+        SHUTTER_CONTROL
         # 1 Normal
         # 2 Disabled closed
         # 3 Disabled opened
         pass
         
-    def delay_time():
-        # Experiment / Timing / Delay Time in seconds
-        pass
+
         
         
 #edge_trigger
