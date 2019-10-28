@@ -15,37 +15,18 @@ import numpy as np
 
 class WinspecInstr(BaseInstrument):
     """ Instrument to control Winspec software. """
-    def __init__(self, settings = {'port':None, 'dummy': False,
-                                   'controller': 'hyperion.controller.princeton.winspec/WinspecController'}):
+    def __init__(self, settings):
         """ init of the class"""
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
         self.settings = settings
         self.default_name = 'temp.SPE'
-        
-        self.timing_modes = [0, 'Free Run', 2, 'External Sync']
-        def remove_unavailable_options(self, settings_key, list):
-        
-        self.shutter_controls = [0, 'Normal', 'Disabled Closed', 'Disabled Opened']
-        
-        
-        # QUESTION: how to disable some options for specific cameras?
-        # for example: some do and some don't have 'normal' mode
-        
-        # remove timing modes that are not in yaml file (and replace with number)
-        if 'timing_modes' in self.settings:
-            for index, value in enumerate(self.timing_modes):
-                if value not in self.settings['timing_modes']:
-                    self.timing_modes = index
-    
-        # remove shutter controls that are not in yaml file (and replace with number)
-        if 'shutter_controls' in self.settings:
-            for index, value in enumerate(self.shutter_controls):
-                if value not in self.settings['shutter_controls']:
-                    self.shutter_controls = index
-                
-        
+
+        self._timing_modes = self.remove_unavailable('timing_modes', [0, 'Free Run', 2, 'External Sync'])
+        self._shutter_controls = self.remove_unavailable('shutter_controls', [0, 'Normal', 'Disabled Closed', 'Disabled Opened'])
+        self._fast_safe = self.remove_unavailable('fast_safe', ['Fast', 'Safe'])
+
         self.initialize()
 
     def initialize(self):
@@ -56,15 +37,21 @@ class WinspecInstr(BaseInstrument):
         self._exposure_time = self.exposure_time
         self._accums = self.accumulations
         self._target_temp = self.target_temp
-        
+
     def finalize(self):
         """ Finalizes Winspec Controller. """
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
-    def remove_unavailable_options(self, settings_key, list):
-        
-        
+    def remove_unavailable(self, settings_key, default_options_list):
+        # remove items from options_list that don't occur in settings_list and replace with their index
+        if settings_key in self.settings:
+            for index, value in enumerate(default_options_list):
+                if value not in self.settings[settings_key]:
+                    default_options_list[index] = index
+        return default_options_list
+
+
 
     def idn(self):
         """
@@ -87,9 +74,9 @@ class WinspecInstr(BaseInstrument):
             time.sleep(0.02)
         frame = self.doc.GetFrame(1,self.controller._variant_array)
         return np.asarray(frame)
-        
+
         #self.doc.Set
-    
+
 
     # Hardware settings:   ---------------------------------------------------------------------------------------
 
@@ -97,35 +84,35 @@ class WinspecInstr(BaseInstrument):
     def current_temp(self):
         """
         read-only attribute: Temperature measured by Winspec in degrees Celcius.
-        
+
         getter: Returns the Temperature measued by Winspec.
         type: float
         """
         return self.controller.exp_get('ACTUAL_TEMP')[0]
-    
+
     @property
     def temp_locked(self):
         """
         read-only attribute: Temperature locked state measured by Winspec in degrees Celcius.
-        
+
         getter: Returns True is the Temperature is "locked"
         type: bool
         """
         return self.controller.exp_get('TEMP_STATUS')[0] == 1
-    
+
     @property
     def target_temp(self):
         """
         attribute: Detector target temperature in degrees Celcius.
-        
+
         getter: Returns Target Temperature set in Winspec
         setter: Attempts to updates Target Temperature in Winspec if required. Gives warning if failed.
         type: float
         """
         self._target_temp = self.controller.exp_get('TEMPERATURE')[0]
         return self._target_temp
-    
-    @target_temp.setter    
+
+    @target_temp.setter
     def target_temp(self, value):
         if value != self._target_temp:
             if self.controller.exp_set('TEMPERATURE', value):        # this line also sets the value in winspec
@@ -137,7 +124,7 @@ class WinspecInstr(BaseInstrument):
     def display_rotate(self):
         """
         attribute: Display Rotate.
-        
+
         getter: Returns if Display Rotation is set in Winspec.
         setter: Sets Display Rotation in Winspec.
         type: bool
@@ -147,12 +134,12 @@ class WinspecInstr(BaseInstrument):
     @display_rotate.setter
     def display_rotate(self, value):
         self.controller.exp_set('ROTATE', value!=0)     # the value!=0 converts it to a bool
-        
+
     @property
     def display_reverse(self):
         """
         attribute: Display Reverse (left-right)
-        
+
         getter: Returns if Display Reverse is set in Winspec.
         setter: Sets Display Reverse in Winspec.
         type: bool
@@ -167,7 +154,7 @@ class WinspecInstr(BaseInstrument):
     def display_flip(self):
         """
         attribute: Display Flip (up-down).
-        
+
         getter: Returns if Display Flip is set in Winspec.
         setter: Sets Display Flip in Winspec.
         type: bool
@@ -186,15 +173,15 @@ class WinspecInstr(BaseInstrument):
     def gain(self):
         """
         attribute: ADC Gain value. (Known allowed values: 1, 2)
-        
+
         getter: Returns Gain set in Winspec
         setter: Attempts to updates Gain setting in Winspec if required. Gives warning if failed.
         type: int
         """
         self._gain = self.controller.exp_get('GAIN')[0]
         return self._gain
-    
-    @gain.setter    
+
+    @gain.setter
     def gain(self, value):
         if value != self._gain:
             if self.controller.exp_set('GAIN', value):        # this line also sets the value in winspec
@@ -208,14 +195,14 @@ class WinspecInstr(BaseInstrument):
     def accumulations(self):
         """
         attribute: Number of Accumulations.
-        
+
         getter: Returns the Number of Accumulations set in Winspec
         setter: Attempts to updates the Number of Accumulations in Winspec if required. Gives warning if failed.
         type: int
         """
         self._accums = self.controller.exp_get('ACCUMS')[0]
         return self._accums
-    
+
     @accumulations.setter
     def accumulations(self, value):
         if value != self._accums:
@@ -228,7 +215,7 @@ class WinspecInstr(BaseInstrument):
     def exposure_time(self):
         """
         attribute: Exposure Time.
-        
+
         getter: Returns the Exposure Time set in Winspec
         setter: Attempts to updates the Exposure Time in Winspec if required. Gives warning if failed.
         type: Pint Quantity of unit time
@@ -239,7 +226,7 @@ class WinspecInstr(BaseInstrument):
         exp_value = self.controller.exp_get('EXPOSURETIME')[0]
         self._exposure_time = exp_value * exp_pint_unit
         return self._exposure_time
-        
+
     @exposure_time.setter
     def exposure_time(self, value):
         if type(value) is not type(Q_('s')):
@@ -249,7 +236,7 @@ class WinspecInstr(BaseInstrument):
         else:
             if value.m_as('us') < 1:                                                    # remove this if necessary
                 self.logger.warning('WinSpec will not accept exposuretime smaller than 1 us')
-            
+
             if value != self._exposure_time or value.m != self._exposure_time.m:
                 if value.units == 'microsecond':
                     exp_unit = 1
@@ -260,7 +247,7 @@ class WinspecInstr(BaseInstrument):
                 elif value.units == 'second':
                     exp_unit = 3
                     exp_value = value.m_as('second')
-                elif value.units == 'minute':    
+                elif value.units == 'minute':
                     exp_unit = 4
                     exp_value = value.m_as('minute')
                 elif value > 10*ur('minute'):
@@ -272,19 +259,19 @@ class WinspecInstr(BaseInstrument):
                 else:
                     exp_unit = 3
                     exp_value = value.m_as('second')
-        
+
                 self.controller.exp_set('EXPOSURETIME_UNITS',exp_unit)
                 self.controller.exp_set('EXPOSURETIME',exp_value)
-                
+
         if self.exposure_time != value:     # this line also makes sure self._exposuretime gets the real Winspec value
             self.logger.warning('attempted to set exposure time to {}, but Winspec is at {}'.format(value, self._exposure_time))
-            
+
     # Experiment / Data Correction settings: ----------------------------------
-            
+
     @property
     def bg_subtract(self):
         return self.controller.exp_get('BBACKSUBTRACT')[0] == 1     # turn it into bool
-        
+
     @bg_subtract.setter
     def bg_subtract(self, value):
         self.controller.exp_set('BBACKSUBTRACT',value!=0)       # !=0  forces it to be bool
@@ -292,67 +279,81 @@ class WinspecInstr(BaseInstrument):
     @property
     def bg_file(self):
         return self.controller.exp_get('DARKNAME')[0]
-        
+
     @bg_file.setter
     def bg_file(self, filename):
         # NOTE, this does not check if the file exists
         return self.controller.exp_set('DARKNAME', filename)
-        
+
 # Could repeat this for flatfield and blemish
 #        FLATFLDNAME
 #        BDOFLATFIELD
 #        BLEMISHFILENAME
 #        DOBLEMISH
-        
+
 
 # BGTYPE ??
 
     # Experiment / Timing settings: ----------------------------------
 
-    @property         
+    @property
     def delay_time_s(self):
         # Experiment / Timing / Delay Time in seconds
         return self.controller.exp_get('DELAY_TIME')[0]
 
-    @delay_time_s.setter         
+    @delay_time_s.setter
     def delay_time_s(self, seconds):
         # Experiment / Timing / Delay Time in seconds
         self.controller.exp_set('DELAY_TIME', seconds)
-    
-    
-    @property      
-    def timing_mode(self):
-        mode_number = self.controller.exp_get('TIMING_MODE')[0]
-        return self.timing_modes[mode_number]
-        
-    @timing_mode.setter      
-    def timing_mode(self, string):
-        # setter also allows the integer value
-        if type(string)==int:
-            timing_number = string
-        else:
-            if string not in self.timing_modes:
-                self.logger.warning('Unknown timing_mode. It should be 1 or 3 or {} or {}',format(self.timing_modes[1], self.timing_modes[3]))
-                return                
-            else:
-                timing_number = self.timing_modes.index(string)
-        self.controller.exp_set('TIMING_MODE', timing_number)
-                    
-            
-    
-    
-    def shutter_control():
-        SHUTTER_CONTROL
-        # 1 Normal
-        # 2 Disabled closed
-        # 3 Disabled opened
-        pass
-        
 
-        
-        
+    # helper function:
+    def setter_string_to_number(self, string, available_list):
+        # also allows for int and checks if it is in the available list as a string
+        if type(string)==int:
+            if type(available_list[string])!=int:
+                return string
+        elif string in available_list:
+            return available_list.index(string)
+        self.logger.warning("{} Is not a valid option in {}".format(string, available_list))
+        return -1  # use this to indicate invalid
+
+    @property
+    def timing_mode(self):
+        number = self.controller.exp_get('TIMING_MODE')[0]
+        return self._timing_modes[number]
+
+    @timing_mode.setter
+    def timing_mode(self, string):
+        number = self.setter_string_to_number(string, self._timing_modes)
+        if number>=0:
+            self.controller.exp_set('TIMING_MODE', number)
+
+    @property
+    def shutter_control(self):
+        number = self.controller.exp_get('SHUTTER_CONTROL')[0]
+        return self._shutter_controls[number]
+
+    @shutter_control.setter
+    def shutter_control(self, string):
+        number = self.setter_string_to_number(string, self._shutter_controls)
+        if number>=0:
+            self.controller.exp_set('SHUTTER_CONTROL', number)
+
+    @property
+    def fast_safe(self):
+        number = self.controller.exp_get('SYNC_ASYNC')[0]
+        return self._fast_safe[number]
+
+    @fast_safe.setter
+    def fast_safe(self, string):
+        number = self.setter_string_to_number(string, self._fast_safe)
+        if number>=0:
+            self.controller.exp_set('SYNC_ASYNC', number)
+
+
+# Could add
 #edge_trigger
-        
+
 
 
 #XDIM
@@ -389,10 +390,10 @@ if __name__ == "__main__":
 #   from hyperion import Q_
     import hyperion
 
-#    hyperion.set_logfile('winspec_instr.log')    
+#    hyperion.set_logfile('winspec_instr.log')
     hyperion.file_logger.setLevel( logging.WARNING )
     hyperion.stream_logger.setLevel( logging.DEBUG )
-    
+
 
 
 
@@ -411,9 +412,9 @@ if __name__ == "__main__":
 #            # print(dev.amplitude)
 #
 #    print('done')
-    
+
     ws = WinspecInstr(settings = {'port': 'None', 'dummy' : False,
-                                   'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'})
+                                   'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr', 'shutter_controls':['Disabled Closed','Disabled Opened']})
     # ws.initialize() # this is done in the __init__ now
 
     ws.exposure_time = Q_('300ms')
