@@ -36,6 +36,7 @@ import os
 import sys
 import numpy as np
 import logging
+from hyperion import root_dir
 
 
 class Anc350(BaseController):
@@ -56,6 +57,12 @@ class Anc350(BaseController):
         self.numconnected = []
         self.status = []
         self.logger.info('Class ANC350 init. Created object.')
+
+        self.max_dclevel_mV = 140000
+        self.max_amplitude_mV = 60000
+        self.max_frequency_Hz = 2000
+        self.actor_name = ['ANPx101-A3-1079.aps','ANPx101-A3-1087.aps','ANPz102-F8-393.aps']
+
 
     #----------------------------------------------------------------------------------------------------
     #Used methods both stepper and scanner
@@ -88,7 +95,7 @@ class Anc350(BaseController):
         'I am reaching the handle'
         try:
             ANC350lib.positionerConnect(0,ctypes.byref(self.handle)) #0 means "first device"
-            self.logger.info('connected to first position')
+            self.logger.info('connected to first (and only) attocube device')
         except Exception as e:
             self.logger.error('unable to connect!')
             raise e
@@ -132,20 +139,31 @@ class Anc350(BaseController):
         out['disconnected'] = (status & 8) == 8
         return out
 
-    def load(self, axis, filename):
+    def load(self, axis):
         """| Loads a parameter file for actor configuration.
         | *note: this requires a pointer to a char datatype.*
-        | **At this moment, this only works if the filename has only one letter, and it in the same folder as this controller**
-
-        | *(having no parameter file to test, I have no way of telling whether this will work, especially with the manual being as erroneous as it is. as such, use at your own (debugging) risk!)*
+        | the actor files are in this controller folder, their names are hard coded in the init
+        | *note: attocube called the up-down actor file ANPz, I called that axis YPiezo*
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
-
-        :param filename: name of actor configuration file, which needs to only one letter
-        :type filename: char
         """
-        ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
+        if axis < 3:
+            filename = self.actor_name[axis]
+
+            complete_filename = os.path.join(root_dir, 'controller', 'attocube', filename)
+
+            self.logger.debug('loading actor file: {}'.format(complete_filename))
+            filestring = complete_filename.encode('utf8')  # convert python string to bytes
+            filestring_pointer = ctypes.c_char_p(filestring)  # create c pointer to variable length char array
+            ANC350lib.positionerLoad(self.handle, ctypes.c_int(axis), filestring_pointer)
+
+            self.logger.debug('loading actor appears to have succeeded')
+        else:
+            self.logger.warning('you are trying to load an actor file for a Scanner, that doesnt need any')
+
+        # The old one letter version:
+        # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
 
         # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(bytearray(filename.encode()))))
 
@@ -183,7 +201,7 @@ class Anc350(BaseController):
         :param amp: amplitude to be set to the Stepper in mV, between 0 and 60V; needs to be an integer!
         :type amp: integer
         """
-        if 0 <= amp <= 60000:
+        if 0 <= amp <= self.max_amplitude_mV:
             ANC350lib.positionerAmplitude(self.handle,axis,amp)
         else:
             raise Exception('The required amplitude needs to be between 0V and 60V')
@@ -213,7 +231,7 @@ class Anc350(BaseController):
         :type freq: integer
         """
         self.logger.debug('putting the frequency in the controller level')
-        if 1 <= freq <= 2000:
+        if 1 <= freq <= self.max_frequency_Hz:
             ANC350lib.positionerFrequency(self.handle,axis,freq)
         else:
             raise Exception('The required frequency needs to be between 1Hz and 2kHz')
@@ -338,7 +356,7 @@ class Anc350(BaseController):
         :param dclev: DC level in mV; needs to be an integer!
         :type dclev: integer
         """
-        if 0 <= dclev <= 140000:
+        if 0 <= dclev <= self.max_dclevel_mV:
             ANC350lib.positionerDCLevel(self.handle, axis, dclev)
         else:
             raise Exception('The required voltage is between 0V - 140V')
@@ -718,7 +736,8 @@ class Anc350(BaseController):
         """
         ANC350lib.positionerTriggerPolarity(self.handle,triggerno,polarity)
 
-
+class Anc350Dummy(Anc350):
+    pass
 
 def bitmask(input_array):
     """
@@ -753,6 +772,7 @@ def debitmask(input_int,num_bits = False):
 
 if __name__ == "__main__":
     from hyperion import _logger_format
+    import hyperion
 
     import time
 
@@ -768,18 +788,14 @@ if __name__ == "__main__":
         #controlling the stepper
         #-------------------------------
 
-        #filename = 'C:\\Program Files\\Attocube positioners\\ANC350_GUI\\general_APS_files\\ANPx101res.aps'
-        filename = 'q'
-        anc.load(0, filename)
 
-        ax = {'x': 0, 'y': 1, 'z': 2}
-        # define a dict of axes to make things simpler
+        anc.load(0)
 
         # instantiate position as anc
         print('-------------------------------------------------------------')
         print('capacitances:')
-        for axis in sorted(ax.keys()):
-            print(axis, anc.capMeasure(ax[axis]))
+        for axis in range(2):
+            print(axis, anc.capMeasure(axis))
         print('-------------------------------------------------------------')
 
         print('setting Amplitude Control to StepWidth mode, which seems to be the close loop one')
@@ -795,7 +811,7 @@ if __name__ == "__main__":
 
         print('so the speed is ',anc.getSpeed(0),'nm/s')
 
-        print('axis is now at', anc.getPosition(ax['x']))
+        print('axis is now at', anc.getPosition(0))
 
 
 
@@ -838,7 +854,7 @@ if __name__ == "__main__":
         #
         print('-------------------------------------------------------------')
 
-        position = 1000000
+        position = -10000
 
         print('moving to a relative position, ...um back')
         startpos = anc.getPosition(0)
@@ -887,33 +903,23 @@ if __name__ == "__main__":
         # print('moving in fine positioning mode by putting 10V')
         # anc.dcLevel(0,10000)
         # print('put a DC level of ',anc.getDcLevel(0),'mV')
-        #
-        #
-        # #-------------------------------
-        # #controlling the scanner
-        # #-------------------------------
-        #
-        # # filename = 'q'
-        # # anc.load(0, filename)
-        #
-        #
-        # #you need to set the mode to INT
-        # #this means you can apply a voltage of 0-140V to the piezo
-        #
-        # print('-------------------------------------------------------------')
-        # print('now we start with the SCANNER')
-        # anc.intEnable(3,True)
-        # print('is the scanner on INT mode? ',anc.getIntEnable(3))
-        #
-        # #this one has only one way to make a step: put a voltage
-        #
-        # print('-------------------------------------------------------------')
-        # print('moving something by putting 50V')
-        # anc.dcLevel(3,10)
-        # print('put a DC level of ',anc.getDcLevel(3),'mV')
-        # print('no way of knowing when and if we ever arrive')
 
-        #but no idea how we know whether it arrived at its position
+        #you need to set the mode to INT
+        #this means you can apply a voltage of 0-140V to the piezo
+
+        print('-------------------------------------------------------------')
+        print('now we start with the SCANNER')
+        anc.intEnable(3,True)
+        print('is the scanner on INT mode? ',anc.getIntEnable(3))
+
+        #this one has only one way to make a step: put a voltage
+
+        print('-------------------------------------------------------------')
+        print('moving something by putting 50V')
+        anc.dcLevel(3,10)
+        print('put a DC level of ',anc.getDcLevel(3),'mV')
+        print('no way of knowing when and if we ever arrive')
+
 
 
 
