@@ -328,7 +328,8 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('average step size is ' + str(round(av_steps)*ur('nm')))
 
     def move_continuous(self, axis, direction):
-        pass
+        self.controller.moveContinuous(self.attocube_piezo_dict[axis]['axis'], direction)
+
 
 
 
@@ -395,13 +396,19 @@ if __name__ == "__main__":
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
         axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
         ampl = 60*ur('V')   #30V
-        freq = 1000*ur('Hz')    #Hz
+        freq = 100*ur('Hz')    #Hz
 
         q.configurate_stepper(axis,ampl,freq)
 
         #q.move_to(axis,5.1*ur('mm'))
 
-        q.move_relative(axis, 100 * ur('um'))
+        q.move_continuous(axis,1)
+        for ii in range(10):
+            time.sleep(0.1)
+            print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
+        q.stop_moving(axis)
+
+        #q.move_relative(axis, 100 * ur('um'))
 
         # direct = 0  #forward
         # steps = 10  #amount of steps
