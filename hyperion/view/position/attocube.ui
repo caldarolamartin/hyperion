@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>548</width>
-    <height>529</height>
+    <width>536</width>
+    <height>488</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -308,14 +308,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>left right</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_dcleftRight">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerX">
         <property name="suffix">
          <string>V</string>
         </property>
@@ -324,15 +317,15 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="pushButton_moveScannerX">
         <property name="text">
-         <string>up down</string>
+         <string>move scanner X</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_dcUpDown">
+      <item row="1" column="0">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerY">
         <property name="suffix">
          <string>V</string>
         </property>
@@ -341,10 +334,10 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QPushButton" name="pushButton_moveScanner">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButton_moveScannerY">
         <property name="text">
-         <string>move scanner</string>
+         <string>move scanner Y</string>
         </property>
        </widget>
       </item>

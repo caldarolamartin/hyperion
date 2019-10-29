@@ -331,8 +331,6 @@ class Anc350Instrument(BaseInstrument):
         self.controller.moveContinuous(self.attocube_piezo_dict[axis]['axis'], direction)
 
 
-
-
     def move_scanner(self, axis, voltage):
         """ | Moves the Scanner by applying a certain voltage
         | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V*
