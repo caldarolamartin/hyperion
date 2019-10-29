@@ -96,12 +96,13 @@ class Anc350Instrument(BaseInstrument):
 
             self.Amplitude[ax] = amplitude.m_as('V')   #remember that amplitude in V
 
+            ampl = self.controller.getAmplitude(ax) * ur('mV')
+            self.logger.info('amplitude is now ' + str(ampl.to('V')))
+
             step = self.controller.getStepwidth(ax)
             #huh, 0 makes no sense!!!!
             self.Stepwidth[ax] = step                   #remember the associated step width
 
-            ampl = self.controller.getAmplitude(ax) * ur('mV')
-            self.logger.info('amplitude is now ' + str(ampl.to('V')))
             self.logger.info('so the step width is ' + str(step * ur('nm')))
         else:
             self.logger.warning('The required amplitude needs to be between 0V and 60V')
@@ -315,19 +316,31 @@ class Anc350Instrument(BaseInstrument):
         Steps = []
         self.logger.info('moving ' + axis + ' by ' + str(amount) + ' steps of stepwidth '+ str(self.Stepwidth[self.attocube_piezo_dict[axis]['axis']]))
 
-        for ii in range(amount):
-            self.controller.moveSingleStep(self.attocube_piezo_dict[axis]['axis'],direction)
-            time.sleep(0.5)
-            position = self.controller.getPosition(self.attocube_piezo_dict[axis]['axis'])*ur('nm')
-            self.logger.info('step ' + str(ii) + ': we are now at ' + str(round(position.to('mm'),6)))
-            Steps.append(position.m_as('nm'))
+        if amount == 1:
+            self.controller.moveSingleStep(self.attocube_piezo_dict[axis]['axis'], direction)
 
-        Steps = np.asarray(Steps)
-        Stepsize = np.diff(Steps)
-        av_steps = np.mean(Stepsize)
-        self.logger.info('average step size is ' + str(round(av_steps)*ur('nm')))
+        else:
+            for ii in range(amount):
+                self.controller.moveSingleStep(self.attocube_piezo_dict[axis]['axis'],direction)
+                time.sleep(0.5)
+                position = self.controller.getPosition(self.attocube_piezo_dict[axis]['axis'])*ur('nm')
+                self.logger.info('step ' + str(ii) + ': we are now at ' + str(round(position.to('mm'),6)))
+                Steps.append(position.m_as('nm'))
+
+            Steps = np.asarray(Steps)
+            Stepsize = np.diff(Steps)
+            av_steps = np.mean(Stepsize)
+            self.logger.info('average step size is ' + str(round(av_steps)*ur('nm')))
 
     def move_continuous(self, axis, direction):
+        """Keeps moving the stepper axis untill you manage to stop it (for which you need threading)
+
+        :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
+        :type axis: string
+
+        :param direction: direction to move: forward = 0, backward = 1
+        :type direction: integer
+        """
         self.controller.moveContinuous(self.attocube_piezo_dict[axis]['axis'], direction)
 
 
@@ -352,19 +365,20 @@ class Anc350Instrument(BaseInstrument):
             # dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
 
             # while abs(dc.m_as('mV')-voltage.m_as('mV')) > 1:
-            t0 = time.time()
-            notreached = True
-            while time.time() - t0 < 3:
-                dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
-                if abs(dc.m_as('mV') - voltage.m_as('mV')) <= 1:
-                    notreached = False
-                    break
-                time.sleep(0.1)
-                #self.logger.debug('DC level' + str(round(dc.to('V'), 4)))
+            # t0 = time.time()
+            # notreached = True
+            # while time.time() - t0 < 3:
+            #     dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
+            #     if abs(dc.m_as('mV') - voltage.m_as('mV')) <= 1:
+            #         notreached = False
+            #         break
+            #     time.sleep(0.1)
+            #     #self.logger.debug('DC level' + str(round(dc.to('V'), 4)))
+            #
+            # if notreached:
+            #     self.logger.warning('time out for piezo movement')
 
-            if notreached:
-                self.logger.warning('time out for piezo movement')
-
+            dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
             self.logger.info('now the DC level is ' + str(round(dc.to('V'),4)))
         else:
             self.logger.warning('The required voltage is between 0V - 140V')
@@ -398,25 +412,27 @@ if __name__ == "__main__":
 
         q.configurate_stepper(axis,ampl,freq)
 
+
+
         #q.move_to(axis,5.1*ur('mm'))
 
-        q.move_continuous(axis,1)
-        for ii in range(10):
-            time.sleep(0.1)
-            print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
-        q.stop_moving(axis)
+        # q.move_continuous(axis,1)
+        # for ii in range(10):
+        #     time.sleep(0.1)
+        #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
+        # q.stop_moving(axis)
 
         #q.move_relative(axis, 100 * ur('um'))
 
-        # direct = 0  #forward
-        # steps = 10  #amount of steps
-        #
-        # q.given_step(axis,direct,steps)
+        direct = 0  #forward
+        steps = 1  #amount of steps
+
+        q.given_step(axis,direct,steps)
         #
         axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
 
         q.configurate_scanner(axis)
 
-        volts = 140*ur('V')
+        volts = 1*ur('V')
         q.move_scanner(axis,volts)
 
