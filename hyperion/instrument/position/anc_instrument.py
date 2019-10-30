@@ -294,8 +294,8 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('moving to a relative position, ' + str(step))
         self.controller.moveRelative(self.attocube_piezo_dict[axis]['axis'],int(step.m_as('nm')))
 
-        #[end,ismoved] = self.check_if_moving(axis, step + begin)
-
+        # [end,ismoved] = self.check_if_moving(axis, step + begin)
+        #
         # if ismoved:
         #     self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
         #     self.logger.info('has moved ' + str(round(begin - end, 6)))
@@ -407,7 +407,7 @@ if __name__ == "__main__":
 
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
         axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
-        ampl = 60*ur('V')   #30V
+        ampl = 30*ur('V')   #30V
         freq = 100*ur('Hz')    #Hz
 
         q.configurate_stepper(axis,ampl,freq)
@@ -422,12 +422,12 @@ if __name__ == "__main__":
         #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
         # q.stop_moving(axis)
 
-        #q.move_relative(axis, 100 * ur('um'))
+        q.move_relative(axis, -100 * ur('um'))
 
-        direct = 0  #forward
-        steps = 1  #amount of steps
-
-        q.given_step(axis,direct,steps)
+        # direct = 0  #forward
+        # steps = 1  #amount of steps
+        #
+        # q.given_step(axis,direct,steps)
         #
         axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
 

@@ -46,6 +46,7 @@ class Attocube_GUI(QWidget):
         self.max_amplitude_V = 60
         self.max_frequency = 2000
         self.max_dclevel_V = 140
+        self.max_distance = 5*ur('mm')
 
         self.current_positionX = round(self.anc350_instrument.controller.getPosition(0)*ur('nm').to('mm'),6)
         self.current_positionY = round(self.anc350_instrument.controller.getPosition(2)*ur('nm').to('mm'),6)
@@ -53,11 +54,11 @@ class Attocube_GUI(QWidget):
         self.current_axis = 'X,Y Piezo Stepper'
         self.current_move = 'continuous'
         self.direction = 'left'
+        self.distance = 0*ur('um')
 
-        self.stepper_settings = {'amplitude X': 30, 'amplitude Y': 40, 'amplitude Z': 30,
-                                       'frequency X': 100, 'frequency Y': 100, 'frequency Z': 100}
-
-        self.scanner_settings = {'dc X': 1, 'dc Y': 1, 'dc Z': 1}
+        self.stepper_settings = {'amplitudeX': 30, 'amplitudeY': 40, 'amplitudeZ': 30,
+                                       'frequencyX': 100, 'frequencyY': 100, 'frequencyZ': 100}
+        self.scanner_settings = {'dcX': 1, 'dcY': 1, 'dcZ': 1}
 
         self.initUI()
 
@@ -71,6 +72,9 @@ class Attocube_GUI(QWidget):
 
         self.show()
 
+        self.gui.groupBox_basic.setStyleSheet("QGroupBox {border: 1px solid blue;}")
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox {border: 1px solid blue;}")
+
         #combobox basic
         self.gui.comboBox_axis.setCurrentText(self.current_axis)
         self.gui.comboBox_axis.currentTextChanged.connect(self.get_axis)
@@ -83,28 +87,28 @@ class Attocube_GUI(QWidget):
         self.gui.label_actualPositionY.setText(str(self.current_positionY.to('mm')))
 
         #combobox configurate
-        self.gui.doubleSpinBox_amplitudeX.setValue(self.stepper_settings['amplitude X'])
-        self.gui.doubleSpinBox_frequencyX.setValue(self.stepper_settings['frequency X'])
+        self.gui.doubleSpinBox_amplitudeX.setValue(self.stepper_settings['amplitudeX'])
+        self.gui.doubleSpinBox_frequencyX.setValue(self.stepper_settings['frequencyX'])
 
-        self.gui.doubleSpinBox_amplitudeY.setValue(self.stepper_settings['amplitude Y'])
-        self.gui.doubleSpinBox_frequencyY.setValue(self.stepper_settings['frequency Y'])
+        self.gui.doubleSpinBox_amplitudeY.setValue(self.stepper_settings['amplitudeY'])
+        self.gui.doubleSpinBox_frequencyY.setValue(self.stepper_settings['frequencyY'])
 
         #self.gui.doubleSpinBox_amplitudeX.valueChanged.connect(self.set_value)
-        self.gui.doubleSpinBox_frequencyX.valueChanged.connect(lambda: self.set_frequency('frequency X'))
-        self.gui.doubleSpinBox_amplitudeX.valueChanged.connect(lambda: self.set_amplitude('amplitude X'))
+        self.gui.doubleSpinBox_frequencyX.valueChanged.connect(lambda: self.set_value('X','frequency'))
+        self.gui.doubleSpinBox_amplitudeX.valueChanged.connect(lambda: self.set_value('X','amplitude'))
 
-        self.gui.doubleSpinBox_amplitudeY.valueChanged.connect(lambda: self.set_amplitude('amplitude Y'))
-        self.gui.doubleSpinBox_frequencyY.valueChanged.connect(lambda: self.set_frequency('frequency Y'))
+        self.gui.doubleSpinBox_amplitudeY.valueChanged.connect(lambda: self.set_value('Y','amplitude'))
+        self.gui.doubleSpinBox_frequencyY.valueChanged.connect(lambda: self.set_value('Y','frequency'))
 
         self.gui.pushButton_configurateStepper.clicked.connect(self.configurate_stepper)
 
         #combobox movements of stepper
         self.gui.comboBox_kindOfMove.currentTextChanged.connect(self.get_move)
 
-        self.gui.doubleSpinBox_distance.setValue(0)
-        self.gui.doubleSpinBox_distance.valueChanged.connect(self.set_value)
-
-        self.gui.comboBox_unit.currentTextChanged.connect(self.set_value)
+        self.gui.comboBox_unit.setCurrentText('um')
+        self.gui.doubleSpinBox_distance.setValue(self.distance.m_as('um'))
+        self.gui.doubleSpinBox_distance.valueChanged.connect(self.set_distance)
+        self.gui.comboBox_unit.currentTextChanged.connect(self.set_distance)
 
         self.gui.pushButton_left.clicked.connect(lambda: self.move('left'))
         self.gui.pushButton_right.clicked.connect(lambda: self.move('right'))
@@ -112,11 +116,11 @@ class Attocube_GUI(QWidget):
         self.gui.pushButton_down.clicked.connect(lambda: self.move('down'))
 
         #combobox scanner
-        self.gui.doubleSpinBox_scannerX.setValue(self.scanner_settings['dc X'])
-        self.gui.doubleSpinBox_scannerY.setValue(self.scanner_settings['dc Y'])
+        self.gui.doubleSpinBox_scannerX.setValue(self.scanner_settings['dcX'])
+        self.gui.doubleSpinBox_scannerY.setValue(self.scanner_settings['dcY'])
 
-        self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_scanner('dc X'))
-        self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_scanner('dc Y'))
+        self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_value('X','dc'))
+        self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_value('Y','dc'))
 
         #self.gui.pushButton_moveScannerX.clicked.connect(lambda: self.move_scanner('dc X'))
         #self.gui.pushButton_moveScannerY.clicked.connect(lambda: self.move_scanner('dc Y'))
@@ -145,8 +149,14 @@ class Attocube_GUI(QWidget):
 
         if 'Stepper' in self.current_axis:
             self.gui.groupBox_scanner.setEnabled(False)
+            self.gui.groupBox_scanner.setStyleSheet("QGroupBox default")
+
             self.gui.groupBox_configurate.setEnabled(True)
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox {border: 1px solid blue;}")
+
             self.gui.groupBox_moving.setEnabled(False)
+            self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
+
             if 'Z' in self.current_axis:
                 self.gui.label_xposition.setText('Z position')
                 self.gui.label_actualPositionX.setText(str(self.current_positionZ))
@@ -194,95 +204,91 @@ class Attocube_GUI(QWidget):
             self.gui.groupBox_configurate.setEnabled(False)
             self.gui.groupBox_moving.setEnabled(False)
 
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
+            self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
+            self.gui.groupBox_scanner.setStyleSheet("QGroupBox {border: 1px solid blue;}")
+
             if 'Z' in self.current_axis:
                 self.gui.label_scannerY.setEnabled(False)
-                #self.gui.pushButton_moveScannerY.setEnabled(False)
                 self.gui.doubleSpinBox_scannerY.setEnabled(False)
                 self.gui.label_scannerX.setText('move scanner Z')
-                #self.gui.pushButton_moveScannerX.setText('move scanner Z')
             else:
                 self.gui.label_scannerY.setEnabled(True)
-                #self.gui.pushButton_moveScannerY.setEnabled(True)
                 self.gui.doubleSpinBox_scannerY.setEnabled(True)
-                #self.gui.pushButton_moveScannerX.setText('move scanner X')
                 self.gui.label_scannerX.setText('move scanner X')
 
-    def set_amplitude(self, axis):
-        """| Reads the amplitude that the user filled in
-        | Sets either the user input or the default amplitudes as in the dictionary
-        | If X and Y Stepper are selected, amplitudes are set separately
-        | The amplitude is saved in self.stepper_settings
 
-        :param axis: axis as they are called in the dictionary self.stepper_settings: amplitude X, amplitude Y, amplitude Z
+
+    def set_value(self, axis, value_type):
+        """| Reads the value that the user filled in: amplitude, frequency or dc level on scanner
+        | Sets either the user input or the default amplitudes/frequencies as in the dictionary
+        | The value is saved in self.scanner_settings or self.stepper_settings
+        | If X and Y Scanner are selected, values are set separately; with Z, there is only one spinbox to fill in
+        | Values from dictionary are used in configurate stepper, but only if the user clicks configurate
+        | If scanner values were changed, this method calls to moving of the the scanner as soon as the user clicks Enter
+        | axis and value_type are locally changed into the name as known in the dictionaries, like amplitudeX or dcZ
+
+        :param axis: axis X, Y, Z
         :type axis: string
+
+        :param value_type: amplitude, frequency or dc
+        :type value_type: string
         """
+        self.logger.info('changing a value')
 
-        self.logger.info('changing the amplitude')
         if 'Z' in self.current_axis:
-            axis = 'amplitude Z'
+            local_axis_name = value_type + 'Z'
+        else:
+            local_axis_name = value_type + axis
 
-        if self.sender().value() > self.max_amplitude_V:
-            self.sender().setValue(self.max_amplitude_V)
+        if value_type == 'amplitude':
+            self.logger.debug('changing the amplitude')
+            max_value = self.max_amplitude_V
+        elif value_type == 'frequency':
+            self.logger.debug('changing the frequency')
+            max_value = self.max_frequency
+        elif value_type == 'dc':
+            self.logger.debug('changing the dc level on scanner')
+            max_value = self.max_dclevel_V
+
+        if self.sender().value() > max_value:
+            self.sender().setValue(max_value)
         elif self.sender().value() < 0:
             self.sender().setValue(0)
 
         # Store the new value in the experiment:
-        self.stepper_settings[axis] = self.sender().value()
-        self.logger.debug('axis changed: ' + str(axis))
-        self.logger.debug('value put: '+str(self.stepper_settings[axis]))
+        print(local_axis_name)
+        self.stepper_settings[local_axis_name] = int(self.sender().value())
+        print(self.stepper_settings)
+        self.logger.debug('axis changed: ' + str(local_axis_name))
+        self.logger.debug('value put: ' + str(self.stepper_settings[local_axis_name]))
 
+        if value_type == 'dc':
+            self.move_scanner(local_axis_name)
 
-    def set_frequency(self, axis):
-        """| Reads the frequency that the user filled in
-        | Sets either the user input or the default amplitudes as in the dictionary
-        | If X and Y Stepper are selected, frequencies are set separately
-        | The frequency is saved in self.stepper_settings
-
-        :param axis: axis as they are called in the dictionary self.stepper_settings: frequency X, frequency Y, frequency Z
-        :type axis: string
+    def set_distance(self):
+        """| Works similar to set_value method, but now only for the distance spinBox and unit
+        | Combines value of spinbox with unit and checks against maximum value defined up
+        | Either applies the dictionary value of the distance, or changes that dictionary value and than applies it
         """
 
-        self.logger.info('changing the frequency')
-        if 'Z' in self.current_axis:
-            axis = 'frequency Z'
+        distance = self.gui.doubleSpinBox_distance.value()
+        unit = self.gui.comboBox_unit.currentText()
 
-        if self.sender().value() > self.max_frequency:
-            self.sender().setValue(self.max_frequency)
-        elif self.sender().value() < 0:
-            self.sender().setValue(0)
+        local_distance = ur(str(distance)+unit)
+        self.logger.debug('local distance value: ' + str(local_distance))
 
-        # Store the new value in the experiment:
-        self.stepper_settings[axis] = int(self.sender().value())
-        self.logger.debug('axis changed: ' + str(axis))
-        self.logger.debug('value put: '+str(self.stepper_settings[axis]))
+        if local_distance > self.max_distance:
+            self.logger.debug('value too high')
+            local_max = self.max_distance.to(unit)
+            print(local_max)
+            self.gui.doubleSpinBox_distance.setValue(local_max.m_as(unit))
+        elif local_distance < 0:
+            self.logger.debug('value too low')
+            self.gui.doubleSpinBox_distance.setValue(0)
 
-
-    def set_scanner(self, axis):
-        """| Reads the amplitude on the scanner that the user filled in
-        | Moves the scanner as soon as the user clicks Enter
-        | Sets either the user input or the default amplitudes as in the dictionary
-        | If X and Y Scanner are selected, amplitudes are set separately
-        | The scanner amplitude is saved in self.scanner_settings
-
-        :param axis: axis as they are called in the dictionary self.stepper_settings: dc X, dc Y, dc Z
-        :type axis: string
-        """
-
-        self.logger.info('changing the scanner amplitude level')
-        if 'Z' in self.current_axis:
-            axis = 'dc Z'
-
-        if self.sender().value() > self.max_dclevel_V:
-            self.sender().setValue(self.max_dclevel_V)
-        elif self.sender().value() < 0:
-            self.sender().setValue(0)
-
-        # Store the new value in the experiment:
-        self.scanner_settings[axis] = self.sender().value()
-        self.logger.debug('axis changed: ' + str(axis))
-        self.logger.debug('value put: '+str(self.scanner_settings[axis]))
-
-        self.move_scanner(axis)
+        self.distance = local_distance
+        self.logger.debug('dictionary distance changed to: ' + str(self.distance))
 
 
     def configurate_stepper(self):
@@ -291,27 +297,28 @@ class Attocube_GUI(QWidget):
         """
         self.logger.info('configurating stepper')
         if 'Z' in self.current_axis:
-            self.anc350_instrument.configurate_stepper('ZPiezoStepper', self.stepper_settings['amplitude Z']*ur('V'),self.stepper_settings['frequency Z']*ur('Hz'))
+            self.anc350_instrument.configurate_stepper('ZPiezoStepper', self.stepper_settings['amplitudeZ']*ur('V'),self.stepper_settings['frequencyZ']*ur('Hz'))
         else:
-            self.anc350_instrument.configurate_stepper('XPiezoStepper', self.stepper_settings['amplitude X']*ur('V'),self.stepper_settings['frequency X']*ur('Hz'))
-            self.anc350_instrument.configurate_stepper('YPiezoStepper', self.stepper_settings['amplitude Y'] * ur('V'), self.stepper_settings['frequency Y'] * ur('Hz'))
+            self.anc350_instrument.configurate_stepper('XPiezoStepper', self.stepper_settings['amplitudeX']*ur('V'),self.stepper_settings['frequencyX']*ur('Hz'))
+            self.anc350_instrument.configurate_stepper('YPiezoStepper', self.stepper_settings['amplitudeY'] * ur('V'), self.stepper_settings['frequencyY'] * ur('Hz'))
 
         self.gui.groupBox_moving.setEnabled(True)
-
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
+        self.gui.groupBox_moving.setObjectName("ColoredGroupBox")
+        self.gui.groupBox_moving.setStyleSheet("QGroupBox#ColoredGroupBox {border: 1px solid blue;}")
 
     def move_scanner(self, axis):
         """| Moves the scanner
-        | Is called by set_scanner, moves as soon as the user clicked Enter
+        | Is called by set_value, moves as soon as the user clicked Enter
 
-        :param axis: axis as they are called in the dictionary self.stepper_settings: dc X, dc Y, dc Z
+        :param axis: axis as they are called in the dictionary self.stepper_settings: dcX, dcY, dcZ
         :type axis: string
-
         """
         if 'Z' in self.current_axis:
-            axis = 'dc Z'
+            axis = 'dcZ'
 
         self.logger.info('moving the scanner ' + axis)
-        print(self.scanner_settings)
+        #self.logger.debug(self.scanner_settings)
         if 'Z' in axis:
             self.anc350_instrument.move_scanner('ZPiezoScanner',self.scanner_settings[axis]*ur('V'))
         elif 'X' in axis:
@@ -324,8 +331,8 @@ class Attocube_GUI(QWidget):
         | When continuous is selected, it gives you the speed in the selected axes
         | When step is selected, it gives you the stepsize of the selected axes
         | When move absolute or move relative are selected, the user can enter the desired position/distance
-
         """
+
         self.current_move = self.gui.comboBox_kindOfMove.currentText()
         self.logger.debug('current way of moving: ' + str(self.current_move))
 
@@ -381,44 +388,54 @@ class Attocube_GUI(QWidget):
         self.direction = direction
         self.logger.debug('current direction: ' + direction)
 
+        if 'Z' in self.current_axis:
+            axis_string = 'ZPiezoStepper'
+        else:
+            if self.direction == 'left' or self.direction == 'right':
+                axis_string = 'XPiezoStepper'
+            else:
+                axis_string = 'YPiezoStepper'
+
+
+
         if self.current_move == 'move absolute':
             distance = self.gui.doubleSpinBox_distance.value()
             unit = self.gui.comboBox_unit.currentText()
             print(distance, unit)
         elif self.current_move == 'move relative':
+            self.logger.info('moving relative')
             distance = self.gui.doubleSpinBox_distance.value()
             unit = self.gui.comboBox_unit.currentText()
-            print(distance, unit)
+            self.logger.debug('axis:' + axis_string)
+            self.logger.debug('direction: '+ direction)
+
+            if self.direction == 'left' or self.direction == 'down':
+                local_distance = ur(str(distance) + unit)
+                self.logger.debug(local_distance)
+            elif self.direction == 'right' or self.direction == 'up':
+                local_distance = ur(str(-1 * distance) + unit)
+                self.logger.debug(local_distance)
+
+            self.anc350_instrument.move_relative(axis_string, local_distance)
 
         elif self.current_move == 'continuous' or self.current_move == 'step':
-            if 'Z' in self.current_axis:
-                axis_string = 'ZPiezoStepper'
-                if self.direction == 'left':
-                    direction_int = 0       # correct direction, corresponds to labels closer and away
-                elif self.direction == 'right':
-                    direction_int = 1       # correct direction, corresponds to labels closer and away
-            else:
-                if self.direction == 'left':
-                    axis_string = 'XPiezoStepper'
-                    direction_int = 0
-                elif self.direction == 'right':
-                    axis_string = 'XPiezoStepper'
-                    direction_int = 1
-                elif self.direction == 'up':
-                    axis_string = 'YPiezoStepper'
-                    direction_int = 1
-                elif self.direction == 'down':
-                    axis_string = 'YPiezoStepper'
-                    direction_int = 0
+            if self.direction == 'left':
+                direction_int = 0       # correct direction, corresponds to labels closer and away
+            elif self.direction == 'right':
+                direction_int = 1       # correct direction, corresponds to labels closer and away
+            elif self.direction == 'up':
+                direction_int = 1
+            elif self.direction == 'down':
+                direction_int = 0
 
             if self.current_move == 'continuous':
-                self.logger.debug('moving for 1 s continuously')
+                self.logger.info('moving for 1 s continuously')
                 self.anc350_instrument.move_continuous(axis_string, direction_int)
                 time.sleep(1)
                 self.anc350_instrument.stop_moving(axis_string)
 
             elif self.current_move == 'step':
-                self.logger.debug('making a step')
+                self.logger.info('making a step')
                 self.anc350_instrument.given_step(axis_string, direction_int, 1)
 
 
@@ -433,8 +450,7 @@ class Attocube_GUI(QWidget):
         self.anc350_instrument.stop_moving('ZPiezoStepper')
 
 
-    def set_value(self):
-        pass
+
 
 
 

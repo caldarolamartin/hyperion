@@ -16,6 +16,43 @@
   <layout class="QGridLayout" name="gridLayout_5">
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox_basic">
+     <property name="palette">
+      <palette>
+       <active>
+        <colorrole role="Link">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>112</red>
+           <green>64</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </active>
+       <inactive>
+        <colorrole role="Link">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>112</red>
+           <green>64</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </inactive>
+       <disabled>
+        <colorrole role="Link">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>112</red>
+           <green>64</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </disabled>
+      </palette>
+     </property>
      <property name="title">
       <string/>
      </property>
@@ -218,6 +255,9 @@
          </item>
          <item>
           <widget class="QComboBox" name="comboBox_unit">
+           <property name="currentText">
+            <string>um</string>
+           </property>
            <item>
             <property name="text">
              <string>nm</string>
