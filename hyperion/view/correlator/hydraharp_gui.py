@@ -153,7 +153,10 @@ class Hydraharp_GUI(QWidget):
         #first, prepare the machine to take the histogram
         self.hydra_instrument.set_histogram(leng=int(self.array_length_textfield.text()),res = float(self.resolution_textfield.text()) *ur('ps'))
         tijd = ((self.integration_time_textfield.text()) * ur('s'))
-        self.make_progress_label(str(self.hydra_instrument.prepare_to_take_histogram(tijd)))
+        #self.make_progress_label(str(self.hydra_instrument.prepare_to_take_histogram(tijd)))
+
+        print(self.hydra_instrument.prepare_to_take_histogram(tijd))
+
         # needs count_channel( 1 or 2)
         self.histogram= self.hydra_instrument.make_histogram(self.channel_combobox.currentText())
         self.histogram= self.hydra_instrument.make_histogram(int(self.integration_time_textfield.text()) * ur('s'), int(self.channel_combobox.currentText()))

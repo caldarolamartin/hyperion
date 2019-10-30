@@ -146,6 +146,8 @@ class HydraInstrument(BaseInstrument):
         self.logger.debug('Start the histogram measurement')
 
         self.controller.start_measurement(tijd.m_as('s'))
+        print(self.wait_till_finished(tijd))
+
         return (self.wait_till_finished(tijd))
 
     def wait_till_finished(self, tijd):
@@ -168,7 +170,7 @@ class HydraInstrument(BaseInstrument):
             total_time_passed += t * ur('s')
             #this line returns a pint quantity which tells the user how much time the program needs before it can take the histogram
             self.logger.debug('time passed ' + str(total_time_passed))
-        return (tijd - total_time_passed,ended)
+        return (tijd - total_time_passed, ended)
 
     def stop_histogram(self):
         """| This method stops taking the histogram
