@@ -39,7 +39,7 @@ class Attocube_GUI(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        self.anc350_instrument.initialize_available_motors()
+        #self.anc350_instrument.initialize_available_motors()
         #self.anc350_instrument.list_devices()
 
         self.make_labels()
@@ -345,3 +345,4 @@ if __name__ == '__main__':
         app = QApplication(sys.argv)
         ex = Attocube_GUI(anc350_instrument)
         sys.exit(app.exec_())
+

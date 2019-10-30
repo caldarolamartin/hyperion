@@ -58,17 +58,14 @@ class Anc350Instrument(BaseInstrument):
         with open(filename, 'r') as f:
             self.attocube_piezo_dict = yaml.load(f, Loader=yaml.FullLoader)
 
-
         self.logger.info('Started the connection to the device and loaded the axis names yml file')
 
     def configurate_stepper(self, axis, amplitude, frequency):
         """ - Does the necessary configuration of the Stepper:
         - for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
-        - **loads the actor file, now it's the file called q**
-        - measures the capacitance of the Stepper; **not clear whether it is needed**
+        - loads the actor file, files are in controller folder, their names hardcoded in controller init
         - sets the amplitude and frequency
         - the amplitude influences the step width, the frequency influences the speed
-        - *for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2*
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -81,19 +78,18 @@ class Anc350Instrument(BaseInstrument):
         """
         ax = self.attocube_piezo_dict[axis]['axis']  # otherwise you keep typing this
 
-        self.logger.info('Loading Stepper actor file, measuring capacitances')
+        self.logger.info('Loading Stepper actor file, putting amplitude and frequency')
 
-        capacitance = self.controller.capMeasure(ax)*ur('mF')
-        capacitance = round(capacitance.to('F'),3)
-        self.logger.info(axis+': ' + str(capacitance))
+        # filename = 'q_test_long_name'
+        # path = os.path.join(root_dir, 'controller', 'attocube')
+        self.controller.load(ax)
 
-        #self.controller.load(axis,filename='q')
         self.controller.amplitudeControl(ax,2)
         self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
 
         print(type(amplitude.m_as('V')))
 
-        if 0 <= amplitude.m_as('V') <= 60:
+        if 0 <= amplitude.m_as('mV') <= self.controller.max_amplitude_mV:
             self.logger.debug('checking if the amplitude is okay')
 
             self.controller.amplitude(ax, int(amplitude.m_as('mV')))  # put the amplitude on the controller, it needs to be an int
@@ -111,7 +107,7 @@ class Anc350Instrument(BaseInstrument):
             self.logger.warning('The required amplitude needs to be between 0V and 60V')
             return
 
-        if 1 <= frequency.m_as('Hz') <= 2000:
+        if 1 <= frequency.m_as('Hz') <= self.controller.max_frequency_Hz:
             self.logger.debug('checking if the frequency is okay')
             self.logger.debug(str(frequency))
 
@@ -127,22 +123,25 @@ class Anc350Instrument(BaseInstrument):
             self.logger.warning('The required frequency needs to be between 1Hz and 2kHz')
             return
 
+    def capacitance(self,axis):
+        """Measures the capacitance of the stepper or scanner; no idea why you would want to do that
+
+        :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner, XPiezoStepper, etc.
+        :type axis: string
+        """
+        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis]['axis']) * ur('mF')
+        capacitance = round(capacitance.to('F'), 3)
+        self.logger.info(axis + ': ' + str(capacitance))
+
     def configurate_scanner(self,axis):
         """- Does the necessary configuration of the Scanner:
         - you need to set the mode to INT, not DC-IN
-        - loads the actor file
-        - measures the capacitance of the Scanner; **not clear whether it is needed**
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
 
         """
-        self.logger.info('Loading Scanner actor file, setting INT mode, measuring capacitances')
-
-        capacitance = self.controller.capMeasure(self.attocube_piezo_dict[axis]['axis'])*ur('mF')
-        capacitance = round(capacitance.to('F'),3)
-        self.logger.info(axis+': ' + str(capacitance))
-        # self.controller.load(axis,filename=default)
+        self.logger.info('Putting Scanner setting in INT mode')
 
         self.controller.intEnable(self.attocube_piezo_dict[axis]['axis'],True)
         self.logger.debug('is the scanner on INT mode? ' + str(self.controller.getIntEnable(self.attocube_piezo_dict[axis]['axis'])))
@@ -294,11 +293,11 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('moving to a relative position, ' + str(step))
         self.controller.moveRelative(self.attocube_piezo_dict[axis]['axis'],int(step.m_as('nm')))
 
-        [end,ismoved] = self.check_if_moving(axis,step+begin)
+        #[end,ismoved] = self.check_if_moving(axis, step + begin)
 
-        if ismoved:
-            self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
-            self.logger.info('has moved ' + str(round(begin - end, 6)))
+        # if ismoved:
+        #     self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
+        #     self.logger.info('has moved ' + str(round(begin - end, 6)))
 
     def given_step(self,axis,direction,amount):
         """| Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different
@@ -328,6 +327,11 @@ class Anc350Instrument(BaseInstrument):
         av_steps = np.mean(Stepsize)
         self.logger.info('average step size is ' + str(round(av_steps)*ur('nm')))
 
+    def move_continuous(self, axis, direction):
+        pass
+
+
+
     def move_scanner(self, axis, voltage):
         """ | Moves the Scanner by applying a certain voltage
         | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V*
@@ -340,7 +344,7 @@ class Anc350Instrument(BaseInstrument):
         :type voltage: pint quantity
         """
 
-        if 0 <= voltage.m_as('V') <= 140:
+        if 0 <= voltage.m_as('mV') <= self.controller.max_dclevel_mV:
             self.logger.info('moving '+ axis +' by putting ' + str(voltage))
             self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis]['axis'], voltage.m_as('mV')))
 
@@ -390,16 +394,14 @@ if __name__ == "__main__":
 
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
         axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
-        ampl = 40*ur('V')   #30V
+        ampl = 60*ur('V')   #30V
         freq = 1000*ur('Hz')    #Hz
-
-        #q.initialize_available_motors()
 
         q.configurate_stepper(axis,ampl,freq)
 
         #q.move_to(axis,5.1*ur('mm'))
 
-        q.move_relative(axis, 10 * ur('um'))
+        q.move_relative(axis, 100 * ur('um'))
 
         # direct = 0  #forward
         # steps = 10  #amount of steps
@@ -410,6 +412,6 @@ if __name__ == "__main__":
 
         q.configurate_scanner(axis)
 
-        volts = 10*ur('V')
+        volts = 140*ur('V')
         q.move_scanner(axis,volts)
 
