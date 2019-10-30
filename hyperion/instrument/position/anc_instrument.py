@@ -231,29 +231,29 @@ class Anc350Instrument(BaseInstrument):
             while self.controller.getStatus(ax)['moving']:
                 self.logger.debug('status of controller: '+str(self.controller.getStatus(ax)['moving']))
 
-                for ii in range(5):
-                    new_pos = self.controller.getPosition(ax)*ur('nm')
-                    self.logger.info(axis + 'moving, currently at ' + str(round(new_pos.to('mm'),6)))
-                    Position[ii]=new_pos.m_as('nm')
-                    self.logger.debug(Position)
-                    time.sleep(0.5)  # important not to put too short, otherwise it doesnt move in between comparing
-
-                current_pos = self.controller.getPosition(ax)*ur('nm')
-                average = np.mean(Position)
-                standard = np.std(Position)
-
-                self.logger.debug('current pos - average moved pos'+str(np.abs(current_pos.m_as('nm')-average)))
-                self.logger.debug('standard deviation'+str(standard))
-
-                if np.abs(current_pos.m_as('nm')-average) < standard/1.5:
-                    self.logger.warning('Stepper is not moving, check voltage and range')
-                    end = new_pos
-                    return (end, ismoved)
-                else:
-                    Position = np.zeros(5)
+                # for ii in range(5):
+                #     new_pos = self.controller.getPosition(ax)*ur('nm')
+                #     self.logger.info(axis + 'moving, currently at ' + str(round(new_pos.to('mm'),6)))
+                #     Position[ii]=new_pos.m_as('nm')
+                #     self.logger.debug(Position)
+                #     time.sleep(0.5)  # important not to put too short, otherwise it doesnt move in between comparing
+                #
+                # current_pos = self.controller.getPosition(ax)*ur('nm')
+                # average = np.mean(Position)
+                # standard = np.std(Position)
+                #
+                # self.logger.debug('current pos - average moved pos'+str(np.abs(current_pos.m_as('nm')-average)))
+                # self.logger.debug('standard deviation'+str(standard))
+                #
+                # if np.abs(current_pos.m_as('nm')-average) < standard/1.5:
+                #     self.logger.warning('Stepper is not moving, check voltage and range')
+                #     end = new_pos
+                #     return (end, ismoved)
+                # else:
+                #     Position = np.zeros(5)
 
             ismoved = True
-            end = current_pos
+            end = self.controller.getPosition(ax)*ur('nm')
             self.logger.debug('type of end is ' + str(type(end)))
             return (end, ismoved)
 
@@ -294,11 +294,11 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('moving to a relative position, ' + str(step))
         self.controller.moveRelative(self.attocube_piezo_dict[axis]['axis'],int(step.m_as('nm')))
 
-        # [end,ismoved] = self.check_if_moving(axis, step + begin)
-        #
-        # if ismoved:
-        #     self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
-        #     self.logger.info('has moved ' + str(round(begin - end, 6)))
+        [end,ismoved] = self.check_if_moving(axis, step + begin)
+
+        if ismoved:
+            self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
+            self.logger.info('has moved ' + str(round(begin - end, 6)))
 
     def given_step(self,axis,direction,amount):
         """| Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different
@@ -364,16 +364,16 @@ class Anc350Instrument(BaseInstrument):
             self.controller.dcLevel(self.attocube_piezo_dict[axis]['axis'], int(voltage.m_as('mV')))
 
             # dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
-
+            #
             # while abs(dc.m_as('mV')-voltage.m_as('mV')) > 1:
-            # t0 = time.time()
-            # notreached = True
-            # while time.time() - t0 < 3:
-            #     dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
-            #     if abs(dc.m_as('mV') - voltage.m_as('mV')) <= 1:
-            #         notreached = False
-            #         break
-            #     time.sleep(0.1)
+            #     t0 = time.time()
+            #     notreached = True
+            #     while time.time() - t0 < 3:
+            #         dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
+            #         if abs(dc.m_as('mV') - voltage.m_as('mV')) <= 1:
+            #             notreached = False
+            #             break
+            #         time.sleep(0.1)
             #     #self.logger.debug('DC level' + str(round(dc.to('V'), 4)))
             #
             # if notreached:
