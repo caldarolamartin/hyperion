@@ -56,9 +56,9 @@ class Attocube_GUI(QWidget):
         self.direction = 'left'
         self.distance = 0*ur('um')
 
-        self.stepper_settings = {'amplitudeX': 30, 'amplitudeY': 40, 'amplitudeZ': 30,
-                                       'frequencyX': 100, 'frequencyY': 100, 'frequencyZ': 100}
-        self.scanner_settings = {'dcX': 1, 'dcY': 1, 'dcZ': 1}
+        self.settings = {'amplitudeX': 30, 'amplitudeY': 40, 'amplitudeZ': 30,
+                                       'frequencyX': 100, 'frequencyY': 100, 'frequencyZ': 100, 'dcX': 1, 'dcY': 1, 'dcZ': 1}
+        #self.scanner_settings = {}
 
         self.initUI()
 
@@ -75,7 +75,8 @@ class Attocube_GUI(QWidget):
         self.gui.groupBox_basic.setObjectName("Colored_basic")
         self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 1px solid blue;}")
 
-        self.gui.groupBox_configurate.setStyleSheet("QGroupBox {border: 1px solid blue;}")
+        self.gui.groupBox_configurate.setObjectName("Colored_configure")
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
 
         #combobox basic
         self.gui.comboBox_axis.setCurrentText(self.current_axis)
@@ -90,24 +91,36 @@ class Attocube_GUI(QWidget):
         self.gui.label_actualPositionZ.setText(str(self.current_positionZ))
 
         self.pushButton_stop.setStyleSheet("background-color: red")
+        self.gui.groupBox_XY.setEnabled(True)
+        self.gui.groupBox_Z.setEnabled(False)
+
 
         #combobox configurate
-        self.gui.doubleSpinBox_amplitudeX.setValue(self.stepper_settings['amplitudeX'])
-        self.gui.doubleSpinBox_frequencyX.setValue(self.stepper_settings['frequencyX'])
+        self.gui.doubleSpinBox_amplitudeX.setValue(self.settings['amplitudeX'])
+        self.gui.doubleSpinBox_frequencyX.setValue(self.settings['frequencyX'])
 
-        self.gui.doubleSpinBox_amplitudeY.setValue(self.stepper_settings['amplitudeY'])
-        self.gui.doubleSpinBox_frequencyY.setValue(self.stepper_settings['frequencyY'])
+        self.gui.doubleSpinBox_amplitudeY.setValue(self.settings['amplitudeY'])
+        self.gui.doubleSpinBox_frequencyY.setValue(self.settings['frequencyY'])
 
-        #self.gui.doubleSpinBox_amplitudeX.valueChanged.connect(self.set_value)
+        self.gui.doubleSpinBox_amplitudeZ.setValue(self.settings['amplitudeZ'])
+        self.gui.doubleSpinBox_frequencyZ.setValue(self.settings['frequencyZ'])
+
+        # self.gui.groupBox_amplZ.setEnabled(False)
+        # self.gui.groupBox_amplXY.setEnabled(True)
+
         self.gui.doubleSpinBox_frequencyX.valueChanged.connect(lambda: self.set_value('X','frequency'))
         self.gui.doubleSpinBox_amplitudeX.valueChanged.connect(lambda: self.set_value('X','amplitude'))
 
         self.gui.doubleSpinBox_amplitudeY.valueChanged.connect(lambda: self.set_value('Y','amplitude'))
         self.gui.doubleSpinBox_frequencyY.valueChanged.connect(lambda: self.set_value('Y','frequency'))
 
+        self.gui.doubleSpinBox_amplitudeY.valueChanged.connect(lambda: self.set_value('Z','amplitude'))
+        self.gui.doubleSpinBox_frequencyY.valueChanged.connect(lambda: self.set_value('Z','frequency'))
+
         self.gui.pushButton_configurateStepper.clicked.connect(self.configurate_stepper)
 
         #combobox movements of stepper
+        self.gui.comboBox_kindOfMove.setCurrentText(self.current_move)
         self.gui.comboBox_kindOfMove.currentTextChanged.connect(self.get_move)
 
         self.gui.comboBox_unit.setCurrentText('um')
@@ -120,12 +133,25 @@ class Attocube_GUI(QWidget):
         self.gui.pushButton_up.clicked.connect(lambda: self.move('up'))
         self.gui.pushButton_down.clicked.connect(lambda: self.move('down'))
 
-        #combobox scanner
-        self.gui.doubleSpinBox_scannerX.setValue(self.scanner_settings['dcX'])
-        self.gui.doubleSpinBox_scannerY.setValue(self.scanner_settings['dcY'])
+        # self.gui.label_speed_stepX.setText('speed X')
+        # self.gui.label_speed_stepY.setText('speed Y')
+        #
+        # self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Speed[0] * ur('nm/s').to('um/s')))
+        # self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Speed[2] * ur('nm/s').to('um/s')))
+        # self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Speed[1] * ur('nm/s').to('um/s')))
+
+        # self.gui.groupBox_infoXY.setEnabled(True)
+        # self.gui.groupBox_infoZ.setEnabled(False)
+        # self.gui.groupBox_distance.setEnabled(False)
+
+    #combobox scanner
+        self.gui.doubleSpinBox_scannerX.setValue(self.settings['dcX'])
+        self.gui.doubleSpinBox_scannerY.setValue(self.settings['dcY'])
+        self.gui.doubleSpinBox_scannerZ.setValue(self.settings['dcZ'])
 
         self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_value('X','dc'))
         self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_value('Y','dc'))
+        self.gui.doubleSpinBox_scannerZ.valueChanged.connect(lambda: self.set_value('Z','dc'))
 
     def show_position(self, axis):
         pass
@@ -149,7 +175,7 @@ class Attocube_GUI(QWidget):
             self.gui.groupBox_scanner.setStyleSheet("QGroupBox default")
 
             self.gui.groupBox_configurate.setEnabled(True)
-            self.gui.groupBox_configurate.setStyleSheet("QGroupBox {border: 1px solid blue;}")
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
 
             self.gui.groupBox_moving.setEnabled(False)
             self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
@@ -162,21 +188,25 @@ class Attocube_GUI(QWidget):
                 self.gui.groupBox_XY.setEnabled(False)
                 self.gui.groupBox_Z.setEnabled(True)
 
-                self.gui.label_amplitudeX.setText('Amplitude Z')
-                self.gui.label_frequencyX.setText('Frequency Z')
-                self.gui.label_amplitudeY.setEnabled(False)
-                self.gui.doubleSpinBox_amplitudeY.setEnabled(False)
-                self.gui.label_frequencyY.setEnabled(False)
-                self.gui.doubleSpinBox_frequencyY.setEnabled(False)
+                self.gui.groupBox_amplZ.setEnabled(True)
+                self.gui.groupBox_amplXY.setEnabled(False)
+                # self.gui.label_amplitudeX.setText('Amplitude Z')
+                # self.gui.label_frequencyX.setText('Frequency Z')
+                # self.gui.label_amplitudeY.setEnabled(False)
+                # self.gui.doubleSpinBox_amplitudeY.setEnabled(False)
+                # self.gui.label_frequencyY.setEnabled(False)
+                # self.gui.doubleSpinBox_frequencyY.setEnabled(False)
 
                 self.gui.pushButton_up.setEnabled(False)
                 self.gui.pushButton_down.setEnabled(False)
                 self.gui.pushButton_left.setText('closer')
                 self.gui.pushButton_right.setText('away')
 
-                self.gui.label_speed_stepX.setText('speed Z')
-                self.gui.label_speed_stepY.setEnabled(False)
-                self.gui.label_speedsize_stepsizeY.setEnabled(False)
+                self.gui.groupBox_infoXY.setEnabled(False)
+                self.gui.groupBox_infoZ.setEnabled(True)
+                # self.gui.label_speed_stepX.setText('speed Z')
+                # self.gui.label_speed_stepY.setEnabled(False)
+                # self.gui.label_speedsize_stepsizeY.setEnabled(False)
 
             else:
                 # self.gui.label_xposition.setText('X position')
@@ -186,21 +216,26 @@ class Attocube_GUI(QWidget):
                 self.gui.groupBox_XY.setEnabled(True)
                 self.gui.groupBox_Z.setEnabled(False)
 
-                self.gui.label_amplitudeX.setText('Amplitude X')
-                self.gui.label_frequencyX.setText('Frequency X')
-                self.gui.label_amplitudeY.setEnabled(True)
-                self.gui.doubleSpinBox_amplitudeY.setEnabled(True)
-                self.gui.label_frequencyY.setEnabled(True)
-                self.gui.doubleSpinBox_frequencyY.setEnabled(True)
+                self.gui.groupBox_amplZ.setEnabled(False)
+                self.gui.groupBox_amplXY.setEnabled(True)
+
+                # self.gui.label_amplitudeX.setText('Amplitude X')
+                # self.gui.label_frequencyX.setText('Frequency X')
+                # self.gui.label_amplitudeY.setEnabled(True)
+                # self.gui.doubleSpinBox_amplitudeY.setEnabled(True)
+                # self.gui.label_frequencyY.setEnabled(True)
+                # self.gui.doubleSpinBox_frequencyY.setEnabled(True)
 
                 self.gui.pushButton_up.setEnabled(True)
                 self.gui.pushButton_down.setEnabled(True)
                 self.gui.pushButton_left.setText('left')
                 self.gui.pushButton_right.setText('right')
 
-                self.gui.label_speed_stepX.setText('speed X')
-                self.gui.label_speed_stepY.setEnabled(True)
-                self.gui.label_speedsize_stepsizeY.setEnabled(True)
+                # self.gui.label_speed_stepX.setText('speed X')
+                # self.gui.label_speed_stepY.setEnabled(True)
+                # self.gui.label_speedsize_stepsizeY.setEnabled(True)
+                self.gui.groupBox_infoXY.setEnabled(True)
+                self.gui.groupBox_infoZ.setEnabled(False)
 
         elif 'Scanner' in self.current_axis:
             self.gui.groupBox_scanner.setEnabled(True)
@@ -209,23 +244,28 @@ class Attocube_GUI(QWidget):
 
             self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
             self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
-            self.gui.groupBox_scanner.setStyleSheet("QGroupBox {border: 1px solid blue;}")
+
+            self.gui.groupBox_scanner.setObjectName("Colored_scanner")
+            self.gui.groupBox_scanner.setStyleSheet("QGroupBox#Colored_scanner {border: 1px solid blue;}")
 
             if 'Z' in self.current_axis:
-                self.gui.label_scannerY.setEnabled(False)
-                self.gui.doubleSpinBox_scannerY.setEnabled(False)
-                self.gui.label_scannerX.setText('move scanner Z')
+                self.gui.groupBox_scanXY.setEnabled(False)
+                self.gui.groupBox_scanZ.setEnabled(True)
+                # self.gui.label_scannerY.setEnabled(False)
+                # self.gui.doubleSpinBox_scannerY.setEnabled(False)
+                # self.gui.label_scannerX.setText('move scanner Z')
             else:
-                self.gui.label_scannerY.setEnabled(True)
-                self.gui.doubleSpinBox_scannerY.setEnabled(True)
-                self.gui.label_scannerX.setText('move scanner X')
-
+                # self.gui.label_scannerY.setEnabled(True)
+                # self.gui.doubleSpinBox_scannerY.setEnabled(True)
+                # self.gui.label_scannerX.setText('move scanner X')
+                self.gui.groupBox_scanXY.setEnabled(True)
+                self.gui.groupBox_scanZ.setEnabled(False)
 
 
     def set_value(self, axis, value_type):
         """| Reads the value that the user filled in: amplitude, frequency or dc level on scanner
         | Sets either the user input or the default amplitudes/frequencies as in the dictionary
-        | The value is saved in self.scanner_settings or self.stepper_settings
+        | The value is saved in self.settings
         | If X and Y Scanner are selected, values are set separately; with Z, there is only one spinbox to fill in
         | Values from dictionary are used in configurate stepper, but only if the user clicks configurate
         | If scanner values were changed, this method calls to moving of the the scanner as soon as the user clicks Enter
@@ -239,10 +279,7 @@ class Attocube_GUI(QWidget):
         """
         self.logger.info('changing a value')
 
-        if 'Z' in self.current_axis:
-            local_axis_name = value_type + 'Z'
-        else:
-            local_axis_name = value_type + axis
+        local_axis_name = value_type + axis
 
         if value_type == 'amplitude':
             self.logger.debug('changing the amplitude')
@@ -260,11 +297,11 @@ class Attocube_GUI(QWidget):
             self.sender().setValue(0)
 
         # Store the new value in the experiment:
-        print(local_axis_name)
-        self.stepper_settings[local_axis_name] = int(self.sender().value())
-        print(self.stepper_settings)
+        self.logger.debug(local_axis_name)
+        self.settings[local_axis_name] = int(self.sender().value())
+        self.logger.debug(self.settings)
         self.logger.debug('axis changed: ' + str(local_axis_name))
-        self.logger.debug('value put: ' + str(self.stepper_settings[local_axis_name]))
+        self.logger.debug('value put: ' + str(self.settings[local_axis_name]))
 
         if value_type == 'dc':
             self.move_scanner(local_axis_name)
@@ -300,15 +337,17 @@ class Attocube_GUI(QWidget):
         """
         self.logger.info('configurating stepper')
         if 'Z' in self.current_axis:
-            self.anc350_instrument.configurate_stepper('ZPiezoStepper', self.stepper_settings['amplitudeZ']*ur('V'),self.stepper_settings['frequencyZ']*ur('Hz'))
+            self.anc350_instrument.configurate_stepper('ZPiezoStepper', self.settings['amplitudeZ'] * ur('V'), self.settings['frequencyZ'] * ur('Hz'))
         else:
-            self.anc350_instrument.configurate_stepper('XPiezoStepper', self.stepper_settings['amplitudeX']*ur('V'),self.stepper_settings['frequencyX']*ur('Hz'))
-            self.anc350_instrument.configurate_stepper('YPiezoStepper', self.stepper_settings['amplitudeY'] * ur('V'), self.stepper_settings['frequencyY'] * ur('Hz'))
+            self.anc350_instrument.configurate_stepper('XPiezoStepper', self.settings['amplitudeX'] * ur('V'), self.settings['frequencyX'] * ur('Hz'))
+            self.anc350_instrument.configurate_stepper('YPiezoStepper', self.settings['amplitudeY'] * ur('V'), self.settings['frequencyY'] * ur('Hz'))
 
         self.gui.groupBox_moving.setEnabled(True)
-        self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
         self.gui.groupBox_moving.setObjectName("ColoredGroupBox")
         self.gui.groupBox_moving.setStyleSheet("QGroupBox#ColoredGroupBox {border: 1px solid blue;}")
+
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
+
 
     def move_scanner(self, axis):
         """| Moves the scanner
@@ -317,17 +356,14 @@ class Attocube_GUI(QWidget):
         :param axis: axis as they are called in the dictionary self.stepper_settings: dcX, dcY, dcZ
         :type axis: string
         """
-        if 'Z' in self.current_axis:
-            axis = 'dcZ'
-
         self.logger.info('moving the scanner ' + axis)
-        #self.logger.debug(self.scanner_settings)
+        self.logger.debug(self.settings)
         if 'Z' in axis:
-            self.anc350_instrument.move_scanner('ZPiezoScanner',self.scanner_settings[axis]*ur('V'))
+            self.anc350_instrument.move_scanner('ZPiezoScanner',self.settings[axis]*ur('V'))
         elif 'X' in axis:
-            self.anc350_instrument.move_scanner('XPiezoScanner', self.scanner_settings[axis] * ur('V'))
+            self.anc350_instrument.move_scanner('XPiezoScanner', self.settings[axis] * ur('V'))
         elif 'Y' in axis:
-            self.anc350_instrument.move_scanner('YPiezoScanner', self.scanner_settings[axis] * ur('V'))
+            self.anc350_instrument.move_scanner('YPiezoScanner', self.settings[axis] * ur('V'))
 
     def get_move(self):
         """| Similar to the get_axis, the box with all the moves has lots of options that get disabled or enabled
@@ -339,41 +375,67 @@ class Attocube_GUI(QWidget):
         self.current_move = self.gui.comboBox_kindOfMove.currentText()
         self.logger.debug('current way of moving: ' + str(self.current_move))
 
+        if 'absolute' in self.current_move:
+            self.gui.pushButton_left.setEnabled(False)
+            self.gui.pushButton_up.setEnabled(False)
+            self.gui.pushButton_down.setEnabled(False)
+            self.gui.pushButton_right.setText('move')
+        else:
+            if 'Z' in self.current_axis:
+                self.gui.pushButton_left.setEnabled(True)
+                self.gui.pushButton_up.setEnabled(False)
+                self.gui.pushButton_down.setEnabled(False)
+                self.gui.pushButton_right.setText('right')
+            else:
+                self.gui.pushButton_left.setEnabled(True)
+                self.gui.pushButton_up.setEnabled(True)
+                self.gui.pushButton_down.setEnabled(True)
+                self.gui.pushButton_right.setText('right')
+
         if self.current_move == 'move relative':
             self.gui.label_sortMove.setText('to relative distance')
-            self.gui.groupBox_info.setEnabled(False)
+            self.gui.groupBox_infoXY.setEnabled(False)
+            self.gui.groupBox_infoZ.setEnabled(False)
             self.gui.groupBox_distance.setEnabled(True)
+
         elif self.current_move == 'move absolute':
             self.gui.label_sortMove.setText('to absolute position')
-            self.gui.groupBox_info.setEnabled(False)
+            self.gui.groupBox_infoXY.setEnabled(False)
+            self.gui.groupBox_infoZ.setEnabled(False)
             self.gui.groupBox_distance.setEnabled(True)
 
         elif self.current_move == 'continuous':
             if 'Z' in self.current_axis:
-                self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Speed[1] * ur('nm/s').to('um/s')))
-
+                self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Speed[1] * ur('nm/s').to('um/s')))
+                self.gui.groupBox_infoXY.setEnabled(False)
+                self.gui.groupBox_infoZ.setEnabled(True)
             else:
                 self.gui.label_speed_stepX.setText('speed X')
                 self.gui.label_speed_stepY.setText('speed Y')
 
                 self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Speed[0]*ur('nm/s').to('um/s')))
                 self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Speed[2] * ur('nm/s').to('um/s')))
+                self.gui.groupBox_infoXY.setEnabled(True)
+                self.gui.groupBox_infoZ.setEnabled(False)
 
-            self.gui.groupBox_info.setEnabled(True)
             self.gui.groupBox_distance.setEnabled(False)
 
         elif self.current_move == 'step':
+
             if 'Z' in self.current_axis:
-                self.gui.label_speed_stepX.setText('step size Z')
+                self.gui.label_speed_stepZ.setText('step size Z')
                 print(type(str(self.anc350_instrument.Stepwidth[1]*ur('nm'))))
-                self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Stepwidth[1]*ur('nm')))
+                self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Stepwidth[1]*ur('nm')))
+                self.gui.groupBox_infoXY.setEnabled(False)
+                self.gui.groupBox_infoZ.setEnabled(True)
             else:
                 self.gui.label_speed_stepX.setText('step size X')
                 self.gui.label_speed_stepY.setText('step size Y')
                 self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Stepwidth[0] * ur('nm')))
                 self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Stepwidth[2] * ur('nm')))
+                self.gui.groupBox_infoXY.setEnabled(True)
+                self.gui.groupBox_infoZ.setEnabled(False)
 
-            self.gui.groupBox_info.setEnabled(True)
             self.gui.groupBox_distance.setEnabled(False)
 
 
@@ -400,9 +462,12 @@ class Attocube_GUI(QWidget):
                 axis_string = 'YPiezoStepper'
 
         if self.current_move == 'move absolute':
+            
             distance = self.gui.doubleSpinBox_distance.value()
             unit = self.gui.comboBox_unit.currentText()
             print(distance, unit)
+
+
 
         elif self.current_move == 'move relative':
             self.logger.info('moving relative')
@@ -411,24 +476,30 @@ class Attocube_GUI(QWidget):
             self.logger.debug('axis:' + axis_string)
             self.logger.debug('direction: '+ direction)
 
-            if self.direction == 'left' or self.direction == 'down':
+            if self.direction == 'right' or self.direction == 'up':
                 local_distance = ur(str(distance) + unit)
-                self.logger.debug(local_distance)
-            elif self.direction == 'right' or self.direction == 'up':
+                self.logger.debug(str(local_distance))
+            elif self.direction == 'left' or self.direction == 'down':
                 local_distance = ur(str(-1 * distance) + unit)
-                self.logger.debug(local_distance)
+                self.logger.debug(str(local_distance))
 
             self.anc350_instrument.move_relative(axis_string, local_distance)
 
         elif self.current_move == 'continuous' or self.current_move == 'step':
             if self.direction == 'left':
-                direction_int = 0       # correct direction, corresponds to labels closer and away
+                if 'Z' in self.current_axis:
+                    direction_int = 0       # correct direction, corresponds to labels closer and away
+                else:
+                    direction_int = 1
             elif self.direction == 'right':
-                direction_int = 1       # correct direction, corresponds to labels closer and away
+                if 'Z' in self.current_axis:
+                    direction_int = 1       # correct direction, corresponds to labels closer and away
+                else:
+                    direction_int = 0
             elif self.direction == 'up':
-                direction_int = 1
-            elif self.direction == 'down':
                 direction_int = 0
+            elif self.direction == 'down':
+                direction_int = 1
 
             if self.current_move == 'continuous':
                 self.logger.info('moving for 1 s continuously')
@@ -450,9 +521,6 @@ class Attocube_GUI(QWidget):
         self.anc350_instrument.stop_moving('XPiezoStepper')
         self.anc350_instrument.stop_moving('YPiezoStepper')
         self.anc350_instrument.stop_moving('ZPiezoStepper')
-
-
-
 
 
 
