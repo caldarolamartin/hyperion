@@ -317,6 +317,7 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('moving ' + axis + ' by ' + str(amount) + ' steps of stepwidth '+ str(self.Stepwidth[self.attocube_piezo_dict[axis]['axis']]))
 
         if amount == 1:
+            self.logger.debug('You are just making 1 step')
             self.controller.moveSingleStep(self.attocube_piezo_dict[axis]['axis'], direction)
 
         else:

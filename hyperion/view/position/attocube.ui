@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>599</width>
-    <height>664</height>
+    <height>708</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,8 +56,8 @@
      <property name="title">
       <string/>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
        <widget class="QComboBox" name="comboBox_axis">
         <item>
          <property name="text">
@@ -81,35 +81,67 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_xposition">
-        <property name="text">
-         <string>X position</string>
+      <item>
+       <widget class="QGroupBox" name="groupBox_XY">
+        <property name="title">
+         <string/>
         </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_xposition">
+           <property name="text">
+            <string>X position</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_actualPositionX">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_yposition">
+           <property name="text">
+            <string>Y position</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_actualPositionY">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_actualPositionX">
-        <property name="text">
-         <string>...</string>
+      <item>
+       <widget class="QGroupBox" name="groupBox_Z">
+        <property name="title">
+         <string/>
         </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="label_zposition">
+           <property name="text">
+            <string>Z position</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_actualPositionZ">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_yposition">
-        <property name="text">
-         <string>Y position</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="label_actualPositionY">
-        <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
+      <item>
        <widget class="QPushButton" name="pushButton_stop">
         <property name="text">
          <string>STOP</string>
@@ -124,83 +156,173 @@
      <property name="title">
       <string/>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_amplitudeX">
-        <property name="text">
-         <string>Amplitude X</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeX">
-        <property name="suffix">
-         <string>V</string>
-        </property>
-        <property name="maximum">
-         <double>999999999999.989990234375000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_amplitudeY">
-        <property name="text">
-         <string>Amplitude Y</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeY">
-        <property name="suffix">
-         <string>V</string>
-        </property>
-        <property name="maximum">
-         <double>999999999999.989990234375000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_frequencyX">
-        <property name="text">
-         <string>Frequency X</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyX">
-        <property name="suffix">
-         <string>Hz</string>
-        </property>
-        <property name="maximum">
-         <double>9999999999.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_frequencyY">
-        <property name="text">
-         <string>Frequency Y</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyY">
-        <property name="suffix">
-         <string>Hz</string>
-        </property>
-        <property name="maximum">
-         <double>9999999999.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="2">
-       <widget class="QPushButton" name="pushButton_configurateStepper">
-        <property name="text">
-         <string>configurate Stepper</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <widget class="QPushButton" name="pushButton_configurateStepper">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>390</y>
+        <width>104</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>configurate Stepper</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_amplXY">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>205</width>
+        <height>118</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_amplitudeX">
+         <property name="text">
+          <string>Amplitude X</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeX">
+         <property name="suffix">
+          <string>V</string>
+         </property>
+         <property name="maximum">
+          <double>999999999999.989990234375000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_frequencyX">
+         <property name="text">
+          <string>Frequency X</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyX">
+         <property name="suffix">
+          <string>Hz</string>
+         </property>
+         <property name="maximum">
+          <double>9999999999.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_amplitudeY">
+         <property name="text">
+          <string>Amplitude Y</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeY">
+         <property name="suffix">
+          <string>V</string>
+         </property>
+         <property name="maximum">
+          <double>999999999999.989990234375000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_frequencyY">
+         <property name="text">
+          <string>Frequency Y</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyY">
+         <property name="suffix">
+          <string>Hz</string>
+         </property>
+         <property name="maximum">
+          <double>9999999999.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_amplZ">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>230</y>
+        <width>411</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyY_3">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>70</y>
+         <width>113</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="suffix">
+        <string>Hz</string>
+       </property>
+       <property name="maximum">
+        <double>9999999999.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeY_3">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>20</y>
+         <width>119</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="suffix">
+        <string>V</string>
+       </property>
+       <property name="maximum">
+        <double>999999999999.989990234375000</double>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_frequencyY_3">
+       <property name="geometry">
+        <rect>
+         <x>25</x>
+         <y>70</y>
+         <width>60</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Frequency Y</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_amplitudeY_3">
+       <property name="geometry">
+        <rect>
+         <x>25</x>
+         <y>20</y>
+         <width>56</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Amplitude Y</string>
+       </property>
+      </widget>
+     </widget>
     </widget>
    </item>
    <item row="1" column="0">

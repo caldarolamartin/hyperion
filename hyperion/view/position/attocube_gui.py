@@ -72,7 +72,9 @@ class Attocube_GUI(QWidget):
 
         self.show()
 
-        self.gui.groupBox_basic.setStyleSheet("QGroupBox {border: 1px solid blue;}")
+        self.gui.groupBox_basic.setObjectName("Colored_basic")
+        self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 1px solid blue;}")
+
         self.gui.groupBox_configurate.setStyleSheet("QGroupBox {border: 1px solid blue;}")
 
         #combobox basic
@@ -84,7 +86,10 @@ class Attocube_GUI(QWidget):
         self.gui.groupBox_scanner.setEnabled(False)
 
         self.gui.label_actualPositionX.setText(str(self.current_positionX))
-        self.gui.label_actualPositionY.setText(str(self.current_positionY.to('mm')))
+        self.gui.label_actualPositionY.setText(str(self.current_positionY))
+        self.gui.label_actualPositionZ.setText(str(self.current_positionZ))
+
+        self.pushButton_stop.setStyleSheet("background-color: red")
 
         #combobox configurate
         self.gui.doubleSpinBox_amplitudeX.setValue(self.stepper_settings['amplitudeX'])
@@ -122,14 +127,6 @@ class Attocube_GUI(QWidget):
         self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_value('X','dc'))
         self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_value('Y','dc'))
 
-        #self.gui.pushButton_moveScannerX.clicked.connect(lambda: self.move_scanner('dc X'))
-        #self.gui.pushButton_moveScannerY.clicked.connect(lambda: self.move_scanner('dc Y'))
-
-    # def update_gui(self):
-    #     self.update_actual_position_label()
-    #     self.enable_or_disable_scanner_piezo_widgets()
-
-
     def show_position(self, axis):
         pass
 
@@ -158,9 +155,12 @@ class Attocube_GUI(QWidget):
             self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
 
             if 'Z' in self.current_axis:
-                self.gui.label_xposition.setText('Z position')
-                self.gui.label_actualPositionX.setText(str(self.current_positionZ))
-                self.gui.label_yposition.setEnabled(False)
+                # self.gui.label_xposition.setText('Z position')
+                # self.gui.label_actualPositionX.setText(str(self.current_positionZ))
+                # self.gui.label_yposition.setEnabled(False)
+                # self.gui.label_xposition.setEnabled(False)
+                self.gui.groupBox_XY.setEnabled(False)
+                self.gui.groupBox_Z.setEnabled(True)
 
                 self.gui.label_amplitudeX.setText('Amplitude Z')
                 self.gui.label_frequencyX.setText('Frequency Z')
@@ -179,9 +179,12 @@ class Attocube_GUI(QWidget):
                 self.gui.label_speedsize_stepsizeY.setEnabled(False)
 
             else:
-                self.gui.label_xposition.setText('X position')
-                self.gui.label_actualPositionX.setText(str(self.current_positionX))
-                self.gui.label_yposition.setEnabled(True)
+                # self.gui.label_xposition.setText('X position')
+                # self.gui.label_actualPositionX.setText(str(self.current_positionX))
+                # self.gui.label_yposition.setEnabled(True)
+                # self.gui.label_xposition.setEnabled(True)
+                self.gui.groupBox_XY.setEnabled(True)
+                self.gui.groupBox_Z.setEnabled(False)
 
                 self.gui.label_amplitudeX.setText('Amplitude X')
                 self.gui.label_frequencyX.setText('Frequency X')
@@ -396,12 +399,11 @@ class Attocube_GUI(QWidget):
             else:
                 axis_string = 'YPiezoStepper'
 
-
-
         if self.current_move == 'move absolute':
             distance = self.gui.doubleSpinBox_distance.value()
             unit = self.gui.comboBox_unit.currentText()
             print(distance, unit)
+
         elif self.current_move == 'move relative':
             self.logger.info('moving relative')
             distance = self.gui.doubleSpinBox_distance.value()
