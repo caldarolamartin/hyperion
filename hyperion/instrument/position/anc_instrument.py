@@ -60,7 +60,7 @@ class Anc350Instrument(BaseInstrument):
 
         self.logger.info('Started the connection to the device and loaded the axis names yml file')
 
-    def configurate_stepper(self, axis, amplitude, frequency):
+    def configure_stepper(self, axis, amplitude, frequency):
         """ - Does the necessary configuration of the Stepper:
         - for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
         - loads the actor file, files are in controller folder, their names hardcoded in controller init
@@ -134,7 +134,7 @@ class Anc350Instrument(BaseInstrument):
         capacitance = round(capacitance.to('F'), 3)
         self.logger.info(axis + ': ' + str(capacitance))
 
-    def configurate_scanner(self,axis):
+    def configure_scanner(self, axis):
         """- Does the necessary configuration of the Scanner:
         - you need to set the mode to INT, not DC-IN
 
@@ -411,7 +411,7 @@ if __name__ == "__main__":
         ampl = 30*ur('V')   #30V
         freq = 100*ur('Hz')    #Hz
 
-        q.configurate_stepper(axis,ampl,freq)
+        q.configure_stepper(axis, ampl, freq)
 
 
 
@@ -432,7 +432,7 @@ if __name__ == "__main__":
         #
         axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
 
-        q.configurate_scanner(axis)
+        q.configure_scanner(axis)
 
         volts = 1*ur('V')
         q.move_scanner(axis,volts)
