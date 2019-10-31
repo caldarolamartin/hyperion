@@ -114,7 +114,7 @@ class Attocube_GUI(QWidget):
         self.gui.doubleSpinBox_amplitudeY.valueChanged.connect(lambda: self.set_value('Z','amplitude'))
         self.gui.doubleSpinBox_frequencyY.valueChanged.connect(lambda: self.set_value('Z','frequency'))
 
-        self.gui.pushButton_configurateStepper.clicked.connect(self.configurate_stepper)
+        self.gui.pushButton_configurateStepper.clicked.connect(self.configure_stepper)
 
         #combobox movements of stepper
         self.gui.comboBox_kindOfMove.setCurrentText(self.current_move)
@@ -300,16 +300,16 @@ class Attocube_GUI(QWidget):
         self.logger.debug('dictionary distance changed to: ' + str(self.distance))
 
 
-    def configurate_stepper(self):
+    def configure_stepper(self):
         """| Configurates the stepper, using the amplitude and frequency that had been set in set_frequency and set_amplitude
         | After configuration, the box with all the different moves is enabled
         """
         self.logger.info('configurating stepper')
         if 'Z' in self.current_axis:
-            self.anc350_instrument.configurate_stepper('ZPiezoStepper', self.settings['amplitudeZ'] * ur('V'), self.settings['frequencyZ'] * ur('Hz'))
+            self.anc350_instrument.configure_stepper('ZPiezoStepper', self.settings['amplitudeZ'] * ur('V'), self.settings['frequencyZ'] * ur('Hz'))
         else:
-            self.anc350_instrument.configurate_stepper('XPiezoStepper', self.settings['amplitudeX'] * ur('V'), self.settings['frequencyX'] * ur('Hz'))
-            self.anc350_instrument.configurate_stepper('YPiezoStepper', self.settings['amplitudeY'] * ur('V'), self.settings['frequencyY'] * ur('Hz'))
+            self.anc350_instrument.configure_stepper('XPiezoStepper', self.settings['amplitudeX'] * ur('V'), self.settings['frequencyX'] * ur('Hz'))
+            self.anc350_instrument.configure_stepper('YPiezoStepper', self.settings['amplitudeY'] * ur('V'), self.settings['frequencyY'] * ur('Hz'))
 
         self.gui.groupBox_moving.setEnabled(True)
         self.gui.groupBox_moving.setObjectName("ColoredGroupBox")

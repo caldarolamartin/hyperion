@@ -317,7 +317,7 @@ class Attocube_GUI_old(QWidget):
         axis = self.scanner_piezo_combobox.currentText()  # the current stepper
         amplitude = float(self.amplitude_textfield.text()) * ur('V')       #this needs to be a float
         frequency = int(self.frequency_textfield.text()) * ur('Hz')         #this needs to be an int, otherwise things break
-        self.anc350_instrument.configurate_stepper(axis, amplitude, frequency)
+        self.anc350_instrument.configure_stepper(axis, amplitude, frequency)
         self.update_actual_position_label()
 
     def configurate_current_scanner(self):
@@ -325,7 +325,7 @@ class Attocube_GUI_old(QWidget):
         Configurate the current scanner to perfection
         """
         axis = self.scanner_piezo_combobox.currentText()  # the current scanner
-        self.anc350_instrument.configurate_scanner(axis)
+        self.anc350_instrument.configure_scanner(axis)
 
     def stop_moving(self):
         """Stops moving to target/relative/reference position
