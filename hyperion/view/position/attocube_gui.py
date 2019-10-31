@@ -1,337 +1,510 @@
 """
-============
+===================
 Attocube GUI
-============
+===================
 
 This is to build a gui for the instrument piezo motor attocube.
 
 
 """
-import sys
+import sys, os
 import logging
+import time
 from hyperion import ur
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QComboBox, QGridLayout, QLabel, QLineEdit
+from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication, QWidget
 from hyperion.instrument.position.anc_instrument import Anc350Instrument
-import numpy as np
 
 class Attocube_GUI(QWidget):
     """
-    Attocube motor GUI for the instrument
-
+    Attocube piezo GUI for the instrument
 
     :param anc350_instrument: class for the instrument to control.
     :type anc350_instrument: instance of the instrument class
 
     """
     def __init__(self, anc350_instrument):
+        """Attocube
+        """
+
         super().__init__()
-        self.title = 'attocube gui'
+        self.logger = logging.getLogger(__name__)
+        self.title = 'Attocube GUI'
         self.left = 50
         self.top = 50
         self.width = 500
         self.height = 250
-        self.grid_layout = QGridLayout()
-        self.setLayout(self.grid_layout)
         self.anc350_instrument = anc350_instrument
+
+        name = 'attocube.ui'
+        gui_folder = os.path.dirname(os.path.abspath(__file__))
+        gui_file = os.path.join(gui_folder, name)
+        self.logger.info('Loading the GUI file: {}'.format(gui_file))
+        self.gui = uic.loadUi(gui_file, self)
+
+        self.max_amplitude_V = 60
+        self.max_frequency = 2000
+        self.max_dclevel_V = 140
+        self.max_distance = 5*ur('mm')
+
+        self.current_positionX = round(self.anc350_instrument.controller.getPosition(0)*ur('nm').to('mm'),6)
+        self.current_positionY = round(self.anc350_instrument.controller.getPosition(2)*ur('nm').to('mm'),6)
+        self.current_positionZ = round(self.anc350_instrument.controller.getPosition(1)*ur('nm').to('mm'),6)
+        self.current_axis = 'X,Y Piezo Stepper'
+        self.current_move = 'continuous'
+        self.direction = 'left'
+        self.distance = 0*ur('um')
+
+        self.settings = {'amplitudeX': 30, 'amplitudeY': 40, 'amplitudeZ': 30,
+                                       'frequencyX': 100, 'frequencyY': 100, 'frequencyZ': 100, 'dcX': 1, 'dcY': 1, 'dcZ': 1}
+
         self.initUI()
 
+
     def initUI(self):
+        """Connect all buttons, comboBoxes and doubleSpinBoxes to methods
+        """
+        self.logger.debug('Setting up the Measurement GUI')
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        #self.anc350_instrument.initialize_available_motors()
-        #self.anc350_instrument.list_devices()
-
-        self.make_labels()
-        self.make_textfields()
-        self.make_buttons()
-        self.make_misc_gui_stuff()
-        self.enable_or_disable_scanner_piezo_widgets()
-
         self.show()
 
-    def make_labels(self):
-        self.make_move_to_absolute_position_label()
-        self.make_move_to_relative_position_label()
-        self.make_piezo_scanner_position_label()
-        self.make_single_step_forward_label()
-        self.make_single_step_backward_label()
-        self.make_move_scanner_label()
-        self.make_actual_position_label()
-        self.make_step_amount_label()
-        self.make_amplitude_label()
-        self.make_frequency_label()
+        self.gui.groupBox_basic.setObjectName("Colored_basic")
+        self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 1px solid blue;}")
 
-    def make_textfields(self):
-        self.make_move_to_absolute_position_textfield()
-        self.make_move_to_relative_position_textfield()
-        self.make_move_scanner_textfield()
-        self.make_amplitude_textfield()
-        self.make_frequency_textfield()
-        self.make_step_amount_textfield()
+        self.gui.groupBox_configurate.setObjectName("Colored_configure")
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
 
-    def make_buttons(self):
-        self.make_move_to_absolute_position_button()
-        self.make_move_to_relative_position_button()
-        self.make_step_position_forward_button()
-        self.make_step_position_backward_button()
-        self.make_move_scanner_button()
-        self.make_move_scanner_button()
-        self.make_configurate_stepper_button()
-        self.make_configurate_scanner_button()
-        self.make_stop_button()
+        #combobox basic
+        self.gui.comboBox_axis.setCurrentText(self.current_axis)
+        self.gui.comboBox_axis.currentTextChanged.connect(self.get_axis)
+        self.gui.pushButton_stop.clicked.connect(self.stop_moving)
 
-    def make_misc_gui_stuff(self):
-        self.make_scanner_piezo_combobox()
+        self.gui.groupBox_moving.setEnabled(False)
+        self.gui.groupBox_scanner.setEnabled(False)
 
-#Making text labels
-    def make_piezo_scanner_position_label(self):
-        self.piezo_scanner_postion_label = QLabel(self)
-        self.piezo_scanner_postion_label.setText("Postion: ")
-        self.grid_layout.addWidget(self.piezo_scanner_postion_label, 0, 0)
-    def make_move_to_absolute_position_label(self):
-        self.move_to_absolute_position_label = QLabel(self)
-        self.move_to_absolute_position_label.setText("Move to\nabsolute position in nm: ")
-        self.grid_layout.addWidget(self.move_to_absolute_position_label, 1, 0)
-    def make_move_to_relative_position_label(self):
-        self.move_to_relative_position_label = QLabel(self)
-        self.move_to_relative_position_label.setText("Move to\nrelative position in nm: ")
-        self.grid_layout.addWidget(self.move_to_relative_position_label, 2, 0)
-    def make_single_step_forward_label(self):
-        self.pos_single_step_forward_label = QLabel(self)
-        self.pos_single_step_forward_label.setText("Move single step\nleft: ")
-        self.grid_layout.addWidget(self.pos_single_step_forward_label, 3, 0)
-    def make_single_step_backward_label(self):
-        self.pos_single_step_backward_label = QLabel(self)
-        self.pos_single_step_backward_label.setText("Move single step\nright: ")
-        self.grid_layout.addWidget(self.pos_single_step_backward_label, 4, 0)
-    def make_move_scanner_label(self):
-        self.move_scanner_label = QLabel(self)
-        self.move_scanner_label.setText("Move scanner in mV\nbetween 0 and 140000 mV: ")
-        self.grid_layout.addWidget(self.move_scanner_label, 5, 2)
-    def make_actual_position_label(self):
-        self.actual_position_label = QLabel(self)
-        self.actual_position_label.setText("currently\nunavailable")
-        self.grid_layout.addWidget(self.actual_position_label, 0, 1)
-    def make_step_amount_label(self):
-        self.step_amount_label = QLabel(self)
-        self.step_amount_label.setText("amount of steps:")
-        self.grid_layout.addWidget(self.step_amount_label, 5, 0)
-    def make_amplitude_label(self):
-        self.amplitude_label = QLabel(self)
-        self.amplitude_label.setText("Amplitude:\n1V to 60V")
-        self.grid_layout.addWidget(self.amplitude_label, 0, 3)
-    def make_frequency_label(self):
-        self.frequency_label = QLabel(self)
-        self.frequency_label.setText("Frequency:\n1Hz to 2kHz")
-        self.grid_layout.addWidget(self.frequency_label, 1, 3)
+        self.gui.label_actualPositionX.setText(str(self.current_positionX))
+        self.gui.label_actualPositionY.setText(str(self.current_positionY))
+        self.gui.label_actualPositionZ.setText(str(self.current_positionZ))
 
-#making textfields for the user to fill in
-    def make_move_to_absolute_position_textfield(self):
-        self.move_to_absolute_position_textfield = QLineEdit(self)
-        self.move_to_absolute_position_textfield.setText("0")
-        self.grid_layout.addWidget(self.move_to_absolute_position_textfield, 1, 1)
+        self.pushButton_stop.setStyleSheet("background-color: red")
+        self.gui.groupBox_XY.setEnabled(True)
+        self.gui.groupBox_Z.setEnabled(False)
 
-    def make_move_to_relative_position_textfield(self):
-        self.move_to_relative_position_textfield = QLineEdit(self)
-        self.move_to_relative_position_textfield.setText("0")
-        self.grid_layout.addWidget(self.move_to_relative_position_textfield, 2, 1)
+        #combobox configurate
+        self.gui.doubleSpinBox_amplitudeX.setValue(self.settings['amplitudeX'])
+        self.gui.doubleSpinBox_frequencyX.setValue(self.settings['frequencyX'])
 
-    def make_move_scanner_textfield(self):
-        self.move_scanner_textfield = QLineEdit(self)
-        self.move_scanner_textfield.setText("1000")
-        self.grid_layout.addWidget(self.move_scanner_textfield, 5, 3)
+        self.gui.doubleSpinBox_amplitudeY.setValue(self.settings['amplitudeY'])
+        self.gui.doubleSpinBox_frequencyY.setValue(self.settings['frequencyY'])
 
-    def make_amplitude_textfield(self):
-        self.amplitude_textfield = QLineEdit(self)
-        self.amplitude_textfield.setText("30")
-        self.grid_layout.addWidget(self.amplitude_textfield, 0, 4)
+        self.gui.doubleSpinBox_amplitudeZ.setValue(self.settings['amplitudeZ'])
+        self.gui.doubleSpinBox_frequencyZ.setValue(self.settings['frequencyZ'])
 
-    def make_frequency_textfield(self):
-        self.frequency_textfield = QLineEdit(self)
-        self.frequency_textfield.setText("1000")
-        self.grid_layout.addWidget(self.frequency_textfield, 1, 4)
+        # self.gui.groupBox_amplZ.setEnabled(False)
+        # self.gui.groupBox_amplXY.setEnabled(True)
 
-    def make_step_amount_textfield(self):
-        self.step_amount_textfield = QLineEdit(self)
-        self.step_amount_textfield.setText("1")
-        self.grid_layout.addWidget(self.step_amount_textfield, 5, 1)
+        self.gui.doubleSpinBox_frequencyX.valueChanged.connect(lambda: self.set_value('X','frequency'))
+        self.gui.doubleSpinBox_amplitudeX.valueChanged.connect(lambda: self.set_value('X','amplitude'))
 
-#making buttons for the user to click on
-    def make_move_to_absolute_position_button(self):
-        self.move_to_absolute_position_button = QPushButton("absolute position", self)
-        self.move_to_absolute_position_button.setToolTip("move to the absolute position")
-        self.move_to_absolute_position_button.clicked.connect(self.move_absolute_position)
-        self.grid_layout.addWidget(self.move_to_absolute_position_button, 1, 2)
+        self.gui.doubleSpinBox_amplitudeY.valueChanged.connect(lambda: self.set_value('Y','amplitude'))
+        self.gui.doubleSpinBox_frequencyY.valueChanged.connect(lambda: self.set_value('Y','frequency'))
 
-    def make_move_to_relative_position_button(self):
-        self.move_to_relative_position_button = QPushButton("relative position", self)
-        self.move_to_relative_position_button.setToolTip("move to the relative position")
-        self.move_to_relative_position_button.clicked.connect(self.move_relative_position)
-        self.grid_layout.addWidget(self.move_to_relative_position_button, 2, 2)
+        self.gui.doubleSpinBox_amplitudeY.valueChanged.connect(lambda: self.set_value('Z','amplitude'))
+        self.gui.doubleSpinBox_frequencyY.valueChanged.connect(lambda: self.set_value('Z','frequency'))
 
-    def make_step_position_forward_button(self):
-        self.step_position_forward_button = QPushButton("step left", self)
-        self.step_position_forward_button.setToolTip("move a single step to the left")
-        self.step_position_forward_button.clicked.connect(self.go_single_step_forward)
-        self.grid_layout.addWidget(self.step_position_forward_button, 3, 1)
+        self.gui.pushButton_configurateStepper.clicked.connect(self.configure_stepper)
 
-    def make_step_position_backward_button(self):
-        self.step_position_backward_button = QPushButton("step right", self)
-        self.step_position_backward_button.setToolTip("move a single step to the right")
-        self.step_position_backward_button.clicked.connect(self.go_single_step_backward)
-        self.grid_layout.addWidget(self.step_position_backward_button, 4, 1)
+        #combobox movements of stepper
+        self.gui.comboBox_kindOfMove.setCurrentText(self.current_move)
+        self.gui.comboBox_kindOfMove.currentTextChanged.connect(self.get_move)
 
-    def make_move_scanner_button(self):
-        self.move_scanner_button = QPushButton("move scanner", self)
-        self.move_scanner_button.setToolTip("Move the scanner as specified in the textfield(which you do, not I)")
-        self.move_scanner_button.clicked.connect(self.move_scanner)
-        self.grid_layout.addWidget(self.move_scanner_button, 5, 4)
+        self.gui.comboBox_unit.setCurrentText('um')
+        self.gui.doubleSpinBox_distance.setValue(self.distance.m_as('um'))
+        self.gui.doubleSpinBox_distance.valueChanged.connect(self.set_distance)
+        self.gui.comboBox_unit.currentTextChanged.connect(self.set_distance)
 
-    def make_configurate_stepper_button(self):
-        self.configurate_stepper_button = QPushButton("configurate stepper", self)
-        self.configurate_stepper_button.setToolTip("In order to configurate the stepper\nthe frequency and amplitude are also needed")
-        self.configurate_stepper_button.clicked.connect(self.configurate_current_stepper)
-        self.grid_layout.addWidget(self.configurate_stepper_button, 2, 4)
+        self.gui.pushButton_left.clicked.connect(lambda: self.move('left'))
+        self.gui.pushButton_right.clicked.connect(lambda: self.move('right'))
+        self.gui.pushButton_up.clicked.connect(lambda: self.move('up'))
+        self.gui.pushButton_down.clicked.connect(lambda: self.move('down'))
 
-    def make_configurate_scanner_button(self):
-        self.configurate_scanner_button = QPushButton("configurate scanner", self)
-        self.configurate_scanner_button.setToolTip("In order to configurate the scanner")
-        self.configurate_scanner_button.clicked.connect(self.configurate_current_scanner)
-        self.grid_layout.addWidget(self.configurate_scanner_button, 4, 4)
+        # self.gui.label_speed_stepX.setText('speed X')
+        # self.gui.label_speed_stepY.setText('speed Y')
+        #
+        # self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Speed[0] * ur('nm/s').to('um/s')))
+        # self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Speed[2] * ur('nm/s').to('um/s')))
+        # self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Speed[1] * ur('nm/s').to('um/s')))
 
-    def make_stop_button(self):
-        self.stop_button = QPushButton("stop moving", self)
-        self.stop_button.setStyleSheet("background-color: red")
-        self.stop_button.setToolTip("to stop all movements")
-        self.stop_button.clicked.connect(self.stop_moving)
-        self.grid_layout.addWidget(self.stop_button, 3, 3)
+        # self.gui.groupBox_infoXY.setEnabled(True)
+        # self.gui.groupBox_infoZ.setEnabled(False)
+        # self.gui.groupBox_distance.setEnabled(False)
 
+        #combobox scanner
+        self.gui.doubleSpinBox_scannerX.setValue(self.settings['dcX'])
+        self.gui.doubleSpinBox_scannerY.setValue(self.settings['dcY'])
+        self.gui.doubleSpinBox_scannerZ.setValue(self.settings['dcZ'])
 
-#general methods
-    def make_scanner_piezo_combobox(self):
-        self.scanner_piezo_combobox = QComboBox(self)
-        print(self.anc350_instrument.attocube_piezo_dict.keys())
-        for item in self.anc350_instrument.attocube_piezo_dict.keys():
-            self.scanner_piezo_combobox.addItem(item)
-        self.scanner_piezo_combobox.currentIndexChanged.connect(self.update_gui)
-        self.grid_layout.addWidget(self.scanner_piezo_combobox, 0, 2)
+        self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_value('X','dc'))
+        self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_value('Y','dc'))
+        self.gui.doubleSpinBox_scannerZ.valueChanged.connect(lambda: self.set_value('Z','dc'))
+
+    def show_position(self, axis):
+        "Would be nice if this function would keep the position updated"
+        pass
 
     def update_gui(self):
-        self.update_actual_position_label()
-        self.enable_or_disable_scanner_piezo_widgets()
+        "Would be nice if this method would keep the gui updated"
+        pass
 
-    def update_actual_position_label(self):
-        try:
-            ax=self.anc350_instrument.attocube_piezo_dict[self.scanner_piezo_combobox.currentText()]
-            position = self.anc350_instrument.controller.getPosition(ax)*ur('nm')
-            self.actual_position_label.setText(str(round(position.to('mm'),6)))
-        except Exception:
-            self.actual_position_label.setText("currently\nunavailable")
-
-    def enable_or_disable_scanner_piezo_widgets(self):
-        #make sure that if the scanner stuff is enabled that the piezo stuff is disabled and viceversa
-        if "Stepper" in self.scanner_piezo_combobox.currentText():
-            #set scanner things false
-            self.move_scanner_textfield.setEnabled(False)
-            self.move_scanner_button.setEnabled(False)
-            self.configurate_scanner_button.setEnabled(False)
-            #set stepper things true
-            self.move_to_absolute_position_textfield.setEnabled(True)
-            self.move_to_absolute_position_button.setEnabled(True)
-            self.move_to_relative_position_textfield.setEnabled(True)
-            self.move_to_relative_position_button.setEnabled(True)
-            self.step_position_forward_button.setEnabled(True)
-            self.step_position_backward_button.setEnabled(True)
-            self.amplitude_textfield.setEnabled(True)
-            self.frequency_textfield.setEnabled(True)
-            self.step_amount_textfield.setEnabled(True)
-            self.configurate_stepper_button.setEnabled(True)
-        elif "Scanner" in self.scanner_piezo_combobox.currentText():
-            #set stepper things false
-            self.move_to_absolute_position_textfield.setEnabled(False)
-            self.move_to_absolute_position_button.setEnabled(False)
-            self.move_to_relative_position_textfield.setEnabled(False)
-            self.move_to_relative_position_button.setEnabled(False)
-            self.step_position_forward_button.setEnabled(False)
-            self.step_position_backward_button.setEnabled(False)
-            self.amplitude_textfield.setEnabled(False)
-            self.frequency_textfield.setEnabled(False)
-            self.step_amount_textfield.setEnabled(False)
-            self.configurate_stepper_button.setEnabled(False)
-            #set scanner things true
-            self.move_scanner_textfield.setEnabled(True)
-            self.move_scanner_button.setEnabled(True)
-            self.configurate_scanner_button.setEnabled(True)
-        else:
-            print("There should not be a different positioner besides a\nStepper and a Scanner, so...you should change the .yml file.")
-
-#methods for moving positioners
-    def move_absolute_position(self):
-        print("move absolute position")
-        axis = self.scanner_piezo_combobox.currentText() #axis = XPiezoStepper, YPiezoStepper or ZPiezoStepper
-        position = int(self.move_to_absolute_position_textfield.text())* ur('nm') #position = something in nm
-        self.anc350_instrument.move_to(axis, position)
-        self.update_actual_position_label()
-
-    def move_relative_position(self):
-        print("move relative position")
-        axis = self.scanner_piezo_combobox.currentText() #the current stepper
-        step = int(self.move_to_relative_position_textfield.text())* ur('nm') #step: amount to move in nm, can be both positive and negative
-        self.anc350_instrument.move_relative(axis, step)
-        self.update_actual_position_label()
-
-    def go_single_step_forward(self):
-        print("go a single step to the left")
-        axis = self.scanner_piezo_combobox.currentText()  # the current stepper
-        direction = 0 # forward = 0
-        amount = int(self.step_amount_textfield.text())
-        self.anc350_instrument.given_step(axis, direction, amount)
-
-    def go_single_step_backward(self):
-        print("go a single step to the right")
-        axis = self.scanner_piezo_combobox.currentText()  # the current stepper
-        direction = 1 # backward = 1
-        amount = int(self.step_amount_textfield.text())
-        self.anc350_instrument.given_step(axis, direction, amount)
-
-    def move_scanner(self):
+    def get_axis(self):
+        """| Depending on the selected axis, the gui looks differently
+        | The basic box is always enabled
+        | If one of the Steppers is selected, only the configuration box is enabled
+        | After configuration, also the box with all the moves will be enabled
+        | If one of the Scanners is selected, only the scanner box is enabled
+        | When the Z Piezo Stepper is selected, all of the X values change to Z, and the Y values are disabled
+        | When the Z Piezo Scanner is selected, similar but now only for the two boxes in the scanner part
+        | self.current_axis is saved here and used in the whole program
         """
-        :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
+        self.current_axis = self.gui.comboBox_axis.currentText()
+        print(self.current_axis)
+
+        if 'Stepper' in self.current_axis:
+            #Disable the scanner box, enable the configure box + show blue edge
+            self.gui.groupBox_scanner.setEnabled(False)
+            self.gui.groupBox_scanner.setStyleSheet("QGroupBox default")
+
+            self.gui.groupBox_configurate.setEnabled(True)
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
+
+            self.gui.groupBox_moving.setEnabled(False)
+            self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
+
+            if 'Z' in self.current_axis:
+                #Disable the xy groupboxes, enable the z groupboxes
+                self.gui.groupBox_XY.setEnabled(False)
+                self.gui.groupBox_Z.setEnabled(True)
+
+                self.gui.groupBox_amplZ.setEnabled(True)
+                self.gui.groupBox_amplXY.setEnabled(False)
+
+                self.gui.pushButton_up.setEnabled(False)
+                self.gui.pushButton_down.setEnabled(False)
+                self.gui.pushButton_left.setText('closer')
+                self.gui.pushButton_right.setText('away')
+
+                self.gui.groupBox_infoXY.setEnabled(False)
+                self.gui.groupBox_infoZ.setEnabled(True)
+            else:
+                #Enable the xy groupboxes, disable the z groupboxes
+                self.gui.groupBox_XY.setEnabled(True)
+                self.gui.groupBox_Z.setEnabled(False)
+
+                self.gui.groupBox_amplZ.setEnabled(False)
+                self.gui.groupBox_amplXY.setEnabled(True)
+
+                self.gui.pushButton_up.setEnabled(True)
+                self.gui.pushButton_down.setEnabled(True)
+                self.gui.pushButton_left.setText('left')
+                self.gui.pushButton_right.setText('right')
+
+                self.gui.groupBox_infoXY.setEnabled(True)
+                self.gui.groupBox_infoZ.setEnabled(False)
+
+        elif 'Scanner' in self.current_axis:
+            #Enable the scanner box, disable the stepper boxes
+            self.gui.groupBox_scanner.setEnabled(True)
+            self.gui.groupBox_configurate.setEnabled(False)
+            self.gui.groupBox_moving.setEnabled(False)
+
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
+            self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
+
+            self.gui.groupBox_scanner.setObjectName("Colored_scanner")
+            self.gui.groupBox_scanner.setStyleSheet("QGroupBox#Colored_scanner {border: 1px solid blue;}")
+
+            if 'Z' in self.current_axis:
+                self.gui.groupBox_scanXY.setEnabled(False)
+                self.gui.groupBox_scanZ.setEnabled(True)
+            else:
+                self.gui.groupBox_scanXY.setEnabled(True)
+                self.gui.groupBox_scanZ.setEnabled(False)
+
+
+    def set_value(self, axis, value_type):
+        """| Reads the value that the user filled in: amplitude, frequency or dc level on scanner
+        | Sets either the user input or the default amplitudes/frequencies as in the dictionary
+        | The value is saved in self.settings
+        | If X and Y Scanner are selected, values are set separately; with Z, there is only one spinbox to fill in
+        | Values from dictionary are used in configurate stepper, but only if the user clicks configurate
+        | If scanner values were changed, this method calls to moving of the the scanner as soon as the user clicks Enter
+        | axis and value_type are locally changed into the name as known in the dictionaries, like amplitudeX or dcZ
+
+        :param axis: axis X, Y, Z
         :type axis: string
 
-        :param voltage: voltage in mV to move the scanner; from 0-140V
-        :type voltage: pint quantity
+        :param value_type: amplitude, frequency or dc
+        :type value_type: string
         """
-        print("move the scanner by a...value")
-        axis = self.scanner_piezo_combobox.currentText()  # the current scanner
-        voltage = float(self.move_scanner_textfield.text()) * ur('mV')
-        self.anc350_instrument.move_scanner(axis, voltage)
-        self.update_actual_position_label()
+        self.logger.info('changing a value')
+        local_axis_name = value_type + axis
 
-#methods for configuration
-    def configurate_current_stepper(self):
-        """
-        Configurate the current stepper to perfection
-        """
-        axis = self.scanner_piezo_combobox.currentText()  # the current stepper
-        amplitude = float(self.amplitude_textfield.text()) * ur('V')       #this needs to be a float
-        frequency = int(self.frequency_textfield.text()) * ur('Hz')         #this needs to be an int, otherwise things break
-        self.anc350_instrument.configurate_stepper(axis, amplitude, frequency)
-        self.update_actual_position_label()
+        if value_type == 'amplitude':
+            self.logger.debug('changing the amplitude')
+            max_value = self.max_amplitude_V
+        elif value_type == 'frequency':
+            self.logger.debug('changing the frequency')
+            max_value = self.max_frequency
+        elif value_type == 'dc':
+            self.logger.debug('changing the dc level on scanner')
+            max_value = self.max_dclevel_V
 
-    def configurate_current_scanner(self):
+        if self.sender().value() > max_value:
+            self.sender().setValue(max_value)
+        elif self.sender().value() < 0:
+            self.sender().setValue(0)
+
+        # Store the new value in the dictionary in the init
+        self.logger.debug(local_axis_name)
+        self.settings[local_axis_name] = int(self.sender().value())
+        self.logger.debug(self.settings)
+        self.logger.debug('axis changed: ' + str(local_axis_name))
+        self.logger.debug('value put: ' + str(self.settings[local_axis_name]))
+
+        if value_type == 'dc':
+            self.move_scanner(local_axis_name)
+
+    def set_distance(self):
+        """| Works similar to set_value method, but now only for the distance spinBox and unit
+        | Combines value of spinbox with unit to make pint quantity and checks against maximum value defined up
+        | Either applies the dictionary value of the distance, or changes that dictionary value and than applies it
         """
-        Configurate the current scanner to perfection
+        distance = self.gui.doubleSpinBox_distance.value()
+        unit = self.gui.comboBox_unit.currentText()
+
+        local_distance = ur(str(distance)+unit)
+        self.logger.debug('local distance value: ' + str(local_distance))
+
+        if local_distance > self.max_distance:
+            self.logger.debug('value too high')
+            local_max = self.max_distance.to(unit)
+            print(local_max)
+            self.gui.doubleSpinBox_distance.setValue(local_max.m_as(unit))
+        elif local_distance < 0:
+            self.logger.debug('value too low')
+            self.gui.doubleSpinBox_distance.setValue(0)
+
+        self.distance = local_distance
+        self.logger.debug('dictionary distance changed to: ' + str(self.distance))
+
+
+    def configure_stepper(self):
+        """| Configurates the stepper, using the amplitude and frequency that had been set in set_frequency and set_amplitude
+        | After configuration, the box with all the different moves is enabled
         """
-        axis = self.scanner_piezo_combobox.currentText()  # the current scanner
-        self.anc350_instrument.configurate_scanner(axis)
+        self.logger.info('configurating stepper')
+        if 'Z' in self.current_axis:
+            self.anc350_instrument.configure_stepper('ZPiezoStepper', self.settings['amplitudeZ'] * ur('V'), self.settings['frequencyZ'] * ur('Hz'))
+        else:
+            self.anc350_instrument.configure_stepper('XPiezoStepper', self.settings['amplitudeX'] * ur('V'), self.settings['frequencyX'] * ur('Hz'))
+            self.anc350_instrument.configure_stepper('YPiezoStepper', self.settings['amplitudeY'] * ur('V'), self.settings['frequencyY'] * ur('Hz'))
+
+        self.gui.groupBox_moving.setEnabled(True)
+        self.gui.groupBox_moving.setObjectName("ColoredGroupBox")
+        self.gui.groupBox_moving.setStyleSheet("QGroupBox#ColoredGroupBox {border: 1px solid blue;}")
+
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
+
+
+    def move_scanner(self, axis):
+        """| Moves the scanner
+        | Is called by set_value, moves as soon as the user clicked Enter
+
+        :param axis: axis as they are called in the dictionary self.stepper_settings: dcX, dcY, dcZ
+        :type axis: string
+        """
+        self.logger.info('moving the scanner ' + axis)
+        self.logger.debug(self.settings)
+        if 'Z' in axis:
+            self.anc350_instrument.move_scanner('ZPiezoScanner',self.settings[axis]*ur('V'))
+        elif 'X' in axis:
+            self.anc350_instrument.move_scanner('XPiezoScanner', self.settings[axis] * ur('V'))
+        elif 'Y' in axis:
+            self.anc350_instrument.move_scanner('YPiezoScanner', self.settings[axis] * ur('V'))
+
+    def get_move(self):
+        """| Similar to the get_axis, the box with all the moves has lots of options that get disabled or enabled
+        | When continuous is selected, it gives you the speed in the selected axes
+        | When step is selected, it gives you the stepsize of the selected axes
+        | When move absolute or move relative are selected, the user can enter the desired position/distance
+        """
+
+        self.current_move = self.gui.comboBox_kindOfMove.currentText()
+        self.logger.debug('current way of moving: ' + str(self.current_move))
+
+        if 'absolute' in self.current_move:
+            #disable all buttons, except for one, to move
+            self.gui.pushButton_left.setEnabled(False)
+            self.gui.pushButton_up.setEnabled(False)
+            self.gui.pushButton_down.setEnabled(False)
+            self.gui.pushButton_right.setText('move')
+        else:
+            #enable the buttons that were disabled in move absolute
+            if 'Z' in self.current_axis:
+                self.gui.pushButton_left.setEnabled(True)
+                self.gui.pushButton_up.setEnabled(False)
+                self.gui.pushButton_down.setEnabled(False)
+                self.gui.pushButton_right.setText('right')
+            else:
+                self.gui.pushButton_left.setEnabled(True)
+                self.gui.pushButton_up.setEnabled(True)
+                self.gui.pushButton_down.setEnabled(True)
+                self.gui.pushButton_right.setText('right')
+
+        if self.current_move == 'move relative':
+            #disable the info box (with speed or step size), enable user input posibility
+            self.gui.label_sortMove.setText('to relative distance')
+            self.gui.groupBox_infoXY.setEnabled(False)
+            self.gui.groupBox_infoZ.setEnabled(False)
+            self.gui.groupBox_distance.setEnabled(True)
+
+        elif self.current_move == 'move absolute':
+            # disable the info box (with speed or step size), enable user input posibility
+            self.gui.label_sortMove.setText('to absolute position')
+            self.gui.groupBox_infoXY.setEnabled(False)
+            self.gui.groupBox_infoZ.setEnabled(False)
+            self.gui.groupBox_distance.setEnabled(True)
+
+        elif self.current_move == 'continuous':
+            #disable the user input possibility, show either the speed of current axes (depends on amplitude)
+            if 'Z' in self.current_axis:
+                self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Speed[1] * ur('nm/s').to('um/s')))
+                self.gui.groupBox_infoXY.setEnabled(False)
+                self.gui.groupBox_infoZ.setEnabled(True)
+            else:
+                self.gui.label_speed_stepX.setText('speed X')
+                self.gui.label_speed_stepY.setText('speed Y')
+
+                self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Speed[0]*ur('nm/s').to('um/s')))
+                self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Speed[2] * ur('nm/s').to('um/s')))
+                self.gui.groupBox_infoXY.setEnabled(True)
+                self.gui.groupBox_infoZ.setEnabled(False)
+
+            self.gui.groupBox_distance.setEnabled(False)
+
+        elif self.current_move == 'step':
+            # disable the user input possibility, show either the step size on current axes (depends on frequency)
+            if 'Z' in self.current_axis:
+                self.gui.label_speed_stepZ.setText('step size Z')
+                print(type(str(self.anc350_instrument.Stepwidth[1]*ur('nm'))))
+                self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Stepwidth[1]*ur('nm')))
+                self.gui.groupBox_infoXY.setEnabled(False)
+                self.gui.groupBox_infoZ.setEnabled(True)
+            else:
+                self.gui.label_speed_stepX.setText('step size X')
+                self.gui.label_speed_stepY.setText('step size Y')
+                self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Stepwidth[0] * ur('nm')))
+                self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Stepwidth[2] * ur('nm')))
+                self.gui.groupBox_infoXY.setEnabled(True)
+                self.gui.groupBox_infoZ.setEnabled(False)
+
+            self.gui.groupBox_distance.setEnabled(False)
+
+
+    def move(self, direction):
+        """| Here the actual move takes place, after the user clicked on one of the four directional buttons
+        | The clicked button determines the direction that is chosen
+        | For the continuous and step move, that is than converted to 0 or 1
+        | This is correct as it is written right now, I checked it
+        | For the relative move, the direction is than converted in adding a minus sign or not
+        | ** Continuous only works for 1s, since the stop button doesnt work yet**
+
+        :param direction: direction of move, left, right, up, down
+        :type direction: string
+        """
+
+        self.direction = direction
+        self.logger.debug('current direction: ' + direction)
+
+        #remember axis name that instrument thinks in
+        if 'Z' in self.current_axis:
+            axis_string = 'ZPiezoStepper'
+        else:
+            if self.direction == 'left' or self.direction == 'right':
+                axis_string = 'XPiezoStepper'
+            else:
+                axis_string = 'YPiezoStepper'
+
+        if self.current_move == 'move absolute':
+            #combine the spinbox and unit combobox user input to a pint quantity
+            self.logger.info('moving to an absolute position')
+            distance = self.gui.doubleSpinBox_distance.value()
+            unit = self.gui.comboBox_unit.currentText()
+
+            self.logger.debug('axis: ' + axis_string)
+            local_distance = ur(str(distance) + unit)
+            self.logger.debug('to position: ' + str(local_distance))
+
+            self.anc350_instrument.move_to(axis_string, local_distance)
+
+        elif self.current_move == 'move relative':
+            # combine the spinbox and unit combobox user input to a pint quantity
+            # add minussign to communicate correct direction to instrument
+            self.logger.info('moving relative')
+            distance = self.gui.doubleSpinBox_distance.value()
+            unit = self.gui.comboBox_unit.currentText()
+            self.logger.debug('axis:' + axis_string)
+            self.logger.debug('direction: '+ direction)
+
+            if self.direction == 'right' or self.direction == 'up':
+                local_distance = ur(str(distance) + unit)
+                self.logger.debug(str(local_distance))
+            elif self.direction == 'left' or self.direction == 'down':
+                local_distance = ur(str(-1 * distance) + unit)
+                self.logger.debug(str(local_distance))
+
+            self.anc350_instrument.move_relative(axis_string, local_distance)
+
+        elif self.current_move == 'continuous' or self.current_move == 'step':
+            # convert direction buttons clicked to direction integers that instrument wants
+            # than move for 1s continuously, since the stop button doesnt work yet
+            if self.direction == 'left':
+                if 'Z' in self.current_axis:
+                    direction_int = 0       # correct direction, corresponds to labels closer and away
+                else:
+                    direction_int = 1
+            elif self.direction == 'right':
+                if 'Z' in self.current_axis:
+                    direction_int = 1       # correct direction, corresponds to labels closer and away
+                else:
+                    direction_int = 0
+            elif self.direction == 'up':
+                direction_int = 0
+            elif self.direction == 'down':
+                direction_int = 1
+
+            if self.current_move == 'continuous':
+                self.logger.info('moving for 1 s continuously')
+                self.anc350_instrument.move_continuous(axis_string, direction_int)
+                time.sleep(1)
+                self.anc350_instrument.stop_moving(axis_string)
+
+            elif self.current_move == 'step':
+                self.logger.info('making a step')
+                self.anc350_instrument.given_step(axis_string, direction_int, 1)
+
 
     def stop_moving(self):
-        """Stops moving to target/relative/reference position
+        """|Stops movement of all steppers
+        | **Does not work yet, since there are not threads**
         """
-        axis = self.scanner_piezo_combobox.currentText(self)
-        self.anc350_instrument.stop_moving(axis)
+        self.logger.info('stop moving')
+        self.anc350_instrument.stop_moving('XPiezoStepper')
+        self.anc350_instrument.stop_moving('YPiezoStepper')
+        self.anc350_instrument.stop_moving('ZPiezoStepper')
+
 
 
 
