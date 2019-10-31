@@ -1,11 +1,11 @@
 Instruments:
   BeamFlags:
     name: BeamFlags
-    port: COM4
+    port: COM19 #COM4
     dummy: False
     baudrate: 9600
     read_timeout: 0.1
-    instrument: hyperion.instrument.misc.beam_flags_instr/BeamFlags
+    instrument: hyperion.instrument.misc.beam_flags_instr/BeamFlagsInstr
     controller: hyperion.controller.generic.generic_serial_contr/GenericSerialController
     view: hyperion.view.misc.beam_gui/BeamFlagsGui
     flag_states:
@@ -16,12 +16,12 @@ Instruments:
     gui_state_update_ms: 100    # recommend 100,  update time in ms for the state indicators
     gui_flags:
       '1':                      # key-name should be the id-character for the arduino controller
-        name: Pump
-        red_name: Blocked
-        green_name: Open
+        name: FilterA
+        red_name: In
+        green_name: Out
         shortkey: Ctrl+1
       '2':
-        name: Probe
-        red_name: Blocked
-        green_name: Open
+        name: FilterB
+        red_name: In
+        green_name: Out
         shortkey: Ctrl+2
