@@ -193,7 +193,7 @@ class App(QWidget): # CHANGE THIS F##%% name!!!
 
 if __name__ == '__main__':
     #give a serial_number of the thorlabsmotor that you want to use.
-    serial_number = 83815760
+    serial_number = 83850123
     app = QApplication(sys.argv)
     ex = App(serial_number)
     sys.exit(app.exec_())

@@ -111,7 +111,8 @@ class DeviceModelController(BaseController):
         """
         # Yout code to read from the device
         return response
-    
+
+    # common method
     def query(self, message):
         """
         Writes message to the device and returns the response of the device
