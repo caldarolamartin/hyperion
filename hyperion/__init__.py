@@ -131,11 +131,10 @@ def set_logfile(filepathname=_default_log_filename):
 # At the beginning of a file use: import hyperion
 # Also import logging (or otherwise type hyperion.logging.X everywhere you would type logging.X)
 # After that use this anywhere: self.logger = logging.getLogger(__name__)
-# That will retrieve the
+# To change the logging file use this anywhere:
+# hyperion.set_logfile('my_new_file_path_and_name.log')
 # To modify the levels use this anywhere :
+# hyperion.file_logger.setLevel( logging.INFO )
 # hyperion.stream_logger.setLevel( logging.WARNING )
-# # hyperion.file_logger.setLevel( logging.INFO )
-# # To change the logging file use this anywhere:
-# # hyperion.set_logfile('my_new_file_path_and_name.log')
 
 

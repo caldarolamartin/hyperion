@@ -43,23 +43,25 @@ import win32com.client
 from hyperion.controller.base_controller import BaseController
 
 # some tests:
-# import pythoncom
-
+# import pythoncom        # had to add this to achieve threading in combination with win32com
 
 class WinspecContr(BaseController):
-    """ Winspec Controller"""
-
-
-    def __init__(self, settings = {}):
-        """ Init of the class.
+    """ Winspec Controller.
+        This class contains low level functionality for communicating with Winspec software.
+        Higher level functionality is in the instrument.
 
         :param settings: this includes all the settings needed to connect to the device in question.
-        :type settings: dict, optional
+        :type settings: dict
 
-        """
-        super().__init__(settings)  # mandatory line
-        self.logger = logging.getLogger(__name__)
+    """
+
+
+    def __init__(self, settings={}):                # note: usually it's not recommended to specify default value, but here I did because it's an empty dict
+        # don't place the docstring here but above in the class definition
+        super().__init__(settings)                  # mandatory line
+        self.logger = logging.getLogger(__name__)   # mandatory line
         self.logger.info('Class WinspecController created.')
+        # pythoncom.CoInitialize()                    # added this line for threading
         self.name = 'Winspec Controller'
         self.ws = None
         self.params = {}
@@ -73,7 +75,9 @@ class WinspecContr(BaseController):
         
 
     def initialize(self):
-        """ Starts or connects to Winspec software"""
+        """
+        Mandatory function. Starts or connects to Winspec software
+        """
         self.logger.info('Starting or connecting to Winspec')
         try:
             self.ws = win32com.client.gencache.EnsureDispatch("WinX32.Winx32App")
@@ -82,12 +86,19 @@ class WinspecContr(BaseController):
             self.exp = self._dispatch('WinX32.ExpSetup')
             self._spec_mgr = self._dispatch('WinX32.SpectroObjMgr')
             self.spt = self._spec_mgr.Current
+
+            # pythoncom.CoInitialize()
+            # exp_inst = win32com.client.Dispatch('WinX32.ExpSetup')
+            # self.exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, exp_id)
+
         except win32com.client.pywintypes.com_error:
             self.logger.warning('Can\'t find Winspec. Are you sure it\'s installed?')
             # If Winspec is installed but you run into issues here, have a look at comments t the top of this file.
         self._is_initialized = True     # THIS IS MANDATORY!!
                                         # this is to prevent you to close the device connection if you
                                         # have not initialized it inside a with statement
+
+
 
     def _dispatch(self, winx32_class_name):
         """ Helper function that wraps win32com.client.Dispatch() and catches errors"""
@@ -139,7 +150,9 @@ class WinspecContr(BaseController):
             self.ws.Quit()
 
     def finalize(self):
-        """   Does nothing, except set _is_initialized to False.
+        """
+        Mandatory function. Get's called when exiting a 'with' statement.
+        For this controller it does nothing though, except set _is_initialized to False.
         Closing the Winspec software is not necessary.
         """
         self._is_initialized = False
@@ -168,13 +181,13 @@ class WinspecContr(BaseController):
             return None
 
     def exp_set(self, msg, value):
-        """ Retrieve WinSpec Experiment parameter
+        """ Set WinSpec Experiment parameter
         :param msg: should be a key of self.params_exp
         :type msg: string
         :param value: The value to set
-        :type value: Depends on parameter, float, what else ????????
+        :type value: Depends on parameter  (int, float, string)
         :return: returns errorvalue, 0 if succeeded
-        :rtype: int?
+        :rtype: typically a tuple containing an int, float or string
         """
         if msg.upper() in self.params_exp:
             return self.exp.SetParam(self.params_exp[msg.upper()], value)
@@ -183,6 +196,14 @@ class WinspecContr(BaseController):
             return None
 
     def spt_get(self, msg, *args, **kwargs):
+        """ Retrieve WinSpec Spectrograph parameter
+        :param msg: should be a key of self.params_spt
+        :type msg: string
+        :param value: The value to set
+        :type value: Depends on parameter (int, float, string)
+        :return: returns errorvalue, 0 if succeeded
+        :rtype: typically a tuple containing an int, float or string
+        """
         if msg.upper() in self.params_spt:
             return self.spt.GetParam(self.params_spt[msg.upper()], *args, **kwargs)[:-1]
         else:
@@ -190,81 +211,20 @@ class WinspecContr(BaseController):
             return None
 
     def spt_set(self, msg, value):
-        """ Returns 0 for success, 1 for failure"""
+        """ Set WinSpec Spectrograph parameter
+        :param msg: should be a key of self.params_spt
+        :type msg: string
+        :param value: The value to set
+        :type value: Depends on parameter  (int, float, string)
+        :return: returns errorvalue, 0 if succeeded
+        :rtype: typically a tuple containing an int, float or string
+        """
         if msg.upper() in self.params_spt:
             return self.spt.SetParam(self.params_spt[msg.upper()], value)
         else:
             self.logger.warning('Unknown SPT parameter: {}'.format(msg))
             return None
 
-    # def query(self, msg):
-    #     """ writes into the device msg
-    #
-    #     :param msg: command to write into the device port
-    #     :type msg: string
-    #     """
-    #     self.logger.debug('Writing into the example device:{}'.format(msg))
-    #     self.write(msg)
-    #     ans = self.read()
-    #     return ans
-    #
-    # def read(self):
-    #     """ Fake read that returns always the value in the dictionary FAKE RESULTS.
-    #
-    #     :return: fake result
-    #     :rtype: string
-    #     """
-    #     return self.FAKE_RESPONSES['A']
-    #
-    # def write(self, msg):
-    #     """ Writes into the device
-    #     :param msg: message to be written in the device port
-    #     :type msg: string
-    #     """
-    #     self.logger.debug('Writing into the device:{}'.format(msg))
-
-
-    @property
-    def amplitude(self):
-        """ Gets the amplitude value.
-
-        :getter:
-        :return: amplitude value in Volts
-        :rtype: float
-
-        For example, to use the getter you can do the following
-
-        >>> with DummyOutputController() as dev:
-        >>>    dev.initialize('COM10')
-        >>>    dev.amplitude
-        1
-
-        :setter:
-        :param value: value for the amplitude to set in Volts
-        :type value: float
-
-        For example, using the setter looks like this:
-
-        >>> with DummyOutputController() as dev:
-        >>>    dev.initialize('COM10')
-        >>>    dev.amplitude = 5
-        >>>    dev.amplitude
-        5
-
-
-        """
-        self.logger.debug('Getting the amplitude.')
-        return self._amplitude
-
-    @amplitude.setter
-    def amplitude(self, value):
-        # would be nice to add a way to check that the value is within the limits of the device.
-        if self._amplitude != value:
-            self.logger.info('Setting the amplitude to {}'.format(value))
-            self._amplitude = value
-            self.write('A{}'.format(value))
-        else:
-            self.logger.info('The amplitude is already {}. Not changing the value in the device.'.format(value))
 
 
 class WinspecContrDummy(WinspecContr):
@@ -293,12 +253,20 @@ class WinspecContrDummy(WinspecContr):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                  logging.StreamHandler()])
+    import hyperion
 
-    dummy = False  # change this to false to work with the real device in the COM specified below.
+    # To change the logging file use this anywhere:
+    # hyperion.set_logfile('my_new_file_path_and_name.log')
+    # To modify the levels use this anywhere :
+    # hyperion.file_logger.setLevel( logging.INFO )
+    # hyperion.stream_logger.setLevel( logging.WARNING )
+
+    # from hyperion import _logger_format
+    # logging.basicConfig(level=logging.DEBUG, format=_logger_format,
+    #     handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
+    #               logging.StreamHandler()])
+
+    dummy = False  # change this to false to work with the real device
 
     if dummy:
         my_class = WinspecControllerDummy
@@ -323,12 +291,15 @@ if __name__ == "__main__":
 #        dev.exp.Start(doc)
 #        #dev.close() # Note that closeing Winspec is not necessary. Especially for testing it's quicker to leave it open
 
+    # Because closing the device connection is not important for Winspec I'm not using 'with' in this example
 
     ws = WinspecContr()
     ws.initialize()
 
+    print( ws.exp_get('EXPOSURETIME')[0] )
 
     from hyperion.view.general_worker import WorkThread
+
 
     thr = WorkThread(ws.spt.Move)
 

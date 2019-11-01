@@ -39,15 +39,25 @@ Try:
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
+from hyperion.view.general_worker import WorkThread
+import threading
 import time
 # import numpy as np      # I'm having issues with numpy on the computer I'm developing, so I disable it temporarily and modified take_spectrum not to depend on it
 
+
+
 class WinspecInstr(BaseInstrument):
-    """ Instrument to control Winspec software. """
-    def __init__(self, settings):
-        """ init of the class"""
-        super().__init__(settings)
-        self.logger = logging.getLogger(__name__)
+    """ Winspec Instrument
+
+        :param settings: this includes all the settings needed to connect to the device in question.
+        :type settings: dict
+
+    """
+
+    def __init__(self, settings):                   # not specifying a default value for settings is less confusing for novice users
+        # don't place the docstring here but above in the class definition
+        super().__init__(settings)                  # mandatory line
+        self.logger = logging.getLogger(__name__)   # mandatory line
         self.logger.info('Class ExampleInstrument created.')
         self.settings = settings
         self.default_name = 'temp.SPE'
@@ -58,6 +68,23 @@ class WinspecInstr(BaseInstrument):
 
         self.initialize()   # ! required to do this in the __init__
 
+        self._is_acquiring = False
+        self._is_moving = False
+
+        self.move_grating_thread = threading.Thread(target = self._move_grating)
+        # self.move_grating_thread = WorkThread(self._move_grating)
+
+
+        # self.mythread = WorkThread(self.mytestfunc)
+        # self.mythread.start()
+        # print('outside')
+
+
+    def mytestfunc(self):
+        print('inside before')
+        time.sleep(1)
+        print('inside after')
+
     def initialize(self):
         """ Starts the connection to the Winspec softare and retrieves parameters. """
         self.logger.info('Opening connection to device.')
@@ -66,11 +93,20 @@ class WinspecInstr(BaseInstrument):
         self._exposure_time = self.exposure_time
         self._accums = self.accumulations
         self._target_temp = self.target_temp
+
+
+
         self.get_gratings_info()
         # self.gratings
 
+    def _move_grating(self):
+        #
+        self._is_moving = True
+        self.controller.spt.Move()
+        self._is_moving = False
+
     def finalize(self):
-        """ Finalizes Winspec Controller. """
+        """ Mandatory function. Get's called when exiting a 'with' statement."""
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
@@ -83,25 +119,19 @@ class WinspecInstr(BaseInstrument):
         return default_options_list
 
     def get_gratings_info(self):
-        self.gratings_grooves =  []
-        self._number_of_gratings = self.controller.spt_get('GRATINGSPERTURRET')[0]
-        print(self._number_of_gratings)
-        for k in range(self._number_of_gratings):
-            self.gratings_grooves.append( self.controller.spt_get('INST_GRAT_GROOVES', k)[0] )
+        self.gratings_grooves = []      # list to hold the grooves/mm for the different gratings
+        self.gratings_blaze_name = []   # list to hold the blaze text
+        self.gratings_blaze = []        # list to hold numeric blaze wavelength value
+        self.number_of_gratings = self.controller.spt_get('GRATINGSPERTURRET')[0]
+        # this seems to be the same value:   self.controller.spt_get('INST_CUR_GRAT_NUM')[0]
+        for k in range(self.number_of_gratings):
+            self.gratings_grooves.append( self.controller.spt_get('INST_GRAT_GROOVES', k+1)[0] )
+            text = self.controller.spt_get('GRAT_USERNAME', k+1)[0]
+            self.gratings_blaze_name = text
+            # try to interpret the blaze wavelength:
+            self.gratings_blaze.append(int(''.join(filter(str.isdigit, text))))
 
-        print(self.gratings_grooves)
-
-
-        self.current_grating = self.controller.spt_get('CUR_GRATING')[0]
-        print( self.current_grating )
-
-        print(self.controller.spt_get('INST_CUR_GRAT_NUM')[0])
-
-        self.grating_pos = self.controller.spt_get('CUR_POSITION')[0]
-        print(self.grating_pos)
-        print(self.controller.spt_get('ACTIVE_GRAT_POS')[0])        # on IR pc this was the same as CUR_POSITION, but with the new spectrometer this was different I think
-        print(self.controller.spt_get('INST_CUR_GRAT_POS')[0])
-
+        self.logger.info('{} gratings found. grooves/mm: {}, blaze: {}'.format(self.number_of_gratings, self.gratings_grooves,self.gratings_blaze))
 
     def idn(self):
         """
@@ -141,6 +171,38 @@ class WinspecInstr(BaseInstrument):
     #        print('CUR_POSITION: {}'.format(dev.spt_get('CUR_POSITION')))                  <<  in nm
     #        print('ACTIVE_GRAT_POS: {}'.format(dev.spt_get('ACTIVE_GRAT_POS')))            <<  in ???
 
+    @property
+    def grating(self):
+        return self.controller.spt_get('CUR_GRATING')[0]
+
+    @grating.setter
+    def grating(self, number):
+        if 0 < number <= self.number_of_gratings:
+            if number == self.controller.spt_get('CUR_GRATING')[0]:
+                self.logger.debug('Grating {} already in place'.format(number))
+            else:
+                self.controller.spt_set('NEW_GRATING', number)
+                self.move_grating_thread.start()
+        else:
+            self.logger.warning('{} is invalid grating number (1-{})'.format(number, self.number_of_gratings))
+
+    @property
+    def central_wav(self):
+        return self.controller.spt_get('CUR_POSITION')[0]
+
+    @central_wav.setter
+    def central_wav(self, nanometers):
+        if nanometers == self.controller.spt_get('CUR_POSITION')[0]:
+            self.logger.debug('Grating already at {}nm'.format(nanometers))
+        else:
+            self.controller.spt_set('NEW_POSITION', nanometers)
+            self.controller.spt.Move()
+            # self.move_grating_thread.start()
+
+
+
+
+
     # Hardware settings:   ---------------------------------------------------------------------------------------
 
     @property
@@ -177,6 +239,7 @@ class WinspecInstr(BaseInstrument):
 
     @target_temp.setter
     def target_temp(self, value):
+        # don't place doctring here. add setter info to the getter/property method
         if value != self._target_temp:
             if self.controller.exp_set('TEMPERATURE', value):        # this line also sets the value in winspec
                 self.logger.warning('error setting value: {}'.format(value))
@@ -468,3 +531,4 @@ if __name__ == "__main__":
 
     ws.exposure_time = Q_('300ms')
 
+    ws.central_wav = 300
