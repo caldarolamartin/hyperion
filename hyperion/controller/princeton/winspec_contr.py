@@ -86,7 +86,6 @@ class WinspecContr(BaseController):
             self.exp = self._dispatch('WinX32.ExpSetup')
             self._spec_mgr = self._dispatch('WinX32.SpectroObjMgr')
             self.spt = self._spec_mgr.Current
-
             # pythoncom.CoInitialize()
             # exp_inst = win32com.client.Dispatch('WinX32.ExpSetup')
             # self.exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, exp_id)

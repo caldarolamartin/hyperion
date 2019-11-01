@@ -6,6 +6,9 @@ Winspec Instrument
 
 Aron Opheij, TU Delft 2019
 
+IMPORTANT REMARK:
+  The way the 
+
 
 Tips for finding new functionality:
 
@@ -40,7 +43,6 @@ import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
 from hyperion.view.general_worker import WorkThread
-import threading
 import time
 # import numpy as np      # I'm having issues with numpy on the computer I'm developing, so I disable it temporarily and modified take_spectrum not to depend on it
 
@@ -71,19 +73,16 @@ class WinspecInstr(BaseInstrument):
         self._is_acquiring = False
         self._is_moving = False
 
-        self.move_grating_thread = threading.Thread(target = self._move_grating)
+        # !!!!!   THREADING WILL NOT WORK IN THE CURRENT IMPLENTATION
+        #         I have some ideas to try, but I'll first finish an operational version without threading
+
+        # self.move_grating_thread = threading.Thread(target = self._move_grating)
         # self.move_grating_thread = WorkThread(self._move_grating)
 
 
         # self.mythread = WorkThread(self.mytestfunc)
         # self.mythread.start()
         # print('outside')
-
-
-    def mytestfunc(self):
-        print('inside before')
-        time.sleep(1)
-        print('inside after')
 
     def initialize(self):
         """ Starts the connection to the Winspec softare and retrieves parameters. """
@@ -177,12 +176,15 @@ class WinspecInstr(BaseInstrument):
 
     @grating.setter
     def grating(self, number):
+        current = self.controller.spt_get('CUR_GRATING')[0]
         if 0 < number <= self.number_of_gratings:
-            if number == self.controller.spt_get('CUR_GRATING')[0]:
+            if number == current:
                 self.logger.debug('Grating {} already in place'.format(number))
             else:
                 self.controller.spt_set('NEW_GRATING', number)
-                self.move_grating_thread.start()
+                self.logger.info('changing grating from {} to {} ...'.format(current, number))
+                self.controller.spt.Move()
+                self.logger.info('finished changing grating')
         else:
             self.logger.warning('{} is invalid grating number (1-{})'.format(number, self.number_of_gratings))
 
@@ -192,11 +194,14 @@ class WinspecInstr(BaseInstrument):
 
     @central_wav.setter
     def central_wav(self, nanometers):
-        if nanometers == self.controller.spt_get('CUR_POSITION')[0]:
+        current = self.controller.spt_get('CUR_POSITION')[0]
+        if nanometers == current:
             self.logger.debug('Grating already at {}nm'.format(nanometers))
         else:
             self.controller.spt_set('NEW_POSITION', nanometers)
+            self.logger.info('moving grating from {} to {} ...'.format(current, nanometers))
             self.controller.spt.Move()
+            self.logger.info('finished moving grating')
             # self.move_grating_thread.start()
 
 
@@ -295,6 +300,8 @@ class WinspecInstr(BaseInstrument):
 
     # Experiment / ADC settings:   --------------------------------------------
 
+    # Experiment / ADC settings:   --------------------------------------------
+
     @property
     def gain(self):
         """
@@ -316,6 +323,68 @@ class WinspecInstr(BaseInstrument):
                 self.logger.warning('attempted to set gain to {}, but Winspec is at {}'.format(value, self._gain))
 
     # Experiment / Main settings:  --------------------------------------------
+
+    @property
+    def use_roi(self):
+        ws.controller.exp_get('USEROI')
+
+    @use_roi.setter
+    def use_roi(self, value):
+        ws.controller.exp_set('USEROI', value!=0)
+
+
+    """
+    USEROI     is Use full Chip vs Use Region of interest
+    ROIMODE     0= Imaging Mode,   1= Spectroscopy Mode
+    ROICOUNT    number of stored ROIs
+    
+    in spectroscopy mode:
+    ybinned and ydim are 1
+    YDIMDET = 1024
+    
+    """
+
+
+
+    def getROI(self):
+        # return top, bottom, v_group, left, right, h_group
+        self._roi = self.controller.exp.GetROI(1)
+        r = self._roi.Get()    # returns tuple: (top, left, bottom, right, h_group, v_group)
+        return [r[0], r[2], r[5], r[1], r[3], r[4]]
+
+
+    def setROI(self, top, bottom=1024, v_group=None, left=1, right=1024, h_group=1):
+        """
+        Note the horizontal range needs to be a multiple of 4 pixels.
+        If the users input fails this criterium, this method will expand the
+        :param top:
+        :param bottom:
+        :param v_group:
+        :param left:
+        :param right:
+        :param h_group:
+        :return:
+        """
+        if type(top) is str:
+            top = 1
+            if top=='full_im':
+                v_group = 1
+            elif top !='full_spec':
+                self.logger.warning('unknown command {}, using full_spec ')
+
+        # if v_group is not specified assume summing vertically from top to bottom:
+        if v_group is None:
+            v_group = bottom-(top-1)
+
+        # Check iof horizontal range is multiple of 4 pixels. Expand if required
+        if right-(left-1)
+
+        self._roi = self.controller.exp.GetROI(1)
+        self._roi.Set(top, left, bottom, right, h_group, v_group)
+        self.controller.exp.ClearROIs()
+        self.controller.exp.SetROI(self._roi)
+        self.use_roi = True
+
 
     @property
     def accumulations(self):
