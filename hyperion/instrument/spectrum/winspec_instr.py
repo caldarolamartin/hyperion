@@ -6,12 +6,41 @@ Winspec Instrument
 
 Aron Opheij, TU Delft 2019
 
+
+Tips for finding new functionality:
+
+Once you have an WinspecInstr object named ws, try the following things:
+This will list all keywords:
+[key for key in ws.controller.params]
+There are shorter lists with only experiment (EXP) and spectrograph (SPT) commands:
+[key for key in ws.controller.params_exp]       # note that prefic EXP_ is removed
+[key for key in ws.controller.params_spt]       # note that prefic SPT_ is removed
+To filter in those you could try:
+[key for key in ws.controller.params_exp if 'EXPOSURE' in key]
+[key for key in ws.controller.params_spt if 'GROOVES' in key]
+
+To request the value for a keyword try:
+ws.controller.exp_get('EXPOSURETIME')
+ws.controller.exp_get('GRAT_GROOVES')
+
+
+Or all grating related keywords:
+
+Or all keywords:
+[key for key in ws.controller.params]
+If you want only those that have EXPOSURE in their name:
+
+Try:
+
+
+
+
 """
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
 import time
-import numpy as np
+# import numpy as np      # I'm having issues with numpy on the computer I'm developing, so I disable it temporarily and modified take_spectrum not to depend on it
 
 class WinspecInstr(BaseInstrument):
     """ Instrument to control Winspec software. """
@@ -27,7 +56,7 @@ class WinspecInstr(BaseInstrument):
         self._shutter_controls = self.remove_unavailable('shutter_controls', [0, 'Normal', 'Disabled Closed', 'Disabled Opened'])
         self._fast_safe = self.remove_unavailable('fast_safe', ['Fast', 'Safe'])
 
-        self.initialize()
+        self.initialize()   # ! required to do this in the __init__
 
     def initialize(self):
         """ Starts the connection to the Winspec softare and retrieves parameters. """
@@ -37,8 +66,8 @@ class WinspecInstr(BaseInstrument):
         self._exposure_time = self.exposure_time
         self._accums = self.accumulations
         self._target_temp = self.target_temp
-
-        self.gratings
+        self.get_gratings_info()
+        # self.gratings
 
     def finalize(self):
         """ Finalizes Winspec Controller. """
@@ -53,7 +82,26 @@ class WinspecInstr(BaseInstrument):
                     default_options_list[index] = index
         return default_options_list
 
-    def get_gratings_info
+    def get_gratings_info(self):
+        self.gratings_grooves =  []
+        self._number_of_gratings = self.controller.spt_get('GRATINGSPERTURRET')[0]
+        print(self._number_of_gratings)
+        for k in range(self._number_of_gratings):
+            self.gratings_grooves.append( self.controller.spt_get('INST_GRAT_GROOVES', k)[0] )
+
+        print(self.gratings_grooves)
+
+
+        self.current_grating = self.controller.spt_get('CUR_GRATING')[0]
+        print( self.current_grating )
+
+        print(self.controller.spt_get('INST_CUR_GRAT_NUM')[0])
+
+        self.grating_pos = self.controller.spt_get('CUR_POSITION')[0]
+        print(self.grating_pos)
+        print(self.controller.spt_get('ACTIVE_GRAT_POS')[0])        # on IR pc this was the same as CUR_POSITION, but with the new spectrometer this was different I think
+        print(self.controller.spt_get('INST_CUR_GRAT_POS')[0])
+
 
     def idn(self):
         """
@@ -75,7 +123,7 @@ class WinspecInstr(BaseInstrument):
         while self.controller.exp_get('RUNNING')[0]:
             time.sleep(0.02)
         frame = self.doc.GetFrame(1,self.controller._variant_array)
-        return np.asarray(frame)
+        return frame # temporarly remove dependence on numpy: np.asarray(frame)
 
         #self.doc.Set
 

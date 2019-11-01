@@ -328,6 +328,12 @@ if __name__ == "__main__":
     ws.initialize()
 
 
+    from hyperion.view.general_worker import WorkThread
+
+    thr = WorkThread(ws.spt.Move)
+
+
+
 
 
 
