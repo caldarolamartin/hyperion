@@ -7,7 +7,7 @@ Winspec Instrument
 Aron Opheij, TU Delft 2019
 
 IMPORTANT REMARK:
-  The way the 
+  In the current implementation it is not possible to use this instrument in threads.
 
 
 Tips for finding new functionality:
@@ -16,8 +16,8 @@ Once you have an WinspecInstr object named ws, try the following things:
 This will list all keywords:
 [key for key in ws.controller.params]
 There are shorter lists with only experiment (EXP) and spectrograph (SPT) commands:
-[key for key in ws.controller.params_exp]       # note that prefic EXP_ is removed
-[key for key in ws.controller.params_spt]       # note that prefic SPT_ is removed
+[key for key in ws.controller.params_exp]       # note that prefix EXP_ is removed
+[key for key in ws.controller.params_spt]       # note that prefix SPT_ is removed
 To filter in those you could try:
 [key for key in ws.controller.params_exp if 'EXPOSURE' in key]
 [key for key in ws.controller.params_spt if 'GROOVES' in key]
@@ -26,19 +26,8 @@ To request the value for a keyword try:
 ws.controller.exp_get('EXPOSURETIME')
 ws.controller.exp_get('GRAT_GROOVES')
 
-
-Or all grating related keywords:
-
-Or all keywords:
-[key for key in ws.controller.params]
-If you want only those that have EXPOSURE in their name:
-
-Try:
-
-
-
-
 """
+
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
@@ -64,13 +53,16 @@ class WinspecInstr(BaseInstrument):
         self.settings = settings
         self.default_name = 'temp.SPE'
 
-        self._timing_modes = self.remove_unavailable('timing_modes', [0, 'Free Run', 2, 'External Sync'])
-        self._shutter_controls = self.remove_unavailable('shutter_controls', [0, 'Normal', 'Disabled Closed', 'Disabled Opened'])
-        self._fast_safe = self.remove_unavailable('fast_safe', ['Fast', 'Safe'])
+        self._timing_modes = self._remove_unavailable('timing_modes', [0, 'Free Run', 2, 'External Sync'])
+        self._shutter_controls = self._remove_unavailable('shutter_controls', [0, 'Normal', 'Disabled Closed', 'Disabled Opened'])
+        self._fast_safe = self._remove_unavailable('fast_safe', ['Fast', 'Safe'])
+        self._ccd = self._remove_unavailable('CCD', ['Full', 'ROI'])
+
+        self._horz_width_multiple = 1   # This parameter specifies if camera requires horizontal range of certain interval
 
         self.initialize()   # ! required to do this in the __init__
 
-        self._is_acquiring = False
+        # self._is_acquiring = False
         self._is_moving = False
 
         # !!!!!   THREADING WILL NOT WORK IN THE CURRENT IMPLENTATION
@@ -79,27 +71,33 @@ class WinspecInstr(BaseInstrument):
         # self.move_grating_thread = threading.Thread(target = self._move_grating)
         # self.move_grating_thread = WorkThread(self._move_grating)
 
-
-        # self.mythread = WorkThread(self.mytestfunc)
-        # self.mythread.start()
-        # print('outside')
-
     def initialize(self):
         """ Starts the connection to the Winspec softare and retrieves parameters. """
         self.logger.info('Opening connection to device.')
         self.controller.initialize()
-        self._gain = self.gain
+        # self._gain = self.gain
         self._exposure_time = self.exposure_time
-        self._accums = self.accumulations
-        self._target_temp = self.target_temp
+        # self._accums = self.accumulations
+        # self._target_temp = self.target_temp
+        # # Get grating info:
+        self.gratings_grooves = []  # list to hold the grooves/mm for the different gratings
+        self.gratings_blaze_name = []  # list to hold the blaze text
+        # self.gratings_blaze = []  # list to hold numeric blaze wavelength value
+        self.number_of_gratings = self.controller.spt_get('GRATINGSPERTURRET')[0]
+        # this seems to be the same value:   self.controller.spt_get('INST_CUR_GRAT_NUM')[0]
+        for k in range(self.number_of_gratings):
+            self.gratings_grooves.append(self.controller.spt_get('INST_GRAT_GROOVES', k + 1)[0])
+            text = self.controller.spt_get('GRAT_USERNAME', k + 1)[0]
+            self.gratings_blaze_name.append(text)
+            # # try to interpret the blaze wavelength:
+            # self.gratings_blaze.append(int(''.join(filter(str.isdigit, text))))
 
-
-
-        self.get_gratings_info()
-        # self.gratings
+        self.logger.info(
+            '{} gratings found. grooves/mm: {}, blaze: {}'.format(self.number_of_gratings, self.gratings_grooves,
+                                                                  self.gratings_blaze_name))
 
     def _move_grating(self):
-        #
+        """ Low level function to move grating after specifying the new position. """
         self._is_moving = True
         self.controller.spt.Move()
         self._is_moving = False
@@ -109,28 +107,18 @@ class WinspecInstr(BaseInstrument):
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
-    def remove_unavailable(self, settings_key, default_options_list):
-        # remove items from options_list that don't occur in settings_list and replace with their index
+    def _remove_unavailable(self, settings_key, default_options_list):
+        """
+        Low level function to remove items from options_list that don't occur in settings_list and replace with their index.
+        :param settings_key: the key name in the settings dict
+        :param default_options_list: list of default values
+        :return: corrected list
+        """
         if settings_key in self.settings:
             for index, value in enumerate(default_options_list):
                 if value not in self.settings[settings_key]:
                     default_options_list[index] = index
         return default_options_list
-
-    def get_gratings_info(self):
-        self.gratings_grooves = []      # list to hold the grooves/mm for the different gratings
-        self.gratings_blaze_name = []   # list to hold the blaze text
-        self.gratings_blaze = []        # list to hold numeric blaze wavelength value
-        self.number_of_gratings = self.controller.spt_get('GRATINGSPERTURRET')[0]
-        # this seems to be the same value:   self.controller.spt_get('INST_CUR_GRAT_NUM')[0]
-        for k in range(self.number_of_gratings):
-            self.gratings_grooves.append( self.controller.spt_get('INST_GRAT_GROOVES', k+1)[0] )
-            text = self.controller.spt_get('GRAT_USERNAME', k+1)[0]
-            self.gratings_blaze_name = text
-            # try to interpret the blaze wavelength:
-            self.gratings_blaze.append(int(''.join(filter(str.isdigit, text))))
-
-        self.logger.info('{} gratings found. grooves/mm: {}, blaze: {}'.format(self.number_of_gratings, self.gratings_grooves,self.gratings_blaze))
 
     def idn(self):
         """
@@ -142,19 +130,38 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
 
-
-    def take_spectrum(self, name=None):
-        # very rudimentary version
+    def start_spectrum(self, name=None):
         if name==None:
             name=self.default_name
         self.doc = self.controller.docfile()
         self.controller.exp.Start(self.doc)
-        while self.controller.exp_get('RUNNING')[0]:
-            time.sleep(0.02)
-        frame = self.doc.GetFrame(1,self.controller._variant_array)
-        return frame # temporarly remove dependence on numpy: np.asarray(frame)
 
-        #self.doc.Set
+    @property
+    def is_acquiring(self):
+        return self.controller.exp_get('RUNNING')[0]==1
+
+    def nm_axis(self, frame):
+        # Retrieve nm axis in cumbersome way. (There must be a better/faster way,  but haven't found it yet)
+        wav = []
+        cal = self.doc.GetCalibration()
+        for index in range(len(frame)):
+            wav.append([cal.Lambda(index+1)])
+        return wav
+
+    def collect_spectrum(self, wait=True):
+        # requires the existence of self.doc
+        if wait:
+            while self.is_acquiring:
+                time.sleep(0.01)
+        frame = self.doc.GetFrame(1,self.controller._variant_array)
+        # return frame                      # direct tuple of tuples
+        # return np.asarray(frame)          # np approach
+        return self.nm_axis(frame), [list(col) for col in frame] # convert to nested list
+
+    def take_spectrum(self, name=None):
+        self.start_spectrum(name)
+        return self.collect_spectrum()
+
 
 
     # Grating Settings:  -----------------------------------------------------------------------------------------
@@ -189,11 +196,11 @@ class WinspecInstr(BaseInstrument):
             self.logger.warning('{} is invalid grating number (1-{})'.format(number, self.number_of_gratings))
 
     @property
-    def central_wav(self):
+    def central_nm(self):
         return self.controller.spt_get('CUR_POSITION')[0]
 
-    @central_wav.setter
-    def central_wav(self, nanometers):
+    @central_nm.setter
+    def central_nm(self, nanometers):
         current = self.controller.spt_get('CUR_POSITION')[0]
         if nanometers == current:
             self.logger.debug('Grating already at {}nm'.format(nanometers))
@@ -203,10 +210,6 @@ class WinspecInstr(BaseInstrument):
             self.controller.spt.Move()
             self.logger.info('finished moving grating')
             # self.move_grating_thread.start()
-
-
-
-
 
     # Hardware settings:   ---------------------------------------------------------------------------------------
 
@@ -297,9 +300,6 @@ class WinspecInstr(BaseInstrument):
         self.controller.exp_set('FLIP', value!=0)     # the value!=0 converts it to a bool
 
 
-
-    # Experiment / ADC settings:   --------------------------------------------
-
     # Experiment / ADC settings:   --------------------------------------------
 
     @property
@@ -325,26 +325,29 @@ class WinspecInstr(BaseInstrument):
     # Experiment / Main settings:  --------------------------------------------
 
     @property
-    def use_roi(self):
-        ws.controller.exp_get('USEROI')
+    def ccd(self):
+        number = ws.controller.exp_get('USEROI')[0]
+        return self._ccd[number]
 
-    @use_roi.setter
-    def use_roi(self, value):
-        ws.controller.exp_set('USEROI', value!=0)
+    @ccd.setter
+    def ccd(self, string):
+        number = self._setter_string_to_number(string, self._ccd)
+        if number>=0:
+            self.controller.exp_set('USEROI', number)
 
-
-    """
-    USEROI     is Use full Chip vs Use Region of interest
-    ROIMODE     0= Imaging Mode,   1= Spectroscopy Mode
-    ROICOUNT    number of stored ROIs
-    
-    in spectroscopy mode:
-    ybinned and ydim are 1
-    YDIMDET = 1024
-    
-    """
+    @property
+    def spec_mode(self):
+        """
 
 
+        :return: True for Spectroscopy Mode, False for Imaging Mode
+        :rtpye: bool
+        """
+        return ws.controller.exp_get('ROIMODE')[0]==1
+
+    @spec_mode.setter
+    def spec_mode(self, value):
+        ws.controller.exp_set('ROIMODE', value!=0)
 
     def getROI(self):
         # return top, bottom, v_group, left, right, h_group
@@ -352,19 +355,37 @@ class WinspecInstr(BaseInstrument):
         r = self._roi.Get()    # returns tuple: (top, left, bottom, right, h_group, v_group)
         return [r[0], r[2], r[5], r[1], r[3], r[4]]
 
-
-    def setROI(self, top, bottom=1024, v_group=None, left=1, right=1024, h_group=1):
+    def setROI(self, top='full_im', bottom=None, v_group=None, left=1, right=None, h_group=1):
         """
-        Note the horizontal range needs to be a multiple of 4 pixels.
-        If the users input fails this criterium, this method will expand the
-        :param top:
-        :param bottom:
-        :param v_group:
-        :param left:
-        :param right:
-        :param h_group:
+        Note for the new camera (the 1024x1024 one) the  horizontal range needs to be a multiple of 4 pixels.
+        If the users input fails this criterium, this method will expand the range.
+        Also the v_group and h_group, need to fit in the specified range. If the input fails, a suitable value will be used. And the user will be warned.
+        :param top: Top-pixel number (inclusive) (integer starting at 1). Alternatively 'full_im' (=DEFAULT) of 'full_spec' can be use.
+        :param bottom: Bottom-pixel number (integer). DEFAULT value is bottom of chip
+        :param v_group: Vertical bin-size in number of pixels (integer). None sums from 'top' to 'bottom'. DEFAULT: None
+        :param left: Left-pixel number (inclusive) (integer starting from 1). DEFAULT is 1
+        :param right: Right-pixel number (integer). DEFAULT is rightmost pixel
+        :param h_group: Horizontal binning (integer), DEFAULT is 1
         :return:
+
+        Examples:
+        setROI('full_im')   returns the full CCD
+        setROI('full_spec') returns the full CCD, summed vertically to result in 1D array
+        setROI(51)          sums from pixel 51 to the bottom
+        setROI(51, 70)      sums vertically from pixel 51 to 70
+        setROI(51, 70, 20)  sums vertically from pixel 51 to 70
+        setROI(41, 60, 5)   result in 4 bins of 5 pixles
+        setROI(41, 60, 1)   no binning, result will be 20 pixels high
+        setROI(41, 60, None, 101, 601)      modify horizontal range
+        setROI(41, 60, None, 101, 601, 10)  apply horizontal binning of 10 pixels (result will be 50 datapoints wide)
         """
+
+        if bottom is None:
+            bottom = self.controller.ydim
+
+        if right is None:
+            right = self.controller.xdim
+
         if type(top) is str:
             top = 1
             if top=='full_im':
@@ -376,15 +397,83 @@ class WinspecInstr(BaseInstrument):
         if v_group is None:
             v_group = bottom-(top-1)
 
-        # Check iof horizontal range is multiple of 4 pixels. Expand if required
-        if right-(left-1)
+        # Some basic range corrections:
+        # revert top/bottom and left/right if they're inverted
+        if bottom<top:
+            temp = top
+            top = bottom
+            bottom = temp
+        if right < left:
+            temp = left
+            left = right
+            right = temp
+        # apply basic limits of the CCD
+        if top < 1: top = 1
+        if left < 1: left = 1
+        if bottom > self.controller.ydim: bottom = self.controller.ydim
+        if right > self.controller.xdim: right = self.controller.xdim
 
-        self._roi = self.controller.exp.GetROI(1)
-        self._roi.Set(top, left, bottom, right, h_group, v_group)
-        self.controller.exp.ClearROIs()
-        self.controller.exp.SetROI(self._roi)
-        self.use_roi = True
+        # if bottom < top:
+        #     if top < self.controller.ydim-1:
+        #         bottom = top
+        #     else:
+        #         top = bottom
+        # if right < left:
+        #     if left < self.controller.xdim-1:
+        #         right = left + 1
+        #     else:
+        #         left = right - 1
+        # if not 0 < top <= bottom: self.logger.error('top value invalid')
+        # if not top <= bottom <= self.controller.ydim: self.logger.error('bottom value invalid')
+        # if not 0 < left <= right: self.logger.error('left value invalid')
+        # if not left <= right <= self.controller.xdim: self.logger.error('right value invalid')
 
+        pix = right - (left - 1)
+        if self._horz_width_multiple > 1:
+            # note: I've generalized this from 4 to self._horz_width_multiple
+            # Check if horizontal range is multiple of 4 pixels. Expand if required.
+            # This is rquired for the new spectrometer (the one with 1024x1024 pixels)
+            if pix%self._horz_width_multiple:
+                ad = self._horz_width_multiple-pix+self._horz_width_multiple*int(pix/self._horz_width_multiple) # number of pixels to add (1,2,3)
+                while ad:
+                    if ad and right < self.controller.xdim:
+                        right += 1
+                        ad -= 1
+                    if ad and left>1:
+                        left -= 1
+                        ad -= 1
+            self.logger.warning('horizontal range is not muliple of {}: expanded to [{}-{}]'.format(self._horz_width_multiple, left, right))
+            pix = right - (left - 1)
+
+        # if necessary correct h_group to fit horizontal range:
+        new_h = h_group
+        if pix%h_group:
+            new_h = h_group-((h_group-1)%self._horz_width_multiple)+(self._horz_width_multiple-1)   # ceil to nearest multiple of self._horz_width_multiple
+            while pix%new_h:        # note: this loop should end at the latest when new_h == 1
+                new_h -= 1
+
+        if new_h != h_group:
+            self.logger.warning('h_group {} does not fit in horizontal range of [{}-{}]: changing to: {}'.format(h_group, left, right, h_new))
+            h_group = h_new
+
+        pix = bottom - (top-1)
+        if pix%v_group:
+            new_v = v_group+1
+            while pix%new_v:        # note: this loop should end at the latest when new_v == 1
+                new_v -= 1
+
+        if new_v != v_group:
+            self.logger.warning('v_group {} does not fit in verical range of [{}-{}]: changing to: {}'.format(v_group, top, bottom, v_new))
+            v_group = v_new
+
+        # set the new ROI:
+        self._roi = self.controller.exp.GetROI(1)                       # get ROI object
+        self._roi.Set(top, left, bottom, right, h_group, v_group)       # put in the new values
+        self.controller.exp.ClearROIs()                                 # clear ROIs in WinsSpec
+        self.controller.exp.SetROI(self._roi)                           # set the ROI object in WinSpec
+        self.ccd = 'ROI'                                                # switch from Full Chip to Region Of Interest mode
+
+        # I'm not sure if I need to do something with ROIMODE (0= Imaging Mode,   1= Spectroscopy Mode)
 
     @property
     def accumulations(self):
@@ -502,7 +591,7 @@ class WinspecInstr(BaseInstrument):
         self.controller.exp_set('DELAY_TIME', seconds)
 
     # helper function:
-    def setter_string_to_number(self, string, available_list):
+    def _setter_string_to_number(self, string, available_list):
         # also allows for int and checks if it is in the available list as a string
         if type(string)==int:
             if type(available_list[string])!=int:
@@ -519,7 +608,7 @@ class WinspecInstr(BaseInstrument):
 
     @timing_mode.setter
     def timing_mode(self, string):
-        number = self.setter_string_to_number(string, self._timing_modes)
+        number = self._setter_string_to_number(string, self._timing_modes)
         if number>=0:
             self.controller.exp_set('TIMING_MODE', number)
 
@@ -530,7 +619,7 @@ class WinspecInstr(BaseInstrument):
 
     @shutter_control.setter
     def shutter_control(self, string):
-        number = self.setter_string_to_number(string, self._shutter_controls)
+        number = self._setter_string_to_number(string, self._shutter_controls)
         if number>=0:
             self.controller.exp_set('SHUTTER_CONTROL', number)
 
@@ -541,28 +630,12 @@ class WinspecInstr(BaseInstrument):
 
     @fast_safe.setter
     def fast_safe(self, string):
-        number = self.setter_string_to_number(string, self._fast_safe)
+        number = self._setter_string_to_number(string, self._fast_safe)
         if number>=0:
             self.controller.exp_set('SYNC_ASYNC', number)
 
-
     # Could add
     #edge_trigger
-
-
-    # Experiment Setup / ROI Setup -------------------------------------------------
-
-
-#XDIM
-#YDIM
-#XBINNED ?
-#
-#
-#
-
-
-
-
 
 
 
@@ -578,26 +651,60 @@ if __name__ == "__main__":
 
 
 
-
-
-#    dummy = [False]
-#    for d in dummy:
-#        with Winspec(settings = {'port':'None', 'dummy' : d,
-#                                   'controller': 'hyperion.controller.princeton.winspec/WinspecController'}) as dev:
-#            dev.initialize()
-#            print(dev.idn())
-#            # v = 2 * ur('volts')
-#            # dev.amplitude = v
-#            # print(dev.amplitude)
-#            # dev.amplitude = v
-#            # print(dev.amplitude)
-#
-#    print('done')
-
     ws = WinspecInstr(settings = {'port': 'None', 'dummy' : False,
                                    'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr', 'shutter_controls':['Disabled Closed','Disabled Opened']})
-    # ws.initialize() # this is done in the __init__ now
 
-    ws.exposure_time = Q_('300ms')
+    if False:
 
-    ws.central_wav = 300
+        print('\nHardware Display settings:')
+        print('display_rotate = ', ws.display_rotate)
+        print('display_reverse = ', ws.display_reverse)
+        print('display_flip = ', ws.display_flip)
+
+        print('\nHardware Temperature settings:')
+        print('target_temp = ', ws.target_temp)
+        print('current_temp = ', ws.current_temp, '  (read-only property)')
+        print('temp_locked = ', ws.temp_locked, '  (read-only property)')
+
+        print('\nExperiment Settings:')
+        print('ADC              gain = ', ws.gain)
+        print('Timing           timing_mode = ', ws.timing_mode)
+        print('Timing           shutter_control = ', ws.shutter_control)
+        print('Timing           fast_safe = ', ws.fast_safe)
+        print('Timing           delay_time_s = ', ws.delay_time_s)
+        ws.bg_subtract = False
+        print('Data Corrections bg_subtract = ', ws.bg_subtract)
+        print('Data Corrections bg_file = ', ws.bg_file)
+        ws.exposure_time = Q_('3s')
+        print('Main             exposure_time = ', ws.exposure_time)
+        ws.ccd = 'ROI'
+        print('Main             ccd = ', ws.ccd)
+        print('Main             accumulations = ', ws.accumulations)
+        print('ROI              spec_mode = ', ws.spec_mode)
+
+        print('\nGrating Settings:')
+        print(ws.number_of_gratings, ' gratings found')
+        for k in range(ws.number_of_gratings):
+            print(k+1, ':  ', ws.gratings_grooves[k], 'gr/mm  ',  ws.gratings_blaze_name[k])
+
+        print('current grating = ', ws.grating)
+        print('Switching grating ...')
+        if ws.grating == 2:
+            ws.grating = 1
+        elif ws.grating == 1:
+            ws.grating = 2
+
+        print('central_nm = ', ws.central_nm)
+        print('Changing grating central nm ...')
+        if ws.central_nm < 450:
+            ws.central = 500
+        if ws.central_nm > 450:
+            ws.central = 400
+
+    print('Taking spectrum ...')
+    nm, counts = ws.take_spectrum()
+    print(nm,counts)
+
+    # import matplotlib.pyplot as plt
+    # plt.plot
+
