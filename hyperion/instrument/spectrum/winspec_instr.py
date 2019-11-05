@@ -65,7 +65,10 @@ class WinspecInstr(BaseInstrument):
         self._ccd = self._remove_unavailable('ccd', ['Full', 'ROI'])
         self._autosave = self._remove_unavailable('autosave', ['Ask', 'Auto', 'No'])
 
-        self._horz_width_multiple = 1   # This parameter specifies if camera requires horizontal range of certain interval
+        if 'horz_width_multiple' in self.settings:
+            self._horz_width_multiple = self.settings['horz_width_multiple']  # This parameter specifies if camera requires horizontal range of certain interval
+        else:
+            self._horz_width_multiple = 1   # This parameter specifies if camera requires horizontal range of certain interval
 
         self.initialize()   # ! required to do this in the __init__
 
@@ -74,9 +77,11 @@ class WinspecInstr(BaseInstrument):
 
         self.frame = []
 
-        # temporary bug fix:
-        self.controller.xdim = 1024
-        self.controller.ydim = 1024
+        # bug fix:
+        ws.ccd = 'Full'
+        self.controller.xdim = ws.controller.exp_get('XDIM')
+        self.controller.ydim = ws.controller.exp_get('YDIM')
+        ws.ccd = 'ROI'
 
         # !!!!!   THREADING WILL NOT WORK IN THE CURRENT IMPLENTATION
         #         I have some ideas to try, but I'll first finish an operational version without threading
@@ -833,7 +838,7 @@ if __name__ == "__main__":
 
 
     ws = WinspecInstr(settings = {'port': 'None', 'dummy' : False,
-                                   'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr', 'shutter_controls':['Closed','Opened']})
+                                   'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr', 'shutter_controls':['Closed','Opened'], 'horz_width_multiple': 4})
 
     test_everything = False
 
