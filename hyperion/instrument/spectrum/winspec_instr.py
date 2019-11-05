@@ -74,6 +74,10 @@ class WinspecInstr(BaseInstrument):
 
         self.frame = []
 
+        # temporary bug fix:
+        self.controller.xdim = 1024
+        self.controller.ydim = 1024
+
         # !!!!!   THREADING WILL NOT WORK IN THE CURRENT IMPLENTATION
         #         I have some ideas to try, but I'll first finish an operational version without threading
 
@@ -95,7 +99,7 @@ class WinspecInstr(BaseInstrument):
         self.number_of_gratings = self.controller.spt_get('GRATINGSPERTURRET')[0]
         # this seems to be the same value:   self.controller.spt_get('INST_CUR_GRAT_NUM')[0]
         for k in range(self.number_of_gratings):
-            self.gratings_grooves.append(self.controller.spt_get('INST_GRAT_GROOVES', k + 1)[0])
+            self.gratings_grooves.append(self.controller.spt_get('v', k)[0])
             text = self.controller.spt_get('GRAT_USERNAME', k + 1)[0]
             self.gratings_blaze_name.append(text)
             # # try to interpret the blaze wavelength:
@@ -460,11 +464,18 @@ class WinspecInstr(BaseInstrument):
             right = self.controller.xdim
 
         if type(top) is str:
-            top = 1
             if top=='full_im':
+                top = 1
+                bottom = self.controller.ydim
                 v_binsize = 1
-            elif top !='full_spec':
+            elif top != 'full_spec':
                 self.logger.warning('unknown command {}, using full_spec ')
+                top = 'full_spec'
+            if top =='full_spec':
+                top = 1
+                bottom = self.controller.ydim
+                v_binsize = 1024
+
 
         # if v_group is not specified assume summing vertically from top to bottom:
         if v_binsize is None:
@@ -529,6 +540,7 @@ class WinspecInstr(BaseInstrument):
             self.logger.warning('h_group {} does not fit in horizontal range of [{}-{}]: changing to: {}'.format(h_binsize, left, right, h_new))
             h_binsize = h_new
 
+        new_v = v_binsize
         pix = bottom - (top-1)
         if pix%v_binsize:
             new_v = v_binsize + 1
@@ -790,6 +802,22 @@ class WinspecInstr(BaseInstrument):
     # Could add
     #edge_trigger
 
+    # Experiment / Processes settings; ------------------------------------------------
+    @property
+    def ascii_output(self):
+        """
+        attribute: Also save as ASCII file (next to SPE)
+
+        getter: Returns if ASCII save is enabled.
+        setter: Sets saving as ASCII file.
+        type: bool
+        """
+        return self.controller.exp_get('ASCIIOUTPUTFILE')[0] == 1     # turn it into bool
+
+    @ascii_output.setter
+    def ascii_output(self, value):
+        self.controller.exp_set('ASCIIOUTPUTFILE',value!=0)       # !=0  forces it to be bool
+
 
 
 if __name__ == "__main__":
@@ -807,7 +835,7 @@ if __name__ == "__main__":
     ws = WinspecInstr(settings = {'port': 'None', 'dummy' : False,
                                    'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr', 'shutter_controls':['Closed','Opened']})
 
-    test_everything = True
+    test_everything = False
 
     if test_everything:
         print(ws.idn())
