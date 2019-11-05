@@ -88,7 +88,7 @@ _logger_format_short = '%(asctime)s |%(module)+22s | %(funcName)+22s()|%(levelna
 
 # keep these two lines for backward compatability
 _logger_format = _logger_format_long
-_logger_settings = {'filename':'logger.log', 'maxBytes':(1048576 * 5), 'backupCount':7}
+_logger_settings = {'filename':'logger.log', 'maxBytes':(1048576 * 5), 'backupCount':9}
 
 # create handler for stream logging:
 stream_logger = logging.StreamHandler()
@@ -97,28 +97,25 @@ stream_logger.setFormatter(CustomFormatter(compact=True))
 stream_logger.setLevel(logging.DEBUG)    # default level for stream handler
 stream_logger.addFilter(DuplicateFilter())
 
-# create handler for file logging:
-_default_log_filename = os.path.join( parent_path , 'hyperion.log')
-file_logger = logging.handlers.RotatingFileHandler(filename = _default_log_filename, maxBytes = (2*1024*1024), backupCount = 9)
-# file_logger.setFormatter(logging.Formatter(_logger_format_long))
-file_logger.setFormatter(CustomFormatter())
-file_logger.setLevel(logging.DEBUG)        # default level for file handler
-file_logger.addFilter(DuplicateFilter())
-
-# set these handlers as default
-# (note that the base level needs to be set to lowest level i.e. logging.DEBUG)
-logging.basicConfig(level=logging.DEBUG, handlers=[file_logger, stream_logger])
-
 # Function for changing the logger file:
 # (apparently you have to remove, re-create and add the handler )
-def set_logfile(filepathname=_default_log_filename):
+def set_logfile(file_basename='hyperion', folder = parent_path):
+    """
+
+    :param file_basename: The name of the logfile. (Note that the extension will be replaced with .log)
+    :param folder: The folder to store the logfile (defaults to the parent_path of hyperion repository)
+    """
     global file_logger
     # first store the level and formatter
     level = file_logger.level
     formatter = file_logger.formatter
 
+    userfolder = os.path.dirname(file_basename)
+    if os.path.isdir(userfolder):
+        folder = userfolder
+    filepathname = os.path.join(folder, os.path.splitext(file_basename)[0]+'.log' )
     # overwrite the file_logger (this is needed)
-    file_logger = logging.handlers.RotatingFileHandler(filename=filepathname, maxBytes=(2 * 1024 * 1024), backupCount=9)
+    file_logger = logging.handlers.RotatingFileHandler(filename=filepathname, maxBytes=(1048576 * 5), backupCount=9)
     file_logger.setFormatter(formatter)
     file_logger.setLevel(level)  # default level for file handler
     file_logger.addFilter(DuplicateFilter())
@@ -128,11 +125,26 @@ def set_logfile(filepathname=_default_log_filename):
     logger.removeHandler(file_logger)
     logger.addHandler(file_logger)
 
+# create handler for file logging:
+file_logger = logging.handlers.RotatingFileHandler(filename = 'hyperion.log', maxBytes =(1048576 * 5), backupCount = 9)
+
+# file_logger.setFormatter(logging.Formatter(_logger_format_long))
+file_logger.setFormatter(CustomFormatter())
+file_logger.setLevel(logging.DEBUG)        # default level for file handler
+file_logger.addFilter(DuplicateFilter())
+set_logfile('hyperion')     # set to the default path
+
+# set these handlers as default
+# (note that the base level needs to be set to lowest level i.e. logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, handlers=[file_logger, stream_logger])
+
+
 # At the beginning of a file use: import hyperion
 # Also import logging (or otherwise type hyperion.logging.X everywhere you would type logging.X)
 # After that use this anywhere: self.logger = logging.getLogger(__name__)
 # To change the logging file use this anywhere:
 # hyperion.set_logfile('my_new_file_path_and_name.log')
+# hyperion.set_logfile('__file__')
 # To modify the levels use this anywhere :
 # hyperion.file_logger.setLevel( logging.INFO )
 # hyperion.stream_logger.setLevel( logging.WARNING )
