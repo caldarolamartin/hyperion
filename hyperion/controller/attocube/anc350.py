@@ -838,44 +838,44 @@ if __name__ == "__main__":
         #     state = newstate
         #     time.sleep(0.5)
 
-        # #nr. 2: with a step, the stepwidth was determined by the amplitude and frequency
-        # #so the step is order of magnitude 300 nm
-        #
-        # print('-------------------------------------------------------------')
-        # print('moving 10 single steps of stepwidth, determined by set amplitude and frequency')
-        #
-        # #forward 0, backward 1
-        # #but you have to give it time, because it won't tell you that it's not finished moving yet
-        # for ii in range(10):
-        #     anc.moveSingleStep(0,0)
-        #     time.sleep(0.5)
-        #     print(ii,': we are now at ',anc.getPosition(0),'nm')
+        #nr. 2: with a step, the stepwidth was determined by the amplitude and frequency
+        #so the step is order of magnitude 300 nm
+
+        print('-------------------------------------------------------------')
+        print('moving 10 single steps of stepwidth, determined by set amplitude and frequency')
+
+        #forward 0, backward 1
+        #but you have to give it time, because it won't tell you that it's not finished moving yet
+        for ii in range(10):
+            anc.moveSingleStep(0,0)
+            time.sleep(0.5)
+            print(ii,': we are now at ',anc.getPosition(0),'nm')
         #
         # #nr. 3: with a step that you give it by ordering a relative move
         # #but this one takes a very long time
         #
         print('-------------------------------------------------------------')
 
-        position = -10000
-
-        print('moving to a relative position, ...um back')
-        startpos = anc.getPosition(0)
-        anc.moveRelative(0,position)
-        time.sleep(0.4)         #important to have this number, otherwise it already starts asking before the guy even knows whether he moves
-
-        pos = anc.getPosition(0)
-        didntmove = False
-        while anc.getStatus(0)['moving']:
-            time.sleep(0.1)
-            new_pos = anc.getPosition(0)
-            print(new_pos)
-            if np.abs(new_pos - pos) < 500:
-                didntmove = True
-                break
-            pos = new_pos
-
-        print(anc.getPosition(0))
-        print(didntmove)
+        # position = -10000
+        #
+        # print('moving to a relative position, ...um back')
+        # startpos = anc.getPosition(0)
+        # anc.moveRelative(0,position)
+        # time.sleep(0.4)         #important to have this number, otherwise it already starts asking before the guy even knows whether he moves
+        #
+        # pos = anc.getPosition(0)
+        # didntmove = False
+        # while anc.getStatus(0)['moving']:
+        #     time.sleep(0.1)
+        #     new_pos = anc.getPosition(0)
+        #     print(new_pos)
+        #     if np.abs(new_pos - pos) < 500:
+        #         didntmove = True
+        #         break
+        #     pos = new_pos
+        #
+        # print(anc.getPosition(0))
+        # print(didntmove)
 
         #np.abs(startpos - pos) <
 
