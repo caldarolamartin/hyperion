@@ -7,7 +7,7 @@ Winspec Instrument
 Aron Opheij, TU Delft 2019
 
 IMPORTANT REMARK:
-  The way the 
+  The way the
 
 
 Tips for finding new functionality:
@@ -601,3 +601,4 @@ if __name__ == "__main__":
     ws.exposure_time = Q_('300ms')
 
     ws.central_wav = 300
+    
