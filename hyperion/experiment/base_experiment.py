@@ -169,31 +169,23 @@ class BaseExperiment():
 if __name__ == '__main__':
     import hyperion
 
-    hyperion.set_logfile(os.path.basename(__file__))
-    # hyperion.file_logger.setLevel(logging.DEBUG)
-    # hyperion.stream_logger.setLevel(logging.DEBUG)
+    hyperion.set_logfile(__file__)                    # not required, but recommended
+    # hyperion.file_logger.setLevel(logging.DEBUG)      # change logging level for the file (DEBUG, INFO, WARNING, ERROR)
+    # hyperion.stream_logger.setLevel(logging.DEBUG)    # change logging level for the screen
 
-    logger = logging.getLogger(__name__)
-    logger.info('logging test 001')
 
-    # from hyperion import _logger_format
-    # logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-    #                     handlers=[
-    #                         logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-    #                         logging.StreamHandler()])
-    #
-    # with BaseExperiment() as e:
-    #
-    #     config_folder = 'D:/mcaldarola/Data/2019-04-17_hyperion/'  # this should be your path for the config file you use
-    #     name = 'example_experiment_config'
-    #     config_file = os.path.join(config_folder, name)
-    #
-    #     logging.info('Using the config file: {}.yml'.format(config_file))
-    #     e.load_config(config_file + '.yml')
-    #
-    #     # read properties just loaded
-    #     print('\n {} \n'.format(e.properties))
-    #
-    #     e.properties['Scan']['start'] = '0.5V'
-    #
-    #     print('\n {} \n'.format(e.properties))
+    with BaseExperiment() as e:
+
+        config_folder = 'D:/mcaldarola/Data/2019-04-17_hyperion/'  # this should be your path for the config file you use
+        name = 'example_experiment_config'
+        config_file = os.path.join(config_folder, name)
+
+        logging.info('Using the config file: {}.yml'.format(config_file))
+        e.load_config(config_file + '.yml')
+
+        # read properties just loaded
+        print('\n {} \n'.format(e.properties))
+
+        e.properties['Scan']['start'] = '0.5V'
+
+        print('\n {} \n'.format(e.properties))
