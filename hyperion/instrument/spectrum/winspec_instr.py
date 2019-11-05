@@ -43,6 +43,13 @@ class WinspecInstr(BaseInstrument):
         :param settings: this includes all the settings needed to connect to the device in question.
         :type settings: dict
 
+        Information for settings dict:
+        To overwrite certain possible values add a key conaining a list of possible values to the settings dict:
+        For example, if your WinSpec does not have 'Normal' mod in shutter_controls, add this key:
+        shutter_controls:
+          - Closed
+          - Opened
+
     """
 
     def __init__(self, settings):                   # not specifying a default value for settings is less confusing for novice users
@@ -54,9 +61,10 @@ class WinspecInstr(BaseInstrument):
         self.default_name = 'temp.SPE'
 
         self._timing_modes = self._remove_unavailable('timing_modes', [0, 'Free Run', 2, 'External Sync'])
-        self._shutter_controls = self._remove_unavailable('shutter_controls', [0, 'Normal', 'Disabled Closed', 'Disabled Opened'])
+        self._shutter_controls = self._remove_unavailable('shutter_controls', [0, 'Normal', 'Closed', 'Opened'])
         self._fast_safe = self._remove_unavailable('fast_safe', ['Fast', 'Safe'])
-        self._ccd = self._remove_unavailable('CCD', ['Full', 'ROI'])
+        self._ccd = self._remove_unavailable('ccd', ['Full', 'ROI'])
+        self._autosave = self._remove_unavailable('autosave', ['Ask', 'Auto', 'No'])
 
         self._horz_width_multiple = 1   # This parameter specifies if camera requires horizontal range of certain interval
 
@@ -64,6 +72,8 @@ class WinspecInstr(BaseInstrument):
 
         # self._is_acquiring = False
         self._is_moving = False
+
+        self.frame = []
 
         # !!!!!   THREADING WILL NOT WORK IN THE CURRENT IMPLENTATION
         #         I have some ideas to try, but I'll first finish an operational version without threading
@@ -91,6 +101,9 @@ class WinspecInstr(BaseInstrument):
             self.gratings_blaze_name.append(text)
             # # try to interpret the blaze wavelength:
             # self.gratings_blaze.append(int(''.join(filter(str.isdigit, text))))
+
+        # # To prevent error when trying to save or aquire without
+        # self.doc = self.controller.docfile()
 
         self.logger.info(
             '{} gratings found. grooves/mm: {}, blaze: {}'.format(self.number_of_gratings, self.gratings_grooves,
@@ -130,39 +143,78 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
 
-    def start_spectrum(self, name=None):
+    def start_acquiring(self, name=None):
+        """
+        Starts acquisition of spectrum. Does not wait for it to finish.
+        If name is specified. The last spectrum in WinSpec is closed and a new spectrum with the specified name is created.
+        If name is None (DEFAULT) the current spectrum will be overwritten.
+
+        :param name: Full path to file to store. Or None, for using default.
+        :type name: string
+        """
+
         if name==None:
-            name=self.default_name
-        self.doc = self.controller.docfile()
+            # name=self.default_name
+            self.doc = self.controller.docfile()
+        else:
+            self.doc.Close()
+            self.filename = name
+            self.doc = self.controller.docfile()
         self.controller.exp.Start(self.doc)
 
     @property
     def is_acquiring(self):
+        """ Read only property that indicates if WinSpec is still busy acquiring. Returns True or False."""
         return self.controller.exp_get('RUNNING')[0]==1
 
-    def nm_axis(self, frame):
+    def nm_axis(self):
+        """ Returns list with nm axis values of last collected spectrum."""
         # Retrieve nm axis in cumbersome way. (There must be a better/faster way,  but haven't found it yet)
         wav = []
         cal = self.doc.GetCalibration()
-        for index in range(len(frame)):
-            wav.append([cal.Lambda(index+1)])
+        for index in range(len(self.frame)):
+            wav.append(cal.Lambda(index+1))
         return wav
 
     def collect_spectrum(self, wait=True):
-        # requires the existence of self.doc
+        """
+        Retrieves the last acquired spectrum from Winspec.
+        :param wait: If wait is True (DEFAULT) it will wait for WinSpec to finish collecting data.
+        :type wait: bool
+        :return: list or nested list
+        """
         if wait:
             while self.is_acquiring:
                 time.sleep(0.01)
-        frame = self.doc.GetFrame(1,self.controller._variant_array)
+        self.frame = self.doc.GetFrame(1,self.controller._variant_array)
         # return frame                      # direct tuple of tuples
         # return np.asarray(frame)          # np approach
-        return self.nm_axis(frame), [list(col) for col in frame] # convert to nested list
+        if len(self.frame[0])==1:
+            return [col[0] for col in self.frame] # convert to 1D list
+        else:
+            return [list(col) for col in self.frame] # convert to nested list
 
     def take_spectrum(self, name=None):
-        self.start_spectrum(name)
-        return self.collect_spectrum()
+        """
+        Acquire spectrum, wait for data and collect it.
+        Performs start_acquiring(name), followed by collect_spectrum(True).
+        See those methods for more details.
+        """
+        self.start_acquiring(name)
+        return self.collect_spectrum(True)
 
-
+    def saveas(self, filename):
+        """
+        Make WinSpec save current spectrum to disk (in format specified in WinSpec).
+        Note: I's also possible to use autosave function of WinSpec:  self.autosave = 'Auto'
+        :param filename: The full path to save the file. If None specified it used default name.
+        :type filename: string
+        :return:
+        """
+        if filename is None:
+            self.doc.Save()
+        else:
+            self.doc.SaveAs(filename)
 
     # Grating Settings:  -----------------------------------------------------------------------------------------
 
@@ -179,6 +231,13 @@ class WinspecInstr(BaseInstrument):
 
     @property
     def grating(self):
+        """
+        attribute: Grating number (starts at 1)
+
+        getter: Returns current grating number
+        setter: Switched to new grating. Waits for it to complete.
+        type: int
+        """
         return self.controller.spt_get('CUR_GRATING')[0]
 
     @grating.setter
@@ -197,6 +256,14 @@ class WinspecInstr(BaseInstrument):
 
     @property
     def central_nm(self):
+        """
+        attribute: Central position of grating in nm
+
+        getter: Returns current central position of grating
+        setter: Rotates grating to new nm position. Waits for it to complete.
+        type: float
+        """
+
         return self.controller.spt_get('CUR_POSITION')[0]
 
     @central_nm.setter
@@ -218,7 +285,7 @@ class WinspecInstr(BaseInstrument):
         """
         read-only attribute: Temperature measured by Winspec in degrees Celcius.
 
-        getter: Returns the Temperature measued by Winspec.
+        getter: Returns the Temperature measured by Winspec.
         type: float
         """
         return self.controller.exp_get('ACTUAL_TEMP')[0]
@@ -305,7 +372,7 @@ class WinspecInstr(BaseInstrument):
     @property
     def gain(self):
         """
-        attribute: ADC Gain value. (Known allowed values: 1, 2)
+        attribute: ADC Gain value.
 
         getter: Returns Gain set in Winspec
         setter: Attempts to updates Gain setting in Winspec if required. Gives warning if failed.
@@ -326,6 +393,11 @@ class WinspecInstr(BaseInstrument):
 
     @property
     def ccd(self):
+        """
+        attribute: CCD Readout mode.
+        default possible values: 'Full' 'ROI'
+        type: str
+        """
         number = ws.controller.exp_get('USEROI')[0]
         return self._ccd[number]
 
@@ -338,10 +410,8 @@ class WinspecInstr(BaseInstrument):
     @property
     def spec_mode(self):
         """
-
-
-        :return: True for Spectroscopy Mode, False for Imaging Mode
-        :rtpye: bool
+        attribute: True for Spectroscopy Mode, False for Imaging Mode
+        :type: bool
         """
         return ws.controller.exp_get('ROIMODE')[0]==1
 
@@ -350,22 +420,26 @@ class WinspecInstr(BaseInstrument):
         ws.controller.exp_set('ROIMODE', value!=0)
 
     def getROI(self):
+        """
+        Retrieve current Region Of Interest.
+        :return: list containing [top, bottom, v_binsize, left, right, h_binsize]
+        """
         # return top, bottom, v_group, left, right, h_group
         self._roi = self.controller.exp.GetROI(1)
         r = self._roi.Get()    # returns tuple: (top, left, bottom, right, h_group, v_group)
         return [r[0], r[2], r[5], r[1], r[3], r[4]]
 
-    def setROI(self, top='full_im', bottom=None, v_group=None, left=1, right=None, h_group=1):
+    def setROI(self, top='full_im', bottom=None, v_binsize=None, left=1, right=None, h_binsize=1):
         """
         Note for the new camera (the 1024x1024 one) the  horizontal range needs to be a multiple of 4 pixels.
         If the users input fails this criterium, this method will expand the range.
         Also the v_group and h_group, need to fit in the specified range. If the input fails, a suitable value will be used. And the user will be warned.
         :param top: Top-pixel number (inclusive) (integer starting at 1). Alternatively 'full_im' (=DEFAULT) of 'full_spec' can be use.
         :param bottom: Bottom-pixel number (integer). DEFAULT value is bottom of chip
-        :param v_group: Vertical bin-size in number of pixels (integer). None sums from 'top' to 'bottom'. DEFAULT: None
+        :param v_binsize: Vertical bin-size in number of pixels (integer). None sums from 'top' to 'bottom'. DEFAULT: None
         :param left: Left-pixel number (inclusive) (integer starting from 1). DEFAULT is 1
         :param right: Right-pixel number (integer). DEFAULT is rightmost pixel
-        :param h_group: Horizontal binning (integer), DEFAULT is 1
+        :param h_binsize: Horizontal binning (integer), DEFAULT is 1
         :return:
 
         Examples:
@@ -389,13 +463,13 @@ class WinspecInstr(BaseInstrument):
         if type(top) is str:
             top = 1
             if top=='full_im':
-                v_group = 1
+                v_binsize = 1
             elif top !='full_spec':
                 self.logger.warning('unknown command {}, using full_spec ')
 
         # if v_group is not specified assume summing vertically from top to bottom:
-        if v_group is None:
-            v_group = bottom-(top-1)
+        if v_binsize is None:
+            v_binsize = bottom - (top - 1)
 
         # Some basic range corrections:
         # revert top/bottom and left/right if they're inverted
@@ -446,29 +520,29 @@ class WinspecInstr(BaseInstrument):
             pix = right - (left - 1)
 
         # if necessary correct h_group to fit horizontal range:
-        new_h = h_group
-        if pix%h_group:
-            new_h = h_group-((h_group-1)%self._horz_width_multiple)+(self._horz_width_multiple-1)   # ceil to nearest multiple of self._horz_width_multiple
+        new_h = h_binsize
+        if pix%h_binsize:
+            new_h = h_binsize - ((h_binsize - 1) % self._horz_width_multiple) + (self._horz_width_multiple - 1)   # ceil to nearest multiple of self._horz_width_multiple
             while pix%new_h:        # note: this loop should end at the latest when new_h == 1
                 new_h -= 1
 
-        if new_h != h_group:
-            self.logger.warning('h_group {} does not fit in horizontal range of [{}-{}]: changing to: {}'.format(h_group, left, right, h_new))
-            h_group = h_new
+        if new_h != h_binsize:
+            self.logger.warning('h_group {} does not fit in horizontal range of [{}-{}]: changing to: {}'.format(h_binsize, left, right, h_new))
+            h_binsize = h_new
 
         pix = bottom - (top-1)
-        if pix%v_group:
-            new_v = v_group+1
+        if pix%v_binsize:
+            new_v = v_binsize + 1
             while pix%new_v:        # note: this loop should end at the latest when new_v == 1
                 new_v -= 1
 
-        if new_v != v_group:
-            self.logger.warning('v_group {} does not fit in verical range of [{}-{}]: changing to: {}'.format(v_group, top, bottom, v_new))
-            v_group = v_new
+        if new_v != v_binsize:
+            self.logger.warning('v_group {} does not fit in verical range of [{}-{}]: changing to: {}'.format(v_binsize, top, bottom, v_new))
+            v_binsize = v_new
 
         # set the new ROI:
         self._roi = self.controller.exp.GetROI(1)                       # get ROI object
-        self._roi.Set(top, left, bottom, right, h_group, v_group)       # put in the new values
+        self._roi.Set(top, left, bottom, right, h_binsize, v_binsize)       # put in the new values
         self.controller.exp.ClearROIs()                                 # clear ROIs in WinsSpec
         self.controller.exp.SetROI(self._roi)                           # set the ROI object in WinSpec
         self.ccd = 'ROI'                                                # switch from Full Chip to Region Of Interest mode
@@ -554,6 +628,13 @@ class WinspecInstr(BaseInstrument):
 
     @property
     def bg_subtract(self):
+        """
+        attribute: Background Subtraction
+
+        getter: Returns if Background Subtraction is enabled.
+        setter: Sets Background Subtraction.
+        type: bool
+        """
         return self.controller.exp_get('BBACKSUBTRACT')[0] == 1     # turn it into bool
 
     @bg_subtract.setter
@@ -562,6 +643,11 @@ class WinspecInstr(BaseInstrument):
 
     @property
     def bg_file(self):
+        """
+        attribute: Full path to Background File
+        Note: it does not check if the file exists or is it is a valid file.
+        type: string
+        """
         return self.controller.exp_get('DARKNAME')[0]
 
     @bg_file.setter
@@ -578,10 +664,59 @@ class WinspecInstr(BaseInstrument):
 
 # BGTYPE ??
 
+    # Experiment / Data File settings: ----------------------------------
+    @property
+    def confim_overwrite(self):
+        """
+        attribute: Confirm Overwrite File
+        type: bool
+        """
+        return self.controller.exp_get('OVERWRITECONFIRM')[0] == 1  # turn it into bool
+
+    @confim_overwrite.setter
+    def confim_overwrite(self, value):
+        self.controller.exp_set('OVERWRITECONFIRM',value!=0)       # !=0  forces it to be bool
+
+    @property
+    def filename(self):
+        """
+        Note that this needs to be set before aqcuiring a spectrum.
+        If you want to store the SPE files as well, the best approach is to make sure
+          self.autosave = 'Auto'
+
+        use take_spectrum('new_name.SPE')
+        :return:
+        """
+        return self.controller.exp_get('DATFILENAME')[0]
+
+    @filename.setter
+    def filename(self, string):
+        self.controller.exp_set('DATFILENAME', string)
+
+    @property
+    def autosave(self):
+        """
+        attribute: Auto-save and prompts:
+        default possible values: 'Ask', 'Auto', 'No'
+        type: str
+        """
+        number = ws.controller.exp_get('AUTOSAVE')[0] - 1
+        return self._autosave[number]
+
+    @autosave.setter
+    def autosave(self, string):
+        number = self._setter_string_to_number(string, self._autosave)
+        if number>=0:
+            self.controller.exp_set('AUTOSAVE', number + 1)
+
     # Experiment / Timing settings: ----------------------------------
 
     @property
     def delay_time_s(self):
+        """
+        attribute: The delay time under Experiment/Timing in seconds
+        type: float
+        """
         # Experiment / Timing / Delay Time in seconds
         return self.controller.exp_get('DELAY_TIME')[0]
 
@@ -590,9 +725,13 @@ class WinspecInstr(BaseInstrument):
         # Experiment / Timing / Delay Time in seconds
         self.controller.exp_set('DELAY_TIME', seconds)
 
-    # helper function:
     def _setter_string_to_number(self, string, available_list):
-        # also allows for int and checks if it is in the available list as a string
+        """
+        Low level helper method that returns index of string in available_list.
+        :param string: string to find
+        :param available_list: list of possible strings
+        :return: The index of the string if found, -1 otherwise (to indicate not found)
+        """
         if type(string)==int:
             if type(available_list[string])!=int:
                 return string
@@ -603,6 +742,11 @@ class WinspecInstr(BaseInstrument):
 
     @property
     def timing_mode(self):
+        """
+        attribute: Timing Mode
+        default possible values: 'Normal', 'Closed', 'Opened'
+        type: str
+        """
         number = self.controller.exp_get('TIMING_MODE')[0]
         return self._timing_modes[number]
 
@@ -614,6 +758,11 @@ class WinspecInstr(BaseInstrument):
 
     @property
     def shutter_control(self):
+        """
+        attribute: Shutter Control
+        default possible values: ? , 'Free Run', ? , 'External Sync'
+        type: str
+        """
         number = self.controller.exp_get('SHUTTER_CONTROL')[0]
         return self._shutter_controls[number]
 
@@ -625,6 +774,11 @@ class WinspecInstr(BaseInstrument):
 
     @property
     def fast_safe(self):
+        """
+        attribute: Fast or Safe mode in Experiment/Timing
+        default possible values: 'Fast', 'Safe'
+        type: str
+        """
         number = self.controller.exp_get('SYNC_ASYNC')[0]
         return self._fast_safe[number]
 
@@ -652,10 +806,12 @@ if __name__ == "__main__":
 
 
     ws = WinspecInstr(settings = {'port': 'None', 'dummy' : False,
-                                   'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr', 'shutter_controls':['Disabled Closed','Disabled Opened']})
+                                   'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr', 'shutter_controls':['Closed','Opened']})
 
-    if False:
+    test_everything = True
 
+    if test_everything:
+        print(ws.idn())
         print('\nHardware Display settings:')
         print('display_rotate = ', ws.display_rotate)
         print('display_reverse = ', ws.display_reverse)
@@ -667,6 +823,11 @@ if __name__ == "__main__":
         print('temp_locked = ', ws.temp_locked, '  (read-only property)')
 
         print('\nExperiment Settings:')
+        print('Data File        filename = ', ws.filename)
+        ws.confim_overwrite = False
+        print('Data File        confim_overwrite = ', ws.confim_overwrite)
+        ws.autosave = 'Auto'
+        print('Data File        autosave = ', ws.autosave)
         print('ADC              gain = ', ws.gain)
         print('Timing           timing_mode = ', ws.timing_mode)
         print('Timing           shutter_control = ', ws.shutter_control)
@@ -681,6 +842,8 @@ if __name__ == "__main__":
         print('Main             ccd = ', ws.ccd)
         print('Main             accumulations = ', ws.accumulations)
         print('ROI              spec_mode = ', ws.spec_mode)
+
+        print('\nROI = ', ws.getROI())
 
         print('\nGrating Settings:')
         print(ws.number_of_gratings, ' gratings found')
@@ -702,9 +865,11 @@ if __name__ == "__main__":
             ws.central = 400
 
     print('Taking spectrum ...')
-    nm, counts = ws.take_spectrum()
+    counts = ws.take_spectrum()
+    nm = ws.nm_axis()
     print(nm,counts)
 
-    # import matplotlib.pyplot as plt
-    # plt.plot
+    ws.shutter_control = 'Closed'
+
+
 
