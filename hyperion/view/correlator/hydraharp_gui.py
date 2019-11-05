@@ -46,9 +46,10 @@ class Hydraharp_GUI(QWidget):
         self.hydra_instrument = hydra_instrument
         self.draw = draw
 
+        #default values, could be put in a yml file as well
         self.array_length = 65536
         self.resolution = 1.0*ur('ps')
-        self.tijd = 20*ur('s')
+        self.integration_time = 20 * ur('s')
         self.channel = '0'
 
         self.max_time = 24*ur('hour')
@@ -57,7 +58,6 @@ class Hydraharp_GUI(QWidget):
         self.initUI()
 
     def initUI(self):
-        print(self.resolution)
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         #initialize and configurate the settings of the correlator
@@ -153,7 +153,7 @@ class Hydraharp_GUI(QWidget):
 
     def make_integration_time_spinbox(self):
         self.integration_time_spinbox = QSpinBox(self)
-        self.integration_time_spinbox.setValue(self.tijd.m_as('s'))
+        self.integration_time_spinbox.setValue(self.integration_time.m_as('s'))
         self.grid_layout.addWidget(self.integration_time_spinbox, 2, 2)
         self.integration_time_spinbox.valueChanged.connect(self.set_integration_time)
     def make_time_unit_combobox(self):
@@ -183,7 +183,7 @@ class Hydraharp_GUI(QWidget):
         self.logger.info('setting the channel')
 
         self.channel = self.channel_combobox.currentText()
-        print(self.channel)
+        self.logger.debug('channel: ' + self.channel)
 
     def set_array_length(self):
         """| This method sets the array length that the user puts,
@@ -202,7 +202,7 @@ class Hydraharp_GUI(QWidget):
 
     def set_integration_time(self):
         """|  This method combines the integration time that the user puts in the spinbox with the unit in the combobox
-        | and remembers the pint quantity in the init in self.tijd
+        | and remembers the pint quantity in the init in self.integration_time
         | It compares it to a max (24 hours) and min (1 s) value
         """
         self.logger.info('setting the integration time')
@@ -224,8 +224,8 @@ class Hydraharp_GUI(QWidget):
             local_time = 1*ur('s')
             self.integration_time_spinbox.setValue(local_time.m_as('s'))
 
-        self.tijd = local_time
-        self.logger.debug('time remembered is: ' + str(self.tijd))
+        self.integration_time = local_time
+        self.logger.debug('time remembered is: ' + str(self.integration_time))
 
 
     def set_resolution(self):
@@ -242,22 +242,22 @@ class Hydraharp_GUI(QWidget):
             Array[ii] = 2**ii
 
         if value not in Array:
-            print('not in A')
+            self.logger.debug('not in A')
             Diff = abs(Array - value)
             index = np.where(Diff == min(Diff))
             index = index[0][0]
             self.sender().setValue(Array[index+1])
-            print('new value: ' + str(Array[index+1]))
+            self.logger.debug('new value: ' + str(Array[index+1]))
         else:
             index = np.where(Array == value)
             index = index[0][0]
-            print('value: ' + str(Array[index]))
+            self.logger.debug('value: ' + str(Array[index]))
 
         #self.sender().setValue(Array[index+1])
 
         self.resolution = self.sender().value()*ur('ps')
 
-        print(self.sender().value())
+        self.logger.debug(self.sender().value())
 
     #------------------------------------------------------------------------------------
     def take_histogram(self):
@@ -280,10 +280,10 @@ class Hydraharp_GUI(QWidget):
         #self.make_progress_label(str(self.hydra_instrument.prepare_to_take_histogram(tijd)))
 
         # needs count_channel( 1 or 2)
-        self.logger.debug('chosen integration time: ' + str(self.tijd))
+        self.logger.debug('chosen integration time: ' + str(self.integration_time))
         self.logger.debug('chosen channel: ' + str(self.channel))
 
-        self.histogram= self.hydra_instrument.make_histogram(self.tijd, self.channel)
+        self.histogram= self.hydra_instrument.make_histogram(self.integration_time, self.channel)
         self.draw.random_plot.plot(self.histogram, clear=True)
 
         #make it possible to press the save_histogram_button.(should be True)
@@ -344,6 +344,7 @@ class Hydraharp_GUI(QWidget):
                                                   "All Files (*);;Text Files (*.txt)", options=options)
         return fileName + ".png"
 
+
 class DrawHistogram(QWidget):
 
     """
@@ -367,6 +368,7 @@ class DrawHistogram(QWidget):
         vbox.addWidget(self.random_plot)
         self.setLayout(vbox)
         self.show()
+
 
 if __name__ == '__main__':
     from hyperion import _logger_format
