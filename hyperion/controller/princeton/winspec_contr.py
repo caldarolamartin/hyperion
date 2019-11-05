@@ -89,10 +89,13 @@ class WinspecContr(BaseController):
             # pythoncom.CoInitialize()
             # exp_inst = win32com.client.Dispatch('WinX32.ExpSetup')
             # self.exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, exp_id)
-
         except win32com.client.pywintypes.com_error:
             self.logger.warning('Can\'t find Winspec. Are you sure it\'s installed?')
             # If Winspec is installed but you run into issues here, have a look at comments t the top of this file.
+
+        self.xdim = self.exp_get('XDIM')[0]
+        self.ydim = self.exp_get('YDIM')[0]
+
         self._is_initialized = True     # THIS IS MANDATORY!!
                                         # this is to prevent you to close the device connection if you
                                         # have not initialized it inside a with statement
