@@ -78,10 +78,10 @@ class WinspecInstr(BaseInstrument):
         self.frame = []
 
         # bug fix:
-        ws.ccd = 'Full'
-        self.controller.xdim = ws.controller.exp_get('XDIM')
-        self.controller.ydim = ws.controller.exp_get('YDIM')
-        ws.ccd = 'ROI'
+        self.ccd = 'Full'
+        self.controller.xdim = self.controller.exp_get('XDIM')
+        self.controller.ydim = self.controller.exp_get('YDIM')
+        self.ccd = 'ROI'
 
         # !!!!!   THREADING WILL NOT WORK IN THE CURRENT IMPLENTATION
         #         I have some ideas to try, but I'll first finish an operational version without threading
@@ -104,7 +104,7 @@ class WinspecInstr(BaseInstrument):
         self.number_of_gratings = self.controller.spt_get('GRATINGSPERTURRET')[0]
         # this seems to be the same value:   self.controller.spt_get('INST_CUR_GRAT_NUM')[0]
         for k in range(self.number_of_gratings):
-            self.gratings_grooves.append(self.controller.spt_get('v', k)[0])
+            self.gratings_grooves.append(self.controller.spt_get('INST_GRAT_GROOVES', k)[0])
             text = self.controller.spt_get('GRAT_USERNAME', k + 1)[0]
             self.gratings_blaze_name.append(text)
             # # try to interpret the blaze wavelength:
@@ -834,11 +834,14 @@ if __name__ == "__main__":
     hyperion.file_logger.setLevel( logging.WARNING )
     hyperion.stream_logger.setLevel( logging.DEBUG )
 
+    settings = {'port': 'None', 'dummy': False,
+                'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
 
+    settings_irina = {'port': 'None', 'dummy': False,
+                'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',
+                'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
-
-    ws = WinspecInstr(settings = {'port': 'None', 'dummy' : False,
-                                   'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr', 'shutter_controls':['Closed','Opened'], 'horz_width_multiple': 4})
+    ws = WinspecInstr(settings_irina)
 
     test_everything = False
 
