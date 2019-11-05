@@ -19,6 +19,7 @@ from hyperion import ur, root_dir
 import pyqtgraph as pg
 import pyqtgraph.exporters
 import logging
+import numpy as np
 
 class Hydraharp_GUI(QWidget):
     """
@@ -45,7 +46,13 @@ class Hydraharp_GUI(QWidget):
         self.hydra_instrument = hydra_instrument
         self.draw = draw
 
-        self.resolution = 8.0
+        self.array_length = 65536
+        self.resolution = 1.0*ur('ps')
+        self.tijd = 20*ur('s')
+        self.channel = '0'
+
+        self.max_time = 24*ur('hour')
+        self.max_length = 65536
 
         self.initUI()
 
@@ -66,6 +73,7 @@ class Hydraharp_GUI(QWidget):
         self.make_labels()
         self.make_textfields()
         self.show()
+
     def make_buttons(self):
         self.make_save_histogram_button()
         self.make_take_histogram_button()
@@ -81,10 +89,12 @@ class Hydraharp_GUI(QWidget):
     def make_textfields(self):
         self.make_array_length_spinbox()
         self.make_resolution_spinbox()
-        self.make_integration_time_textfield()
+        self.make_integration_time_spinbox()
+        self.make_time_unit_combobox()
         self.make_channel_combobox()
         self.make_export_textfield()
 
+    # ------------------------------------------------------------------------------------
     def make_save_histogram_button(self):
         self.save_histogram_button = QPushButton('save histrogram', self)
         self.save_histogram_button.setToolTip('save your histogram in a file')
@@ -100,11 +110,11 @@ class Hydraharp_GUI(QWidget):
 
     def make_array_length_label(self):
         self.array_length_label = QLabel(self)
-        self.array_length_label.setText("Array lengh\n(standard value is fine\n(most of the time)): ")
+        self.array_length_label.setText("Array lengh\n(standard value is fine): ")
         self.grid_layout.addWidget(self.array_length_label, 0, 1)
     def make_resolution_label(self):
         self.resolution_label = QLabel(self)
-        self.resolution_label.setText("Resolution in ps: ")
+        self.resolution_label.setText("Resolution: ")
         self.grid_layout.addWidget(self.resolution_label, 1, 1)
     def make_integration_time_label(self):
         self.integration_time_label = QLabel(self)
@@ -125,64 +135,155 @@ class Hydraharp_GUI(QWidget):
     def make_progress_label(self, iets):
         self.remaining_time_label.setText("Remaining time:\n"+iets)
 
-
+    # ------------------------------------------------------------------------------------
     def make_array_length_spinbox(self):
         self.array_length_spinbox = QSpinBox(self)
         self.array_length_spinbox.setMaximum(999999999)
-        self.array_length_spinbox.setValue(65536)
+        self.array_length_spinbox.setValue(self.array_length)
+        self.array_length_spinbox.valueChanged.connect(self.set_array_length)
         self.grid_layout.addWidget(self.array_length_spinbox, 0, 2)
+
     def make_resolution_spinbox(self):
         self.resolution_spinbox = QDoubleSpinBox(self)
-        self.resolution_spinbox.setValue(self.resolution)
+        self.resolution_spinbox.setMaximum(999999999)
+        self.resolution_spinbox.setValue(self.resolution.m_as('ps'))
         self.resolution_spinbox.setSuffix('ps')
         self.grid_layout.addWidget(self.resolution_spinbox, 1, 2)
         self.resolution_spinbox.valueChanged.connect(self.set_resolution)
-    def make_integration_time_textfield(self):
-        self.integration_time_textfield = QLineEdit(self)
-        self.integration_time_textfield.setText("5")
-        self.grid_layout.addWidget(self.integration_time_textfield, 2, 2)
+
+    def make_integration_time_spinbox(self):
+        self.integration_time_spinbox = QSpinBox(self)
+        self.integration_time_spinbox.setValue(self.tijd.m_as('s'))
+        self.grid_layout.addWidget(self.integration_time_spinbox, 2, 2)
+        self.integration_time_spinbox.valueChanged.connect(self.set_integration_time)
+    def make_time_unit_combobox(self):
+        self.time_unit_combobox = QComboBox(self)
+        self.time_unit_combobox.addItems(["s","min","hour"])
+        self.time_unit_combobox.setCurrentText('s')
+        self.grid_layout.addWidget(self.time_unit_combobox, 2, 3)
+        self.time_unit_combobox.currentTextChanged.connect(self.set_integration_time)
+
     def make_channel_combobox(self):
-        self.channel_combobox = QComboBox()
+        self.channel_combobox = QComboBox(self)
         self.channel_combobox.addItems(["0","1"])
+        self.channel_combobox.setCurrentText(self.channel)
         self.grid_layout.addWidget(self.channel_combobox, 3, 2)
+        self.channel_combobox.currentTextChanged.connect(self.set_channel)
+
     def make_export_textfield(self):
         self.export_textfield = QLineEdit(self)
         self.export_textfield.setText(root_dir)
         self.grid_layout.addWidget(self.export_textfield, 4, 1, 1, 2)
 
+
+    # ------------------------------------------------------------------------------------
+    def set_channel(self):
+        """ This method sets the channel that the user puts, and remembers the string in the init in self.channel
+        """
+        self.logger.info('setting the channel')
+
+        self.channel = self.channel_combobox.currentText()
+        print(self.channel)
+
+    def set_array_length(self):
+        """| This method sets the array length that the user puts,
+        | and remembers the int in the init in self.array_length
+        | It compares it to a max and min value
+        """
+        self.logger.info('setting the array length')
+        self.logger.warning('are you sure you want to change this value?')
+
+        if self.sender().value() > self.max_length:
+            self.sender().setValue(self.max_length)
+        elif self.sender().value() < 1:
+            self.sender().setValue(1)
+
+        self.array_length = int(self.sender().value())
+
+    def set_integration_time(self):
+        """|  This method combines the integration time that the user puts in the spinbox with the unit in the combobox
+        | and remembers the pint quantity in the init in self.tijd
+        | It compares it to a max (24 hours) and min (1 s) value
+        """
+        self.logger.info('setting the integration time')
+
+        tijd = self.integration_time_spinbox.value()
+        unit = self.time_unit_combobox.currentText()
+
+        local_time = ur(str(tijd)+unit)
+
+        self.logger.debug('local time value: ' + str(local_time))
+
+        if local_time > self.max_time:
+            self.logger.debug('time really too much')
+            local_time = self.max_time.to(unit)
+            self.logger.debug(str(local_time))
+            self.integration_time_spinbox.setValue(local_time.m_as(unit))
+        elif local_time < 1*ur('s'):
+            self.logger.debug('you need to integrate more time')
+            local_time = 1*ur('s')
+            self.integration_time_spinbox.setValue(local_time.m_as('s'))
+
+        self.tijd = local_time
+        self.logger.debug('time remembered is: ' + str(self.tijd))
+
+
     def set_resolution(self):
-        print('setting the resolution')
+        """| This method tries to take the user input and only allow resolutions from 2^n, where n = 1 to 20
+        | It doesnt work very well though
+        | The resolution is remembered in the init in self.resolution
+        """
+        self.logger.info('setting the resolution')
+
+        value = self.sender().value()
+
+        Array = np.zeros(20)
+        for ii in range(20):
+            Array[ii] = 2**ii
+
+        if value not in Array:
+            print('not in A')
+            Diff = abs(Array - value)
+            index = np.where(Diff == min(Diff))
+            index = index[0][0]
+            self.sender().setValue(Array[index+1])
+            print('new value: ' + str(Array[index+1]))
+        else:
+            index = np.where(Array == value)
+            index = index[0][0]
+            print('value: ' + str(Array[index]))
+
+        #self.sender().setValue(Array[index+1])
+
+        self.resolution = self.sender().value()*ur('ps')
+
         print(self.sender().value())
 
-
+    #------------------------------------------------------------------------------------
     def take_histogram(self):
-        """
-        | In this method there will be made a histogram using the input of the user.
+        """| In this method there will be made a histogram using the input of the user
+        | All user input were stored previously in the init
         | To set(a method to clear the data from the previous histogram)the length of the array is needed and
         | the resolution in picoseconds(ps). The histogram gets made by make_histogram using the integration time(how long
         | does your measurement need to take?) and the channel on which to measure.
         | The data gets plot in the DrawHistogram plot(self.draw.random_plot.plot())
         """
         self.logger.info("Take the histrogram")
+
         #first, prepare the machine to take the histogram
 
-        length = int(self.array_length_spinbox.value())
-        resolution = float(self.resolution_spinbox.value()) * ur('ps')
-        tijd = int(self.integration_time_textfield.text()) * ur('s')
-        channel = int(self.channel_combobox.currentText())
+        self.logger.debug('chosen histogram length: ' + str(self.array_length))
+        self.logger.debug('chosen resolution: ' + str(self.resolution))
 
-        self.logger.debug('chosen histogram length: ' + str(length))
-        self.logger.debug('chosen resolution: ' + str(resolution))
-
-        self.hydra_instrument.set_histogram(length, resolution)
+        self.hydra_instrument.set_histogram(self.array_length, self.resolution)
 
         #self.make_progress_label(str(self.hydra_instrument.prepare_to_take_histogram(tijd)))
 
         # needs count_channel( 1 or 2)
-        self.logger.debug('chosen integration time: ' + str(tijd))
-        self.logger.debug('chosen channel: ' + str(channel))
+        self.logger.debug('chosen integration time: ' + str(self.tijd))
+        self.logger.debug('chosen channel: ' + str(self.channel))
 
-        self.histogram= self.hydra_instrument.make_histogram(tijd, channel)
+        self.histogram= self.hydra_instrument.make_histogram(self.tijd, self.channel)
         self.draw.random_plot.plot(self.histogram, clear=True)
 
         #make it possible to press the save_histogram_button.(should be True)
@@ -228,6 +329,7 @@ class Hydraharp_GUI(QWidget):
             file_name = self.get_file_path_via_filechooser()
             exporter.export(file_name)
         self.make_progress_label.setText("The histogram has been saved at: \n" + str(file_name))
+
     def get_file_path_via_filechooser(self):
         """
         This is code plucked from the internet...so I have no clou what is happening and
