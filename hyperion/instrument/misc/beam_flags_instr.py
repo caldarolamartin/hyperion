@@ -64,6 +64,8 @@ class BeamFlagsInstr(BaseInstrument):
         # information from the Serial Buffer In whenever the state is required.
         self._use_passive_queries = True  # True recommended
 
+        self.initialize()
+
     def initialize(self):
         """ Starts the connection to the device."""
         self.logger.debug('Opening connection to device.')
@@ -242,33 +244,33 @@ if __name__ == "__main__":
     import hyperion
     hyperion.stream_logger.setLevel(logging.DEBUG)
 
-    example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+    example_settings = {'port': 'COM19', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
     with BeamFlagsInstr(settings = example_settings) as bf:
-        bf.initialize()
+        #bf.initialize()
 
         # bf._announce(False)   # For testing "dumb" mode without _use_passive_queries
 
         print( bf.idn() )
 
-        # bf.set_specific_flag_state('1','r')
-        # print( bf.get_specific_flag_state('1') )
-        # time.sleep( bf.settings['actuator_timeout'] )
-        #
-        # bf.set_flag(1, True)
-        # print( bf.get_flag(1))
-        # time.sleep(bf.settings['actuator_timeout'])
-        #
-        # bf.f1 = False
-        # print(bf.f1)
-        # time.sleep(bf.settings['actuator_timeout'])
+        bf.set_specific_flag_state('1','r')
+        print( bf.get_specific_flag_state('1') )
+        time.sleep( bf.settings['actuator_timeout'] )
+
+        bf.set_flag(1, True)
+        print( bf.get_flag(1))
+        time.sleep(bf.settings['actuator_timeout'])
+
+        bf.f1 = False
+        print(bf.f1)
+        time.sleep(bf.settings['actuator_timeout'])
 
         print('Change manual toggle switch to test detection... (for 10s)')
-        start_time = time.time()
-        while (time.time() - start_time < 10):
-            time.sleep(.2)
-            if bf.passive_update_from_manual_changes():
-                print(bf.flag_states)
+        # start_time = time.time()
+        # while (time.time() - start_time < 10):
+        #     time.sleep(.2)
+        #     if bf.passive_update_from_manual_changes():
+        #         print(bf.flag_states)
 
     print('done')

@@ -48,8 +48,6 @@ class Thorlabsmotor(BaseInstrument):
         self._mode = 0
         self.logger.info('Initializing Thorlabs motoer settings: {}'.format(settings))
 
-
-
     def list_devices(self):
         """ List all available devices"""
         
