@@ -17,4 +17,7 @@
 
 # do not keep track of the logger.
 logger.log
-*.log
+*.log*
+
+# exclude Windows thumbnail files:
+Thumbs.db
