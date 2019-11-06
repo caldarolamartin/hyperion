@@ -15,7 +15,7 @@ import visa
 import time
 from hyperion.controller.base_controller import BaseController
 
-class LockInController(BaseController):
+class sr830(BaseController):
     """ The controller for the lock-in.
 
         :param settings: this includes all the settings needed to connect to the device in question.
@@ -258,53 +258,53 @@ class LockInController(BaseController):
         self.sample_points = 601.00
 
 
-class OsaControllerDummy(OsaController):
-    """
-    Example Controller Dummy for the Osa machine
-    ========================
-    A dummy version of the Example Controller.
-    ========================
-
-    In essence we have the same methods and we re-write the query to answer something meaningful but
-    without connecting to the real device.
-    """
-
-    def query(self, msg):
-        """ writes into the device msg
-
-        :param msg: command to write into the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the dummy device:{}'.format(msg))
-        ans = 'A general dummy answer'
-        return ans
-    def read(self):
-        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
-
-        :return: fake result
-        :rtype: string
-        """
-        return 'A'
-    def write(self, msg):
-        """ Writes into the device
-
-        :param msg: message to be written in the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the device:{}'.format(msg))
-    def idn(self):
-        """ Identify command
-
-        :return: identification for the device
-        :rtype: string
-        """
-        self.logger.debug('Ask id to example device.')
-        return 'ExampleController device'
-
-    def initialize(self):
-        """ Dummy initialize"""
-        self.logger.info('Dummy initialize')
-        self._is_initialized = True
+# class OsaControllerDummy(OsaController):
+#     """
+#     Example Controller Dummy for the Osa machine
+#     ========================
+#     A dummy version of the Example Controller.
+#     ========================
+#
+#     In essence we have the same methods and we re-write the query to answer something meaningful but
+#     without connecting to the real device.
+#     """
+#
+#     def query(self, msg):
+#         """ writes into the device msg
+#
+#         :param msg: command to write into the device port
+#         :type msg: string
+#         """
+#         self.logger.debug('Writing into the dummy device:{}'.format(msg))
+#         ans = 'A general dummy answer'
+#         return ans
+#     def read(self):
+#         """ Fake read that returns always the value in the dictionary FAKE RESULTS.
+#
+#         :return: fake result
+#         :rtype: string
+#         """
+#         return 'A'
+#     def write(self, msg):
+#         """ Writes into the device
+#
+#         :param msg: message to be written in the device port
+#         :type msg: string
+#         """
+#         self.logger.debug('Writing into the device:{}'.format(msg))
+#     def idn(self):
+#         """ Identify command
+#
+#         :return: identification for the device
+#         :rtype: string
+#         """
+#         self.logger.debug('Ask id to example device.')
+#         return 'ExampleController device'
+#
+#     def initialize(self):
+#         """ Dummy initialize"""
+#         self.logger.info('Dummy initialize')
+#         self._is_initialized = True
 
 
 if __name__ == "__main__":

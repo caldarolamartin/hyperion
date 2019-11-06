@@ -15,9 +15,9 @@
     Based on the driver for laser 06-01 series by Vasco Tenner
 """
 from pyvisa import constants
-from lantz import Action, Feat
-from lantz import MessageBasedDriver
-import lantz.log
+from lantz.core import Action, Feat
+from lantz.core import MessageBasedDriver
+import lantz.core.log
 
 
 class Cobolt08NLD(MessageBasedDriver):
