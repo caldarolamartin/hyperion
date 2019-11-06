@@ -4,7 +4,7 @@ Hydraharp400 controller
 =======================
 Taken on Fri Nov 10 15:36:48 2017 from Colin Brosseau
 
-changed by Irina Komen
+changed by Irina Komen to work with hyperion
 
 """
 import numpy as np
@@ -620,6 +620,7 @@ class Hydraharp(BaseController):
     def start_measurement(self, acquisition_time=1000):
         """| Start acquisition
         | **It is not clear what is the relation between this method and histogram**
+        | ** and which one actually takes the histogram**
 
         :param acquisition_time: Acquisition time in seconds; 0.001, ... 360000
         :type acquisition_time: float

@@ -11,13 +11,10 @@ import yaml           #for the configuration file
 import os             #for playing with files in operation system
 import time
 from hyperion import root_dir, ur
-#sys.path.append('D:/TMDmaterials/')
+import matplotlib.pyplot as plt
 
 from hyperion.instrument.base_instrument import BaseInstrument
 ureg = ur
-
-#from TMD.Controller.Hydraharp_controller import Hydraharp 
-#from TMD import ureg, Unit_
 
 class HydraInstrument(BaseInstrument):
     """
@@ -37,6 +34,9 @@ class HydraInstrument(BaseInstrument):
         self.count = 0
         self.hist = []
         self.initialize()
+
+        self.hist_ended = False
+        self.remaining_time = 0*ur('s')
 
     def initialize(self):
         """ Starts the connection to the device, calibrates it and configurates based on the yml file
@@ -132,10 +132,13 @@ class HydraInstrument(BaseInstrument):
 
         :return: array containing the histogram
         """
-        self.logger.info('Remaining time: ' + str(self.prepare_to_take_histogram(tijd)))
+        #self.logger.info('Remaining time: ' + str(self.prepare_to_take_histogram(tijd)))
+        self.prepare_to_take_histogram(tijd)
         self.hist = self.controller.histogram(int(count_channel))
 
         self.logger.debug('Make the actual histogram')
+
+        self.hist_ended = False  # why doesnt it remember this from up?
         return self.hist
 
     def prepare_to_take_histogram(self, tijd):
@@ -148,8 +151,14 @@ class HydraInstrument(BaseInstrument):
         """
         self.logger.debug('Start the histogram measurement')
 
+        #self.hist_ended = False         #why doesnt it remember this from up?
+
         self.controller.start_measurement(tijd.m_as('s'))
-        return (self.wait_till_finished(tijd))
+        self.wait_till_finished(tijd)
+        #print(self.wait_till_finished(tijd))
+        self.logger.debug('Remaining time: ' + str(self.remaining_time))
+
+        #return (self.wait_till_finished(tijd))
 
     def wait_till_finished(self, tijd):
         """| This method should ask the device its status and keep asking until it's finished
@@ -161,17 +170,32 @@ class HydraInstrument(BaseInstrument):
         :return: remaining time in seconds
         :rtype: pint quantity
         """
-        ended = False
-        t = round(float(tijd.magnitude) / 5)
+        # ended = self.hist_ended
+        #t = round(float(tijd.magnitude) / 20)
+        t = 1
         total_time_passed = ur('0s')
-        while ended == False:
-            ended = self.controller.ctc_status
-            self.logger.debug('Is the histogram finished? ' +  str(ended))
+
+        self.logger.debug('status of endedness: ' + str(self.hist_ended))
+
+        while self.hist_ended == False:
+            self.hist_ended = self.controller.ctc_status
+            self.logger.debug('Is the histogram finished? ' +  str(self.hist_ended))
             time.sleep(t)
             total_time_passed += t * ur('s')
             #this line returns a pint quantity which tells the user how much time the program needs before it can take the histogram
-            self.logger.debug('Is the histogram finished? ' + str(ended))
-            return (tijd - total_time_passed,ended)
+            self.logger.debug('time passed ' + str(total_time_passed))
+
+        self.remaining_time = tijd - total_time_passed
+
+        self.logger.debug('Remaining time: ' + str(self.remaining_time))
+        self.logger.debug('Ended? ' + str(self.hist_ended))
+        #return (tijd - total_time_passed)
+
+    def stop_histogram(self):
+        """| This method stops taking the histogram
+        | in theory, I didn't test it yet with threads
+        """
+        self.controller.stop_measurement()
 
     def finalize(self):
         """ this is to close connection to the device."""
@@ -185,8 +209,7 @@ if __name__ == "__main__":
                   logging.StreamHandler()])
 
     with HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
-                                   'controller': 'hyperion.controller.picoquant.correlator/Hydraharp'}) as q:
-        q.initialize()
+                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as q:
 
         print('The sync rate is: ' , q.sync_rate())
         print('The count rate is: ' , q.count_rate(0))
@@ -196,3 +219,6 @@ if __name__ == "__main__":
         hist = q.make_histogram(20*ur('s'), count_channel = 0)
         print('The histogram: ', hist)
 
+        plt.figure()
+        plt.plot(hist)
+        plt.show()
