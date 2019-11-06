@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 """
+    ============
+    Cobolt 08NLD
+    ============
+    This is the controller for the Cobotl laser 08NLD
+
+    Based on:
+
     lantz.drivers.laser.cobolt08NLD
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 
     Based on the driver for laser 06-01 series by Vasco Tenner
 """
-
 from pyvisa import constants
 from lantz import Action, Feat
 from lantz import MessageBasedDriver
@@ -15,9 +21,12 @@ import lantz.log
 
 
 class Cobolt08NLD(MessageBasedDriver):
-    """Driver for a COBOLT 08-NLD Series laser.
     """
+    controller class for the driver COBOLT 08-NLD Series laser.
+    This class has all the methods to communicate using serial.
 
+
+    """
     DEFAULTS = {'ASRL': {'write_termination': '\r',
                          'read_termination': '\r',
                          'baud_rate': 115200,

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ==============
-Lock-in controller
+Stanford SR830
 ==============
 
 This controller (lock-in.py) supplies one class with several methods to communicate
@@ -16,14 +16,13 @@ import time
 from hyperion.controller.base_controller import BaseController
 
 class LockInController(BaseController):
-    """ The controller for the lock-in."""
-
-    def __init__(self, settings={'port': 'AUTO', 'dummy': False}):
-        """ Init of the class.
+    """ The controller for the lock-in.
 
         :param settings: this includes all the settings needed to connect to the device in question.
         :type settings: dict
-        """
+
+    """
+    def __init__(self, settings={'port': 'AUTO', 'dummy': False}):
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class Lock-in created.')

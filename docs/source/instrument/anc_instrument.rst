@@ -1,2 +1,2 @@
-.. automodule:: hyperion.instrument.positioner.anc_instrument
+.. automodule:: hyperion.instrument.position.anc_instrument
     :members:

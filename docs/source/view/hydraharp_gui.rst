@@ -1,2 +1,2 @@
-.. automodule:: hyperion.view.hydraharp.hydraharp_gui
+.. automodule:: hyperion.view.correlator.hydraharp_gui
     :members:

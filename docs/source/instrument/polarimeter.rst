@@ -1,2 +1,2 @@
-.. automodule:: hyperion.instrument.polarimeter.polarimeter
+.. automodule:: hyperion.instrument.polarization.polarimeter
     :members:

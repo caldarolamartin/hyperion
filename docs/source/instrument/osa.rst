@@ -1,2 +1,2 @@
-.. automodule:: hyperion.instrument.osa.osa_instrument
+.. automodule:: hyperion.instrument.spectrum.osa_instrument
     :members:

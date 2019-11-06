@@ -1,2 +1,2 @@
-.. automodule:: hyperion.instrument.variable_waveplate.variable_waveplate
+.. automodule:: hyperion.instrument.polarization.variable_waveplate
     :members:

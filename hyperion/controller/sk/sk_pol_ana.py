@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-=====================
+======================
 SK polarization driver
-=====================
+======================
 
 This class uses the 64bit dll from SK to use the SK polarization. For more details refer to the manual
 of the device.
@@ -18,6 +18,9 @@ from hyperion.controller.base_controller import BaseController
 
 class Skpolarimeter(BaseController):
     """ This is the controller for the SK polarization. Based on their dll.
+
+        :param settings: dictionary with the entry 'dll_name' : 'SKPolarimeter' (default value)
+        :type settings: dict
 
     """
     def __init__(self, settings = {'dll_name': 'SKPolarimeter'}):

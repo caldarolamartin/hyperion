@@ -1,2 +1,2 @@
-.. automodule:: hyperion.instrument.aotf.aa_aotf
+.. automodule:: hyperion.instrument.polarization.aa_aotf
     :members:
