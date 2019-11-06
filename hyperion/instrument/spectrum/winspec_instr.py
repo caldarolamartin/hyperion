@@ -30,8 +30,11 @@ ws.controller.exp_get('GRAT_GROOVES')
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
+from hyperion import root_dir
 from hyperion.view.general_worker import WorkThread
 import time
+import os
+import yaml
 # import numpy as np      # I'm having issues with numpy on the computer I'm developing, so I disable it temporarily and modified take_spectrum not to depend on it
 
 
@@ -116,6 +119,11 @@ class WinspecInstr(BaseInstrument):
         self.logger.info(
             '{} gratings found. grooves/mm: {}, blaze: {}'.format(self.number_of_gratings, self.gratings_grooves,
                                                                   self.gratings_blaze_name))
+
+        filename = os.path.join(root_dir, 'instrument', 'spectrum', 'winspec_config_irina.yml')
+
+        with open(filename, 'r') as f:
+            self.config_settings = yaml.load(f, Loader=yaml.FullLoader)
 
     def _move_grating(self):
         """ Low level function to move grating after specifying the new position. """
@@ -463,22 +471,22 @@ class WinspecInstr(BaseInstrument):
         """
 
         if bottom is None:
-            bottom = self.controller.ydim
+            bottom = self.controller.ydim[0]
 
         if right is None:
-            right = self.controller.xdim
+            right = self.controller.xdim[0]
 
         if type(top) is str:
             if top=='full_im':
                 top = 1
-                bottom = self.controller.ydim
+                bottom = self.controller.ydim[0]
                 v_binsize = 1
             elif top != 'full_spec':
                 self.logger.warning('unknown command {}, using full_spec ')
                 top = 'full_spec'
             if top =='full_spec':
                 top = 1
-                bottom = self.controller.ydim
+                bottom = self.controller.ydim[0]
                 v_binsize = 1024
 
 
@@ -488,7 +496,7 @@ class WinspecInstr(BaseInstrument):
 
         # Some basic range corrections:
         # revert top/bottom and left/right if they're inverted
-        if bottom<top:
+        if bottom < top:
             temp = top
             top = bottom
             bottom = temp
@@ -499,8 +507,8 @@ class WinspecInstr(BaseInstrument):
         # apply basic limits of the CCD
         if top < 1: top = 1
         if left < 1: left = 1
-        if bottom > self.controller.ydim: bottom = self.controller.ydim
-        if right > self.controller.xdim: right = self.controller.xdim
+        if bottom > self.controller.ydim[0]: bottom = self.controller.ydim[0]
+        if right > self.controller.xdim[0]: right = self.controller.xdim[0]
 
         # if bottom < top:
         #     if top < self.controller.ydim-1:
@@ -682,15 +690,15 @@ class WinspecInstr(BaseInstrument):
 
     # Experiment / Data File settings: ----------------------------------
     @property
-    def confim_overwrite(self):
+    def confirm_overwrite(self):
         """
         attribute: Confirm Overwrite File
         type: bool
         """
         return self.controller.exp_get('OVERWRITECONFIRM')[0] == 1  # turn it into bool
 
-    @confim_overwrite.setter
-    def confim_overwrite(self, value):
+    @confirm_overwrite.setter
+    def confirm_overwrite(self, value):
         self.controller.exp_set('OVERWRITECONFIRM',value!=0)       # !=0  forces it to be bool
 
     @property
@@ -716,7 +724,7 @@ class WinspecInstr(BaseInstrument):
         default possible values: 'Ask', 'Auto', 'No'
         type: str
         """
-        number = ws.controller.exp_get('AUTOSAVE')[0] - 1
+        number = self.controller.exp_get('AUTOSAVE')[0] - 1
         return self._autosave[number]
 
     @autosave.setter
@@ -824,6 +832,38 @@ class WinspecInstr(BaseInstrument):
         self.controller.exp_set('ASCIIOUTPUTFILE',value!=0)       # !=0  forces it to be bool
 
 
+    def configure_settings(self):
+        self.logger.debug(str(self.idn()))
+
+        self.logger.info('Put settings as written down in instrument config file')
+
+        self.display_rotate = self.config_settings['display']['rotate']
+        self.display_reverse = self.config_settings['display']['reverse']
+        self.display_flip = self.config_settings['display']['flip']
+        self.logger.debug('display_rotate: ' +  str(self.display_rotate))
+        self.logger.debug('display_reverse: ' + str(self.display_reverse))
+        self.logger.debug('display_flip: ' + str(self.display_flip))
+
+        self.logger.debug('Target temperature: ' + str(self.target_temp))
+        self.logger.debug('Current temperature: ' + str(self.current_temp))
+
+        self.confirm_overwrite = self.config_settings['data_file']['confirm_overwrite']
+        self.autosave = self.config_settings['data_file']['autosave']
+        self.logger.debug('Data file confirm overwrite: ' + str(self.confirm_overwrite))
+        self.logger.debug('Data file: ' + str(self.autosave))
+
+        self.logger.debug('Current controller gain: ' + str(self.gain))
+
+        self.timing_mode = self.config_settings['timing']['mode']
+        self.fast_safe = self.config_settings['timing']['fast_safe']
+        self.delay_time_s = self.config_settings['timing']['delay_time_s']
+        self.logger.debug('Timing mode: ' + str(self.timing_mode))
+        self.logger.debug('Timing on : ' + str(self.fast_safe))
+        self.logger.debug('Timing delay time: ' + str(self.delay_time_s) + 's')
+
+        self.ascii_output = self.config_settings['ascii_file']
+        self.logger.debug('Saving ascii file: ' + str(self.ascii_output)) #this is correct if you look at Winspec, but wrong here!!!
+
 
 if __name__ == "__main__":
     from hyperion import _logger_format
@@ -843,6 +883,8 @@ if __name__ == "__main__":
 
     ws = WinspecInstr(settings_irina)
 
+    ws.configure_settings()
+
     test_everything = False
 
     if test_everything:
@@ -859,8 +901,8 @@ if __name__ == "__main__":
 
         print('\nExperiment Settings:')
         print('Data File        filename = ', ws.filename)
-        ws.confim_overwrite = False
-        print('Data File        confim_overwrite = ', ws.confim_overwrite)
+        ws.confirm_overwrite = False
+        print('Data File        confim_overwrite = ', ws.confirm_overwrite)
         ws.autosave = 'Auto'
         print('Data File        autosave = ', ws.autosave)
         print('ADC              gain = ', ws.gain)
@@ -871,6 +913,9 @@ if __name__ == "__main__":
         ws.bg_subtract = False
         print('Data Corrections bg_subtract = ', ws.bg_subtract)
         print('Data Corrections bg_file = ', ws.bg_file)
+        ws.ascii_output = True
+        print('Saving copy of data in Ascii file = ', ws.ascii_output)
+
         ws.exposure_time = Q_('3s')
         print('Main             exposure_time = ', ws.exposure_time)
         ws.ccd = 'ROI'
@@ -902,11 +947,9 @@ if __name__ == "__main__":
     print('Taking spectrum ...')
     counts = ws.take_spectrum()
     nm = ws.nm_axis()
-    print(nm,counts)
+    #print(nm,counts)
 
     ws.shutter_control = 'Closed'
-
-
 
     ws.central_wav = 300
     

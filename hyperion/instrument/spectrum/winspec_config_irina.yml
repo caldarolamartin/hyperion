@@ -1,0 +1,19 @@
+shutter_controls:
+  - Closed
+  - Opened
+horz_width_multiple: 4
+display:
+  rotate: False
+  reverse: True
+  flip: True
+data_file:
+  confirm_overwrite: False
+  autosave: 'Auto'
+timing:
+  mode: 'Free Run'
+  fast_safe: 'Safe'
+  delay_time_s: 0.1
+ascii_file: True
+
+
+
