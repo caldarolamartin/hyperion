@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-==============
-Stanford SR830
-==============
+    ==============
+    Stanford SR830
+    ==============
 
-This controller (lock-in.py) supplies one class with several methods to communicate
-    with the lock-in  from "??" model.
+    This controller (lock-in.py) supplies one class with several methods to communicate with the lock-in  from "SRS" model SR830.
 
-Based on the OSA Controller since it also uses GPIB connection.
+    Based on the OSA Controller since it also uses GPIB connection.
 
+
+    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 import logging
 import visa

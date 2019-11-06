@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-=======================
-LCC25 (thorlabs) driver
-=======================
-This controller supplies one class with several functions to communicate with the thorlabs
-LCC25 liquid crystal controller.
+    =======================
+    LCC25 (thorlabs) driver
+    =======================
+    This controller supplies one class with several functions to communicate with the thorlabs
+    LCC25 liquid crystal controller.
 
-Note that this controller also implements units.
+    Note that this controller also implements units.
 
-
+    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 import os
 import serial
