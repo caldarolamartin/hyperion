@@ -257,7 +257,7 @@ class Hydraharp_GUI(QWidget):
 
         self.resolution = self.sender().value()*ur('ps')
 
-        self.logger.debug(self.sender().value())
+        self.logger.debug(str(self.sender().value()))
 
     #------------------------------------------------------------------------------------
     def take_histogram(self):
@@ -270,7 +270,7 @@ class Hydraharp_GUI(QWidget):
         """
         self.logger.info("Take the histrogram")
 
-        #first, prepare the machine to take the histogram
+        #first, set the array length and resolution of the histogram
 
         self.logger.debug('chosen histogram length: ' + str(self.array_length))
         self.logger.debug('chosen resolution: ' + str(self.resolution))
@@ -279,7 +279,7 @@ class Hydraharp_GUI(QWidget):
 
         #self.make_progress_label(str(self.hydra_instrument.prepare_to_take_histogram(tijd)))
 
-        # needs count_channel( 1 or 2)
+        # needs count_channel(0 or 1)
         self.logger.debug('chosen integration time: ' + str(self.integration_time))
         self.logger.debug('chosen channel: ' + str(self.channel))
 
