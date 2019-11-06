@@ -169,7 +169,7 @@ class Attocube_GUI(QWidget):
         | self.current_axis is saved here and used in the whole program
         """
         self.current_axis = self.gui.comboBox_axis.currentText()
-        print(self.current_axis)
+        self.logger.debug('current axis:' + str(self.current_axis))
 
         if 'Stepper' in self.current_axis:
             #Disable the scanner box, enable the configure box + show blue edge
@@ -290,7 +290,7 @@ class Attocube_GUI(QWidget):
         if local_distance > self.max_distance:
             self.logger.debug('value too high')
             local_max = self.max_distance.to(unit)
-            print(local_max)
+            self.logger.debug(local_max)
             self.gui.doubleSpinBox_distance.setValue(local_max.m_as(unit))
         elif local_distance < 0:
             self.logger.debug('value too low')
@@ -356,7 +356,7 @@ class Attocube_GUI(QWidget):
                 self.gui.pushButton_left.setEnabled(True)
                 self.gui.pushButton_up.setEnabled(False)
                 self.gui.pushButton_down.setEnabled(False)
-                self.gui.pushButton_right.setText('right')
+                self.gui.pushButton_right.setText('away')
             else:
                 self.gui.pushButton_left.setEnabled(True)
                 self.gui.pushButton_up.setEnabled(True)
@@ -398,7 +398,6 @@ class Attocube_GUI(QWidget):
             # disable the user input possibility, show either the step size on current axes (depends on frequency)
             if 'Z' in self.current_axis:
                 self.gui.label_speed_stepZ.setText('step size Z')
-                print(type(str(self.anc350_instrument.Stepwidth[1]*ur('nm'))))
                 self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Stepwidth[1]*ur('nm')))
                 self.gui.groupBox_infoXY.setEnabled(False)
                 self.gui.groupBox_infoZ.setEnabled(True)

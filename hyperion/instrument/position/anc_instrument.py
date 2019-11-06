@@ -87,8 +87,6 @@ class Anc350Instrument(BaseInstrument):
         self.controller.amplitudeControl(ax,2)
         self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
 
-        print(type(amplitude.m_as('V')))
-
         if 0 <= amplitude.m_as('mV') <= self.controller.max_amplitude_mV:
             self.logger.debug('checking if the amplitude is okay')
 
