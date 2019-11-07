@@ -13,7 +13,7 @@ timing:
   mode: 'Free Run'
   fast_safe: 'Safe'
   delay_time_s: 0.1
-ascii_file: True
+ascii_file: False
 
 
 

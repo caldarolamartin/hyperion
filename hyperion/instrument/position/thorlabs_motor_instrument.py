@@ -8,16 +8,16 @@ Connects for now to the TDC001 controller.
 Example:
     Shows the list of available devices conects to thorlabs_motor x and initialize (without homing) it and moves it by 10 micro meter.
 
-"""
-"""python example code
-    >>> from hyperion.instrument.thorlabs_motor.thorlabs_motor_instrument import Thorlabsmotor
-	>>> checkdevices = Thorlabsmotor()
-	>>> checkdevices.list_available_devices()
-	>>> [(31,81818251)]
-    >>> motorx = Thorlabsmotor()
-	>>> motorx.initialize(81818251)
-    >>> motorx.move_home(True)
-    >>> motorx.move_relative(10)
+
+python example code
+    # >>> from hyperion.instrument.thorlabs_motor.thorlabs_motor_instrument import Thorlabsmotor
+	# >>> checkdevices = Thorlabsmotor()
+	# >>> checkdevices.list_available_devices()
+	# >>> [(31,81818251)]
+    # >>> motorx = Thorlabsmotor()
+	# >>> motorx.initialize(81818251)
+    # >>> motorx.move_home(True)
+    # >>> motorx.move_relative(10)
 """
 
 
@@ -135,6 +135,7 @@ class Thorlabsmotor(BaseInstrument):
         distance = distance * ur('micrometer')
         distance_mm = distance.to('mm')
         self.controller.move_by(distance_mm)
+
     def move_absolute(self, distance):
         """Moves the thorlabs_motor by the a absolute distance that is given
             
