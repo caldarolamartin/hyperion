@@ -48,14 +48,14 @@ to the one specified by its serial number. The thorlabs_motor is first homed (bl
 and then moved relative by 45 degree.
 
 ```python
-    >>> from hyperion.controller.thorlabs.TDC001 import TDC001
-	>>> checkdevices = TDC001()
-	>>> checkdevices.list_available_devices()
-	>>> [(31,81818251)]
-    >>> motorx = TDC001()
-	>>> motorx.initialize(83817677)
-    >>> motorx.move_home(True)
-    >>> motorx.move_by(0.01)
+    # >>> from hyperion.controller.thorlabs.TDC001 import TDC001
+	# >>> checkdevices = TDC001()
+	# >>> checkdevices.list_available_devices()
+	# >>> [(31,81818251)]
+    # >>> motorx = TDC001()
+	# >>> motorx.initialize(83817677)
+    # >>> motorx.move_home(True)
+    # >>> motorx.move_by(0.01)
 ```
 
 **References**
@@ -142,7 +142,19 @@ class TDC001(BaseController):
     
     _lib = None
 
+    def __init__(self, settings={}):
+        """ Init of the class. """
+        self.logger = logging.getLogger(__name__)
+        self._is_initialized = False
+        self.logger.info('Class TDC001 (Thorlabs motors) is created.')
+        self.settings = settings
+        self._amplitude = []
+        self._lib = self._load_library()
 
+        if 'serial' in self.settings:
+            self._serial_number = self.settings['serial']
+        else:
+            self._serial_number = ''
 
     def _load_library(self):
         """
@@ -305,19 +317,7 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
         return (model.value, swver.value, hwnotes.value)
 
-    def __init__(self, settings = {}):
-        """ Init of the class. """
-        self.logger = logging.getLogger(__name__)
-        self._is_initialized = False
-        self.logger.info('Class TDC001 (Thorlabs motors) is created.')
-        self.settings = settings
-        self._amplitude = []
-        self._lib = self._load_library()
-        
-        if 'serial' in self.settings:
-            self._serial_number = self.settings['serial']
-        else:
-            self._serial_number = ''
+
 
     def initialize(self, serial_number=None):
         """ Starts the connection to the device in port
@@ -772,6 +772,7 @@ class TDC001(BaseController):
             - STAGE_UNITS_MM = 1 : Stage units in mm
             - STAGE_UNITS_DEG = 2 : Stage units in degrees
         """
+        self.logger.info('Getting stage axis info')
         min_pos = ctypes.c_float()
         max_pos = ctypes.c_float()
         units = ctypes.c_long()
@@ -786,6 +787,7 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
         return (min_pos.value, max_pos.value, units.value, pitch.value)
 #        return min_pos.value
+
     def set_stage_axis_info(self, min_pos, max_pos, units, pitch):
         """
         Sets axis information of stage.
@@ -1565,14 +1567,15 @@ if __name__ == "__main__":
     with TDC001() as dev:
         print(dev.list_available_devices())
         for motor in dev.list_available_devices():
-            print(motor)
-            if motor[1] != 81818266:        
-                    dev.initialize(motor[1])
-                    dev.idn()
-                    dev.move_to(0.01)
-                    dev.position
-                    dev.finalize()
-                    print("-"*40)
+            dev.logger.debug(motor)
+            #if motor[1] == 83850111:
+            dev.initialize(motor[1])
+            dev.idn()
+            print(dev.get_stage_axis_info())
+            #dev.move_to(0)
+            dev.position
+            dev.finalize()
+            print("-"*40)
 		
 
 
