@@ -1,45 +1,46 @@
 """
-===============
-Polarimeter GUI
-===============
+    ===============
+    Polarimeter GUI
+    ===============
 
-This is the variable waveplate GUI.
+    This is the variable waveplate GUI.
 
-
+    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 import logging
 import sys, os
 import numpy as np
+import pyqtgraph as pg
 from PyQt5 import uic
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import *
+import hyperion
+from hyperion import root_dir, _colors
 from hyperion.instrument.polarization.polarimeter import Polarimeter
-from hyperion import Q_, ur, root_dir
 from hyperion.view.base_plot_windows import BaseGraph
 
 class PolarimeterGui(QWidget):
-    """ This is the Polarimeter GUI class.
-    It builds the GUI for the instrument: polarization.
+    """
+        This is the Polarimeter GUI class.
+        It builds the GUI for the instrument: polarimeter
 
+        :param polarimeter_ins: instrument
+        :type an instance of the polarization instrument
     """
 
     MODES = ['Monitor', 'Time Trace'] # measuring modes
 
     def __init__(self, polarimeter_ins, plot_window):
-        """
-        Init of the Polarimeter Gui
-
-        :param polarimeter_ins: instrument
-        :type an instance of the polarization instrument
-        """
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.test = QDoubleSpinBox() # to be removed
-
         # to load from the UI file
         gui_file = os.path.join(root_dir,'view', 'polarization','polarimeter.ui')
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
+        # set location in screen
+        self.left = 500
+        self.top = 500
 
         self.plot_window = plot_window
 
@@ -57,11 +58,23 @@ class PolarimeterGui(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_plot)
 
+        # to be able to plot only the ticked fields
+        self.index_to_plot = []
+        self.Plots = []
+        self.Plots.append(self.plot_window.pg_plot)
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-       self.logger.debug('Exiting')
+       self.logger.debug('Exiting the with')
+
+    def closeEvent(self, event):
+        """ Actions to take when you press the X in the main window.
+
+        """
+        self.plot_window.close()
+        event.accept() # let the window close
 
     def update_dummy_data(self):
         """ Dummy data update"""
@@ -69,21 +82,32 @@ class PolarimeterGui(QWidget):
         self.data[:, :-1] = self.data[:, 1:]
         self.data[:, -1] = np.array(raw)
 
-
     def update_data(self):
-        """ sdfsdf """
+        """ Getting data from polarimeter and put it in the matrix self.data (gets all the posible values)
+
+        """
         raw = self.polarimeter_ins.get_data()
         self.data[:,:-1] =self.data[:,1:]
         self.data[:,-1] = np.array(raw)
 
     def update_plot(self):
-        self.update_data()
-        index = 2
-        y = self.data[index,:]
-        x = np.array(range(len(y)))
-        #self.logger.debug('Data: x = {}, y = {}'.format(x,y))
-        #self.plot_window.pg_plot.plot(x, y, clear=True)
-        self.plot_window.pg_plot.setData(x, y)
+        """ This updates the plot """
+        self.update_data() # get new data
+        self.logger.debug('Indexes selected to plot: {}'.format(self.index_to_plot))
+
+        # make data to plot
+        x = np.array(range(len(self.data[0,:])))
+
+        # Update the data shown in all the plots that are checked
+        for index, value in enumerate(self.index_to_plot):
+            self.logger.debug('Plotting for variable: {}'.format(self.polarimeter_ins.DATA_TYPES_NAME[value]))
+            y = self.data[value, :]
+            self.Plots[index].setData(x,y,pen=pg.mkPen(_colors[index], width=2),
+                                      name= self.polarimeter_ins.DATA_TYPES_NAME[value])
+
+
+
+        #self.plot_window.pg_plot.PlotDataItem()
 
     def customize_gui(self):
         """ Make changes to the gui """
@@ -100,17 +124,40 @@ class PolarimeterGui(QWidget):
             box = QCheckBox()
             self._channels_labels.append(label)
             self._channels_check_boxes.append(box)
-
             self.gui.formLayout_channels.addRow(box, label)
+            self._channels_check_boxes[-1].stateChanged.connect(self.update_start_button_status)
 
         # set the mode
         self.gui.comboBox_mode.addItems(self.MODES)
 
-        #self.gui.pushButton_start.pressed.connect(self.plot_data)
-
+        # start monitor button
         self.gui.pushButton_start.clicked.connect(self.start_button)
+        self.gui.pushButton_start.setEnabled(False)
+
+    def update_start_button_status(self):
+        """To make the start button be disabled or enabled depending on the checkbox status. """
+
+        # get the index number of the channels ticked to be measured and put them in an array
+        self.index_to_plot = []
+        for ind, a in enumerate(self._channels_check_boxes):
+            if a.isChecked():
+                self.index_to_plot.append(ind)
+        self.logger.debug('Total set of index to plot in the monitor: {}'.format(self.index_to_plot))
+
+        if len(self.index_to_plot)==0:
+            self.gui.pushButton_start.setEnabled(False)
+        else:
+            self.gui.pushButton_start.setEnabled(True)
 
     def start_button(self):
+        """ Action when you press start """
+
+        # add the extra plots needed with one data point
+        self.Plots = []
+        for i in range(len(self.index_to_plot)):
+            self.logger.debug('Adding a new plot. Index: {}'.format(i))
+            p = self.plot_window.pg_plot_widget.plot([0], [0])
+            self.Plots.append(p)
 
         #lenth = self.gui.doubleSpinBox_measurement_length
         if self._is_measuring:
@@ -118,6 +165,10 @@ class PolarimeterGui(QWidget):
             self._is_measuring = False
             # change the button text
             self.gui.pushButton_start.setText('Start')
+            # Enable the checkboxes when stopping
+            for a in self._channels_check_boxes:
+                a.setEnabled(True)
+
             self.timer.stop()
 
         else:
@@ -125,20 +176,21 @@ class PolarimeterGui(QWidget):
             self._is_measuring = True
             # change the button text
             self.gui.pushButton_start.setText('Stop')
+            # Disable the checkboxes while running
+            for a in self._channels_check_boxes:
+                a.setEnabled(False)
+
             self.timer.start(50)  # in ms
             # self.measurement_thread = WorkThread(self.continuous_data)
             # self.measurement_thread.start()
 
-
     def change_wavelength(self):
         """ Gui method to set the wavelength to the device
-
 
         """
         w = Q_(self.doubleSpinBox_wavelength.value(), self.doubleSpinBox_wavelength.suffix())
         self.logger.info('Setting the wavelength: {}'.format(w))
         self.polarimeter_ins.change_wavelength(w)
-
 
 # this is to create a graph output window to dump our data later.
 class Graph(BaseGraph):
@@ -150,21 +202,20 @@ class Graph(BaseGraph):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Creating the Graph for the polarization')
         self.title = 'Graph view: Polarimeter'
-        self.left = 100
+        self.left = 50
         self.top = 100
         self.width = 640
         self.height = 480
+
+        self.plot_title = 'Data from SK polarimeter'
+        self.initialize_plot()
+        #self.pg_plot_widget.setYRange(min=-1,max=1)
+        self.pg_plot_widget.setLabel('bottom',text='Time', units='seconds')
+
         self.initUI()       # This should be called here (not in the parent)
 
 if __name__ == '__main__':
-    from hyperion import _logger_format, _logger_settings, root_dir
-
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    hyperion.file_logger.setLevel( logging.INFO )
 
     logging.info('Running Polarimeter GUI file.')
 

@@ -23,11 +23,18 @@ class BaseGraph(QWidget):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Creating the BaseGraph ')
         self.title = 'BaseGraph Plot'
-        self.left = 100
-        self.top = 100
+        self.left = 50
+        self.top = 50
         self.width = 640
         self.height = 480
-        self.pg_plot_widget = pg.PlotWidget()
+        self.plot_title = None
+
+    def initialize_plot(self):
+        """ This actually plots in the window. """
+        if self.plot_title is None:
+            self.plot_title = 'Title plot'
+        # make the plot
+        self.pg_plot_widget = pg.PlotWidget(title=self.plot_title)
         self.pg_plot = self.pg_plot_widget.plot([0],[0])
         # self.initUI()     # Removed this. It should be called by the child
 
