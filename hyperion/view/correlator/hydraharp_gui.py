@@ -55,6 +55,9 @@ class Hydraharp_GUI(QWidget):
         self.max_time = 24*ur('hour')
         self.max_length = 65536
 
+        self.endtime = []
+        self.time_axis = []
+
         self.initUI()
 
     def initUI(self):
@@ -84,6 +87,8 @@ class Hydraharp_GUI(QWidget):
         self.make_channel_label()
         self.make_export_label()
         self.make_remaining_time_label()
+        self.make_time_axis_label()
+        self.make_endtime()
         #self.make_progress_label()
 
     def make_textfields(self):
@@ -132,6 +137,15 @@ class Hydraharp_GUI(QWidget):
         self.remaining_time_label = QLabel(self)
         self.remaining_time_label.setText("Remaining time:\n")
         self.grid_layout.addWidget(self.remaining_time_label, 2, 0)
+    def make_time_axis_label(self):
+        self.time_axis_label = QLabel(self)
+        self.time_axis_label.setText("Resulting end time on axis: ")
+        self.grid_layout.addWidget(self.time_axis_label, 0, 3)
+    def make_endtime(self):
+        self.endtime_label = QLabel(self)
+        self.calculate_axis()
+        self.endtime_label.setText(str(self.endtime))
+        self.grid_layout.addWidget(self.endtime_label, 1, 3)
     def make_progress_label(self, iets):
         self.remaining_time_label.setText("Remaining time:\n"+iets)
 
@@ -198,6 +212,9 @@ class Hydraharp_GUI(QWidget):
         elif self.sender().value() < 1:
             self.sender().setValue(1)
 
+        self.calculate_axis()
+        self.endtime_label.setText(str(self.endtime))
+
         self.array_length = int(self.sender().value())
 
     def set_integration_time(self):
@@ -257,7 +274,26 @@ class Hydraharp_GUI(QWidget):
 
         self.resolution = self.sender().value()*ur('ps')
 
+        self.calculate_axis()
+        self.endtime_label.setText(str(self.endtime))
+
         self.logger.debug(str(self.sender().value()))
+
+    def calculate_axis(self):
+        self.endtime = round(self.resolution.m_as('ns')*self.array_length*ur('s'),4)
+
+        if self.endtime.m_as('s') < 60:  # below one minute, display in seconds
+            units = 's'
+        elif self.endtime.m_as('s') < 60 * 60:  # below one hour, display in minutes
+            units = 'min'
+        elif self.endtime.m_as('s') < 60 * 60 * 24:  # below one day, display in hours
+            units = 'hour'
+        else:
+            units = 'days'
+
+        self.logger.debug(str(self.endtime))
+        #self.endtime = self.endtime.m_as(units)
+        self.time_axis = np.linspace(0, self.endtime.m_as(units), int(self.resolution.m_as('ns')))
 
     #------------------------------------------------------------------------------------
     def take_histogram(self):
