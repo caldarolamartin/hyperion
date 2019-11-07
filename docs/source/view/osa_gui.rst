@@ -1,2 +1,2 @@
-.. automodule:: hyperion.view.osa.osa_gui
+.. automodule:: hyperion.view.spectrum.osa_gui
     :members:

@@ -1,2 +1,2 @@
-.. automodule:: hyperion.view.anc_gui.attocube_gui
+.. automodule:: hyperion.view.position.attocube_gui
     :members:

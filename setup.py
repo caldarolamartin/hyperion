@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="Hyperion",
-    version="0.1.dev",
+    version="0.2",
     author="See Authors",
     license='BSD',
     description="A small package to control devices in the Kuipers lab",

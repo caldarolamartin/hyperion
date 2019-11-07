@@ -1,0 +1,2 @@
+.. automodule:: hyperion.controller.stanford.sr830
+    :members:

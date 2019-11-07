@@ -1,6 +1,6 @@
-============
-Contributors
-============
+=======
+Authors
+=======
 
 Naturally, this list is in continuous change since we have many people
 contributing to this project. We try to keep it updated so new developers

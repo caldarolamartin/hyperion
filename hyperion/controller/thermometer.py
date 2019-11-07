@@ -10,11 +10,12 @@
     :license: , see LICENSE for more details.
 """
 import serial
-from time import sleep, time
 import logging
+import hyperion
+from hyperion.controller.base_controller import BaseController
+from time import sleep, time
 
-
-class Rs1316:
+class Rs1316(BaseController):
     """
     controller class for the driver aa_mod18012 from AA optoelelectronics.
     This class has all the methods to communicate using serial.
@@ -45,11 +46,6 @@ class Rs1316:
         """
         self.port = None
         self.rsc = None
-        # logger
-        self.logger = logging.getLogger(__name__)
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s -  %(funcName)2s() - %(message)s',
-                            level=logging.INFO)
-
         self.logger.info('Class Rs 1316 init. Created object.')
 
         self.T1 = []
@@ -103,6 +99,7 @@ class Rs1316:
 
 
 if __name__ == "__main__":
+    hyperion.file_logger.setLevel(logging.INFO)
 
     ther = Rs1316()
     ther.initialize('COM12')

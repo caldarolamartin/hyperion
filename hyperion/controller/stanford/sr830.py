@@ -1,29 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-==============
-Lock-in controller
-==============
+    ==============
+    Stanford SR830
+    ==============
 
-This controller (lock-in.py) supplies one class with several methods to communicate
-    with the lock-in  from "??" model.
+    This controller (lock-in.py) supplies one class with several methods to communicate with the lock-in  from "SRS" model SR830.
 
-Based on the OSA Controller since it also uses GPIB connection.
+    Based on the OSA Controller since it also uses GPIB connection.
 
+
+    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 import logging
 import visa
 import time
 from hyperion.controller.base_controller import BaseController
 
-class LockInController(BaseController):
-    """ The controller for the lock-in."""
-
-    def __init__(self, settings={'port': 'AUTO', 'dummy': False}):
-        """ Init of the class.
+class sr830(BaseController):
+    """ The controller for the lock-in.
 
         :param settings: this includes all the settings needed to connect to the device in question.
         :type settings: dict
-        """
+
+    """
+    def __init__(self, settings={'port': 'AUTO', 'dummy': False}):
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class Lock-in created.')
@@ -259,53 +260,53 @@ class LockInController(BaseController):
         self.sample_points = 601.00
 
 
-class OsaControllerDummy(OsaController):
-    """
-    Example Controller Dummy for the Osa machine
-    ========================
-    A dummy version of the Example Controller.
-    ========================
-
-    In essence we have the same methods and we re-write the query to answer something meaningful but
-    without connecting to the real device.
-    """
-
-    def query(self, msg):
-        """ writes into the device msg
-
-        :param msg: command to write into the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the dummy device:{}'.format(msg))
-        ans = 'A general dummy answer'
-        return ans
-    def read(self):
-        """ Fake read that returns always the value in the dictionary FAKE RESULTS.
-
-        :return: fake result
-        :rtype: string
-        """
-        return 'A'
-    def write(self, msg):
-        """ Writes into the device
-
-        :param msg: message to be written in the device port
-        :type msg: string
-        """
-        self.logger.debug('Writing into the device:{}'.format(msg))
-    def idn(self):
-        """ Identify command
-
-        :return: identification for the device
-        :rtype: string
-        """
-        self.logger.debug('Ask id to example device.')
-        return 'ExampleController device'
-
-    def initialize(self):
-        """ Dummy initialize"""
-        self.logger.info('Dummy initialize')
-        self._is_initialized = True
+# class OsaControllerDummy(OsaController):
+#     """
+#     Example Controller Dummy for the Osa machine
+#     ========================
+#     A dummy version of the Example Controller.
+#     ========================
+#
+#     In essence we have the same methods and we re-write the query to answer something meaningful but
+#     without connecting to the real device.
+#     """
+#
+#     def query(self, msg):
+#         """ writes into the device msg
+#
+#         :param msg: command to write into the device port
+#         :type msg: string
+#         """
+#         self.logger.debug('Writing into the dummy device:{}'.format(msg))
+#         ans = 'A general dummy answer'
+#         return ans
+#     def read(self):
+#         """ Fake read that returns always the value in the dictionary FAKE RESULTS.
+#
+#         :return: fake result
+#         :rtype: string
+#         """
+#         return 'A'
+#     def write(self, msg):
+#         """ Writes into the device
+#
+#         :param msg: message to be written in the device port
+#         :type msg: string
+#         """
+#         self.logger.debug('Writing into the device:{}'.format(msg))
+#     def idn(self):
+#         """ Identify command
+#
+#         :return: identification for the device
+#         :rtype: string
+#         """
+#         self.logger.debug('Ask id to example device.')
+#         return 'ExampleController device'
+#
+#     def initialize(self):
+#         """ Dummy initialize"""
+#         self.logger.info('Dummy initialize')
+#         self._is_initialized = True
 
 
 if __name__ == "__main__":
