@@ -36,6 +36,7 @@ class BaseGraph(QWidget):
         # make the plot
         self.pg_plot_widget = pg.PlotWidget(title=self.plot_title)
         self.pg_plot = self.pg_plot_widget.plot([0],[0])
+
         # self.initUI()     # Removed this. It should be called by the child
 
     def initUI(self):

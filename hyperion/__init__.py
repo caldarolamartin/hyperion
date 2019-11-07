@@ -28,11 +28,11 @@ ls = os.pardir
 
 # Create a filter to prevent continuous repeated duplicate messages
 class DuplicateFilter(logging.Filter):
-    """Adding this filter to a logging handler wll reduce repeated """
+    """Adding this filter to a logging handler will reduce repeated """
     def filter(self, record):
         # Note to self. It appears the message from one handler is passed to the next one.
         # This means that if one handler modifies the message, the next one gets the modified version.
-        self.repeat_message = ' > REPEATING...'
+        self.repeat_message = ' > Logger message is being repeated...'
         # First strip the repeat_message from the message if it is there:
         replen = len(self.repeat_message)
         if len(record.msg) > replen and record.msg[-replen:] == self.repeat_message:

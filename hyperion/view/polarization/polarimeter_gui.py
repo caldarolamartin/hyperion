@@ -12,6 +12,7 @@ import logging
 import sys, os
 import numpy as np
 import pyqtgraph as pg
+from time import time
 from PyQt5 import uic
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import *
@@ -39,8 +40,10 @@ class PolarimeterGui(QWidget):
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
         # set location in screen
-        self.left = 500
-        self.top = 500
+        self.left = 700
+        self.top = 100
+        # change location
+        self.gui.move(self.left, self.top)
 
         self.plot_window = plot_window
 
@@ -54,6 +57,7 @@ class PolarimeterGui(QWidget):
         #
         self._is_measuring = False
         self.data = np.zeros((13, self.gui.spinBox_measurement_length.value())) # save data
+        self.data_time = np.zeros((self.gui.spinBox_measurement_length.value()))  # save data
         # to handle the update of the plot we use a timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_plot)
@@ -76,39 +80,6 @@ class PolarimeterGui(QWidget):
         self.plot_window.close()
         event.accept() # let the window close
 
-    def update_dummy_data(self):
-        """ Dummy data update"""
-        raw = np.random.rand(13)
-        self.data[:, :-1] = self.data[:, 1:]
-        self.data[:, -1] = np.array(raw)
-
-    def update_data(self):
-        """ Getting data from polarimeter and put it in the matrix self.data (gets all the posible values)
-
-        """
-        raw = self.polarimeter_ins.get_data()
-        self.data[:,:-1] =self.data[:,1:]
-        self.data[:,-1] = np.array(raw)
-
-    def update_plot(self):
-        """ This updates the plot """
-        self.update_data() # get new data
-        self.logger.debug('Indexes selected to plot: {}'.format(self.index_to_plot))
-
-        # make data to plot
-        x = np.array(range(len(self.data[0,:])))
-
-        # Update the data shown in all the plots that are checked
-        for index, value in enumerate(self.index_to_plot):
-            self.logger.debug('Plotting for variable: {}'.format(self.polarimeter_ins.DATA_TYPES_NAME[value]))
-            y = self.data[value, :]
-            self.Plots[index].setData(x,y,pen=pg.mkPen(_colors[index], width=2),
-                                      name= self.polarimeter_ins.DATA_TYPES_NAME[value])
-
-
-
-        #self.plot_window.pg_plot.PlotDataItem()
-
     def customize_gui(self):
         """ Make changes to the gui """
 
@@ -129,10 +100,61 @@ class PolarimeterGui(QWidget):
 
         # set the mode
         self.gui.comboBox_mode.addItems(self.MODES)
-
+        # clear plot
+        self.gui.pushButton_clear_plot.clicked.connect(self.clear_plot)
+        # save
+        self.gui.pushButton_save.clicked.connect(self.data_save)
         # start monitor button
         self.gui.pushButton_start.clicked.connect(self.start_button)
         self.gui.pushButton_start.setEnabled(False)
+
+
+
+    def update_dummy_data(self):
+        """ Dummy data update"""
+        raw = np.random.rand(13)
+        self.data[:, :-1] = self.data[:, 1:]
+        self.data[:, -1] = np.array(raw)
+
+    def update_data(self):
+        """ Getting data from polarimeter and put it in the matrix self.data (gets all the posible values)
+
+        """
+        raw = self.polarimeter_ins.get_data()
+        t = time()
+        # shift data
+        self.data[:,1:] =self.data[:,:-1]
+        self.data_time[1:] = self.data_time[:-1]
+        # add new data
+        self.data[:,0] = np.array(raw)
+        self.data_time[0] =t-self.stat_time
+
+    def update_plot(self):
+        """ This updates the plot """
+        self.update_data() # get new data
+        # self.logger.debug('Indexes selected to plot: {}'.format(self.index_to_plot))
+
+        # make data to plot
+        x = np.array(range(len(self.data[0,:])))
+        # self.logger.debug('x: {}'.format(x))
+        # self.logger.debug('Time vector: {}'.format(self.data_time))
+
+        # Update the data shown in all the plots that are checked
+        for index, value in enumerate(self.index_to_plot):
+            #self.logger.debug('Plotting for variable: {}'.format(self.polarimeter_ins.DATA_TYPES_NAME[value]))
+            y = self.data[value, :]
+            self.Plots[index].setData(self.data_time, y, pen=pg.mkPen(_colors[index], width=2),
+                                      name= str(self.polarimeter_ins.DATA_TYPES_NAME[value]))
+        self.plot_window.pg_plot_widget.addLegend()
+
+    def data_save(self):
+        """ To save data in memory """
+        self.polarimeter_ins.save_data(self.data, file_path='test.txt')
+
+
+    def clear_plot(self):
+        """To clear the plot"""
+        self.plot_window.pg_plot_widget.clear()
 
     def update_start_button_status(self):
         """To make the start button be disabled or enabled depending on the checkbox status. """
@@ -151,14 +173,14 @@ class PolarimeterGui(QWidget):
 
     def start_button(self):
         """ Action when you press start """
-
+        #
+        self.stat_time = time()  #
         # add the extra plots needed with one data point
         self.Plots = []
         for i in range(len(self.index_to_plot)):
             self.logger.debug('Adding a new plot. Index: {}'.format(i))
             p = self.plot_window.pg_plot_widget.plot([0], [0])
             self.Plots.append(p)
-
         #lenth = self.gui.doubleSpinBox_measurement_length
         if self._is_measuring:
             self.logger.debug('Stopping sweep')

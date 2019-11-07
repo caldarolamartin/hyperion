@@ -36,7 +36,17 @@ class Polarimeter(BaseInstrument):
                   'Power split ratio the current polarization', # 11
                   'Retardation of the current state of polarization'] # 12
 
-    DATA_TYPES_NAME = ['S1','S2','S3','PER','LIN','ANGLE','POL_DEG','INT','V','LINV','ELLIP','POWER_SPLIT','RETARDATION']
+    DATA_TYPES_NAME = ['S1', 'S2', 'S3',
+                       'PER', 'LIN', 'ANGLE',
+                       'POL_DEG','INT','V',
+                       'LINV','ELLIP','POWER_SPLIT',
+                       'RETARDATION']
+
+    DATA_TYPES_UNITS = ['norm','norm','norm',
+                        'dB','dB','deg',
+                        '%', '%', 'norm',
+                        'norm', 'deg', 'norm',
+                        'norm']
 
     def __init__(self, settings = {'dummy' : False,
                                    'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
@@ -242,7 +252,7 @@ class Polarimeter(BaseInstrument):
 
         with open(file_path, 'wb') as f:
             f.write(header.encode('ascii'))
-            np.savetxt(f, data, fmt='%7.5f')
+            np.savetxt(f, np.transpose(data), fmt='%7.5f')
 
         self.logger.info('Data saved to {}'.format(file_path))
 
@@ -253,12 +263,16 @@ class Polarimeter(BaseInstrument):
         :rtype: string
         """
         self.logger.debug('Creating header with the meaning of the columns.')
-        header = '# Data created with polarization.py, model for the SK polarization analyzer from Hyperion by Authors. \n'
+        header = '# Data created with polarimeter.py, instrument class for the SK polarization analyzer from Hyperion by Authors. \n'
         header += '# Meaning of the columns: \n'
 
         for k in range(len(self.DATA_TYPES)):
-            string = '#     Column index {}: {} \n'.format(k, self.DATA_TYPES[k])
+            string = '#   Column number {} is {} [{}]. Physical meaning: {} \n'.format(k, self.DATA_TYPES_NAME[k],
+                                                                                      self.DATA_TYPES_UNITS[k],
+                                                                                      self.DATA_TYPES[k])
             header += string
+
+        header += '# \n'
         header += '# --------------------- End of header --------------------- \n'
 
         return header
