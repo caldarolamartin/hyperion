@@ -309,7 +309,7 @@ class TDC001(BaseController):
         """ Init of the class. """
         self.logger = logging.getLogger(__name__)
         self._is_initialized = False
-        self.logger.info('Class ExampleController created.')
+        self.logger.info('Class TDC001 (Thorlabs motors) is created.')
         self.settings = settings
         self._amplitude = []
         self._lib = self._load_library()

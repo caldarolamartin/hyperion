@@ -23,3 +23,4 @@ Here we group all the controllers we use for the Hyperion project.
     controller/osa
     controller/anc350
     controller/thermometer
+    controller/generic_serial
