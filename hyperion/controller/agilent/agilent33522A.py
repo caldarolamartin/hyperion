@@ -104,7 +104,6 @@ class Agilent33522A(BaseController):
         :return: identification of the fun gen
         :rtype: string
 
-
         """
         ans = self.query('*IDN?')
         time.sleep(0.1)

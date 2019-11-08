@@ -6,7 +6,7 @@ from hyperion import ur
 from pynput.keyboard import Listener
 
 
-class App(QWidget): # CHANGE THIS F##%% name!!!
+class Thorlabs_motor(QWidget): # CHANGE THIS F##%% name!!!
 
     def __init__(self, serial_number):
         """
@@ -14,7 +14,7 @@ class App(QWidget): # CHANGE THIS F##%% name!!!
         a serial_number of a thorlabs_motor must be given to this class.
         """
         super().__init__()
-        self.title = 'thorlabs motors GUI'
+        self.title = 'Thorlabs motor GUI'
         self.left = 50
         self.top = 50
         self.width = 400
@@ -195,5 +195,5 @@ if __name__ == '__main__':
     #give a serial_number of the thorlabsmotor that you want to use.
     serial_number = 83850123
     app = QApplication(sys.argv)
-    ex = App(serial_number)
+    ex = Thorlabs_motor(serial_number)
     sys.exit(app.exec_())

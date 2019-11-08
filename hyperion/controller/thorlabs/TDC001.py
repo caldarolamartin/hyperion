@@ -48,14 +48,14 @@ to the one specified by its serial number. The thorlabs_motor is first homed (bl
 and then moved relative by 45 degree.
 
 ```python
-    >>> from hyperion.controller.thorlabs.TDC001 import TDC001
-	>>> checkdevices = TDC001()
-	>>> checkdevices.list_available_devices()
-	>>> [(31,81818251)]
-    >>> motorx = TDC001()
-	>>> motorx.initialize(83817677)
-    >>> motorx.move_home(True)
-    >>> motorx.move_by(0.01)
+    # >>> from hyperion.controller.thorlabs.TDC001 import TDC001
+	# >>> checkdevices = TDC001()
+	# >>> checkdevices.list_available_devices()
+	# >>> [(31,81818251)]
+    # >>> motorx = TDC001()
+	# >>> motorx.initialize(83817677)
+    # >>> motorx.move_home(True)
+    # >>> motorx.move_by(0.01)
 ```
 
 **References**
@@ -142,7 +142,19 @@ class TDC001(BaseController):
     
     _lib = None
 
+    def __init__(self, settings={}):
+        """ Init of the class. """
+        self.logger = logging.getLogger(__name__)
+        self._is_initialized = False
+        self.logger.info('Class TDC001 (Thorlabs motors) is created.')
+        self.settings = settings
+        self._amplitude = []
+        self._lib = self._load_library()
 
+        if 'serial' in self.settings:
+            self._serial_number = self.settings['serial']
+        else:
+            self._serial_number = ''
 
     def _load_library(self):
         """
@@ -232,13 +244,10 @@ class TDC001(BaseController):
     """negative dc joystick direction sense"""
     
     def _get_error_text(self,error_code):
-        """
-        Returns an error text for the specified error code.
-    
-        Returns
-        -------
-        out : str
-            error message
+        """Returns an error text for the specified error code.
+
+        :return: error message string
+        :rtype: string
         """
         if (error_code == 0):
             return "Command successful."
@@ -248,23 +257,15 @@ class TDC001(BaseController):
             except:
                 return "Invalid error code."
 
-        
-
-    
     def list_available_devices(self):
+        """| Lists all devices connected to the computer.
+        | *We have to check for all possible hardware types.*
+        *Unfortunately I couldn't find a list of all existing hardware types, the list in the C header file is incomplete.*
+        *Therefore we just check the first 100 type values.*
+
+        :return: list of available devices
+        :rtype: tuple (hardware type, serial number)
         """
-        Lists all devices connected to the computer.
-    
-        Returns
-        -------
-        out : list
-            list of available devices. Each device is described by a tuple
-            (hardware type, serial number)
-        """
-        # we have to check for all possible hardware types.
-        # Unfortunately I couldn't find a list of all existing hardware types,
-        # the list in the C header file is incomplete. Therefore we just check
-        # the first 100 type values
         devices = []
         count = ctypes.c_long()
         for hwtype in range(100):
@@ -281,19 +282,13 @@ class TDC001(BaseController):
         return devices
     
     def hardware_info_1(self,serial_number):
-        """
-        Retrieves hardware information about the devices identified by its
-        serial number.
-    
-        Parameters
-        ----------
-        serial_number : int
-            Serial number identifying the device
-    
-        Returns
-        -------
-        out : tuple
-            hardware information: (model, software version, hardware notes)
+        """Retrieves hardware information about the devices identified by its serial number.
+
+        :param serial_number: Serial number identifying the device
+        :type serial_number: int
+
+        :return: hardware information: (model, software version, hardware notes)
+        :rtype: tuple
         """
         model = ctypes.c_buffer(255)
         swver = ctypes.c_buffer(255)
@@ -305,25 +300,13 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
         return (model.value, swver.value, hwnotes.value)
 
-    def __init__(self, settings = {}):
-        """ Init of the class. """
-        self.logger = logging.getLogger(__name__)
-        self._is_initialized = False
-        self.logger.info('Class TDC001 (Thorlabs motors) is created.')
-        self.settings = settings
-        self._amplitude = []
-        self._lib = self._load_library()
-        
-        if 'serial' in self.settings:
-            self._serial_number = self.settings['serial']
-        else:
-            self._serial_number = ''
+
 
     def initialize(self, serial_number=None):
         """ Starts the connection to the device in port
 
-        :param port: port name to connect to
-        :type port: string
+        :param serial_number: port name to connect to
+        :type serial_number: string
         """
         self.logger.info('Opening connection to Thorlabs thorlabs_motor.')
 #        self._amplitude = self.query('A?')
@@ -357,29 +340,20 @@ class TDC001(BaseController):
 
     @property
     def serial_number(self):
-        """
-        Returns the serial number of the thorlabs_motor.
+        """Returns the serial number of the thorlabs_motor.
 
-        Returns
-        -------
-        out : int
-            serial number
+        :return: serial number
+        :rtype: int
         """
         return self._serial_number
 
     @property
     def hardware_info(self):
-        """
-        Returns hardware information about the thorlabs_motor.
+        """| Returns hardware information about the thorlabs_motor.
+        | See also hardware_info
 
-        Returns
-        -------
-        out : tuple
-            (model, software version, hardware notes)
-
-        See also
-        --------
-        hardware_info
+        :return: (model, software version, hardware notes)
+        :rtype: tuple
         """
         return self.hardware_info_1(self._serial_number)
 
@@ -387,11 +361,8 @@ class TDC001(BaseController):
     def _status_bits(self):
         """
         Returns status bits of thorlabs_motor
-
-        Returns
-        -------
-        out : int
-            status bits
+        :return: status bits
+        :rtype: int
         """
         status_bits = ctypes.c_long()
         err_code = self._lib.MOT_GetStatusBits(self._serial_number,
@@ -405,6 +376,8 @@ class TDC001(BaseController):
     def is_forward_hardware_limit_switch_active(self):
         """
         Returns whether forward hardware limit switch is active.
+        :return: forward hardware
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x00000001
@@ -414,6 +387,8 @@ class TDC001(BaseController):
     def is_reverse_hardware_limit_switch_active(self):
         """
         Returns whether reverse hardware limit switch is active.
+        :return: reverse hardware
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x00000002
@@ -423,6 +398,8 @@ class TDC001(BaseController):
     def is_in_motion(self):
         """
         Returns whether thorlabs_motor is in motion.
+        :return: in motion
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x00000010 | 0x00000020 | 0x00000040 | 0x00000080 | 0x00000200
@@ -432,6 +409,8 @@ class TDC001(BaseController):
     def has_homing_been_completed(self):
         """
         Returns whether homing has been completed at some point.
+        :return: has been completed
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x00000400
@@ -441,6 +420,8 @@ class TDC001(BaseController):
     def is_tracking(self):
         """
         Returns whether thorlabs_motor is tracking.
+        :return: is tracking
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x00001000
@@ -450,6 +431,8 @@ class TDC001(BaseController):
     def is_settled(self):
         """
         Returns whether thorlabs_motor is settled.
+        :return: is settled
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x00002000
@@ -459,6 +442,8 @@ class TDC001(BaseController):
     def motor_current_limit_reached(self):
         """
         Return whether current limit of thorlabs_motor has been reached.
+        :return: current limit reached
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x01000000
@@ -468,6 +453,8 @@ class TDC001(BaseController):
     def motion_error(self):
         """
         Returns whether there is a motion error (= excessing position error).
+        :return: motion error
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x00004000
@@ -475,12 +462,11 @@ class TDC001(BaseController):
 
     @property
     def is_channel_enabled(self):
-        """
-        Return whether active channel is enabled.
+        """| Return whether active channel is enabled.
+        | See also active_channel
 
-        See also
-        --------
-        active_channel
+        :return: channel enabled
+        :rtype: bool
         """
         status_bits = self._status_bits
         mask = 0x80000000
@@ -488,11 +474,11 @@ class TDC001(BaseController):
 
     @property
     def active_channel(self):
-        """
-        Active channel number. Used with thorlabs_motor having more than 1 channel.
-
-        CHAN1_INDEX = 0 : channel 1
-        CHAN2_INDEX = 1 : channel 2
+        """| Active channel number. Used with thorlabs_motor having more than 1 channel.
+        | CHAN1_INDEX = 0 : channel 1
+        | CHAN2_INDEX = 1 : channel 2
+        :return: active channel
+        :rtype: int
         """
         return self._active_channel
 
@@ -505,8 +491,7 @@ class TDC001(BaseController):
         self._active_channel = channel
 
     def enable(self):
-        """
-        Enables the thorlabs_motor (the active channel).
+        """Enables the thorlabs_motor (the active channel).
         """
         err_code = self._lib.MOT_EnableHWChannel(self._serial_number)
         if (err_code != 0):
@@ -514,8 +499,7 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
 
     def disable(self):
-        """
-        Disables the thorlabs_motor (the active channel).
+        """Disables the thorlabs_motor (the active channel).
         """
         err_code = self._lib.MOT_DisableHWChannel(self._serial_number)
         if (err_code != 0):
@@ -523,8 +507,7 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
 
     def identify(self):
-        """
-        Flashes the 'Active' LED at the thorlabs_motor to identify it.
+        """Flashes the 'Active' LED at the thorlabs_motor to identify it.
         """
         err_code = self._lib.MOT_Identify(self._serial_number)
         if (err_code != 0):
@@ -532,13 +515,10 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
 
     def get_velocity_parameters(self):
-        """
-        Returns current velocity parameters.
+        """Returns current velocity parameters.
 
-        Returns
-        -------
-        out : tuple
-            (minimum velocity, acceleration, maximum velocity)
+        :return: (minimum velocity, acceleration, maximum velocity)
+        :rtype: tuple
         """
         min_vel = ctypes.c_float()
         accn = ctypes.c_float()
@@ -553,18 +533,17 @@ class TDC001(BaseController):
         return (min_vel.value, accn.value, max_vel.value)
 
     def set_velocity_parameters(self, min_vel, accn, max_vel):
-        """
-        Sets velocity parameters. According to the Thorlabs documentation
+        """Sets velocity parameters. According to the Thorlabs documentation
         minimum velocity is always 0 and hence is ignored.
 
-        Parameters
-        ----------
-        min_vel : float
-            minimum velocity
-        accn : float
-            acceleration
-        max_vel : float
-            maximum velocity
+        :param min_vel: minimum velocity
+        :type min_vel: float
+
+        :param accn: acceleration
+        :type accn: float
+
+        :param max_vel: maximum velocity
+        :type max_vel: float
         """
         err_code = self._lib.MOT_SetVelParams(self._serial_number,
                 min_vel, accn, max_vel)
@@ -583,19 +562,11 @@ class TDC001(BaseController):
     """Returns the maximum velocity"""
 
     def get_velocity_parameter_limits(self):
-        """
-        Returns the maximum acceleration and the maximum velocity of
-        the thorlabs_motor.
+        """| Returns the maximum acceleration and the maximum velocity of the thorlabs_motor.
+        | See also get_velocity_parameters and set_velocity_parameters
 
-        Returns
-        -------
-        out : tuple
-            (maximum acceleration, maximum velocity)
-
-        See also
-        --------
-        get_velocity_parameters
-        set_velocity_parameters
+        :return: (maximum acceleration, maximum velocity)
+        :rtype: tuple
         """
         max_accn = ctypes.c_float()
         max_vel = ctypes.c_float()
@@ -608,37 +579,28 @@ class TDC001(BaseController):
 
     @property
     def acceleration_upper_limit(self):
-        """
-        Returns thorlabs_motor's upper limit of acceleration.
+        """Returns thorlabs_motor's upper limit of acceleration.
 
-        Returns
-        -------
-        out : float
-            upper limit
+        :return: accelaration upper limit
+        :rtype: float
         """
         return self.get_velocity_parameter_limits()[0]
 
     @property
     def velocity_upper_limit(self):
-        """
-        Returns thorlabs_motor's upper limit of velocity.
+        """Returns thorlabs_motor's upper limit of velocity.
 
-        Returns
-        -------
-        out : float
-            upper limit
+        :return: velocity upper limit
+        :rtype: float
         """
         return self.get_velocity_parameter_limits()[1]
 
 
     def get_move_home_parameters(self):
-        """
-        Returns parameters used when homing.
+        """Returns parameters used when homing.
 
-        Returns
-        -------
-        out : tuple
-            (direction, limiting switch, velocity, zero offset)
+        :return: (direction, limiting switch, velocity, zero offset)
+        :rtype: tuple
         """
         direction = ctypes.c_long()
         lim_switch = ctypes.c_long()
@@ -657,23 +619,25 @@ class TDC001(BaseController):
 
     def set_move_home_parameters(self, direction, lim_switch, velocity,
             zero_offset):
-        """
-        Sets parameters used when homing.
+        """| Sets parameters used when homing.
 
-        Parameters
-        ----------
-        direction : int
-            home in forward or reverse direction:
-            - HOME_FWD = 1 : Home in the forward direction.
-            - HOME_REV = 2 : Home in the reverse direction.
-        lim_switch : int
-            forward limit switch or reverse limit switch:
-            - HOMELIMSW_FWD = 4 : Use forward limit switch for home datum.
-            - HOMELIMSW_REV = 1 : Use reverse limit switch for home datum.
-        velocity : float
-            velocity of the thorlabs_motor
-        zero_offset : float
-            zero offset
+        - HOME_FWD = 1 : Home in the forward direction.
+        - HOME_REV = 2 : Home in the reverse direction.
+        - HOMELIMSW_FWD = 4 : Use forward limit switch for home datum.
+        - HOMELIMSW_REV = 1 : Use reverse limit switch for home datum.
+
+        :param direction: home in forward or reverse direction
+        :type direction: int
+
+        :param lim_switch: forward limit switch or reverse limit switch
+        :type lim_switch: int
+
+        :param velocity: velocity of the thorlabs_motor
+        :type velocity: float
+
+        :param zero_offset: zero offset
+        :type zero_offset: float
+
         """
         err_code = self._lib.MOT_SetHomeParams(self._serial_number, direction,
                 lim_switch, velocity, zero_offset)
@@ -695,13 +659,10 @@ class TDC001(BaseController):
     """Homing zero offset"""
 
     def get_motor_parameters(self):
-        """
-        Returns thorlabs_motor parameters.
+        """Returns thorlabs_motor parameters.
 
-        Returns
-        -------
-        out : tuple
-            (steps per revolution, gear box ratio)
+        :return: (steps per revolution, gear box ratio)
+        :rtype: tuple
         """
         steps_per_rev = ctypes.c_long()
         gear_box_ratio = ctypes.c_long()
@@ -715,16 +676,15 @@ class TDC001(BaseController):
             return (steps_per_rev.value, gear_box_ratio.value)
 
     def set_motor_parameters(self, steps_per_rev, gear_box_ratio):
-        """
-        Sets thorlabs_motor parameters. Note that this is not possible with all thorlabs_motor,
+        """Sets thorlabs_motor parameters. Note that this is not possible with all thorlabs_motor,
         see documentation from Thorlabs.
 
-        Parameters
-        ----------
-        steps_per_rev : int
-            steps per revolution
-        gear_box_ratio : int
-            gear box ratio
+        :param steps_per_rev: steps per revolution
+        :type steps_per_rev: int
+
+        :param gear_box_ratio: gear box ratio
+        :type gear_box_ratio: int
+
         """
         err_code = self._lib.MOT_SetMotorParams(self._serial_number, steps_per_rev,
                 gear_box_ratio)
@@ -762,16 +722,14 @@ class TDC001(BaseController):
 
 
     def get_stage_axis_info(self):
-        """
-        Returns axis information of stage.
-
-        Returns
-        -------
-        out : tuple
-            (minimum position, maximum position, stage units, pitch)
+        """Returns axis information of stage.
             - STAGE_UNITS_MM = 1 : Stage units in mm
             - STAGE_UNITS_DEG = 2 : Stage units in degrees
+
+        :return: (minimum position, maximum position, stage units, pitch)
+        :rtype: tuple
         """
+        self.logger.info('Getting stage axis info')
         min_pos = ctypes.c_float()
         max_pos = ctypes.c_float()
         units = ctypes.c_long()
@@ -786,23 +744,24 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
         return (min_pos.value, max_pos.value, units.value, pitch.value)
 #        return min_pos.value
+
     def set_stage_axis_info(self, min_pos, max_pos, units, pitch):
-        """
-        Sets axis information of stage.
-
-
-        Parameters
-        ----------
-        min_pos : float
-            minimum position
-        max_pos : float
-            maximum position
-        units : int
-            stage units:
+        """| Sets axis information of stage.
             - STAGE_UNITS_MM = 1 : Stage units in mm
             - STAGE_UNITS_DEG = 2 : Stage units in degrees
-        pitch : float
-            pitch
+
+        :param min_pos: minimum position
+        :type min_pos: float
+
+        :param max_pos: maximum position
+        :type max_pos: float
+
+        :param units: units
+        :type units: int (?!)
+
+        :param pitch: pitch
+        :type pitch: float
+
         """
         err_code = self._lib.MOT_SetStageAxisInfo(self._serial_number,
                 min_pos, max_pos, units, pitch)
@@ -824,29 +783,17 @@ class TDC001(BaseController):
     """Stage's pitch"""
 
     def get_hardware_limit_switches(self):
-        """
-        Returns hardware limit switch modes for reverse and forward direction.
+        """| Returns hardware limit switch modes for reverse and forward direction.
+        | See also set_hardware_limit_switches
 
-        Returns
-        -------
-        out : tuple
-            (reverse limit switch, forward limit switch)
-            HWLIMSWITCH_IGNORE = 1 : Ignore limit switch (e.g. for stages
-                with only one or no limit switches).
-            HWLIMSWITCH_MAKES = 2	: Limit switch is activated when electrical
-                continuity is detected.
-            HWLIMSWITCH_BREAKS = 3 : Limit switch is activated when electrical
-                continuity is broken.
-            HWLIMSWITCH_MAKES_HOMEONLY = 4 : As per HWLIMSWITCH_MAKES except
-                switch is ignored other than when homing (e.g. to support
-                rotation stages).
-            HWLIMSWITCH_BREAKS_HOMEONLY = 5 : As per HWLIMSWITCH_BREAKS except
-                switch is ignored other than when homing (e.g. to support
-                rotation stages).
+            HWLIMSWITCH_IGNORE = 1 : Ignore limit switch (e.g. for stages with only one or no limit switches).
+            HWLIMSWITCH_MAKES = 2 : Limit switch is activated when electrical continuity is detected.
+            HWLIMSWITCH_BREAKS = 3 : Limit switch is activated when electrical continuity is broken.
+            HWLIMSWITCH_MAKES_HOMEONLY = 4 : As per HWLIMSWITCH_MAKES except switch is ignored other than when homing (e.g. to support rotation stages).
+            HWLIMSWITCH_BREAKS_HOMEONLY = 5 : As per HWLIMSWITCH_BREAKS except switch is ignored other than when homing (e.g. to support rotation stages).
 
-        See also
-        --------
-        set_hardware_limit_switches
+        :return: reverse limit switch, forward limit switch)
+        :rtype: tuple
         """
         rev = ctypes.c_long()
         fwd = ctypes.c_long()
@@ -858,8 +805,7 @@ class TDC001(BaseController):
         return (rev.value, fwd.value)
 
     def set_hardware_limit_switches(self, rev, fwd):
-        """
-        Sets hardware limit switches for reverse and forward direction.
+        """Sets hardware limit switches for reverse and forward direction.
 
         HWLIMSWITCH_IGNORE = 1 : Ignore limit switch (e.g. for stages
             with only one or no limit switches).
@@ -874,12 +820,11 @@ class TDC001(BaseController):
             switch is ignored other than when homing (e.g. to support
             rotation stages).
 
-        Parameters
-        ----------
-        rev : int
-            reverse limit switch
-        fwd : int
-            forward limit switch
+        :param rev: reverse limit switch
+        :type rev: int
+
+        :param fwd: forward limit switch
+        :type fwd: int
         """
         err_code = self._lib.MOT_SetHWLimSwitches(self._serial_number, rev, fwd)
         if (err_code != 0):
@@ -896,13 +841,10 @@ class TDC001(BaseController):
     """Forward limit switch"""
 
     def get_pid_parameters(self):
-        """
-        Returns PID parameters.
+        """Returns PID parameters.
 
-        Returns
-        -------
-        out : tuple
-            (proportional, integrator, differentiator, integrator limit)
+        :return: (proportional, integrator, differentiator, integrator limit)
+        :rtype: tuple
         """
         proportional = ctypes.c_long()
         integrator = ctypes.c_long()
@@ -921,15 +863,19 @@ class TDC001(BaseController):
 
     def set_pid_parameters(self, proportional, integrator, differentiator,
             integrator_limit):
-        """
-        Sets PID parameters.
+        """Sets PID parameters.
 
-        Parameters
-        ----------
-        proportional : int
-        integrator : int
-        differentiator : int
-        integrator_limit : int
+        :param proportional: proportional
+        :type proportional: int
+
+        :param integrator: integrator
+        :type integrator: int
+
+        :param differentiator: differentiator
+        :type differentiator:  int
+
+        :param integrator_limit: integrator limit
+        :type integrator_limit: int
         """
         err_code = self._lib.MOT_SetPIDParams(self._serial_number, proportional,
             integrator, differentiator, integrator_limit)
@@ -951,16 +897,13 @@ class TDC001(BaseController):
     """PID controller: Integrator limit"""
 
     def move_to(self, value, blocking = False):
-        """
-        Move to absolute position.
+        """Move to absolute position.
 
-        Parameters
-        ----------
-        value : float
-            absolute position of the thorlabs_motor
-        blocking : bool
-            wait until moving is finished.
-            Default: False
+        :param value: absolute position of the thorlabs_motor
+        :type value: float
+
+        :param blocking: wait until moving is finished; default False
+        :type blocking: bool
         """
         value = value * ur('micrometer')
         print(value)
@@ -971,16 +914,13 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
 
     def move_by(self, value, blocking = False):
-        """
-        Move relative to current position.
+        """Move relative to current position.
 
-        Parameters
-        ----------
-        value : float
-            relative distance
-        blocking : bool
-            wait until moving is finished
-            Default: False
+        :param value: relative distance
+        :type value: float
+
+        :param blocking: wait until moving is finished; default False
+        :type blocking: bool
         """
         value = value * ur('micrometer')
         err_code = self._lib.MOT_MoveRelativeEx(self._serial_number, value.magnitude,
@@ -1008,14 +948,10 @@ class TDC001(BaseController):
 
 
     def move_home(self, blocking = False):
-        """
-        Move to home position.
+        """Move to home position.
 
-        Parameters
-        ----------
-        blocking : bool
-            wait until homed
-            Default: False
+        :param blocking: wait until homed; default False
+        :type blocking: bool
         """
         err_code = self._lib.MOT_MoveHome(self._serial_number, blocking)
         if (err_code != 0):
@@ -1024,11 +960,11 @@ class TDC001(BaseController):
 
     def move_velocity(self, direction):
         """
-        Parameters
-        ----------
-        direction : int
-            MOVE_FWD = 1 : Move forward
-            MOVE_REV = 2 : Move reverse
+        MOVE_FWD = 1 : Move forward
+        MOVE_REV = 2 : Move reverse
+
+        :param direction: direction
+        :type direction: int
         """
         err_code = self._lib.MOT_MoveVelocity(self._serial_number, direction)
         if (err_code != 0):
@@ -1036,8 +972,7 @@ class TDC001(BaseController):
                     self._get_error_text(err_code))
 
     def stop_profiled(self):
-        """
-        Stop thorlabs_motor but turn down velocity slowly (profiled).
+        """Stop thorlabs_motor but turn down velocity slowly (profiled).
         """
         err_code = self._lib.MOT_StopProfiled(self._serial_number)
         if (err_code != 0):
@@ -1048,11 +983,8 @@ class TDC001(BaseController):
         """
         Returns DC current loop parameters.
 
-        Returns
-        -------
-        out : tuple
-            (proportional, integrator, integrator_limit, integrator_dead_band,
-             fast_forward)
+        :return: (proportional, integrator, integrator_limit, integrator_dead_band, fast_forward)
+        :rtype: tuple
         """
         proportional = ctypes.c_long()
         integrator = ctypes.c_long()
@@ -1076,13 +1008,20 @@ class TDC001(BaseController):
         """
         Sets DC current loop parameters.
 
-        Parameters
-        ----------
-        proportional : int
-        integrator : int
-        integrator_limit : int
-        integrator_dead_band : int
-        fast_forward : int
+        :param proportional: proportional
+        :type proportional: int
+
+        :param integrator: integrator
+        :type integrator: int
+
+        :param integrator_limit: integrator limit
+        :type integrator_limit: int
+
+        :param integrator_dead_band: integrator ??
+        :type integrator_dead_band: int
+
+        :param fast_forward: ??
+        :type fast_forward:  int
         """
         err_code = self._lib.MOT_SetDCCurrentLoopParams(self._serial_number,
                 proportional, integrator, integrator_limit,
@@ -1116,12 +1055,10 @@ class TDC001(BaseController):
         """
         Returns DC position loop parameters.
 
-        Returns
-        -------
-        out : tuple
-            (proportional, integrator, integrator limit, differentiator,
+        :return: (proportional, integrator, integrator limit, differentiator,
              differentiator time constant, loop gain, velocity fast forward,
              acceleration fast forward, position error limit)
+        :rtype: tuple
         """
         proportional = ctypes.c_long()
         integrator = ctypes.c_long()
@@ -1565,14 +1502,15 @@ if __name__ == "__main__":
     with TDC001() as dev:
         print(dev.list_available_devices())
         for motor in dev.list_available_devices():
-            print(motor)
-            if motor[1] != 81818266:        
-                    dev.initialize(motor[1])
-                    dev.idn()
-                    dev.move_to(0.01)
-                    dev.position
-                    dev.finalize()
-                    print("-"*40)
+            dev.logger.debug(motor)
+            #if motor[1] == 83850111:
+            dev.initialize(motor[1])
+            dev.idn()
+            print(dev.get_stage_axis_info())
+            #dev.move_to(0)
+            dev.position
+            dev.finalize()
+            print("-"*40)
 		
 
 

@@ -46,13 +46,14 @@ class Thorlabsmotor(BaseInstrument):
         # properties
         self._output = False
         self._mode = 0
-        self.logger.info('Initializing Thorlabs motoer settings: {}'.format(settings))
+        self.logger.info('Initializing Thorlabs motor settings: {}'.format(settings))
+
 
     def list_devices(self):
         """ List all available devices"""
         
         aptmotorlist=self.controller.list_available_devices()
-        print(str(len(aptmotorlist)) + ' thorlabs_motor boxes found:')
+        self.logger.info(str(len(aptmotorlist)) + ' thorlabs_motor boxes found:')
         return aptmotorlist
     
     def initialize(self, port, homing=0):
@@ -131,18 +132,18 @@ class Thorlabsmotor(BaseInstrument):
         :param distance: relative distance in micro meter
         :type distance: a pint quantity in micrometer
         """
-        self.logger.info("moving: "+str(distance)+" in micrometer")
+        self.logger.info("moving: "+str(distance)+" in micrometer")     #this needs to be changed!!!!!!!!
         distance = distance * ur('micrometer')
         distance_mm = distance.to('mm')
         self.controller.move_by(distance_mm)
 
     def move_absolute(self, distance):
-        """Moves the thorlabs_motor by the a absolute distance that is given
+        """| Moves the thorlabs_motor by the a absolute distance that is given
             
         :param: distance: a absolute distance
         :type: a pint quantity in micrometer
         """
-        distance = distance * ur("micrometer")
+        distance = distance * ur("micrometer")      #this needs to be changed!!!!!!!!
         #print("some text", distance)
         self.logger.info("moving: "+str(distance))
         self.controller.move_to(float(distance.magnitude))
@@ -191,13 +192,16 @@ if __name__ == "__main__":
 
     with Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}) as dev:
         for motor in dev.list_devices():
-            print(motor)
-            if motor[1] != 81818266:        
-                    dev.initialize(motor[1])
-                    dev.idn()
-                    dev.move_absolute(0.01)
-                    dev.finalize()
-                    print("-"*40)
-
+            dev.logger.debug(motor)
+            dev.initialize(motor[1])
+            dev.idn()
+            stage_info = dev.controller.get_stage_axis_info()
+            dev.logger.debug(stage_info)
+            if stage_info[1] == 12.0:
+                dev.move_relative(2.0)
+            elif stage_info[1] == 360.0:        #that means it's connected to the waveplate
+                dev.move_absolute(180)
+            dev.finalize()
+            dev.logger.debug("-"*40)
 
 
