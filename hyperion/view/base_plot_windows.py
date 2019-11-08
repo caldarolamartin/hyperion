@@ -7,12 +7,14 @@ This file contains different base classes to make several types of plots.
 
 * BaseGraph: This is a base class for creating a plot windows.
 
-Still rudimentary and in progress
 
 """
 import logging
+from hyperion import root_dir
 import pyqtgraph as pg
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import QIcon
+from os import path
 
 class BaseGraph(QWidget):
     """
@@ -41,6 +43,7 @@ class BaseGraph(QWidget):
 
     def initUI(self):
         self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon(path.join(root_dir,'view','base_plot_windows_icon.png')))
         self.setGeometry(self.left, self.top, self.width, self.height)
         vbox = QVBoxLayout()
         vbox.addWidget(self.pg_plot_widget)

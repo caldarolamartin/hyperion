@@ -114,15 +114,17 @@ class Polarimeter(BaseInstrument):
 
         if wavelength is None:
             self._wavelength = self.DEFAULT_SETTINGS['wavelength']
-            self.logger.debug('Using default setting for wavelength')
+            self.logger.info('Using default setting for wavelength')
         else:
             self._wavelength = wavelength
 
         if self._wavelength.m_as('nm') < self.controller.min_w or self._wavelength.m_as('nm') > self.controller.max_w:
-            raise Warning('The requested wavelength {} is outside the range supported for this device'.format(self._wavelength))
+            self.logger.warning('The requested wavelength {} is outside the range supported for this device'.format(self._wavelength))
+            self.logger.warning('Using default setting instead')
+            self._wavelength = self.DEFAULT_SETTINGS['wavelength']
 
         if not self.controller._is_initialized:
-            self.logger.debug('Initializing SK polarization with wavelength {}'.format(self._wavelength))
+            self.logger.info('Initializing SK polarization with wavelength {}'.format(self._wavelength))
             ans = self.controller.initialize(wavelength = self._wavelength.m_as('nm'))
 
 

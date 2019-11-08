@@ -95,11 +95,7 @@ _logger_format_short = '%(asctime)s |%(module)+22s | %(funcName)+22s()|%(levelna
 _logger_format = _logger_format_long
 _logger_settings = {'filename':'logger.log', 'maxBytes':(1048576 * 5), 'backupCount':7}
 
-
 logging.Logger
-
-
-
 
 # create handler for stream logging:
 stream_logger = logging.StreamHandler()
