@@ -17,8 +17,8 @@ from PyQt5 import uic
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import *
-import hyperion
 from hyperion import root_dir, _colors, Q_
+from hyperion.tools.saving_tools import create_filename
 from hyperion.instrument.polarization.polarimeter import Polarimeter
 from hyperion.view.base_plot_windows import BaseGraph
 
@@ -68,6 +68,7 @@ class PolarimeterGui(QWidget):
         self.data = np.zeros((len(self.polarimeter_ins.DATA_TYPES_NAME),
                               int(self.gui.doubleSpinBox_measurement_length.value()*self._buffer_size_factor)))   # length of the buffer
         self.data_time = np.zeros((int(self.gui.doubleSpinBox_measurement_length.value()*self._buffer_size_factor)))  # length of the buffer
+
         # to handle the update of the plot we use a timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_plot)
@@ -160,9 +161,16 @@ class PolarimeterGui(QWidget):
                                                   self.data_time[0])
 
     def data_save(self):
-        """ To save data in memory """
-        self.polarimeter_ins.save_data(self.data, file_path='test.txt')
-
+        """ To save data in memory to disk """
+        # get the correct filename
+        extension = 'txt'
+        filename = create_filename('{}\Data\polarimeter_gui_data.{}'.format(hyperion.parent_path, extension))
+        # saving
+        self.logger.info('Saving data in the memory to disk. Filename: {}'.format(filename))
+        self.polarimeter_ins.save_data(np.transpose(self.data), extra=[np.transpose(self.data_time),
+                                                                       'Time','Second',
+                                                                       'Measurement time since start.'],
+                                       file_path= '{}.{}'.format(filename, extension))
 
     def clear_plot(self):
         """To clear the plot"""
@@ -213,6 +221,9 @@ class PolarimeterGui(QWidget):
                 a.setEnabled(True)
 
             self.timer.stop()
+
+            if self.gui.checkBox_autosave.isChecked():
+                self.data_save()
 
         else:
             self.logger.info('Starting measurement')
@@ -271,7 +282,7 @@ class Graph(BaseGraph):
 if __name__ == '__main__':
     import hyperion
     hyperion.file_logger.setLevel(logging.DEBUG)
-    hyperion.stream_logger.setLevel(logging.INFO)
+    hyperion.stream_logger.setLevel(logging.DEBUG)
 
     logging.info('Running Polarimeter GUI file.')
 
