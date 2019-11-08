@@ -36,7 +36,17 @@ class Polarimeter(BaseInstrument):
                   'Power split ratio the current polarization', # 11
                   'Retardation of the current state of polarization'] # 12
 
-    DATA_TYPES_NAME = ['S1','S2','S3','PER','LIN','ANGLE','POL_DEG','INT','V','LINV','ELLIP','POWER_SPLIT','RETARDATION']
+    DATA_TYPES_NAME = ['S1', 'S2', 'S3',
+                       'PER', 'LIN', 'ANGLE',
+                       'POL_DEG','INT','V',
+                       'LINV','ELLIP','POWER_SPLIT',
+                       'RETARDATION']
+
+    DATA_TYPES_UNITS = ['norm','norm','norm',
+                        'dB','dB','deg',
+                        '%', '%', 'norm',
+                        'norm', 'deg', 'norm',
+                        'norm']
 
     def __init__(self, settings = {'dummy' : False,
                                    'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
@@ -71,10 +81,10 @@ class Polarimeter(BaseInstrument):
         :return: current wavelength
         :rtype: pint quantity (distance)
         """
-        self.logger.info('Now changing wavelength.')
         if self._wavelength==w:
             self.logger.debug('Not changing the wavelength, it is already set to {}'.format(w))
         else:
+            self.logger.info('Now changing wavelength.')
             self.finalize()
             sleep(0.1)
             self.initialize(wavelength = w)
@@ -104,15 +114,17 @@ class Polarimeter(BaseInstrument):
 
         if wavelength is None:
             self._wavelength = self.DEFAULT_SETTINGS['wavelength']
-            self.logger.debug('Using default setting for wavelength')
+            self.logger.info('Using default setting for wavelength')
         else:
             self._wavelength = wavelength
 
         if self._wavelength.m_as('nm') < self.controller.min_w or self._wavelength.m_as('nm') > self.controller.max_w:
-            raise Warning('The requested wavelength {} is outside the range supported for this device'.format(self._wavelength))
+            self.logger.warning('The requested wavelength {} is outside the range supported for this device'.format(self._wavelength))
+            self.logger.warning('Using default setting instead')
+            self._wavelength = self.DEFAULT_SETTINGS['wavelength']
 
         if not self.controller._is_initialized:
-            self.logger.debug('Initializing SK polarization with wavelength {}'.format(self._wavelength))
+            self.logger.info('Initializing SK polarization with wavelength {}'.format(self._wavelength))
             ans = self.controller.initialize(wavelength = self._wavelength.m_as('nm'))
 
 
@@ -165,7 +177,6 @@ class Polarimeter(BaseInstrument):
             elif ans == -5:
                 raise Warning('Device ID: {} is invalid!'.format(self._id))
 
-
     def stop_measurement(self):
         """ This method stops the measurement for the polarization analyzer.
 
@@ -184,7 +195,7 @@ class Polarimeter(BaseInstrument):
         if not self._measuring:
             self.start_measurement()
 
-        self.logger.debug('Getting data from device')
+        #self.logger.debug('Getting data from device')
         d = self.controller.get_measurement_point()
 
         # this is to catch when a Nan value is generated
@@ -233,32 +244,77 @@ class Polarimeter(BaseInstrument):
             self.looger.info('We got an inf!!!!')
         return av, st
 
-    def save_data(self, data, file_path = 'polarimeter_test.txt'):
-        """ saves the data
+    def save_data(self, data, extra=[None, None, None, None], file_path = 'polarimeter_test.txt'):
+        """ saves the data. It assumes that the data comes from the SK so it is a matrix of 13 rows and
+        an arbitrary number of columns.
 
+
+        :param data: array of (N,13)
+        :type data: numpy array
+        :param extra: list containing the extra vector to save (1xN), the name of the extra data and
+        the unit. For example: [np.array([1,2,3]),'time','second','elapsed time'].
+        :type extra: list
         """
-        self.logger.debug('Saving data to {}'.format(file_path))
-        header = self.create_header()
+
+
+        self.logger.info('Saving data to {}'.format(file_path))
+        self.logger.debug('The data is of shape: {}'.format(np.shape(data)))
+
+        if extra[0] is not None:
+            header = self.create_header(extra_name=extra[1], extra_unit=extra[2], extra_description=extra[3])
+            self.logger.debug('The EXTRA data is of shape: {}'.format(np.shape(extra[0])))
+            aux = np.zeros((1, np.max(np.shape(extra[0]))))
+            aux[0,:] = extra[0]
+            to_save = np.hstack((np.transpose(aux), data))
+        else:
+            header = self.create_header()
+            to_save = data
 
         with open(file_path, 'wb') as f:
             f.write(header.encode('ascii'))
-            np.savetxt(f, data, fmt='%7.5f')
+            np.savetxt(f, to_save, fmt='%7.5f')
 
         self.logger.info('Data saved to {}'.format(file_path))
 
-    def create_header(self):
+    def create_header(self, extra_name = None, extra_unit = None, extra_description = None):
         """ creates the header to save the data
+
+        :param extra_name: if a first column has to be added, this is the name
+        :type extra_name: str
+        :param extra_unit: if a first column has to be added, this is the unit
+        :type extra_unit: str
+        :param extra_description: if a first column has to be added, this is the description
+        :type extra_description: str
 
         :return: header with the information of the data saved
         :rtype: string
         """
         self.logger.debug('Creating header with the meaning of the columns.')
-        header = '# Data created with polarization.py, model for the SK polarization analyzer from Hyperion by Authors. \n'
+        header = '# Data created with polarimeter.py, instrument class for the SK polarization analyzer from Hyperion by Authors. \n'
         header += '# Meaning of the columns: \n'
 
-        for k in range(len(self.DATA_TYPES)):
-            string = '#     Column index {}: {} \n'.format(k, self.DATA_TYPES[k])
+        N = 0
+        if extra_name is None and extra_unit is None:
+            self.logger.debug('Making header without extra')
+
+        elif extra_unit is not None and extra_name is not None and extra_description:
+            self.logger.debug('Making header with an extra column')
+            string = '#   Column number 0 is {} [{}]. Physical meaning: {} \n'.format(extra_name, extra_unit,
+                                                                                      extra_description)
             header += string
+            N = 1
+        else:
+            raise Warning('The parameters for the extra column named extra_unit and extra_name have to be both'
+                          'None or both a string.')
+
+        for k in range(len(self.DATA_TYPES)):
+            string = '#   Column number {} is {} [{}]. Physical meaning: {} \n'.format(k + N,
+                                                                                       self.DATA_TYPES_NAME[k],
+                                                                                       self.DATA_TYPES_UNITS[k],
+                                                                                       self.DATA_TYPES[k])
+            header += string
+
+        header += '# \n'
         header += '# --------------------- End of header --------------------- \n'
 
         return header
@@ -274,30 +330,30 @@ class Polarimeter(BaseInstrument):
         return w
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
+    import hyperion
 
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
+    hyperion.file_logger.setLevel(logging.DEBUG)
+    hyperion.stream_logger.setLevel(logging.DEBUG)
 
 
     with Polarimeter(settings = {'dummy' : False,
                                  'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
                                  'dll_name': 'SKPolarimeter'}) as s:
 
-        wavelengths = np.linspace(500,750,3)* ur('nm')
+        wavelengths = np.linspace(500,750,1)* ur('nm')
+        Npts = 5
         for w in wavelengths:
             s.change_wavelength(w)
-            #s.start_measurement()
-            t = time()
-
+            t0 = time()
             print('Getting data for wavelength = {}.'.format(w))
-            data = s.get_multiple_data(2)
+            data = s.get_multiple_data(Npts)
             print(data)
-            print('Elapsed time: {} s'.format(time()-t))
-            t = time()
-
+            t = time()-t0
+            print('Elapsed time: {} s'.format(t))
             s.stop_measurement()
+            T = np.array([t]*Npts)
+            print('T vector: {}'.format(T))
+            s.save_data(data)
+            s.save_data(data, extra=[np.zeros(Npts),'Time','second','Elapsed time'],file_path='with_extra.txt')
 
         print('DONE')

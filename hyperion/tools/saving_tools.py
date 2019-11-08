@@ -17,6 +17,7 @@ import sys
 def name_incrementer(basename, list_of_existing, separator='_', fill_zeros=0, use_number_for_first=None,
                      only_larger_number=True):
     """
+    This function is meant to avoid rewriting existing files.
 
     :param basename: The basename. May include extension.
     :param list_of_existing: List of names to avoid
@@ -79,7 +80,7 @@ def name_incrementer(basename, list_of_existing, separator='_', fill_zeros=0, us
     return basename + ext
 
 
-def create_filename(self, file_path):
+def create_filename(file_path):
     """ creates the filename property in the class, so all the methods point to the same folder
     and save with the same name. The output does not include the extension but the input does.
 
@@ -90,20 +91,19 @@ def create_filename(self, file_path):
     :rtype: string
 
     """
-    self.logger.debug('Input filename: {}'.format(file_path))
+
     i = 0
     ext = file_path[-4:]  # Get the file extension (it assumes is a dot and three letters)
     filename = file_path[:-4]
-    self.root_path = os.path.split(filename)[0]
+    root_path = os.path.split(filename)[0]
 
     while os.path.exists(file_path):
         file_path = '{}_{:03}{}'.format(filename, i, ext)
         i += 1
 
-    self.filename = file_path[:-4]
+    filename = file_path[:-4]
 
-    self.logger.debug('New filename: {}'.format(self.filename))
-    return file_path
+    return filename
 
 def save_metadata(self):
     """ Saves the config file information with the same name as the data and extension .yml

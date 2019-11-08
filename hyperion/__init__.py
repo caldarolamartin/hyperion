@@ -28,11 +28,11 @@ ls = os.pardir
 
 # Create a filter to prevent continuous repeated duplicate messages
 class DuplicateFilter(logging.Filter):
-    """Adding this filter to a logging handler wll reduce repeated """
+    """Adding this filter to a logging handler will reduce repeated """
     def filter(self, record):
         # Note to self. It appears the message from one handler is passed to the next one.
         # This means that if one handler modifies the message, the next one gets the modified version.
-        self.repeat_message = ' > REPEATING...'
+        self.repeat_message = ' > Logger message is being repeated...'
         # First strip the repeat_message from the message if it is there:
         replen = len(self.repeat_message)
         if len(record.msg) > replen and record.msg[-replen:] == self.repeat_message:
@@ -95,11 +95,7 @@ _logger_format_short = '%(asctime)s |%(module)+22s | %(funcName)+22s()|%(levelna
 _logger_format = _logger_format_long
 _logger_settings = {'filename':'logger.log', 'maxBytes':(1048576 * 5), 'backupCount':7}
 
-
 logging.Logger
-
-
-
 
 # create handler for stream logging:
 stream_logger = logging.StreamHandler()
@@ -172,3 +168,6 @@ def set_logfile(base_filename, folder=log_path):
 # hyperion.stream_logger.setLevel( logging.WARNING )
 
 
+# define a list of colors to plot
+_colors = ['#1f77b4','#aec7e8','#ff7f0e','#ffbb78', '#2ca02c','#98df8a', '#d62728','#ff9896','#9467bd','#c5b0d5',
+            '#8c564b','#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
