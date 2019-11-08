@@ -24,22 +24,22 @@ import logging
 c_int_p = ctypes.POINTER(ctypes.c_int)
 
 class Hydraharp(BaseController):
-    """ Hydraharp 400 controller """
+    """ | Hydraharp 400 controller
+        | Initializes communication with Hydraharp400 device.
 
-    def __init__(self, config ):
-        """
-        Initialise communication with hydraharp400 device
-      
         :param devidx: index of the device
         :type devidx: int
-        
+
         :param mode: operation mode, can be: 'Histogram'(default), 'T2','T3','Continuous'
         :type mode: string
-        
+
         :param clock: source of the clock, can be: 'External'(default), 'Internal'
         :type clock: string
-               
-        """
+
+    """
+
+    def __init__(self, config ):
+
         super().__init__(config)
         self.logger = logging.getLogger(__name__)
         self.logger.info('0. hello, this is the correlator (controller) speaking')
@@ -96,9 +96,8 @@ class Hydraharp(BaseController):
         self.logger.debug('Hydraharp controller fully created')
      
     def load_config(self, filename = None):
-        """
-        | Loads the yml configuration file of default intrument settings that probably nobody is going to change
-        | File in folder /controller/picoquant/Hydraharp_controller.yml
+        """| Loads the yml configuration file of default instrument settings that probably nobody is going to change.
+        | File are in folder /controller/picoquant/Hydraharp_controller.yml.
         
         :param filename: the name of the configuration file
         :type filename: string
@@ -117,7 +116,7 @@ class Hydraharp(BaseController):
     @property     
     def library_version(self):
         """
-        Version of the library
+        Version of the library.
         """
         func = self.hhlib.HH_GetLibraryVersion
         func.argtypes = [ctypes.c_char_p]
@@ -131,7 +130,7 @@ class Hydraharp(BaseController):
    
     def _open_device(self):
         """
-        Open the communication with the device and catch any error messages
+        Open the communication with the device and catch any error messages.
         """
         self.logger.debug('Opening connection with device {}'.format(self.__devidx))
         devidx = self.__devidx
@@ -150,7 +149,7 @@ class Hydraharp(BaseController):
     @property
     def error_string(self):
         """
-        Error messages
+        Error messages.
         """
         self.logger.debug('Getting an error')
         func = self.hhlib.HH_GetErrorString
@@ -163,7 +162,7 @@ class Hydraharp(BaseController):
    
     def initialize(self, mode='Histogram', clock='Internal'):
         """
-        Initialize the device
+        Initialize the device.
         
         :param devidx: index of the device
         :type devidx: int
@@ -193,7 +192,7 @@ class Hydraharp(BaseController):
 
     @property
     def hardware_info(self):
-        """ Information about the device  """
+        """ Information about the device.  """
         # =============================================================================
         #                 model, partno, version = hardware_info
         #
@@ -224,7 +223,7 @@ class Hydraharp(BaseController):
     @property
     def number_input_channels(self):
         """
-        Number of installed input channels, in our case should be two (plus sync)
+        Number of installed input channels, in our case should be two (plus sync).
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
@@ -241,7 +240,7 @@ class Hydraharp(BaseController):
 
     def calibrate(self):
         """
-        Calibrate the device; no calibration file needed, this is an internal function
+        Calibrate the device; no calibration file needed, this is an internal function.
         
         :param devidx: Index of the device (default 0)
         :type devidx: int
@@ -259,7 +258,7 @@ class Hydraharp(BaseController):
    
     def sync_divider(self, divider=1):
         """
-        | Divider of the sync
+        | Divider of the sync:
         | Must be used to keep the effective sync rate at values ≤ 12.5 MHz.
 
         | It should only be used with sync sources of stable period. Using a larger divider than strictly necessary does not do great harm but it may result in slightly larger timing
@@ -287,7 +286,7 @@ class Hydraharp(BaseController):
     def sync_CFD(self, level=50, zerox=0):
         """
         | **UNUSED**
-        | Parameters of the sync CFD (constant fraction divicriminator)
+        | Parameters of the sync CFD (constant fraction divicriminator).
         | Values are given as a positive number although the electrical signals are actually negative.
 
         :param level: CFD discriminator level in millivolts
@@ -331,7 +330,7 @@ class Hydraharp(BaseController):
     def input_CFD(self, channel=0, level=50, zerox=0):
         """
         | **UNUSED**
-        | Parameters of the input CFD (constant fraction divicriminator)
+        | Parameters of the input CFD (constant fraction divicriminator).
         | Values are given as a positive number although the electrical signals are actually negative.
 
         :param channel: input channel index; in our case 0 or 1
@@ -389,9 +388,9 @@ class Hydraharp(BaseController):
     @histogram_length.setter
     def histogram_length(self, length=65536):
         """
-        | Set the histograms length (time bin count) of histograms
-        | actual_length = histogram_length(devidx, length)
-        | The histogram length has to do with the resolution in ps; in the correlator software it's always 65536 (2^16)
+        | Set the histograms length (time bin count) of histograms.
+        | actual_length = histogram_length(devidx, length).
+        | The histogram length has to do with the resolution in ps; in the correlator software it's always 65536 (2^16).
 
         :param length: array size of histogram, 1024, 2048, 4096, 8192, 16384, 32768 or 65536  (default 65536)
         :type length: int
@@ -441,7 +440,7 @@ class Hydraharp(BaseController):
    
     def histogram_offset(self, offset=0):
         """
-        | Histogram time offset in ps
+        | Histogram time offset in ps.
         | *(Documentation say ns, but it's most probably a typo.)*
 
         :param offset: Histogram time offset in ps; 0, ... 500000
@@ -462,7 +461,7 @@ class Hydraharp(BaseController):
     @property
     def resolution(self):
         """
-        Resolution (in ps) at the current binning
+        Resolution (in ps) at the current binning.
 
         :return resolution: resolution in ps at current binning
         """
@@ -482,8 +481,8 @@ class Hydraharp(BaseController):
     @resolution.setter
     def resolution(self, resolution):
         """
-        | Resolution (in ps)
-        | This is what you can adjust in the correlator software, not the binning
+        | Resolution (in ps).
+        | This is what you can adjust in the correlator software, not the binning.
 
         :param resolution: resolution in ps; 1, 2, 4, 8, ... 2^26
         :type resolution: int
@@ -510,7 +509,7 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
    
     def count_rate(self, channel=0):
-        """| Current count rate of the input channel
+        """| Current count rate of the input channel.
         | Allow at least 100 ms after HH_Initialize or HH_SetSyncDivider to get a stable rate meter readings.
         | Similarly, wait at least 100 ms to get a new reading. This is the gate time of the counters.
 
@@ -538,7 +537,7 @@ class Hydraharp(BaseController):
     @property
     def warnings(self):
         """
-        | Warnings, bitwise encoded (see phdefin.h)
+        | Warnings, bitwise encoded (see phdefin.h).
         | You must call HH_GetCoutRate and HH_GetCoutRate for all channels prior to this call.
 
         :return warming: warning message
@@ -618,7 +617,7 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
 
     def start_measurement(self, acquisition_time=1000):
-        """| Start acquisition
+        """| Start acquisition.
         | **It is not clear what is the relation between this method and histogram**
         | ** and which one actually takes the histogram**
 
@@ -646,7 +645,7 @@ class Hydraharp(BaseController):
 
     @property
     def ctc_status(self):
-        """Acquisition time state
+        """Acquisition time state.
 
         :return status: False: acquisition time still running; True: acquisition time has ended
         """
@@ -664,7 +663,7 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
 
     def stop_measurement(self):
-        """| Stop acquisition
+        """| Stop acquisition.
         | Can be used before the acquisition time expires.
 
         """
@@ -679,10 +678,10 @@ class Hydraharp(BaseController):
             warnings.warn(self.error_string)
 
     def histogram(self, channel=0, clear=True):
-        """| Histogram of channel
-        | **Not clear whether you can use this one without first start_measurement**
-        | The histogram is always taken between one of the input channels and the sync channel
-        | To perform start-stop measurements, connect one of the photon detectors to the sync channel
+        """| Histogram of channel.
+        | **Not clear whether you can use this one without first start_measurement.**
+        | The histogram is always taken between one of the input channels and the sync channel.
+        | To perform start-stop measurements, connect one of the photon detectors to the sync channel.
 
         :param channel: input channel index; in our case 0 or 1
         :type channel: int

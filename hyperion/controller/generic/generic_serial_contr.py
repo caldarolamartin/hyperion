@@ -30,13 +30,14 @@ import logging
 from hyperion.controller.base_controller import BaseController
 
 class GenericSerialController(BaseController):
-    """ Generic Serial Controller """
-
-    def __init__(self, settings):
-        """ Init of the class.
+    """ Generic Serial Controller
 
         :param settings: This includes all the settings needed to connect to the device in question.
         :type settings: dict
+    """
+
+    def __init__(self, settings):
+        """ Init of the class.
         """
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
@@ -155,7 +156,7 @@ class GenericSerialController(BaseController):
 
     def idn(self):
         """
-        Identify command
+        Identify command.
 
         :return: identification for the device
         :rtype: string
@@ -318,7 +319,7 @@ class GenericSerialControllerDummy(GenericSerialController):
     def query(self, message):
         """
         Simulates query to dummy device.
-        Clears the internal buffer. Performs a write, followed by a read_lines()
+        Clears the internal buffer. Performs a write, followed by a read_lines().
         Note, it clears the input buffer before sending out the query.
 
         :param message: command to send to the device

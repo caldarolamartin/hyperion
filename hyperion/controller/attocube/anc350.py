@@ -69,9 +69,9 @@ class Anc350(BaseController):
     #----------------------------------------------------------------------------------------------------
 
     def initialize(self):
-        """| Initializes controller
-        | Checks for attocube controller units and connects to it
-        | **Pay attention: there are 6 positioners, but only 1 controller; we connect to the 1**
+        """| Initializes the controller.
+        | Checks for attocube controller units and connects to it.
+        | **Pay attention: there are 6 positioners, but only 1 controller; we connect to the 1.**
 
         """
         self.check()
@@ -79,7 +79,7 @@ class Anc350(BaseController):
         self._is_initialized = True
 
     def check(self):
-        """Determines number of connected attocube controller devices and their respective hardware IDs
+        """Determines number of connected attocube controller devices and their respective hardware IDs.
         """
         self.posinf = ANC350lib.PositionerInfo() #create PositionerInfo Struct
         self.numconnected = ANC350lib.positionerCheck(ctypes.byref(self.posinf)) #look for positioners!
@@ -88,8 +88,8 @@ class Anc350(BaseController):
             self.logger.info('ANC350 with id:'+ str(self.posinf.id) +'has locked state:' + str(self.posinf.locked))
 
     def connect(self):
-        """| Establishes connection to first attocube device found
-        | **Pay attention: the 0 that you give to the ANC350lib.Int32 is the first attocube device; not the first of the 6 positioners**
+        """| Establishes connection to the first attocube device found.
+        | **Pay attention: the 0 that you give to the ANC350lib.Int32 is the first attocube device; not the first of the 6 positioners.**
         """
         self.handle = ANC350lib.Int32(0)
         'I am reaching the handle'
@@ -101,8 +101,8 @@ class Anc350(BaseController):
             raise e
 
     def capMeasure(self, axis):
-        """| Determines the capacitance of the piezo addressed by axis
-        | **Pay attention: the 0 that you give to the ANC350lib.Int32 is the first attocube device; not the first of the 6 positioners**
+        """| Determines the capacitance of the piezo addressed by axis.
+        | **Pay attention: the 0 that you give to the ANC350lib.Int32 is the first Attocube device; not the first of the 6 positioners.**
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
@@ -114,15 +114,15 @@ class Anc350(BaseController):
         return self.status.value
 
     def finalize(self):
-        """Closes connection to ANC350 device
+        """Closes connection to ANC350 device.
         """
         self.logger.info('Closing connection to ANC350')
         ANC350lib.positionerClose(self.handle)
 
     def getStatus(self, axis):
         """| Determines the status of the selected axis.
-        | *It is not clear whether it also works for the scanner, or only for the stepper*
-        | result: bit0 (moving) (+1), bit1 (stop detected) (+2), bit2 (sensor error) (+4), bit3 (sensor disconnected) (+8)
+        | *It is not clear whether it also works for the scanner, or only for the stepper.*
+        | result: bit0 (moving) (+1), bit1 (stop detected) (+2), bit2 (sensor error) (+4), bit3 (sensor disconnected) (+8).
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
@@ -142,8 +142,8 @@ class Anc350(BaseController):
     def load(self, axis):
         """| Loads a parameter file for actor configuration.
         | *note: this requires a pointer to a char datatype.*
-        | the actor files are in this controller folder, their names are hard coded in the init
-        | *note: attocube called the up-down actor file ANPz, I called that axis YPiezo*
+        | the actor files are in this controller folder, their names are hard coded in the init.
+        | *note: Attocube called the up-down actor file ANPz, I called that axis YPiezo.*
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
@@ -176,9 +176,9 @@ class Anc350(BaseController):
     #Used methods only stepper
     #----------------------------------------------------------------------------------------------------
     def amplitudeControl(self, axis, mode):
-        """| Selects the type of amplitude control in the stepper
+        """| Selects the type of amplitude control in the Stepper.
         | The amplitude is controlled by the positioner to hold the value constant determined by the selected type of amplitude control.
-        | We think for closed look it needs to be set in Step Width mode, nr. 2
+        | We think for closed look it needs to be set in Step Width mode, nr. 2.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -189,11 +189,11 @@ class Anc350(BaseController):
         ANC350lib.positionerAmplitudeControl(self.handle,axis,mode)
 
     def amplitude(self, axis, amp):
-        """| Set the amplitude setpoint of the Stepper in mV
-        | You need to set the amplitude, max 60V
-        | At room temperature you need 30V for x and y and 40V for z
-        | At low temperature that is higher, 40V or even 50V
-        | Higher amplitude influences step size though
+        """| Set the amplitude setpoint of the Stepper in mV.
+        | You need to set the amplitude, max 60V.
+        | At room temperature you need 30V for x and y and 40V for z.
+        | At low temperature that is higher, 40V or even 50V.
+        | Higher amplitude influences step size though.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -221,8 +221,8 @@ class Anc350(BaseController):
         return self.status.value
 
     def frequency(self, axis, freq):
-        """| Sets the frequency of selected stepper axis
-        | Higher means more noise and faster (= less precise?)
+        """| Sets the frequency of selected stepper axis.
+        | Higher means more noise and faster (= less precise?).
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -237,7 +237,7 @@ class Anc350(BaseController):
             raise Exception('The required frequency needs to be between 1Hz and 2kHz')
 
     def getFrequency(self, axis):
-        """Determines the frequency on the stepper
+        """Determines the frequency on the stepper.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -249,8 +249,8 @@ class Anc350(BaseController):
         return self.freq.value
 
     def getPosition(self, axis):
-        """| Determines actual position of addressed stepper axis
-        | **Pay attention: the sensor resolution is specified for 200nm**
+        """| Determines actual position of addressed stepper axis.
+        | **Pay attention: the sensor resolution is specified for 200nm.**
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -278,7 +278,7 @@ class Anc350(BaseController):
     def getStepwidth(self, axis):
         """| Determines the step width.
         | In case of standstill of the motor this is the calculated step width resulting from amplitude setpoint, frequency, and motor parameters.
-        | In case of movement this is measured step width
+        | In case of movement this is measured step width.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -291,9 +291,9 @@ class Anc350(BaseController):
         return self.stepwdth.value
 
     def moveAbsolute(self, axis, position, rotcount=0):
-        """| Starts approach to absolute target position
-        | Previous movement will be stopped
-        | Rotcount optional argument, not in our case since we dont have rotation options
+        """| Starts approach to absolute target position.
+        | Previous movement will be stopped.
+        | Rotcount optional argument, not in our case since we dont have rotation options.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -309,7 +309,7 @@ class Anc350(BaseController):
     def moveRelative(self, axis, position, rotcount=0):
         """| Starts approach to relative target position.
         | Previous movement will be stopped.
-        | Rotcount optional argument, not in our case since we dont have rotation options
+        | Rotcount optional argument, not in our case since we dont have rotation options.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -322,7 +322,7 @@ class Anc350(BaseController):
         ANC350lib.positionerMoveRelative(self.handle,axis,position,rotcount)
 
     def moveSingleStep(self, axis, direction):
-        """| Starts a one-step positioning, where the stepwidht is determined by the amplitude and frequency
+        """| Starts a one-step positioning, where the stepwidht is determined by the amplitude and frequency.
         | Previous movement will be stopped.
 
         :param axis: axis number from 0 to 2 for steppers
@@ -335,8 +335,8 @@ class Anc350(BaseController):
     def stopApproach(self, axis):
         """
         | Stops approaching target/relative/reference position.
-        | DC level of affected axis after stopping depends on setting by .setTargetGround()
-        | *Dont know for sure whats the difference with stopMoving*
+        | DC level of affected axis after stopping depends on setting by .setTargetGround().
+        | *Dont know for sure whats the difference with stopMoving.*
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -360,7 +360,7 @@ class Anc350(BaseController):
     #----------------------------------------------------------------------------------------------------
 
     def dcLevel(self, axis, dclev):
-        """Sets the dc level of selected scanner (or maybe stepper, if you want)
+        """Sets the dc level of selected scanner (or maybe stepper, if you want).
 
         :param axis: axis number from 0 to 2 for steppers and 3 to 5 for scanners
         :type axis: integer
@@ -374,8 +374,8 @@ class Anc350(BaseController):
             raise Exception('The required voltage is between 0V - 140V')
 
     def getDcLevel(self, axis):
-        """| Determines the status actual DC level on the scanner (or stepper)
-        | **Again: the 0 is for the number of controller units, not the 6 positioners**
+        """| Determines the status actual DC level on the scanner (or stepper).
+        | **Again: the 0 is for the number of controller units, not the 6 positioners.**
 
         :param axis: axis number from 3 to 5 for scanners
         :type axis: integer
@@ -387,7 +387,7 @@ class Anc350(BaseController):
         return self.dclev.value
 
     def getIntEnable(self, axis):
-        """Determines status of internal signal generation of addressed axis. only applicable for scanner/dither axes
+        """Determines status of internal signal generation of addressed axis. only applicable for scanner/dither axes.
 
         :param axis: axis number from 3 to 5 for scanners
         :type axis: integer
@@ -399,7 +399,7 @@ class Anc350(BaseController):
         return self.status.value
 
     def intEnable(self, axis, state):
-        """Activates/deactivates internal signal generation of addressed axis; only applicable for scanner/dither axes
+        """Activates/deactivates internal signal generation of addressed axis; only applicable for scanner/dither axes.
 
         :param axis: axis number from 3 to 5 for scanners
         :type axis: integer
@@ -421,7 +421,7 @@ class Anc350(BaseController):
         | Starts the synchronous approach to absolute target position for selected axis.
         | Previous movement will be stopped.
         | Target position for each axis defined by .setTargetPos() takes a *bitmask* of axes!
-        | *Not clear what's the difference with moveAbsolute*
+        | *Not clear what's the difference with moveAbsolute.*
 
         :param bitmask_of_axes:
         """
@@ -442,7 +442,7 @@ class Anc350(BaseController):
 
     def resetPosition(self, axis):
         """| *UNUSED*
-        | sets the origin to the actual position
+        | sets the origin to the actual position.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -451,8 +451,8 @@ class Anc350(BaseController):
 
     def setOutput(self, axis, state):
         """| *UNUSED*
-        | activates/deactivates the addressed axis
-        | *no idea what that means, but sounds interesting*
+        | activates/deactivates the addressed axis.
+        | *no idea what that means, but sounds interesting.*
 
         :param axis:
         :param state:
@@ -461,8 +461,8 @@ class Anc350(BaseController):
 
     def setStopDetectionSticky(self, axis, state):
         """| *UNUSED*
-        | when enabled, an active stop detection status remains active until cleared manually by .clearStopDetection()
-        | *Is this what in Daisy is called hump detection? Than it might be useful*
+        | when enabled, an active stop detection status remains active until cleared manually by .clearStopDetection().
+        | *Is this what in Daisy is called hump detection? Than it might be useful.*
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -475,8 +475,8 @@ class Anc350(BaseController):
 
     def stopDetection(self, axis, state):
         """| *UNUSED*
-        | switches stop detection on/off
-        | *Is this what in Daisy is called hump detection? Than it might be useful*
+        | switches stop detection on/off.
+        | *Is this what in Daisy is called hump detection? Than it might be useful.*
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer
@@ -497,7 +497,7 @@ class Anc350(BaseController):
         """| *UNUSED*
         | update s target position for a *running* approach.
         | function has lower performance impact on running approach compared to .moveAbsolute().
-        | position units are in 'unit of actor multiplied by 1000' (generally nanometres)
+        | position units are in 'unit of actor multiplied by 1000' (generally nanometres).
 
         :param axis:
         :param position:
@@ -510,50 +510,50 @@ class Anc350(BaseController):
 
     def acInEnable(self, axis, state):
         """| *UNUSED*
-        | Activates/deactivates AC input of addressed axis; only applicable for dither axes
+        | Activates/deactivates AC input of addressed axis; only applicable for dither axes.
         """
         ANC350lib.positionerAcInEnable(self.handle,axis,ctypes.c_bool(state))
 
     def bandwidthLimitEnable(self, axis, state):
         """| *UNUSED*
-        | activates/deactivates the bandwidth limiter of the addressed axis. only applicable for scanner axes
+        | activates/deactivates the bandwidth limiter of the addressed axis. only applicable for scanner axes.
         """
         ANC350lib.positionerBandwidthLimitEnable(self.handle,axis,ctypes.c_bool(state))
 
     def clearStopDetection(self, axis):
         """| *UNUSED*
-        | when .setStopDetectionSticky() is enabled, this clears the stop detection status
+        | when .setStopDetectionSticky() is enabled, this clears the stop detection status.
         """
         ANC350lib.positionerClearStopDetection(self.handle,axis)
 
     def dcInEnable(self, axis, state):
         """| *UNUSED*
-        | Activates/deactivates DC input of addressed axis; only applicable for scanner/dither axes
+        | Activates/deactivates DC input of addressed axis; only applicable for scanner/dither axes.
         """
         ANC350lib.positionerDcInEnable(self.handle,axis,ctypes.c_bool(state))
 
     def dutyCycleEnable(self, state):
         """*UNUSED*
-        controls duty cycle mode
+        controls duty cycle mode.
         """
         ANC350lib.positionerDutyCycleEnable(self.handle,ctypes.c_bool(state))
 
     def dutyCycleOffTime(self, value):
         """*UNUSED*
-        sets duty cycle off time
+        sets duty cycle off time.
         """
         ANC350lib.positionerDutyCycleOffTime(self.handle,value)
 
     def dutyCyclePeriod(self, value):
         """*UNUSED*
-        sets duty cycle period
+        sets duty cycle period.
         """
         ANC350lib.positionerDutyCyclePeriod(self.handle,value)
 
     def externalStepBkwInput(self, axis, input_trigger):
         """| *UNUSED*
         | configures external step trigger input for selected axis. a trigger on this input results in a backwards single step.
-        | input_trigger: 0 disabled, 1-6 input trigger
+        | input_trigger: 0 disabled, 1-6 input trigger.
 
         """
         ANC350lib.positionerExternalStepBkwInput(self.handle,axis,input_trigger)
@@ -562,7 +562,7 @@ class Anc350(BaseController):
         """| *UNUSED*
         | configures external step trigger input for selected axis.
         | a trigger on this input results in a forward single step.
-        | input_trigger: 0 disabled, 1-6 input trigger
+        | input_trigger: 0 disabled, 1-6 input trigger.
 
         """
         ANC350lib.positionerExternalStepFwdInput(self.handle,axis,input_trigger)
@@ -570,13 +570,13 @@ class Anc350(BaseController):
     def externalStepInputEdge(self, axis, edge):
         """| *UNUSED*
         | configures edge sensitivity of external step trigger input for selected axis.
-        | edge: 0 rising, 1 falling
+        | edge: 0 rising, 1 falling.
         """
         ANC350lib.positionerExternalStepInputEdge(self.handle,axis,edge)
 
     def getAcInEnable(self, axis):
         """| *UNUSED*
-        | determines status of ac input of addressed axis. only applicable for dither axes
+        | determines status of ac input of addressed axis. only applicable for dither axes.
         """
         self.status = ctypes.c_bool(None)
         ANC350lib.positionerGetAcInEnable(self.handle,axis,ctypes.byref(self.status))
@@ -584,7 +584,7 @@ class Anc350(BaseController):
 
     def getBandwidthLimitEnable(self, axis):
         """| *UNUSED*
-        | determines status of bandwidth limiter of addressed axis. only applicable for scanner axes
+        | determines status of bandwidth limiter of addressed axis. only applicable for scanner axes.
         """
         self.status = ctypes.c_bool(None)
         ANC350lib.positionerGetBandwidthLimitEnable(self.handle,axis,ctypes.byref(self.status))
@@ -592,7 +592,7 @@ class Anc350(BaseController):
 
     def getDcInEnable(self, axis):
         """| *UNUSED*
-        | determines status of dc input of addressed axis. only applicable for scanner/dither axes
+        | determines status of dc input of addressed axis. only applicable for scanner/dither axes.
         """
         self.status = ctypes.c_bool(None)
         ANC350lib.positionerGetDcInEnable(self.handle,axis,ctypes.byref(self.status))
@@ -600,7 +600,7 @@ class Anc350(BaseController):
 
     def getReference(self, axis):
         """*UNUSED*
-        determines distance of reference mark to origin
+        determines distance of reference mark to origin.
         """
         self.pos = ANC350lib.Int32(0)
         self.validity = ctypes.c_bool(None)
@@ -609,7 +609,7 @@ class Anc350(BaseController):
 
     def getReferenceRotCount(self, axis):
         """*UNUSED*
-        determines actual position of addressed axis
+        determines actual position of addressed axis.
         """
         self.rotcount = ANC350lib.Int32(0)
         ANC350lib.positionerGetReferenceRotCount(self.handle,axis,ctypes.byref(self.rotcount))
@@ -617,7 +617,7 @@ class Anc350(BaseController):
 
     def getRotCount(self, axis):
         """*UNUSED*
-        determines actual number of rotations in case of rotary actuator
+        determines actual number of rotations in case of rotary actuator.
         """
         self.rotcount = ANC350lib.Int32(0)
         ANC350lib.positionerGetRotCount(self.handle,axis,ctypes.byref(self.rotcount))
@@ -626,53 +626,53 @@ class Anc350(BaseController):
     def quadratureAxis(self, quadratureno, axis):
         """| *UNUSED*
         | selects the axis for use with this trigger in/out pair.
-        | quadratureno: number of addressed quadrature unit (0-2)
+        | quadratureno: number of addressed quadrature unit (0-2).
         """
         ANC350lib.positionerQuadratureAxis(self.handle,quadratureno,axis)
 
     def quadratureInputPeriod(self, quadratureno, period):
         """| *UNUSED*
         | selects the stepsize the controller executes when detecting a step on its input AB-signal.
-        | quadratureno: number of addressed quadrature unit (0-2). period: stepsize in unit of actor * 1000
+        | quadratureno: number of addressed quadrature unit (0-2). period: stepsize in unit of actor * 1000.
         """
         ANC350lib.positionerQuadratureInputPeriod(self.handle,quadratureno,period)
 
     def quadratureOutputPeriod(self, quadratureno, period):
         """| *UNUSED*
         | selects the position difference which causes a step on the output AB-signal.
-        | quadratureno: number of addressed quadrature unit (0-2). period: period in unit of actor * 1000
+        | quadratureno: number of addressed quadrature unit (0-2). period: period in unit of actor * 1000.
         """
         ANC350lib.positionerQuadratureOutputPeriod(self.handle,quadratureno,period)
 
     def sensorPowerGroupA(self, state):
         """| *UNUSED*
         | switches power of sensor group A.
-        | Sensor group A contains either the sensors of axis 1-3 or 1-2 dependent on hardware of controller
+        | Sensor group A contains either the sensors of axis 1-3 or 1-2 dependent on hardware of controller.
         """
         ANC350lib.positionerSensorPowerGroupA(self.handle,ctypes.c_bool(state))
 
     def sensorPowerGroupB(self, state):
         """| *UNUSED*
         | switches power of sensor group B.
-        | Sensor group B contains either the sensors of axis 4-6 or 3 dependent on hardware of controller
+        | Sensor group B contains either the sensors of axis 4-6 or 3 dependent on hardware of controller.
         """
         ANC350lib.positionerSensorPowerGroupB(self.handle,ctypes.c_bool(state))
 
     def setHardwareId(self, hwid):
         """*UNUSED*
-        sets the hardware ID for the device (used to differentiate multiple devices)
+        sets the hardware ID for the device (used to differentiate multiple devices).
         """
         ANC350lib.positionerSetHardwareId(self.handle,hwid)
 
     def setTargetGround(self, axis, state):
         """*UNUSED*
-        when enabled, actor voltage set to zero after closed-loop positioning finished
+        when enabled, actor voltage set to zero after closed-loop positioning finished.
         """
         ANC350lib.positionerSetTargetGround(self.handle,axis,ctypes.c_bool(state))
 
     def setTargetPos(self, axis, pos, rotcount=0):
         """*UNUSED*
-        sets target position for use with .moveAbsoluteSync()
+        sets target position for use with .moveAbsoluteSync().
         """
         ANC350lib.positionerSetTargetPos(self.handle,axis,pos,rotcount)
 
@@ -685,32 +685,32 @@ class Anc350(BaseController):
 
     def staticAmplitude(self, amp):
         """*UNUSED*
-        sets output voltage for resistive sensors
+        sets output voltage for resistive sensors.
         """
         ANC350lib.positionerStaticAmplitude(self.handle,amp)
 
     def stepCount(self, axis, stps):
         """*UNUSED*
-        configures number of successive step scaused by external trigger or manual step request. steps = 1 to 65535
+        configures number of successive step scaused by external trigger or manual step request. steps = 1 to 65535.
         """
         ANC350lib.positionerStepCount(self.handle,axis,stps)
 
     def trigger(self, triggerno, lowlevel, highlevel):
         """| *UNUSED*
         | sets the trigger thresholds for the external trigger.
-        | triggerno is 0-5, lowlevel/highlevel in units of actor * 1000
+        | triggerno is 0-5, lowlevel/highlevel in units of actor * 1000.
         """
         ANC350lib.positionerTrigger(self.handle,triggerno,lowlevel,highlevel)
 
     def triggerAxis(self, triggerno, axis):
         """*UNUSED*
-        selects the corresponding axis for the addressed trigger. triggerno is 0-5
+        selects the corresponding axis for the addressed trigger. triggerno is 0-5.
         """
         ANC350lib.positionerTriggerAxis(self.handle,triggerno,axis)
 
     def triggerEpsilon(self, triggerno, epsilon):
         """*UNUSED*
-        sets the hysteresis of the external trigger. epsilon in units of actor * 1000
+        sets the hysteresis of the external trigger. epsilon in units of actor * 1000.
         """
         ANC350lib.positionerTriggerEpsilon(self.handle,triggerno,epsilon)
 
@@ -719,7 +719,7 @@ class Anc350(BaseController):
         | selects the mode of the input trigger signals.
         | state: 0 disabled - inputs trigger nothing,
         | 1 quadrature - three pairs of trigger in signals are used to accept AB-signals for relative positioning,
-        | 2 coarse - trigger in signals are used to generate coarse steps
+        | 2 coarse - trigger in signals are used to generate coarse steps.
         """
         ANC350lib.positionerTriggerModeIn(self.handle,mode)
 
@@ -728,13 +728,13 @@ class Anc350(BaseController):
         | selects the mode of the output trigger signals.
         | state: 0 disabled - inputs trigger nothing,
         | 1 position - the trigger outputs reacts to the defined position ranges with the selected polarity,
-        | 2 quadrature - three pairs of trigger out signals are used to signal relative movement as AB-signals, 3 IcHaus - the trigger out signals are used to output the internal position signal of num-sensors
+        | 2 quadrature - three pairs of trigger out signals are used to signal relative movement as AB-signals, 3 IcHaus - the trigger out signals are used to output the internal position signal of num-sensors.
         """
         ANC350lib.positionerTriggerModeOut(self.handle,mode)
 
     def triggerPolarity(self, triggerno, polarity):
         """* UNUSED*
-        sets the polarity of the external trigger, triggerno: 0-5, polarity: 0 low active, 1 high active
+        sets the polarity of the external trigger, triggerno: 0-5, polarity: 0 low active, 1 high active.
         """
         ANC350lib.positionerTriggerPolarity(self.handle,triggerno,polarity)
 
@@ -743,8 +743,8 @@ class Anc350Dummy(Anc350):
 
 def bitmask(input_array):
     """
-    | takes an array or string and converts to integer bitmask
-    | reads from left to right e.g. 0100 = 2 not 4
+    | takes an array or string and converts to integer bitmask.
+    | reads from left to right e.g. 0100 = 2 not 4.
     """
     total = 0
     for i in range(len(input_array)):
@@ -756,8 +756,8 @@ def bitmask(input_array):
 
 def debitmask(input_int,num_bits = False):
     """
-    | takes a bitmask and returns a list of which bits are switched
-    | reads from left to right e.g. 2 = [0, 1] not [1, 0]
+    | takes a bitmask and returns a list of which bits are switched.
+    | reads from left to right e.g. 2 = [0, 1] not [1, 0].
     """
     if num_bits == False and input_int>0:
         num_bits = int(math.ceil(math.log(input_int+1,2)))
