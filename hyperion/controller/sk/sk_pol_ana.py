@@ -104,10 +104,12 @@ class Skpolarimeter(BaseController):
         """ Closing communication with device
 
         """
-        self.logger.info('Closing connection with device number: {}'.format(self.id))
-        ans = self.dll.SkCloseConnectionByID(self.id)
-        self.logger.debug('Answer from the SkCloseConnection: {}'.format(ans))
-        self._is_initialized = False
+        ans = None
+        if self._is_initialized:
+            self.logger.info('Closing connection with device number: {}'.format(self.id))
+            ans = self.dll.SkCloseConnectionByID(self.id)
+            self.logger.debug('Answer from the SkCloseConnection: {}'.format(ans))
+            self._is_initialized = False
 
         return ans
 

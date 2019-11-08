@@ -81,10 +81,10 @@ class Polarimeter(BaseInstrument):
         :return: current wavelength
         :rtype: pint quantity (distance)
         """
-        self.logger.info('Now changing wavelength.')
         if self._wavelength==w:
             self.logger.debug('Not changing the wavelength, it is already set to {}'.format(w))
         else:
+            self.logger.info('Now changing wavelength.')
             self.finalize()
             sleep(0.1)
             self.initialize(wavelength = w)
@@ -177,7 +177,6 @@ class Polarimeter(BaseInstrument):
             elif ans == -5:
                 raise Warning('Device ID: {} is invalid!'.format(self._id))
 
-
     def stop_measurement(self):
         """ This method stops the measurement for the polarization analyzer.
 
@@ -196,7 +195,7 @@ class Polarimeter(BaseInstrument):
         if not self._measuring:
             self.start_measurement()
 
-        self.logger.debug('Getting data from device')
+        #self.logger.debug('Getting data from device')
         d = self.controller.get_measurement_point()
 
         # this is to catch when a Nan value is generated
@@ -290,12 +289,10 @@ class Polarimeter(BaseInstrument):
         return w
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
+    import hyperion
 
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
+    hyperion.file_logger.setLevel( logging.DEBUG )
+    hyperion.stream_logger.setLevel( logging.INFO )
 
 
     with Polarimeter(settings = {'dummy' : False,

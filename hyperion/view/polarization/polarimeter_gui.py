@@ -46,15 +46,20 @@ class PolarimeterGui(QWidget):
         # change location
         self.gui.move(self.left, self.top)
 
-        self.plot_window = plot_window
+        # get the inputs
 
+        self.plot_window = plot_window # window
+        self.polarimeter_ins = polarimeter_ins # instrument
 
         # setup the gui
-        self.polarimeter_ins = polarimeter_ins
         self.customize_gui()
         #self.get_device_state()
         #self.set_device_state_to_gui()
         self.show()
+
+        # set the right wavelength
+        self.polarimeter_ins.change_wavelength(
+            Q_(self.gui.doubleSpinBox_wavelength.value(), self.gui.doubleSpinBox_wavelength.suffix()))
 
         #
         self._is_measuring = False
@@ -130,7 +135,7 @@ class PolarimeterGui(QWidget):
         raw = self.polarimeter_ins.get_data()
         t = time()
         # shift data
-        self.data[:,1:] =self.data[:,0:-1]
+        self.data[:,1:] = self.data[:,0:-1]
         self.data_time[1:] = self.data_time[0:-1]
         # add new data
         self.data[:,0] = np.array(raw)
@@ -195,9 +200,11 @@ class PolarimeterGui(QWidget):
             self.logger.debug('Adding a new plot. Index: {}'.format(i))
             p = self.plot_window.pg_plot_widget.plot([0], [0])
             self.Plots.append(p)
-        #lenth = self.gui.doubleSpinBox_measurement_length
+
+        # if to toggle with the button
         if self._is_measuring:
-            self.logger.debug('Stopping sweep')
+            self.logger.info('Stopping measurement')
+            self.polarimeter_ins.stop_measurement()
             self._is_measuring = False
             # change the button text
             self.gui.pushButton_start.setText('Start')
@@ -208,7 +215,9 @@ class PolarimeterGui(QWidget):
             self.timer.stop()
 
         else:
+            self.logger.info('Starting measurement')
             self.logger.debug('Re-setting to zero the data')
+
             # create the data set
             self.data = np.zeros((len(self.polarimeter_ins.DATA_TYPES_NAME),
                                   int(
@@ -217,7 +226,7 @@ class PolarimeterGui(QWidget):
                 self.gui.doubleSpinBox_measurement_length.value() * self._buffer_size_factor)))  # length of the buffer
 
             self.stat_time = time()  #
-            self.logger.debug('Starting measurement')
+
             self._is_measuring = True
             # change the button text
             self.gui.pushButton_start.setText('Stop')
@@ -261,8 +270,8 @@ class Graph(BaseGraph):
 
 if __name__ == '__main__':
     import hyperion
-    hyperion.file_logger.setLevel( logging.DEBUG )
-    hyperion.stream_logger.setLevel( logging.INFO )
+    hyperion.file_logger.setLevel(logging.DEBUG)
+    hyperion.stream_logger.setLevel(logging.INFO)
 
     logging.info('Running Polarimeter GUI file.')
 
