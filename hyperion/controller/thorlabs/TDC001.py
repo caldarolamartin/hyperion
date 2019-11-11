@@ -1020,7 +1020,7 @@ class TDC001(BaseController):
         :param integrator_dead_band: integrator ??
         :type integrator_dead_band: int
 
-        :param fast_forward: ??
+        :param fast_forward:
         :type fast_forward:  int
         """
         err_code = self._lib.MOT_SetDCCurrentLoopParams(self._serial_number,
@@ -1097,20 +1097,35 @@ class TDC001(BaseController):
             integrator_limit, differentiator, differentiator_time_constant,
             loop_gain, velocity_fast_forward, acceleration_fast_forward,
             position_error_limit):
-        """
-        Sets DC position loop parameters.
+        """Sets DC position loop parameters.
 
-        Parameters
-        ----------
-        proportional : int
-        integrator : int
-        integrator_limit : int
-        differentiator : int
-        differentiator_time_constant : int
-        loop_gain : int
-        velocity_fast_forward : int
-        acceleration_fast_forward : int
-        position_error_limit : int
+        :param proportional: proportional
+        :type proportional: int
+
+        :param integrator: integrator
+        :type integrator: int
+
+        :param integrator_limit: integrator limit
+        :type integrator_limit: int
+
+        :param differentiator:
+        :type differentiator: int
+
+        :param differentiator_time_constant:
+        :type differentiator_time_constant: int
+
+        :param loop_gain:
+        :type loop_gain: int
+
+        :param velocity_fast_forward:
+        :type velocity_fast_forward: int
+
+        :param acceleration_fast_forward:
+        :type acceleration_fast_forward: int
+
+        :param position_error_limit:
+        :type position_error_limit: int
+
         """
         err_code = self._lib.MOT_SetDCPositionLoopParams(self._serial_number,
                 proportional,
@@ -1158,10 +1173,8 @@ class TDC001(BaseController):
         """
         Returns DC thorlabs_motor output parameters.
 
-        Returns
-        -------
-        out : tuple
-            (continuous current limit, energy limit, thorlabs_motor limit, thorlabs_motor bias)
+        :return: (continuous current limit, energy limit, thorlabs_motor limit, thorlabs_motor bias)
+        :rtype: tuple
         """
         continuous_current_limit = ctypes.c_float()
         energy_limit = ctypes.c_float()
@@ -1183,15 +1196,19 @@ class TDC001(BaseController):
 
     def set_dc_motor_output_parameters(self, continuous_current_limit,
             energy_limit, motor_limit, motor_bias):
-        """
-        Sets DC thorlabs_motor output parameters.
+        """Sets DC thorlabs_motor output parameters.
 
-        Parameters
-        ----------
-        continuous_current_limit : float
-        energy_limit : float
-        motor_limit : float
-        motor_bias : float
+        :param continuous_current_limit:
+        :type continuous_current_limit: float
+
+        :param energy_limit: energy limit
+        :type energy_limit: float
+
+        :param motor_limit: motor limit
+        :type motor_limit: float
+
+        :param motor_bias: motor bias
+        :type motor_bias: float
         """
         err_code = self._lib.MOT_SetDCMotorOutputParams(self._serial_number,
                 continuous_current_limit,
@@ -1220,10 +1237,8 @@ class TDC001(BaseController):
         """
         Returns DC track settle parameters.
 
-        Returns
-        -------
-        out : tuple
-            (settle time, settle window, track window)
+        :return: (settle time, settle window, track window)
+        :rtype: tuple
         """
         settle_time = ctypes.c_long()
         settle_window = ctypes.c_long()
@@ -1240,16 +1255,17 @@ class TDC001(BaseController):
                 track_window.value
                )
 
-    def set_dc_track_settle_parameters(self, settle_time, settle_window,
-            track_window):
-        """
-        Sets track settle parameters.
+    def set_dc_track_settle_parameters(self, settle_time, settle_window, track_window):
+        """Sets track settle parameters.
 
-        Parameters
-        ----------
-        settle_time : int
-        settle_window : int
-        track_window : int
+        :param settle_time: settle time
+        :type settle_time: int
+
+        :param settle_window: settle window
+        :type settle_window: int
+
+        :param track_window: track window
+        :type track_window: int
         """
         err_code = self._lib.MOT_SetDCTrackSettleParams(self._serial_number,
                 settle_time,
@@ -1272,17 +1288,13 @@ class TDC001(BaseController):
 
     def get_dc_profile_mode_parameters(self):
         """
-        Returns DC profile mode parameters.
-
-
-        Returns
-        -------
-        out : tuple
-            (profile mode, jerk)
-
-            Profile mode:
+        | Returns DC profile mode parameters.
+        | Profile mode:
             - DC_PROFILEMODE_TRAPEZOIDAL = 0
             - DC_PROFILEMODE_SCURVE = 2
+
+        :return: (profile mode, jerk)
+        :rtype: tuple
         """
         profile_mode = ctypes.c_long()
         jerk = ctypes.c_float()
@@ -1297,15 +1309,16 @@ class TDC001(BaseController):
                )
 
     def set_dc_profile_mode_parameters(self, profile_mode, jerk):
-        """
-        Sets DC profile mode parameters.
-
-        Parameters
-        ----------
-        profile_mode : int
+        """| Sets DC profile mode parameters.
+        | Profile modes:
             - DC_PROFILEMODE_TRAPEZOIDAL = 0
             - DC_PROFILEMODE_SCURVE = 2
-        jerk : float
+
+        :param profile_mode: profile mode
+        :type profile_mode: int
+
+        :param jerk:
+        :type jerk: float
         """
         err_code = self._lib.MOT_SetDCTrackSettleParams(self._serial_number,
                 profile_mode,
@@ -1322,17 +1335,14 @@ class TDC001(BaseController):
     """DC profile mode: jerk"""
 
     def get_dc_joystick_parameters(self):
-        """
-        Returns DC joystick parameters.
-
-        Returns
-        -------
-        out : tuple
-            (maximum velocity lo, maximum velocity hi, acceleration lo,
-             acceleration hi, direction sense)
-            direction sense:
+        """| Returns DC joystick parameters.
+        | direction sense:
             - DC_JS_DIRSENSE_POS = 1
             - DC_JS_DIRSENSE_NEG = 2
+
+        :return:(maximum velocity lo, maximum velocity hi, acceleration lo,
+             acceleration hi, direction sense)
+        :rtype: tuple
         """
         maximum_velocity_lo = ctypes.c_float()
         maximum_velocity_hi = ctypes.c_float()
@@ -1358,18 +1368,25 @@ class TDC001(BaseController):
     def set_dc_joystick_parameters(self, maximum_velocity_lo,
             maximum_velocity_hi, acceleration_lo, acceleration_hi,
             direction_sense):
-        """
-        Sets DC joystick parameters.
-
-        Parameters
-        ----------
-        maximum_velocity_lo : float
-        maximum_velocity_hi : float
-        acceleration_lo : float
-        acceleration_hi : float
-        direction_sense : int
+        """| Sets DC joystick parameters.
+        : direction sense:
             - DC_JS_DIRSENSE_POS = 1
             - DC_JS_DIRSENSE_NEG = 2
+
+        :param maximum_velocity_lo:
+        :type maximum_velocity_lo: float
+
+        :param maximum_velocity_hi:
+        :type maximum_velocity_hi: float
+
+        :param acceleration_lo:
+        :type acceleration_lo: float
+
+        :param acceleration_hi:
+        :type acceleration_hi: float
+
+        :param direction_sense: direction sense
+        :type direction_sense: int
         """
         err_code = self._lib.MOT_SetDCJoystickParams(self._serial_number,
                 maximum_velocity_lo,
@@ -1400,11 +1417,9 @@ class TDC001(BaseController):
         """
         Returns DC settled current loop parameters.
 
-        Returns
-        -------
-        out : tuple
-            (proportional, integrator, integrator_limit, integrator dead band,
+        :return: (proportional, integrator, integrator_limit, integrator dead band,
              fast forward)
+        :rtype: tuple
         """
         settled_proportional = ctypes.c_long()
         settled_integrator = ctypes.c_long()
@@ -1430,16 +1445,22 @@ class TDC001(BaseController):
     def set_dc_settled_current_loop_parameters(self, settled_proportional,
             settled_integrator, settled_integrator_limit,
             settled_integrator_dead_band, settled_fast_forward):
-        """
-        Sets DC settled current loop parameters.
+        """Sets DC settled current loop parameters.
 
-        Parameters
-        ----------
-        settled_proportional : int
-        settled_integrator : int
-        settled_integrator_limit : int
-        settled_integrator_dead_band : int
-        settled_fast_forward : int
+        :param settled_proportional:
+        :type settled_proportional: int
+
+        :param settled_integrator:
+        :type settled_integrator: int
+
+        :param settled_integrator_limit:
+        :type settled_integrator_limit: int
+
+        :param settled_integrator_dead_band:
+        :type settled_integrator_dead_band: int
+
+        :param settled_fast_forward:
+        :type settled_fast_forward: int
         """
         err_code = self._lib.MOT_SetDCJoystickParams(self._serial_number,
                 settled_proportional,
@@ -1475,11 +1496,10 @@ class TDC001(BaseController):
 class ExampleControllerDummy(TDC001):
     """ A dummy version of the Example Controller.
 
-    In essence we have the same methods and we re-write the query to answer something meaninfull but
+    In essence we have the same methods and we re-write the query to answer something meaningful but
     without connecting to the real device.
 
     """
-
 
     def query(self, msg):
         """ writes into the device msg
