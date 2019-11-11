@@ -197,15 +197,12 @@ class VariableWaveplateGui(QWidget):
 
 
 if __name__ == '__main__':
-    from hyperion import _logger_format, _logger_settings, root_dir
+    import hyperion
+    from hyperion import root_dir
     from os import path
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    hyperion.file_logger.setLevel(logging.INFO)
+    hyperion.stream_logger.setLevel(logging.WARNING)
 
     logging.info('Running vairable waveplate GUI file.')
     with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : False,
@@ -213,7 +210,7 @@ if __name__ == '__main__':
 
         # variable_waveplate_ins.initialize() this should already happen in the __init__
         app = QApplication(sys.argv)
-        app.setWindowIcon(QIcon(path.join(root_dir,'view','gui','vwp_icon.png')))
+        app.setWindowIcon(QIcon(path.join(root_dir,'view','polarization','vwp_icon.png')))
         with VariableWaveplateGui(variable_waveplate_ins) as GUI:
             print('hello')
 
