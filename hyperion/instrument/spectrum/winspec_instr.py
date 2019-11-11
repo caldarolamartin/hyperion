@@ -219,6 +219,8 @@ class WinspecInstr(BaseInstrument):
         """
 
         self.start_acquiring(name)
+
+        time.sleep(5)
         return self.collect_spectrum(True)
 
     def saveas(self, filename):
