@@ -156,6 +156,8 @@ class TDC001(BaseController):
         else:
             self._serial_number = ''
 
+        self.logger.debug("{}".format(self.list_available_devices()))
+
     def _load_library(self):
         """
         Loads the APT.dll shared library. Calls APTInit.
@@ -171,10 +173,10 @@ class TDC001(BaseController):
             lib = ctypes.windll.LoadLibrary(filename)
         else:
             filename = "%s\\"% os.path.dirname(__file__)+bitsystem[0]+"APT.dll"
-            print(filename)
+            self.logger.debug("{}".format(filename))
             lib = ctypes.windll.LoadLibrary(filename)
             if (lib is None):
-                print('Lib is none')
+                self.logger.warning('Lib is none')
                 filename = "%s/" % os.path.dirname(sys.argv[0])+bitsystem[0]+"APT.dll"
                 lib = ctypes.windll.LoadLibrary(lib)
                 if (lib is None):
@@ -908,7 +910,7 @@ class TDC001(BaseController):
         :type blocking: bool
         """
         value = value * ur('micrometer')
-        print(value)
+        self.logger.info("{}".format(value))
         err_code = self._lib.MOT_MoveAbsoluteEx(self._serial_number, value.magnitude,
                 blocking)
         if (err_code != 0):
@@ -1516,18 +1518,18 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with TDC001() as dev:
-        print(dev.list_available_devices())
-        for motor in dev.list_available_devices():
-            dev.logger.debug(motor)
-            #if motor[1] == 83850111:
-            dev.initialize(motor[1])
-            dev.idn()
-            print(dev.get_stage_axis_info())
-            #dev.move_to(0)
-            dev.position
-            dev.finalize()
-            print("-"*40)
+    # with TDC001() as dev:
+    #     print(dev.list_available_devices())
+    #     for motor in dev.list_available_devices():
+    #         dev.logger.debug(motor)
+    #         #if motor[1] == 83850111:
+    #         dev.initialize(motor[1])
+    #         dev.idn()
+    #         print(dev.get_stage_axis_info())
+    #         #dev.move_to(0)
+    #         dev.position
+    #         dev.finalize()
+    #         print("-"*40)
 		
 
 

@@ -173,7 +173,8 @@ class WinspecInstr(BaseInstrument):
             # name=self.default_name
             self.doc = self.controller.docfile()
         else:
-            self.doc.Close()
+            if hasattr(self,'doc'):
+                self.doc.Close()
             self.filename = name
             self.doc = self.controller.docfile()
         self.controller.exp.Start(self.doc)
@@ -216,6 +217,7 @@ class WinspecInstr(BaseInstrument):
         Performs start_acquiring(name), followed by collect_spectrum(True).
         See those methods for more details.
         """
+
         self.start_acquiring(name)
         return self.collect_spectrum(True)
 
@@ -945,7 +947,7 @@ if __name__ == "__main__":
             ws.central = 400
 
     print('Taking spectrum ...')
-    counts = ws.take_spectrum()
+    counts = ws.take_spectrum('image')
     nm = ws.nm_axis()
     #print(nm,counts)
 
