@@ -361,6 +361,7 @@ class TDC001(BaseController):
     def _status_bits(self):
         """
         Returns status bits of thorlabs_motor
+
         :return: status bits
         :rtype: int
         """
@@ -376,6 +377,7 @@ class TDC001(BaseController):
     def is_forward_hardware_limit_switch_active(self):
         """
         Returns whether forward hardware limit switch is active.
+
         :return: forward hardware
         :rtype: bool
         """
@@ -387,6 +389,7 @@ class TDC001(BaseController):
     def is_reverse_hardware_limit_switch_active(self):
         """
         Returns whether reverse hardware limit switch is active.
+
         :return: reverse hardware
         :rtype: bool
         """
@@ -398,6 +401,7 @@ class TDC001(BaseController):
     def is_in_motion(self):
         """
         Returns whether thorlabs_motor is in motion.
+
         :return: in motion
         :rtype: bool
         """
@@ -409,6 +413,7 @@ class TDC001(BaseController):
     def has_homing_been_completed(self):
         """
         Returns whether homing has been completed at some point.
+
         :return: has been completed
         :rtype: bool
         """
@@ -420,6 +425,7 @@ class TDC001(BaseController):
     def is_tracking(self):
         """
         Returns whether thorlabs_motor is tracking.
+
         :return: is tracking
         :rtype: bool
         """
@@ -431,6 +437,7 @@ class TDC001(BaseController):
     def is_settled(self):
         """
         Returns whether thorlabs_motor is settled.
+
         :return: is settled
         :rtype: bool
         """
@@ -442,6 +449,7 @@ class TDC001(BaseController):
     def motor_current_limit_reached(self):
         """
         Return whether current limit of thorlabs_motor has been reached.
+
         :return: current limit reached
         :rtype: bool
         """
@@ -453,6 +461,7 @@ class TDC001(BaseController):
     def motion_error(self):
         """
         Returns whether there is a motion error (= excessing position error).
+
         :return: motion error
         :rtype: bool
         """
@@ -477,6 +486,7 @@ class TDC001(BaseController):
         """| Active channel number. Used with thorlabs_motor having more than 1 channel.
         | CHAN1_INDEX = 0 : channel 1
         | CHAN2_INDEX = 1 : channel 2
+
         :return: active channel
         :rtype: int
         """
@@ -746,7 +756,7 @@ class TDC001(BaseController):
 #        return min_pos.value
 
     def set_stage_axis_info(self, min_pos, max_pos, units, pitch):
-        """| Sets axis information of stage.
+        """Sets axis information of stage.
             - STAGE_UNITS_MM = 1 : Stage units in mm
             - STAGE_UNITS_DEG = 2 : Stage units in degrees
 
@@ -783,14 +793,13 @@ class TDC001(BaseController):
     """Stage's pitch"""
 
     def get_hardware_limit_switches(self):
-        """| Returns hardware limit switch modes for reverse and forward direction.
-        | See also set_hardware_limit_switches
+        """Returns hardware limit switch modes for reverse and forward direction; See also set_hardware_limit_switches.
 
-            HWLIMSWITCH_IGNORE = 1 : Ignore limit switch (e.g. for stages with only one or no limit switches).
-            HWLIMSWITCH_MAKES = 2 : Limit switch is activated when electrical continuity is detected.
-            HWLIMSWITCH_BREAKS = 3 : Limit switch is activated when electrical continuity is broken.
-            HWLIMSWITCH_MAKES_HOMEONLY = 4 : As per HWLIMSWITCH_MAKES except switch is ignored other than when homing (e.g. to support rotation stages).
-            HWLIMSWITCH_BREAKS_HOMEONLY = 5 : As per HWLIMSWITCH_BREAKS except switch is ignored other than when homing (e.g. to support rotation stages).
+            - HWLIMSWITCH_IGNORE = 1 : Ignore limit switch (e.g. for stages with only one or no limit switches).
+            - HWLIMSWITCH_MAKES = 2 : Limit switch is activated when electrical continuity is detected.
+            - HWLIMSWITCH_BREAKS = 3 : Limit switch is activated when electrical continuity is broken.
+            - HWLIMSWITCH_MAKES_HOMEONLY = 4 : As per HWLIMSWITCH_MAKES except switch is ignored other than when homing (e.g. to support rotation stages).
+            - HWLIMSWITCH_BREAKS_HOMEONLY = 5 : As per HWLIMSWITCH_BREAKS except switch is ignored other than when homing (e.g. to support rotation stages).
 
         :return: reverse limit switch, forward limit switch)
         :rtype: tuple
@@ -807,18 +816,11 @@ class TDC001(BaseController):
     def set_hardware_limit_switches(self, rev, fwd):
         """Sets hardware limit switches for reverse and forward direction.
 
-        HWLIMSWITCH_IGNORE = 1 : Ignore limit switch (e.g. for stages
-            with only one or no limit switches).
-        HWLIMSWITCH_MAKES = 2	: Limit switch is activated when electrical
-            continuity is detected.
-        HWLIMSWITCH_BREAKS = 3 : Limit switch is activated when electrical
-            continuity is broken.
-        HWLIMSWITCH_MAKES_HOMEONLY = 4 : As per HWLIMSWITCH_MAKES except
-            switch is ignored other than when homing (e.g. to support
-            rotation stages).
-        HWLIMSWITCH_BREAKS_HOMEONLY = 5 : As per HWLIMSWITCH_BREAKS except
-            switch is ignored other than when homing (e.g. to support
-            rotation stages).
+        - HWLIMSWITCH_IGNORE = 1 : Ignore limit switch (e.g. for stages with only one or no limit switches).
+        - HWLIMSWITCH_MAKES = 2	: Limit switch is activated when electrical continuity is detected.
+        - HWLIMSWITCH_BREAKS = 3 : Limit switch is activated when electrical continuity is broken.
+        - HWLIMSWITCH_MAKES_HOMEONLY = 4 : As per HWLIMSWITCH_MAKES except switch is ignored other than when homing (e.g. to support rotation stages).
+        - HWLIMSWITCH_BREAKS_HOMEONLY = 5 : As per HWLIMSWITCH_BREAKS except switch is ignored other than when homing (e.g. to support rotation stages).
 
         :param rev: reverse limit switch
         :type rev: int
@@ -960,8 +962,8 @@ class TDC001(BaseController):
 
     def move_velocity(self, direction):
         """
-        MOVE_FWD = 1 : Move forward
-        MOVE_REV = 2 : Move reverse
+        - MOVE_FWD = 1 : Move forward
+        - MOVE_REV = 2 : Move reverse
 
         :param direction: direction
         :type direction: int
@@ -1288,8 +1290,7 @@ class TDC001(BaseController):
 
     def get_dc_profile_mode_parameters(self):
         """
-        | Returns DC profile mode parameters.
-        | Profile mode:
+        Returns DC profile mode parameters; Profile mode:
             - DC_PROFILEMODE_TRAPEZOIDAL = 0
             - DC_PROFILEMODE_SCURVE = 2
 
@@ -1309,8 +1310,7 @@ class TDC001(BaseController):
                )
 
     def set_dc_profile_mode_parameters(self, profile_mode, jerk):
-        """| Sets DC profile mode parameters.
-        | Profile modes:
+        """Sets DC profile mode parameters; Profile modes:
             - DC_PROFILEMODE_TRAPEZOIDAL = 0
             - DC_PROFILEMODE_SCURVE = 2
 
@@ -1335,8 +1335,7 @@ class TDC001(BaseController):
     """DC profile mode: jerk"""
 
     def get_dc_joystick_parameters(self):
-        """| Returns DC joystick parameters.
-        | direction sense:
+        """Returns DC joystick parameters; direction sense:
             - DC_JS_DIRSENSE_POS = 1
             - DC_JS_DIRSENSE_NEG = 2
 
@@ -1366,10 +1365,8 @@ class TDC001(BaseController):
                )
 
     def set_dc_joystick_parameters(self, maximum_velocity_lo,
-            maximum_velocity_hi, acceleration_lo, acceleration_hi,
-            direction_sense):
-        """| Sets DC joystick parameters.
-        : direction sense:
+            maximum_velocity_hi, acceleration_lo, acceleration_hi, direction_sense):
+        """Sets DC joystick parameters; direction sense:
             - DC_JS_DIRSENSE_POS = 1
             - DC_JS_DIRSENSE_NEG = 2
 
