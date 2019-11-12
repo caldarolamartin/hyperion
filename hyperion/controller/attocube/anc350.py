@@ -5,8 +5,9 @@ ANC350 Attocube Controller
 
 This is the controller level of the position ANC350 from Attocube (in the Montana)
 
-This code is strongly based and using PyANC350, which was written by Rob Heath; rob@robheath.me.uk; 24-Feb-2015
+This code is strongly based and using PyANC350, which was written by Rob Heath; rob@robheath.me.uk; 24-Feb-2015;
 It was taken from github in August 2019 by Irina Komen and made to work with Hyperion
+
 
 Copyright (c) 2018 Rob Heath
 
@@ -45,7 +46,21 @@ Usage:
     3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
     4. for tidiness remember to Positioner.close() when finished!
 
+**Important NOTE:**
 
+This code assumes that the following files are stored in this folder (hyperion/controller/attocube/)
+
+- anc350v2.dll
+- anc350v2.lib
+- libusb0.dll
+
+And the calibration files:
+
+- ANPx101-A3-1079.aps
+- ANPx101-A3-1087.aps
+- ANPz102-F8-393.aps
+
+You should get these files from the manufacturer (except for libusb0.dll).
 """
 import sys
 import ctypes
@@ -755,7 +770,8 @@ class Anc350(BaseController):
         ANC350lib.positionerTriggerModeOut(self.handle,mode)
 
     def triggerPolarity(self, triggerno, polarity):
-        """* UNUSED*
+        """ *UNUSED*
+
         sets the polarity of the external trigger, triggerno: 0-5, polarity: 0 low active, 1 high active.
         """
         ANC350lib.positionerTriggerPolarity(self.handle,triggerno,polarity)

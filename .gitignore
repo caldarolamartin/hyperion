@@ -20,4 +20,10 @@ logger.log
 *.log*
 
 # exclude Windows thumbnail files:
-Thumbs.db
+*Thumbs.db
+
+# remove propietary dll and lib files from attocube
+/controller/attocube/*.dll
+/controller/attocube/*.lib
+/controller/attocube/*.aps
+
