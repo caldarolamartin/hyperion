@@ -201,7 +201,6 @@ class PolarimeterGui(QWidget):
 
     def start_button(self):
         """ Action when you press start """
-
         # add the extra plots needed with one data point
         self.Plots = []
         for i in range(len(self.index_to_plot)):
@@ -300,6 +299,7 @@ if __name__ == '__main__':
         PolarimeterGui(polarimeter_ins, plot_window)
 
         # Mandatory line for gui
-        # app.exec_()               # if you don't want it to close the python kernel afterwards
+        #app.exec_()               # if you don't want it to close the python kernel afterwards
+
         sys.exit(app.exec_())       # if you do want it to close the python kernal afterwards
 
