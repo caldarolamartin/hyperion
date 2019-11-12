@@ -301,7 +301,7 @@ class Hydraharp(BaseController):
 
         :param divider: 1, 2, 4, 8 or 16
         :type divider: int
-        
+
         """
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
