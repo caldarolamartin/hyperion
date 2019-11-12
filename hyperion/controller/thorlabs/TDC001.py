@@ -15,7 +15,8 @@ Since this package is based on APT.dll it only works on Windows. For Linux and M
 
 1. Install thorlabs_apt using setup.py
 
-2. Check whether your python is a 32 bit or 64 bit version and install the corresponding [Thorlabs' APT software](http://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=APT)
+2. Check whether your python is a 32 bit or 64 bit version and install the corresponding
+[Thorlabs' APT software](http://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=APT)
 
 3. Copy APT.dll from the "APT installation path\APT Server" directory to one of the following locations:
     - Windows\System32
