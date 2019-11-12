@@ -140,7 +140,7 @@ class Thorlabsmotor(BaseInstrument):
         self.logger.info("moving: "+str(distance)+" in micrometer")     #this needs to be changed!!!!!!!!
         distance = distance * ur('micrometer')
         distance_mm = distance.to('mm')
-        self.controller.move_by(distance_mm)
+        self.controller.move_by(distance_mm, True)
 
     def move_absolute(self, distance):
         """| Moves the thorlabs_motor by the a absolute distance that is given
@@ -151,7 +151,7 @@ class Thorlabsmotor(BaseInstrument):
         distance = distance * ur("micrometer")      #this needs to be changed!!!!!!!!
         #print("some text", distance)
         self.logger.info("moving: "+str(distance))
-        self.controller.move_to(float(distance.magnitude))
+        self.controller.move_to(float(distance.magnitude),True)
         self.logger.debug("The thorlabs_motor has moved "+str(distance))
         
 
@@ -225,6 +225,10 @@ if __name__ == "__main__":
         print(type(sampleX.controller._serial_number))
 
         print(sampleX.axis_info())
+
+        print(sampleX.position)
+
+        sampleX.move_relative(50)
 
         print(sampleX.position)
 
