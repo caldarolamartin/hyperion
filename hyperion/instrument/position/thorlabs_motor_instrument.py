@@ -40,14 +40,15 @@ class Thorlabsmotor(BaseInstrument):
         
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
-        
-        if 'serial_number' in settings:
-            self._serial_number = settings['serial_number']
+
         # properties
         self._output = False
         self._mode = 0
         self.logger.info('Initializing Thorlabs motor settings: {}'.format(settings))
 
+        if 'serial' in settings:
+            self._serial_number = settings['serial']
+            self.initialize()
 
     def list_devices(self):
         """ List all available devices"""
@@ -56,7 +57,7 @@ class Thorlabsmotor(BaseInstrument):
         self.logger.info(str(len(aptmotorlist)) + ' thorlabs_motor boxes found:')
         return aptmotorlist
     
-    def initialize(self, port, homing=0):
+    def initialize(self, port=None, homing=0):
         """ Starts the connection to the device in port
 
         :param port: Serial number to connect to
@@ -68,7 +69,11 @@ class Thorlabsmotor(BaseInstrument):
         :type homing: number
         """
         self.logger.info('Opening connection to device.')
-        motor=self.controller.initialize(port)
+        if port is None:
+            motor = self.controller.initialize(self._serial_number)
+        else:
+            motor=self.controller.initialize(port)
+        # motor = self.controller.initialize()
         if homing != 0:
             self.controller.move_home(True)
             self.controller.move_to(homing)
@@ -135,7 +140,7 @@ class Thorlabsmotor(BaseInstrument):
         self.logger.info("moving: "+str(distance)+" in micrometer")     #this needs to be changed!!!!!!!!
         distance = distance * ur('micrometer')
         distance_mm = distance.to('mm')
-        self.controller.move_by(distance_mm)
+        self.controller.move_by(distance_mm, True)
 
     def move_absolute(self, distance):
         """| Moves the thorlabs_motor by the a absolute distance that is given
@@ -146,7 +151,7 @@ class Thorlabsmotor(BaseInstrument):
         distance = distance * ur("micrometer")      #this needs to be changed!!!!!!!!
         #print("some text", distance)
         self.logger.info("moving: "+str(distance))
-        self.controller.move_to(float(distance.magnitude))
+        self.controller.move_to(float(distance.magnitude),True)
         self.logger.debug("The thorlabs_motor has moved "+str(distance))
         
 
@@ -183,6 +188,23 @@ class Thorlabsmotor(BaseInstrument):
         """
         self.controller.amplitude = value.m_as('volts')
 
+    @property
+    def position(self):
+        """Link to controller to get current position
+
+        :return: position
+        """
+        pos = self.controller.position
+        return pos
+
+    def axis_info(self):
+        """Link to controller to get axis info, including the range, which helps to know if its a motorized waveplate or stage
+
+        :return: info = (min_pos.value, max_pos.value, units.value, pitch.value)
+        """
+        info = self.controller.get_stage_axis_info()
+        return info
+
 
 if __name__ == "__main__":
     from hyperion import _logger_format
@@ -190,18 +212,43 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    with Thorlabsmotor(settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}) as dev:
-        for motor in dev.list_devices():
-            dev.logger.debug(motor)
-            dev.initialize(motor[1])
-            dev.idn()
-            stage_info = dev.controller.get_stage_axis_info()
-            dev.logger.debug(stage_info)
-            if stage_info[1] == 12.0:
-                dev.move_relative(2.0)
-            elif stage_info[1] == 360.0:        #that means it's connected to the waveplate
-                dev.move_absolute(180)
-            dev.finalize()
-            dev.logger.debug("-"*40)
+    xMotor = {'serial': 83850129, 'instrument': 'hyperion.instrument.position.thorlabs_motor_instrument/Thorlabsmotor',
+                'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}
+
+    yMotor = {'serial': 83850123, 'instrument': 'hyperion.instrument.position.thorlabs_motor_instrument/Thorlabsmotor',
+                'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}
+
+
+    with Thorlabsmotor(settings = xMotor) as sampleX, Thorlabsmotor(settings = yMotor) as sampleY:
+        # dev.initialize()
+
+        print(type(sampleX.controller._serial_number))
+
+        print(sampleX.axis_info())
+
+        print(sampleX.position)
+
+        sampleX.move_relative(50)
+
+        print(sampleX.position)
+
+        print(type(sampleY.controller._serial_number))
+
+        print(sampleY.axis_info())
+
+        print(sampleY.position)
+
+        # for motor in dev.list_devices():
+        #     dev.logger.debug(motor)
+        #     dev.initialize(motor[1])
+        #     dev.idn()
+        #     stage_info = dev.controller.get_stage_axis_info()
+        #     dev.logger.debug(stage_info)
+        #     if stage_info[1] == 12.0:
+        #         dev.move_relative(2.0)
+        #     elif stage_info[1] == 360.0:        #that means it's connected to the waveplate
+        #         dev.move_absolute(20)
+        #     dev.finalize()
+        #     dev.logger.debug("-"*40)
 
 

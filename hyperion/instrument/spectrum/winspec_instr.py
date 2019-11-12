@@ -134,6 +134,7 @@ class WinspecInstr(BaseInstrument):
     def finalize(self):
         """ Mandatory function. Get's called when exiting a 'with' statement."""
         self.logger.info('Closing connection to device.')
+
         self.controller.finalize()
 
     def _remove_unavailable(self, settings_key, default_options_list):
@@ -173,7 +174,8 @@ class WinspecInstr(BaseInstrument):
             # name=self.default_name
             self.doc = self.controller.docfile()
         else:
-            self.doc.Close()
+            if hasattr(self,'doc'):
+                self.doc.Close()
             self.filename = name
             self.doc = self.controller.docfile()
         self.controller.exp.Start(self.doc)
@@ -194,14 +196,17 @@ class WinspecInstr(BaseInstrument):
 
     def collect_spectrum(self, wait=True):
         """
-        Retrieves the last acquired spectrum from Winspec.
+        | Retrieves the last acquired spectrum from Winspec.
+        | **Pay attention: I added some extra sleeps to make it work**
         :param wait: If wait is True (DEFAULT) it will wait for WinSpec to finish collecting data.
         :type wait: bool
         :return: list or nested list
         """
         if wait:
             while self.is_acquiring:
-                time.sleep(0.01)
+                time.sleep(1)
+                self.logger.debug("acquiring? {}".format(self.is_acquiring))
+            time.sleep(2)
         self.frame = self.doc.GetFrame(1,self.controller._variant_array)
         # return frame                      # direct tuple of tuples
         # return np.asarray(frame)          # np approach
@@ -216,6 +221,7 @@ class WinspecInstr(BaseInstrument):
         Performs start_acquiring(name), followed by collect_spectrum(True).
         See those methods for more details.
         """
+
         self.start_acquiring(name)
         return self.collect_spectrum(True)
 
@@ -494,6 +500,9 @@ class WinspecInstr(BaseInstrument):
         if v_binsize is None:
             v_binsize = bottom - (top - 1)
 
+        self.logger.debug("bottom{}, top{}".format(bottom, top))
+        self.logger.debug("vertical binsize: {}".format(v_binsize))
+
         # Some basic range corrections:
         # revert top/bottom and left/right if they're inverted
         if bottom < top:
@@ -530,7 +539,10 @@ class WinspecInstr(BaseInstrument):
             # note: I've generalized this from 4 to self._horz_width_multiple
             # Check if horizontal range is multiple of 4 pixels. Expand if required.
             # This is rquired for the new spectrometer (the one with 1024x1024 pixels)
+            self.logger.debug("pix{}, _horz_width_multiple{}".format(pix, self._horz_width_multiple))
+            self.logger.debug("{}".format(pix%self._horz_width_multiple))
             if pix%self._horz_width_multiple:
+                self.logger.debug('pix%self._horz_width_multiple is true')
                 ad = self._horz_width_multiple-pix+self._horz_width_multiple*int(pix/self._horz_width_multiple) # number of pixels to add (1,2,3)
                 while ad:
                     if ad and right < self.controller.xdim:
@@ -945,7 +957,7 @@ if __name__ == "__main__":
             ws.central = 400
 
     print('Taking spectrum ...')
-    counts = ws.take_spectrum()
+    counts = ws.take_spectrum('image')
     nm = ws.nm_axis()
     #print(nm,counts)
 
