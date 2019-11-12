@@ -68,6 +68,7 @@ class DeviceModelController(BaseController):
         
         if self._is_initialized:
             # Your code to close the connection goes here
+            self.logger.debug('Doing something')
         else:
             self.logger.warning('Finalizing before initializing connection to {}'.format(self.name))
 

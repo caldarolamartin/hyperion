@@ -115,8 +115,9 @@ class AaAotf(BaseInstrument):
             supported by the device.
 
             It returns channel 1 or 7 depending on the desired frequency.
-                Channel 1 range: 82-151 MHz
-                Channel 7 range: 68-82 MHz
+
+                - Channel 1 range: 82-151 MHz.
+                - Channel 7 range: 68-82 MHz.
 
             :param freq: Frequency
             :type freq: pint Quantity

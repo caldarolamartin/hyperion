@@ -1,6 +1,15 @@
+"""
+========
+UI tools
+========
+
+We group many functions useful for when building GUIS.
+
+"""
 import logging
 from numpy import log10
 from hyperion import Q_
+
 
 def add_pint_to_combo(comboBox_units, manual_list=None):
     """
@@ -85,15 +94,16 @@ def pint_to_spin_combo(pint_quantity, doubleSpinBox, comboBox_units):
     doubleSpinBox.setValue(value)
     comboBox_units.setCurrentIndex(combo_index)
 
-
 def spin_combo_to_pint_apply_limits(doubleSpinBox, comboBox_units, pint_lower_limit=None, pint_upper_limit=None):
     """
     When a GUI has a combination of a Q(Double)SpinBox and a QComboBox that hold the numeric value and the unit
     respectively, this function can be used to convert the combined values to a pint quantity.
     In addition it applies limits if they are specified.
     Typically you'll make one function limit_and_apply_X in your gui code, and connect both
-      doubleSpinBox.valueChanged.connect(limit_and_apply_X)
-      comboBox_units.currentIndexChanged.connect(limit_and_apply_X)
+
+        >>> doubleSpinBox.valueChanged.connect(limit_and_apply_X)
+        >>> comboBox_units.currentIndexChanged.connect(limit_and_apply_X)
+
     to this function. Inside limit_and_apply_X() you would use this function spin_combo_to_pint_apply_limits() to apply
     limits and convert it to a pint quantity
 
@@ -104,7 +114,7 @@ def spin_combo_to_pint_apply_limits(doubleSpinBox, comboBox_units, pint_lower_li
     :param comboBox_units: QComboBox that holds the units
     :param pint_lower_limit: OPTIONAL pint quantity for the lower limit to apply
     :param pint_upper_limit: OPTIONAL pint quantity for the upper limit to apply
-    :return: pint quantity
+    :returns: pint quantity
     """
 
     logger = logging.getLogger(__name__)

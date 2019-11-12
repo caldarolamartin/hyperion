@@ -23,12 +23,12 @@ def array_from_pint_quantities(start, stop, step=None, num=None):
     :param start: The start value of the array
     :type start: pint.quantity
     :param stop: The end value for determining the array
-    :type start: pint.quantity
+    :type stop: pint.quantity
     :param step: The stepsize between points
-    :type start: pint.quantity
+    :type step: pint.quantity
     :param num: Number of points generate
-    :type start: int
-    :return: The array and the unit
+    :type num: int
+    :return: a, b
     :rtype: (numpy.array, pint.unit)
     """
     logger = logging.getLogger(__name__)

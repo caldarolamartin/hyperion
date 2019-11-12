@@ -12,8 +12,10 @@ steps we took to build it.
 
     architecture
     controllers
-    instrument
-    view
     experiment
+    instrument
     test
+    tools
+    view
+
 

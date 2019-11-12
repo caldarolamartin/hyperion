@@ -81,13 +81,13 @@ def name_incrementer(basename, list_of_existing, separator='_', fill_zeros=0, us
 
 
 def create_filename(file_path):
-    """ creates the filename property in the class, so all the methods point to the same folder
+    """ Creates the filename, so all the methods point to the same folder
     and save with the same name. The output does not include the extension but the input does.
 
-    :param filename: config filename complete path
+    :param filename: config filename complete path (INCLUDING the extension)
     :type filename: string (path)
 
-    :return: filename
+    :return: filename with a number appended so it would not be overwritten.
     :rtype: string
 
     """
