@@ -20,9 +20,10 @@ from PyQt5.QtWidgets import *
 from hyperion import root_dir, _colors, Q_
 from hyperion.tools.saving_tools import create_filename
 from hyperion.instrument.polarization.polarimeter import Polarimeter
-from hyperion.view.base_plot_windows import BaseGraph
+from hyperion.view.base_guis import BaseGui, BaseGraph
 
-class PolarimeterGui(QWidget):
+
+class PolarimeterGui(BaseGui):
     """
         This is the Polarimeter GUI class.
         It builds the GUI for the instrument: polarimeter
@@ -77,45 +78,6 @@ class PolarimeterGui(QWidget):
         self.index_to_plot = []
         self.Plots = []
         self.Plots.append(self.plot_window.pg_plot)
-
-        # try to avoid the crash
-        sys.excepthook = self.excepthook  # This is very handy in case there are exceptions that force the program to quit.
-
-    def excepthook(self, etype, value, tb):
-        """This is to catch an error during running the GUI
-
-        """
-        self.logger.error('An error occurred. NameError: {} '.format(value))
-        self.error_dialog(etype, value, tb)
-
-    def error_dialog(self, etype, value, tb):
-        import traceback
-        traceback.print_exception(etype, value, tb)
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Critical)
-
-        msg.setText("There was an error. \n Press Ignore to continue and Abort to exit the GUI.")
-        msg.setWindowTitle("Error Box")
-        aux = traceback.format_exception(etype, value, tb)
-        text = ''
-        for a in aux:
-            text += '{}'.format(a)
-
-        msg.setDetailedText("{}".format(text))
-        msg.setStandardButtons(QMessageBox.Ignore | QMessageBox.Abort)
-        msg.buttonClicked.connect(self.error_dialog_btn)
-        msg.exec_()
-
-    def error_dialog_btn(self, i):
-        self.logger.debug("Button pressed is: {}".format(i.text()))
-        if i.text() == 'Abort':
-            self.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-       self.logger.debug('Exiting the with for the Polarimeter_gui class')
 
     def closeEvent(self, event):
         """ Actions to take when you press the X in the main window.

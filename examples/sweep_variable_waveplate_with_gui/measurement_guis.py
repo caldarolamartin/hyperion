@@ -9,7 +9,7 @@ This file contains the code to create different guis, one for each measurement y
 import logging
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 from PyQt5.QtCore import pyqtSlot, QTimer
-from hyperion.view.base_plot_windows import BaseGraph
+from hyperion.view.base_guis import BaseGraph
 from hyperion.view.general_worker import WorkThread
 
 class SweepWaveplatePolarimeterGui(QWidget):
