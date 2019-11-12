@@ -153,7 +153,7 @@ class AaModd18012(BaseController):
 
             :param message: Message to be passed to the serial port.
             :type message: string
-            :return: The reply from the device.
+            :returns: The reply from the device.
             :rtype: string
 
             """

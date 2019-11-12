@@ -5,10 +5,10 @@ sys.path.insert(0, os.path.abspath('../..'))
 extensions = ['sphinx.ext.autodoc', ]
 
 project = 'Hyperion'
-copyright = '2018, Authors: see authors'
+copyright = '2019, Authors: see authors'
 author = 'Authors: see authors'
-version = '0.1'
-release = '0.1'
+version = '0.2'
+release = '0.2'
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
@@ -22,7 +22,7 @@ html_theme_options = {
     'display_version': True,
     'prev_next_buttons_location': 'bottom',
     'style_external_links': False,
-    'vcs_pageview_mode': '',
+    #'vcs_pageview_mode': '',
     # Toc options
     'collapse_navigation': True,
     'sticky_navigation': True,

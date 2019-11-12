@@ -21,21 +21,24 @@ At present this only addresses the first ANC350 connected to the machine.
 
 Usage:
     1. instantiate Positioner() class to begin, eg. pos = Positioner().
-    2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis),
-     PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
+    2. methods from the ANC350v2 documentation are implemented such that function PositionerGetPosition(handle, axis, &pos) becomes position = pos.getPosition(axis), PositionerCapMeasure(handle,axis,&cap) becomes  cap = pos.capMeasure(axis), and so on. Return code handling is within ANC350lib.
     3. bitmask() and debitmask() functions have been added for  convenience when using certain functions  (e.g. getStatus,moveAbsoluteSync)
     4. for tidiness remember to Positioner.close() when finished!
 
-
+:copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
-from hyperion.controller.base_controller import BaseController
-import hyperion.controller.attocube.ANC350lib as ANC350lib
+import sys
 import ctypes
 import math
 import os
-import sys
 import numpy as np
 import logging
+from hyperion.controller.base_controller import BaseController
+if sys.maxsize > 2**32:
+    print('64 bit')
+else:
+    import hyperion.controller.attocube.ANC350lib as ANC350lib
 from hyperion import root_dir
 
 

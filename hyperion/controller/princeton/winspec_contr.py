@@ -34,12 +34,12 @@ This controller connects to the Winspec software (which in turn is used to contr
 # Regarding opening Winspec before accessing it from python or letting python start Winspec:
 # In my tests so far, the order doesn't seem to matter. In both cases python can conrtol Winspec.
 # One difference so far is that killing python kernel closes Winspec only when python opened Winspec
-
-
 import logging
 import sys
-import os.path
-import win32com.client
+if sys.maxsize > 2**32:
+    print('64 bit')
+else:
+    import win32com.client
 from hyperion.controller.base_controller import BaseController
 
 # some tests:
@@ -54,8 +54,6 @@ class WinspecContr(BaseController):
         :type settings: dict
 
     """
-
-
     def __init__(self, settings={}):                # note: usually it's not recommended to specify default value, but here I did because it's an empty dict
         # don't place the docstring here but above in the class definition
         super().__init__(settings)                  # mandatory line
