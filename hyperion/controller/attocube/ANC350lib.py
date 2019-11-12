@@ -1,20 +1,44 @@
-#
-#  ANC350lib is a Python implementation of the C++ header provided
-#     with the attocube ANC350 closed-loop position system.
-#
-#  It depends on anc350v2.dll which is provided by attocube in the
-#     ANC350_DLL folders on the driver disc.
-#     This in turn requires nhconnect.dll and libusb0.dll. Place all
-#     of these in the same folder as this module (and that of ANC350lib).
-#
-#                ANC350lib is written by Rob Heath
-#                      rob@robheath.me.uk
-#                         24-Feb-2015
-#                       robheath.me.uk
-#
-#    v1.1: corrected POINTER used in intEnable (!!)
-#
+"""
+ ANC350lib is a Python implementation of the C++ header provided
+    with the attocube ANC350 closed-loop position system.
 
+ It depends on anc350v2.dll which is provided by attocube in the
+    ANC350_DLL folders on the driver disc.
+    This in turn requires nhconnect.dll and libusb0.dll. Place all
+    of these in the same folder as this module (and that of ANC350lib).
+
+               ANC350lib is written by Rob Heath
+                     rob@robheath.me.uk
+                        24-Feb-2015
+                      robheath.me.uk
+
+   v1.1: corrected POINTER used in intEnable (!!)
+
+PyANC350lib.py, was written by Rob Heath; rob@robheath.me.uk; 24-Feb-2015
+
+It was taken from github in August 2019  
+
+Copyright (c) 2018 Rob Heath
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+"""
 from hyperion import root_dir
 import ctypes
 import os

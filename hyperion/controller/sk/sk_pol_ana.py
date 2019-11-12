@@ -33,11 +33,9 @@ class Skpolarimeter(BaseController):
         self.name = 'SK polarization'
         self.logger.debug('Is initialized state: {}'.format(self._is_initialized))
 
-        # TODO: put this in a config_agilent33522A.yml file so the code doe not depend on the location (PC)
-        # path = 'C:/Users/mcaldarola/Documents/SK Develop/SKPolarizationAnalyzer/'
-        # name = 'SKPolarimeterManaged'
+        # TODO: put this in a config file so the code doe not depend on the location (PC)
         path = 'C:/Users/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeterMFC_VS2015_x64/x64/Release/'
-        name = settings['dll_name'] # = 'SKPolarimeter'
+        name = settings['dll_name']
         self.logger.debug('DLL to use: {}'.format(path + name))
         self.dll = ctypes.CDLL(path + name)
         self.logger.debug('DLL: {}'.format(self.dll))
