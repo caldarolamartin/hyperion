@@ -155,6 +155,8 @@ class TDC001(BaseController):
         self._amplitude = []
         self._lib = self._load_library()
 
+        print(self.settings)
+
         if 'serial' in self.settings:
             self._serial_number = self.settings['serial']
         else:
@@ -305,7 +307,6 @@ class TDC001(BaseController):
             raise Exception("Getting hardware info failed: %s" %
                     self._get_error_text(err_code))
         return (model.value, swver.value, hwnotes.value)
-
 
 
     def initialize(self, serial_number=None):
@@ -1522,18 +1523,18 @@ if __name__ == "__main__":
         handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
                   logging.StreamHandler()])
 
-    # with TDC001() as dev:
-    #     print(dev.list_available_devices())
-    #     for motor in dev.list_available_devices():
-    #         dev.logger.debug(motor)
-    #         #if motor[1] == 83850111:
-    #         dev.initialize(motor[1])
-    #         dev.idn()
-    #         print(dev.get_stage_axis_info())
-    #         #dev.move_to(0)
-    #         dev.position
-    #         dev.finalize()
-    #         print("-"*40)
+    with TDC001(settings = {'serial': 83850129}) as dev:
+        print(dev.list_available_devices())
+        for motor in dev.list_available_devices():
+            dev.logger.debug(motor)
+            #if motor[1] == 83850111:
+            dev.initialize(motor[1])
+            dev.idn()
+            print(dev.get_stage_axis_info())
+            #dev.move_to(0)
+            dev.position
+            dev.finalize()
+            print("-"*40)
 		
 
 
