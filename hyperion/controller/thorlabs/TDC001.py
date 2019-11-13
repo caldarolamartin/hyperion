@@ -130,8 +130,11 @@ DC_JS_DIRSENSE_POS = 1
 DC_JS_DIRSENSE_NEG = 2
 """negative dc joystick direction sense"""
 
-import hyperion.controller.thorlabs.TDC001_APTAPI as _APTAPI
-import hyperion.controller.thorlabs.TDC001_error_codes as _error_codes
+#import hyperion.controller.thorlabs.TDC001_APTAPI as _APTAPI
+#import hyperion.controller.thorlabs.TDC001_error_codes as _error_codes
+import thorlabs_apt._APTAPI as _APTAPI
+import thorlabs_apt._error_codes as _error_codes
+
 from hyperion import ur
 import platform
 
