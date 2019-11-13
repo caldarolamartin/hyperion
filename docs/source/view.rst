@@ -11,8 +11,10 @@ cases is not needed.
     :maxdepth: 2
     :caption: Current GUIs:
 
-    view/osa_gui
-    view/variable_waveplate_gui
-    view/polarimeter_gui
-    view/hydraharp_gui
     view/attocube_gui
+    view/base_guis
+    view/hydraharp_gui
+    view/osa_gui
+    view/polarimeter_gui
+    view/variable_waveplate_gui
+

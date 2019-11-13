@@ -1,11 +1,13 @@
 """
-=================
-Base Plot windows
-=================
+=============
+Base for GUIS
+=============
 
-This file contains different base classes to make several types of plots.
+This file contains different base classes to make several types of guis.
 
-* BaseGraph: This is a base class for creating a plot windows.
+'hyperion.view.BaseGui' is for building Qwidget guis.
+
+'hyperion.view.BaseGraph' is for building Qwidget that contains creating a plot.
 
 
 """
