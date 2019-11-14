@@ -161,12 +161,12 @@ class BaseExperiment():
         name_list = []
         unnamed = 0
         for actiondict in complete_actionlist:
-            if 'name' in actiondict:
-                name_list.append(actiondict['name'])
+            if 'Name' in actiondict:
+                name_list.append(actiondict['Name'])
             else:
                 unnamed += 1
-            if 'nested' in actiondict:
-                nested_names, nested_unnamed = self.all_action_names(actiondict['nested'])  # , name_list, unnamed)
+            if '~nested' in actiondict:
+                nested_names, nested_unnamed = self.all_action_names(actiondict['~nested'])  # , name_list, unnamed)
                 name_list += nested_names
                 unnamed += nested_unnamed
         return name_list, unnamed

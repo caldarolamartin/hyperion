@@ -166,9 +166,9 @@ MetaInstruments:
 # An Action can have nested Action inside (for example inside an action that loops over )
 # These nested actions are placed in a list with key ~nested
 # Name should
-Measurements:
-  Measurement A:    # list
-    - Name: before
+Measurements:       # dictionary of Measurement s
+  Measurement A:      # a Measurement is a list of Actions
+    - Name: before      # an Action is a dictionary
       Type: image
       exposuretime: 5
     - Name: atto X
