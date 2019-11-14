@@ -105,15 +105,15 @@ class BaseExperiment():
                 # NOTE TO SELF: WHY method_name ??????????????
         else:
             actiontype = actiondict['Type']
-            if actiontype not in actiontypes:
+            if actiontype not in self.actiontypes:
                 self.logger.warning("[in action: '{}'] unknown ActionType: '{}'".format(action_name, actiontype))
             else:
                 # Copy parameters that don't exist in actiondict. Except '_method'
-                for key in actiontypes[actiontype]:
+                for key in self.actiontypes[actiontype]:
                     if key not in actiondict and key is not '_method':
-                        actiondict[key] = actiontypes[actiontype][key]
+                        actiondict[key] = self.actiontypes[actiontype][key]
                 # Special case for '_method'
-                #                type_has_method = '_method' in actiontypes[actiontype]
+                #                type_has_method = '_method' in self.actiontypes[actiontype]
                 #                if not type_has_method:
                 #                    if invalid_method or method_name is None:
                 #                        print('error: [in {}] no method specified'.format(actiontype))
@@ -121,8 +121,8 @@ class BaseExperiment():
                 #                    if
 
                 if invalid_method or method_name is None:
-                    if '_method' in actiontypes[actiontype]:
-                        method_name = actiontypes[actiontype]['_method']
+                    if '_method' in self.actiontypes[actiontype]:
+                        method_name = self.actiontypes[actiontype]['_method']
                         if hasattr(self, method_name):
                             if invalid_method:
                                 self.logger.debug('_method {} in [Action: {}] replaced with default _method {} from [ActionType: {}] overwriting Actiondict method with default from Actiontype: {}'.format(
@@ -136,8 +136,8 @@ class BaseExperiment():
                     else:
                         self.logger.warning('error: [in ActionType: {}] no _method specified'.format(actiontype))
 
-        #                if invalid_method and '_method' in actiontypes[actiontype]:
-        #                    methodname =  actiontypes[actiontype]['_method']
+        #                if invalid_method and '_method' in self.actiontypes[actiontype]:
+        #                    methodname =  self.actiontypes[actiontype]['_method']
         #                    if hasattr(self, methodname):
         #                        actiondict['_method'] = methodname
         #                        print('debug: overwriting actiondict method with default from actiontype: {}'.format(methodname))
@@ -220,8 +220,8 @@ class BaseExperiment():
             # get default values from actiontype, but don't overwrite existing values in actiondict
             if 'Type' in actiondict:
                 actiontype = actiondict['Type']
-                if actiontype in actiontypes:
-                    for key, value in actiontypes[actiontype].items():
+                if actiontype in self.actiontypes:
+                    for key, value in self.actiontypes[actiontype].items():
                         if key not in actiondict:
                             actiondict[key] = value
                 if '_method' not in actiondict:
