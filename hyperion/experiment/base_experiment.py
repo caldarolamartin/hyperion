@@ -186,6 +186,7 @@ class BaseExperiment():
 
     def _exchange_action(self, actionlist, loopname, new_dict):
         """
+        Helper function for swap_actions
         Exhanges dict with loopname for new_dict. But keeps original nested key if available.
         Returns the original key (without nested key)
         """
@@ -208,9 +209,9 @@ class BaseExperiment():
                     return act
         return None
 
-    def perform_actionlist(self, actionlist):
+    def perform_measurement(self, actionlist):
         # typically used on the whole list
-        # calls itself to perform sublist
+        # In a an action that has nested Actions
         for actiondict in actionlist:
             actionname = actiondict['Name']
             # if a method is specified it overrules the default from actiontype
@@ -230,13 +231,45 @@ class BaseExperiment():
                             actiontype))
 
             if '_method' in actiondict:
+
+                if '~nested' in actiondict:
+                    # without error checking for now:
+                    nesting = lambda: self.perform_measurement(actiondict['~nested'])
+                else:
+                    nesting = lambda *args: None
+
                 method = getattr(self, actiondict['_method'])
-                method(actiondict)
+                method(actiondict, nesting)
             else:
                 self.logger.warning('in {}: actiondict requires either method or a type that contains a method'.format(
                     actiondict['Name']))
 
 
+    def image(self, actiondict, nesting):
+        print('image: ',actiondict['Name'])
+        nesting()
+
+    def image_modified(self, actiondict, nesting):
+        print('image: ',actiondict['Name'])
+        nesting()
+
+    def spectrum(self, actiondict, nesting):
+        print('spectrum: ',actiondict['Name'])
+        nesting()
+
+    def spectrum_modified(self, actiondict, nesting):
+        print('spectrum: ',actiondict['Name'])
+        nesting()
+
+    def histogram(self, actiondict, nesting):
+        print('histogram: ',actiondict['Name'])
+        nesting()
+
+    def sweep_atto(self, actiondict, nesting):
+        print('sweep_atto: ',actiondict['Name'])
+        for s in range(3):
+            print(actiondict['axis'],' : ', s)
+            nesting()
 
        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SMARTSCAN METHODS
 
