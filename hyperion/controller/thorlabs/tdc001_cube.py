@@ -4,7 +4,7 @@ Thorlabs motor controller
 =======================
 
 Is based on the imported Thorlabs APT python software from https://github.com/qpit/thorlabs_apt/tree/master/thorlabs_apt.
-This is installed in hyperion and can be found in C:/Users/irinakomen/AppData/Local/Continuum/anaconda3/envs/hyperion/Lib/site-packages/thorlabs_apt.
+This is installed in hyperion and can be found in C:/Users/NAME/AppData/Local/Continuum/anaconda3/envs/hyperion/Lib/site-packages/thorlabs_apt.
 This controller basically is just a wrapper to make things work within hyperion.
 The core is not always well documented, for better descriptions see the thorlabs_motor_instrument.
 
@@ -125,18 +125,23 @@ if __name__ == "__main__":
             print('connected kind of thorlabs device is unclear, max range: {}'.format(axis_info[1]))
             unit = '?'
 
-        dev.move_to(1.0,True)
+        dev.move_to(5.0,True)
         print('position: {} {}'.format(dev.position,unit))
+        while dev.is_in_motion:
+            time.sleep(0.1)
+            print('is moving? {}'.format(dev.is_in_motion))
+
+        print('position: {} {}'.format(dev.position, unit))
 
         dev.move_by(1.0, True)
         print('position: {} {}'.format(dev.position,unit))
 
-        dev.move_home(False)
-        time.sleep(1)
-        print('position: {} {}'.format(dev.position,unit))
-
-        dev.stop_profiled()
-        print('position: {} {}'.format(dev.position,unit))
+        # dev.move_home(False)
+        # time.sleep(1)
+        # print('position: {} {}'.format(dev.position,unit))
+        #
+        # dev.stop_profiled()
+        # print('position: {} {}'.format(dev.position,unit))
 
 
 
