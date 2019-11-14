@@ -3,13 +3,29 @@
 Thorlabs thorlabs_motor Instrument
 ================
 
+Connects for now to the TDC001 controller.
+
+Example:
+    Shows the list of available devices conects to thorlabs_motor x and initialize (without homing) it and moves it by 10 micro meter.
+
+
+python example code
+    # >>> from hyperion.instrument.thorlabs_motor.thorlabs_motor_instrument import Thorlabsmotor
+	# >>> checkdevices = Thorlabsmotor()
+	# >>> checkdevices.list_available_devices()
+	# >>> [(31,81818251)]
+    # >>> motorx = Thorlabsmotor()
+	# >>> motorx.initialize(81818251)
+    # >>> motorx.move_home(True)
+    # >>> motorx.move_relative(10)
 """
+
+
 
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion.experiment.base_experiment import BaseExperiment
-
-
+from hyperion.controller.thorlabs.TDC001 import TDC001
 from hyperion import ur
 
 
@@ -18,7 +34,7 @@ class Thorlabsmotor(BaseInstrument):
 
     """
     
-    def __init__(self, settings = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube',
+    def __init__(self, settings = {'controller': 'hyperion.controller.thorlabs.TDC001/TDC001',
                                     'serial_number' : 81818251}):
         """ init of the class"""
         
