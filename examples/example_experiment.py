@@ -109,41 +109,68 @@ if __name__ == '__main__':
     # hyperion.file_logger.setLevel( logging.INFO )             # To change logging level in the file (default is DEBUG)
     # hyperion.set_logfile('my_new_file_path_and_name.log')     # To change the logging file (default is DEBUG)
 
-    with ExampleExperiment() as e:
+    # with ExampleExperiment() as e:
+    #
+    #     name = 'second_example_experiment_config_'
+    #     config_folder = os.path.dirname(os.path.abspath(__file__))
+    #     config_file = os.path.join(config_folder, name)
+    #
+    #     print('Using the config file: {}.yml'.format(config_file))
+    #     e.load_config(config_file + '.yml')
+    #
+    #     # read properties just loaded
+    #     print('\n {} \n'.format(e.properties))
+    #
+    #     #  remember you can change these values directly here
+    #     #e.properties['Scan']['start'] = '0.5V'
+    #
+    #
+    #     # # Initialize devices
+    #     print('\n-------------- LOADING DEVICES ----------------\n')
+    #     e.load_instruments()
+    #     print(e.instruments_instances.keys())
+    #     print('-------------- DONE LOADING DEVICES ----------------')
+    #     #
+    #
+    #     # save metadata
+    #
+    #     #e.save_scan_metadata()
+    #     #e.save_scan_metadata()
+    #     #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
+    #     # perform scan
+    #     # e.set_scan()
+    #     # e.do_scan()
+    #     # e.make_sound()
+    #
+    #     # # save data
+    #     # e.save_scan_data()
 
-        name = 'second_example_experiment_config_'
-        config_folder = os.path.dirname(os.path.abspath(__file__))
-        config_file = os.path.join(config_folder, name)
 
-        print('Using the config file: {}.yml'.format(config_file))
-        e.load_config(config_file + '.yml')
+    e = ExampleExperiment()
 
-        # read properties just loaded
-        print('\n {} \n'.format(e.properties))
+    name = 'example_experiment_config_smartscan.yml'
+    config_folder = os.path.dirname(os.path.abspath(__file__))
+    config_file = os.path.join(config_folder, name)
 
-        #  remember you can change these values directly here
-        #e.properties['Scan']['start'] = '0.5V'
+    print('Using the config file: {}'.format(config_file))
+    e.load_config(config_file)
+
+    # read properties just loaded
+    print('\n {} \n'.format(e.properties))
+
+    #  remember you can change these values directly here
+    #e.properties['Scan']['start'] = '0.5V'
 
 
-        # # Initialize devices
-        print('\n-------------- LOADING DEVICES ----------------\n')
-        e.load_instruments()
-        print(e.instruments_instances.keys())
-        print('-------------- DONE LOADING DEVICES ----------------')
-        #
+    # # Initialize devices
+    print('\n-------------- LOADING DEVICES ----------------\n')
+    e.load_instruments()
+    print(e.instruments_instances.keys())
+    print('-------------- DONE LOADING DEVICES ----------------')
+    #
 
-        # save metadata
+    # save metadata
 
-        #e.save_scan_metadata()
-        #e.save_scan_metadata()
-        #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
-        # perform scan
-        # e.set_scan()
-        # e.do_scan()
-        e.make_sound()
-
-        # # save data
-        # e.save_scan_data()
 
 
     print('--------------------- DONE with the experiment')

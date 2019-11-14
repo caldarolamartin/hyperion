@@ -39,6 +39,213 @@ class BaseExperiment():
     def __exit__(self, exc_type, exc_val, exc_tb):
        self.finalize()
 
+
+    # SMARTSCAN METHODS: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    def _validate_actionlist(self, actionlist, _complete=None):
+        """
+        returns a corrected copy (does not modify input)
+
+        _validate_actionlist(complete_actionlist)
+        _complete is used for recursion
+        """
+        import copy
+        local_actionlist = copy.deepcopy(actionlist)
+        # recursive function
+        if _complete is None:
+            _complete = local_actionlist
+        # Note: approach with 'for act in local_actionlist' would not change the list
+        for indx in range(len(local_actionlist) - 1, -1, -1):
+            local_actionlist[indx] = self._validate_actiondict(local_actionlist[indx], _complete)
+            #            print(act)
+            #            print(local_actionlist)
+            if 'nested' in local_actionlist[indx]:
+                local_actionlist[indx]['nested'] = self._validate_actionlist(local_actionlist[indx]['nested'],
+                                                                             _complete)
+        return local_actionlist
+
+    def _validate_actiondict(self, actiondictionary, complete_actionlist):
+        """
+        returns new corrected dictionary (does not alter the dictionary )
+        """
+        import copy
+        actiondict = copy.deepcopy(actiondictionary)
+        # auto gerate a name if it doesn't exist
+        all_names, unnamed = self.all_action_names(complete_actionlist)
+        if 'name' not in actiondict:
+            if 'method' in actiondict:
+                actiondict['name'] = name_incrementer(actiondict['method'], all_names, ' ')
+            elif 'type' in actiondict:
+                actiondict['name'] = name_incrementer(actiondict['type'], all_names, ' ')
+            else:
+                actiondict['name'] = name_incrementer('no type or method', all_names, ' ')
+            print("warning: Actiondict has no name. Auto-generating: '{}'".format(actiondict['name']))
+
+        # Test if name is duplicate
+        action_name = actiondict['name']
+        if all_names.count(action_name) > 1:
+            actiondict['name'] = name_incrementer(action_name, all_names, ' ')
+            print("warning: Duplicate action name. Changed '{}' to '{}'".format(action_name, actiondict['name']))
+        action_name = actiondict['name']
+
+        # It method is specified in actiondict, test if the method exists.
+        # If not, set a flag to overwrite it with the one in actiontype
+        method_name = None
+        invalid_method = False
+        if 'method' in actiondict:
+            method_name = actiondict['method']
+            if not hasattr(self, method_name):
+                print("warning: [in action: '{}'] method '{}' doesn't exist, (trying default)".format(action_name,
+                                                                                                      method_name))
+                invalid_method = True
+
+        # copy default parameters from action if they don't exist in actiondict
+        if 'type' not in actiondict:
+            if invalid_method or method_name is None:
+                print(
+                    "error: [in '{}'] if no actiontype is specified, a valid method is required".format(method_name))
+        else:
+            actiontype = actiondict['type']
+            if actiontype not in actiontypes:
+                print("warning: [in action: '{}'] unknown actiontype: '{}'".format(action_name, actiontype))
+            else:
+                # Copy parameters that don't exist in actiondict. Except 'method'
+                for key in actiontypes[actiontype]:
+                    if key not in actiondict and key is not 'method':
+                        actiondict[key] = actiontypes[actiontype][key]
+                # Special case for 'method'
+                #                type_has_method = 'method' in actiontypes[actiontype]
+                #                if not type_has_method:
+                #                    if invalid_method or method_name is None:
+                #                        print('error: [in {}] no method specified'.format(actiontype))
+                #                else:
+                #                    if
+
+                if invalid_method or method_name is None:
+                    if 'method' in actiontypes[actiontype]:
+                        method_name = actiontypes[actiontype]['method']
+                        if hasattr(self, method_name):
+                            if invalid_method:
+                                print(
+                                    'debug: method {} in [action: {}] replaced with default method {} from [actiontype: {}] overwriting actiondict method with default from actiontype: {}'.format(
+                                        actiondict['method'], action_name, method_name, actiontype))
+                            actiondict['method'] = method_name
+                            invalid_method = False
+                        else:
+                            print("error: [in actiontype: {}] default method {} doesn't exist".format(actiontype,
+                                                                                                      method_name))
+                            method_name = None
+                    else:
+                        print('error: [in actiontype: {}] no method specified'.format(actiontype))
+
+        #                if invalid_method and 'method' in actiontypes[actiontype]:
+        #                    methodname =  actiontypes[actiontype]['method']
+        #                    if hasattr(self, methodname):
+        #                        actiondict['method'] = methodname
+        #                        print('debug: overwriting actiondict method with default from actiontype: {}'.format(methodname))
+        #                        invalid_method = False
+        #                    else:
+        #                        methodname = None
+        #                        print("error: default method from actiontype {} also doesn't exist".format(methodname))
+        #                        raise Exception('method doe')
+
+        if method_name is None:
+            print('warning: no valid method specified')
+
+        return actiondict
+
+    def all_action_names(self, complete_actionlist):  # , name_list = [], unnamed=0):
+        # outputlist = all_action_names(complete_actionlist)
+        # recursive function to find all names in a measurement list/dict structure
+        # outputs list of names and integer of unnamed actions
+        name_list = []
+        unnamed = 0
+        for actiondict in complete_actionlist:
+            if 'name' in actiondict:
+                name_list.append(actiondict['name'])
+            else:
+                unnamed += 1
+            if 'nested' in actiondict:
+                nested_names, nested_unnamed = self.all_action_names(actiondict['nested'])  # , name_list, unnamed)
+                name_list += nested_names
+                unnamed += nested_unnamed
+        return name_list, unnamed
+
+    def swap_actions(self, complete_actionlist, action1, action2):
+        """
+        Swaps two actions by name. Keeps nested items in place.
+        Typically used when swapping the direction of a 2D loop
+        """
+
+        all_names, _ = self.all_action_names(complete_actionlist)
+        for action in [action1, action2]:
+            if action not in all_names:
+                print("error: loop '{}' not in actionlist".format(action))
+        placeholder = {'name': '__placeholder_while_swapping_loops__'}
+        act1 = self._exchange_action(complete_actionlist, action1, placeholder)
+        act2 = self._exchange_action(complete_actionlist, action2, act1)
+        self._exchange_action(complete_actionlist, '__placeholder_while_swapping_loops__', act2)
+
+    def _exchange_action(self, actionlist, loopname, new_dict):
+        """
+        Exhanges dict with loopname for new_dict. But keeps original nested key if available.
+        Returns the original key (without nested key)
+        """
+        # for indx, act in enumerate(actionlist)  # DON'T use this here!
+        for indx in range(len(actionlist)):
+            act = actionlist[indx]
+            if 'nested' in act:
+                aux = self._exchange_action(act['nested'], loopname, new_dict)
+                if aux is not None:
+                    return aux
+            if act['name'] == loopname:
+                # replace with new dict
+                actionlist[indx] = new_dict
+                if 'nested' in act:
+                    # copy nested back into the dict
+                    actionlist[indx]['nested'] = act['nested']
+                    nested = act['nested']  # s
+                    # and remove it from act
+                    del act['nested']
+                    return act
+        return None
+
+    def perform_actionlist(self, actionlist):
+        # typically used on the whole list
+        # calls itself to perform sublist
+        for actiondict in actionlist:
+            actionname = actiondict['name']
+            # if a method is specified it overrules the default from actiontype
+            if 'method' in actiondict:
+                print('debug: using direct method {} for {}'.format(actiondict['method'], actionname))
+                method = getattr(self, actiondict['method'])
+            # get default values from actiontype, but don't overwrite existing values in actiondict
+            if 'type' in actiondict:
+                actiontype = actiondict['type']
+                if actiontype in actiontypes:
+                    for key, value in actiontypes[actiontype].items():
+                        if key not in actiondict:
+                            actiondict[key] = value
+                if 'method' not in actiondict:
+                    print(
+                        'error: actiontype {} does not specify method (and actiondict {} also does not specify method)'.format(
+                            actiontype))
+
+            if 'method' in actiondict:
+                method = getattr(self, actiondict['method'])
+                method(actiondict)
+            else:
+                print('warning in {}: actiondict requires either method or a type that contains a method'.format(
+                    actiondict['name']))
+
+
+
+       # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SMARTSCAN METHODS
+
+
+
+
+
     def load_config(self, filename):
         """Loads the configuration file to generate the properties of the Scan and Monitor.
 
@@ -53,6 +260,12 @@ class BaseExperiment():
 
         self.properties = d
         self.properties['config file'] = filename  # add to the class the name of the Config file used.
+
+        if 'ActionTypes' in self.properties:
+            self.actiontypes = self.properties['ActionTypes']
+        else:
+            self.logger.info('No ActionTypes specified in config file')
+            self.actiontypes = {}
 
     def finalize(self):
         """ Finalizing the experiment class """
