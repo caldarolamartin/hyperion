@@ -33,8 +33,12 @@ class Anc350Instrument(BaseInstrument):
         self.Frequency = np.zeros(3)
         self.Speed = np.zeros(3)
 
+        self.stop = False
+
         self.logger.info('1. welcome to the instrument of the Attocube')
         self.logger.debug('Creating the instance of the controller')
+
+        self.current_positions = {}
 
         self.initialize()
 
@@ -228,7 +232,10 @@ class Anc350Instrument(BaseInstrument):
             time.sleep(0.5)  # important not to put too short, otherwise it already starts asking before the guy even knows whether he moves
             while self.controller.getStatus(ax)['moving']:
                 self.logger.debug('status of controller: '+str(self.controller.getStatus(ax)['moving']))
-
+                if self.stop:
+                    self.logger.info('Stopping approaching')
+                    self.stop = False
+                    break
                 # for ii in range(5):
                 #     new_pos = self.controller.getPosition(ax)*ur('nm')
                 #     self.logger.info(axis + 'moving, currently at ' + str(round(new_pos.to('mm'),6)))

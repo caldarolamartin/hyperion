@@ -12,9 +12,12 @@ import logging
 import time
 from hyperion import ur
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from hyperion.instrument.position.anc_instrument import Anc350Instrument
 from hyperion.view.base_guis import BaseGui
+from hyperion.view.general_worker import WorkThread
 
 class Attocube_GUI(BaseGui):
     """
@@ -61,6 +64,12 @@ class Attocube_GUI(BaseGui):
 
         self.initUI()
 
+        # self.moving_thread =
+
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.show_position)
+        # self.timer.start(100)
+
 
     def initUI(self):
         """Connect all buttons, comboBoxes and doubleSpinBoxes to methods
@@ -85,9 +94,7 @@ class Attocube_GUI(BaseGui):
         self.gui.groupBox_moving.setEnabled(False)
         self.gui.groupBox_scanner.setEnabled(False)
 
-        self.gui.label_actualPositionX.setText(str(self.current_positionX))
-        self.gui.label_actualPositionY.setText(str(self.current_positionY))
-        self.gui.label_actualPositionZ.setText(str(self.current_positionZ))
+        self.show_position()
 
         self.pushButton_stop.setStyleSheet("background-color: red")
         self.gui.groupBox_XY.setEnabled(True)
@@ -151,9 +158,14 @@ class Attocube_GUI(BaseGui):
         self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_value('Y','dc'))
         self.gui.doubleSpinBox_scannerZ.valueChanged.connect(lambda: self.set_value('Z','dc'))
 
-    def show_position(self, axis):
+    def show_position(self):
         "Would be nice if this function would keep the position updated"
-        pass
+        self.current_positionX = round(self.anc350_instrument.controller.getPosition(0)*ur('nm').to('mm'),6)
+        self.current_positionY = round(self.anc350_instrument.controller.getPosition(2)*ur('nm').to('mm'),6)
+        self.current_positionZ = round(self.anc350_instrument.controller.getPosition(1)*ur('nm').to('mm'),6)
+        self.gui.label_actualPositionX.setText(str(self.current_positionX))
+        self.gui.label_actualPositionY.setText(str(self.current_positionY))
+        self.gui.label_actualPositionZ.setText(str(self.current_positionZ))
 
     def update_gui(self):
         "Would be nice if this method would keep the gui updated"
@@ -291,7 +303,7 @@ class Attocube_GUI(BaseGui):
         if local_distance > self.max_distance:
             self.logger.debug('value too high')
             local_max = self.max_distance.to(unit)
-            self.logger.debug(local_max)
+            self.logger.debug(str(local_max))
             self.gui.doubleSpinBox_distance.setValue(local_max.m_as(unit))
         elif local_distance < 0:
             self.logger.debug('value too low')
@@ -317,6 +329,8 @@ class Attocube_GUI(BaseGui):
         self.gui.groupBox_moving.setStyleSheet("QGroupBox#ColoredGroupBox {border: 1px solid blue;}")
 
         self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
+
+        self.get_move()
 
 
     def move_scanner(self, axis):
@@ -447,7 +461,8 @@ class Attocube_GUI(BaseGui):
             local_distance = ur(str(distance) + unit)
             self.logger.debug('to position: ' + str(local_distance))
 
-            self.anc350_instrument.move_to(axis_string, local_distance)
+            self.moving_thread = WorkThread(self.anc350_instrument.move_to,axis_string, local_distance)
+            self.moving_thread.start()
 
         elif self.current_move == 'move relative':
             # combine the spinbox and unit combobox user input to a pint quantity
@@ -501,9 +516,12 @@ class Attocube_GUI(BaseGui):
         | **Does not work yet, since there are not threads**
         """
         self.logger.info('stop moving')
+        self.anc350_instrument.stop = True
         self.anc350_instrument.stop_moving('XPiezoStepper')
         self.anc350_instrument.stop_moving('YPiezoStepper')
         self.anc350_instrument.stop_moving('ZPiezoStepper')
+
+        self.anc350_instrument.stop = False
 
 
 
