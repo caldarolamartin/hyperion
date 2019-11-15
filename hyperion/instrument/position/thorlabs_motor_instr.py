@@ -33,34 +33,45 @@ class Thorlabsmotor(BaseInstrument):
         self._mode = 0
         self.logger.info('Initializing Thorlabs motor settings: {}'.format(settings))
 
+        self.settings = settings
         self.aptmotorlist = []
-        self._name = settings['name']
+        self._name = self.settings['name']
         self.kind_of_device = 'stage'
 
 
     def initialize(self):
-        """| Asks some useful information to the T-cube.
-        | Blinks the light to identify the T-cube.
-        | Runs get_axis_info, which will figure out whether you are connected to a waveplate or stage motor.
+        """Initializes the cube:
+            - checks whether the serial number is recognized by the cube
+            - runs list_device to check whether this serial number actually exists in all connected T-cubes
+            - asks the harware info just in case
+            - blinks the light to identify the T-cube
+            - runs get_axis_info, which will figure out whether you are connected to a waveplate or stage motor
         """
+        self.logger.info('Initializing your {} and checking some basic things.'.format(self._name))
+
         self.logger.debug('serial number of {}: {}'.format(self._name, self.controller.serial_number))
 
-        self.logger.debug('hardware info: {}'.format(self.controller.hardware_info))
-        self.controller.identify
-
-        self.get_axis_info()
+        if self.list_devices():
+            if self.controller.serial_number is not self.settings['serial']:
+                self.logger.warning('Something is seriously wrong with serial numbers!')
+            else:
+                self.logger.debug('hardware info: {}'.format(self.controller.hardware_info))
+                self.controller.identify
+                self.get_axis_info()
+        else:
+            self.logger.error('Your serial number does not exist in this whole thorlabs device.')
 
     def finalize(self):
         """ This would have been to close connection to the device, but that method does not exist in the core controller.
         """
-        self.logger.info('Should close connection to T-cube: {}'.format(self._name))
+        self.logger.info('Should close connection to cube: {}'.format(self._name))
 
 
     def get_axis_info(self):
         """ | **Important** returns axis information of stage.
         | If units = 1, the units are in mm and the device is a stage motor.
         | If units = 2, the units are in degrees and the device is a motorized waveplate.
-        | Store this in self.kind_of_device.
+        | Store this in self.kind_of_device, so the rest of this class knows.
 
         :return: (minimum position, maximum position, stage units, pitch)
         :rtype: tuple
@@ -77,7 +88,7 @@ class Thorlabsmotor(BaseInstrument):
         return (min_pos, max_pos, units, pitch)
 
     def position(self):
-        """| Asks the position to the controller. Both returns it and stores it in self.pos.
+        """| Asks the position to the controller and returns that.
         | Units depend on the kind of device; either mm or degrees.
 
         :return: position in mm or degrees
@@ -88,12 +99,10 @@ class Thorlabsmotor(BaseInstrument):
             pos = pos*ur('degrees')
         elif self.kind_of_device == 'stage':
             pos = pos*ur('mm')
-
-        self.logger.info('Current position of {} is {}'.format(self._name, pos))
         return pos
 
     def is_in_motion(self):
-        """Returns whether thorlabs motor is in motion, and prints a warning.
+        """Returns whether thorlabs motor is in motion, and prints a warning if so.
 
         :return: in motion
         :rtype: bool
@@ -105,7 +114,7 @@ class Thorlabsmotor(BaseInstrument):
 
     def motor_current_limit_reached(self):
         """
-        Return whether current limit of thorlabs_motor has been reached, and prints a warning.
+        Return whether current limit of thorlabs_motor has been reached, and prints a warning if so.
 
         :return: current limit reached
         :rtype: bool
@@ -117,7 +126,7 @@ class Thorlabsmotor(BaseInstrument):
 
     def motion_error(self):
         """
-        Returns whether there is a motion error (= excessing position error), and prints a warning.
+        Returns whether there is a motion error (= excessing position error), and prints a warning if so.
 
         :return: motion error
         :rtype: bool
@@ -128,7 +137,7 @@ class Thorlabsmotor(BaseInstrument):
         return motion_error
 
     def move_home(self, blocking):
-        """| Move to home position.
+        """| Moves to home position.
         | If blocking is True, it will move until its done.
         | If blocking is False, it might not reach its destination if you dont give it time.
 
@@ -141,10 +150,10 @@ class Thorlabsmotor(BaseInstrument):
             self.logger.debug('Destination of {} is reached: {}'.format(self._name, self.position()))
 
     def check_move(self, value):
-        """| Checks whether the units actually agree with the kind of device, so degrees for a waveplate or mm or so for a stage motor.
+        """| First checks whether there is no limit reached.
+        | Then checks whether the units actually agree with the kind of device, so degrees for a waveplate or a length for a stage motor.
         | Returns whether you can move, otherwise prints warnings.
-        | Return the value without units, removing either the degrees or the mm.
-        | The controller thinks in degrees and mm.
+        | Returns the units of the value, since the controller thinks in degrees and mm.
 
         :param value: distance or new position that you would want to move
         :type value: pint quantity
@@ -157,18 +166,18 @@ class Thorlabsmotor(BaseInstrument):
 
         self.logger.debug(self.kind_of_device)
 
-        if not self.motor_current_limit_reached():
+        if not self.motor_current_limit_reached():      #the current limit is not reached
             if self.kind_of_device == 'waveplate':
                 if value.check('[length]'):
                     self.logger.warning('You want to move a waveplate, but gave the distance in mm')
                 elif value.check('[]'):
-                    you_can_move = True
+                    you_can_move = True         #you move a waveplate and gave the value in degrees, so go ahead
                     unit = 'degree'
                 else:
                     self.logger.warning('You gave the distance in weird units')
             elif self.kind_of_device == 'stage':
                 if value.check('[length]'):
-                    you_can_move = True
+                    you_can_move = True         #you move a stage motor and give mm or another length, so go ahead
                     unit = 'mm'
                 elif value.check('[]'):
                     self.logger.warning('You want to move a stage motor, but gave the distance without units')
@@ -179,8 +188,8 @@ class Thorlabsmotor(BaseInstrument):
 
 
     def move_absolute(self, new_position, blocking):
-        """| Moves the T-cube to a new position, but first checks the units by calling check_units.
-        | The method check_units will already convert the pint quantity to a float correctly.
+        """| Moves the T-cube to a new position, but first checks the units by calling check_move.
+        | The method check_move will give back the correct units.
         | If blocking is True, it will move until its done.
         | If blocking is False, it might not reach its destination if you dont give it time.
 
@@ -190,14 +199,13 @@ class Thorlabsmotor(BaseInstrument):
         :param blocking:
         :type blocking: bool
         """
-        self.logger.debug('Trying to move {} to {}'.format(self._name, new_position))
         moved = False
 
         (you_can_move, unit) = self.check_move(new_position)
-
-        self.logger.debug("{} {}".format(you_can_move, new_position))
+        #self.logger.debug("{} {}".format(you_can_move, new_position))
 
         if you_can_move:
+            self.logger.debug('Moving {} to {}'.format(self._name, new_position))
             self.controller.move_to(new_position.m_as(unit), blocking)
             self.motion_error()
             moved = True
@@ -209,8 +217,8 @@ class Thorlabsmotor(BaseInstrument):
                 self.logger.debug('You did not move at all.')
 
     def move_relative(self, distance, blocking):
-        """| Moves the T-cube with a distance relative to the current one, but first checks the units by calling check_units.
-        | The method check_units will already convert the pint quantity to a float correctly.
+        """| Moves the T-cube with a distance relative to the current one, but first checks the units by calling check_move.
+        | The method check_move will give back the correct units.
         | If blocking is True, it will move until its done.
         | If blocking is False, it might not reach its destination if you dont give it time.
 
@@ -220,14 +228,12 @@ class Thorlabsmotor(BaseInstrument):
         :param blocking: wait until moving is finished; default False
         :type blocking: bool
         """
-        self.logger.info('Trying to move by {}'.format(distance))
-
         moved = False
 
         (you_can_move, unit) = self.check_move(distance)
 
         if you_can_move:
-            self.motor_current_limit_reached()
+            self.logger.info('Moving {} by {}'.format(self._name, distance))
             self.controller.move_by(distance.m_as(unit), blocking)
             self.motion_error()
             moved = True
@@ -239,8 +245,8 @@ class Thorlabsmotor(BaseInstrument):
                 self.logger.debug('You did not move at all.')
 
     def make_step(self, stepsize, blocking):
-        """| Moves the T-cube by one step of a stepsize
-        | Actually just uses move_relative
+        """| Moves the T-cube by one step of a stepsize.
+        | Actually just uses move_relative, but I thought maybe this method might be useful for a gui.
         | If blocking is True, it will move until its done.
         | If blocking is False, it might not reach its destination if you dont give it time.
 
@@ -250,43 +256,49 @@ class Thorlabsmotor(BaseInstrument):
         :param blocking: wait until moving is finished; default False
         :type blocking: bool
         """
-        self.logger.debug('Making one step of size {}'.format(stepsize))
+        self.logger.debug('{} is making one step of size {}'.format(self._name, stepsize))
         self.move_relative(stepsize,blocking)
 
     def stop_moving(self):
         """| Stop motor but turn down velocity slowly (profiled).
         | **Pay attention: not tested yet**
         """
-        self.logger.info('Stops with moving.')
+        self.logger.info('{} stops with moving.'.format(self._name))
         self.controller.stop_profiled()
 
 #-----------------------------------------------------------------------------------------------------------------------
     def list_devices(self):
         """ | Lists all available devices.
-        | It actually should live outside of this class, since it talks to all Thorlabs motors attached, not a single one.
+        | It actually maybe should live outside of this class, since it talks to all Thorlabs motors attached, not a single one.
         | However, I could not make that work, so now I kept it here.
+        | It also runs through the list now and checks whether the serial of the T-cube that you want to talk to, exists in the list.
         """
         self.aptmotorlist = self.controller.core.list_available_devices()
         self.logger.info('{} thorlabs_motor boxes found: {}'.format(len(self.aptmotorlist),self.aptmotorlist))
 
+        found = False
+        for ii in range(len(self.aptmotorlist)):
+            if self.settings['serial'] in self.aptmotorlist[ii]:
+                found = True
+
+        return found
 
 
 if __name__ == "__main__":
     import hyperion
 
-    xMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83841160, 'name': 'xMotor'}
+    xMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850129, 'name': 'xMotor'}
 
     yMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube', 'serial': 83850123, 'name': 'yMotor'}
 
     WaveplateMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850090, 'name': 'Waveplate'}
 
     with Thorlabsmotor(settings = xMotor) as sampleX, Thorlabsmotor(settings = WaveplateMotor) as waveplate:
-        sampleX.list_devices()
-
+        sampleX = Thorlabsmotor(settings = xMotor)
         sampleX.initialize()
         sampleX.position()
 
-        sampleX.move_relative(1*ur('mm'),True)
+        sampleX.move_relative(-1*ur('mm'),True)
 
         # sampleY.motor_current_limit_reached()
         # sampleY.initialize()
