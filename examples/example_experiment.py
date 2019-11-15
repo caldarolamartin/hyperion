@@ -15,7 +15,7 @@ import winsound
 from time import sleep
 # from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
-
+from hyperion.tools.array_tools import *
 
 class ExampleExperiment(BaseExperiment):
     """ Example class with basic functions """
@@ -97,53 +97,113 @@ class ExampleExperiment(BaseExperiment):
         # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
         # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
 
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+    def image(self, actiondict, nesting):
+        print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
+        nesting()
+        data = np.array([[0,1],[2,3]])
+        return data
+
+    def image_modified(self, actiondict, nesting):
+        print('image: ',actiondict['Name'])
+        nesting()
+
+    def spectrum(self, actiondict, nesting):
+        print('spectrum: ',actiondict['Name'])
+        nesting()
+
+    def spectrum_modified(self, actiondict, nesting):
+        print('spectrum: ',actiondict['Name'])
+        nesting()
+
+    def histogram(self, actiondict, nesting):
+        print('histogram: ',actiondict['Name'])
+        nesting()
+
+    def sweep_atto(self, actiondict, nesting):
+        print('sweep_atto: ',actiondict['Name'])
+        arr, unit = array_from_settings_dict(actiondict)
+        for s in arr:
+            print(actiondict['axis'],' : ', s)
+            nesting(s)
 
 if __name__ == '__main__':
 
     # For the new of logging: import hyperion
     import hyperion
+    import yaml
 
     # That will be enough for default logging, but if you want to change level or the location of the file:
     hyperion.stream_logger.setLevel( logging.WARNING )          # To change logging level on the console
     # hyperion.file_logger.setLevel( logging.INFO )             # To change logging level in the file (default is DEBUG)
     # hyperion.set_logfile('my_new_file_path_and_name.log')     # To change the logging file (default is DEBUG)
 
-    with ExampleExperiment() as e:
+    # with ExampleExperiment() as e:
+    #
+    #     name = 'second_example_experiment_config_'
+    #     config_folder = os.path.dirname(os.path.abspath(__file__))
+    #     config_file = os.path.join(config_folder, name)
+    #
+    #     print('Using the config file: {}.yml'.format(config_file))
+    #     e.load_config(config_file + '.yml')
+    #
+    #     # read properties just loaded
+    #     print('\n {} \n'.format(e.properties))
+    #
+    #     #  remember you can change these values directly here
+    #     #e.properties['Scan']['start'] = '0.5V'
+    #
+    #
+    #     # # Initialize devices
+    #     print('\n-------------- LOADING DEVICES ----------------\n')
+    #     e.load_instruments()
+    #     print(e.instruments_instances.keys())
+    #     print('-------------- DONE LOADING DEVICES ----------------')
+    #     #
+    #
+    #     # save metadata
+    #
+    #     #e.save_scan_metadata()
+    #     #e.save_scan_metadata()
+    #     #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
+    #     # perform scan
+    #     # e.set_scan()
+    #     # e.do_scan()
+    #     # e.make_sound()
+    #
+    #     # # save data
+    #     # e.save_scan_data()
 
-        name = 'second_example_experiment_config_'
-        config_folder = os.path.dirname(os.path.abspath(__file__))
-        config_file = os.path.join(config_folder, name)
 
-        print('Using the config file: {}.yml'.format(config_file))
-        e.load_config(config_file + '.yml')
+    e = ExampleExperiment()
 
-        # read properties just loaded
-        print('\n {} \n'.format(e.properties))
+    name = 'example_experiment_config_smartscan.yml'
+    config_folder = os.path.dirname(os.path.abspath(__file__))
+    config_file = os.path.join(config_folder, name)
 
-        #  remember you can change these values directly here
-        #e.properties['Scan']['start'] = '0.5V'
+    print('Using the config file: {}'.format(config_file))
+    e.load_config(config_file)
+
+    # read properties just loaded
+    print('\n {} \n'.format(e.properties))
+
+    #  remember you can change these values directly here
+    #e.properties['Scan']['start'] = '0.5V'
 
 
-        # # Initialize devices
-        print('\n-------------- LOADING DEVICES ----------------\n')
-        e.load_instruments()
-        print(e.instruments_instances.keys())
-        print('-------------- DONE LOADING DEVICES ----------------')
-        #
+    # # Initialize devices
+    print('\n-------------- LOADING DEVICES ----------------\n')
+    e.load_instruments()
+    print(e.instruments_instances.keys())
+    print('-------------- DONE LOADING DEVICES ----------------')
+    #
 
-        # save metadata
-
-        #e.save_scan_metadata()
-        #e.save_scan_metadata()
-        #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
-        # perform scan
-        # e.set_scan()
-        # e.do_scan()
-        e.make_sound()
-
-        # # save data
-        # e.save_scan_data()
+    #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
+    e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
+    e.perform_measurement(e.properties['Measurements']['Measurement A'])
+    # save metadata
+    # print(yaml.dump(e.properties['Measurements']['Measurement A']))
 
 
     print('--------------------- DONE with the experiment')
