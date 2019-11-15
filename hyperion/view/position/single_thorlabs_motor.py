@@ -11,11 +11,12 @@ import sys
 from PyQt5.QtWidgets import *
 from hyperion.instrument.position.thorlabs_motor_instr import Thorlabsmotor
 from hyperion.view.general_worker import WorkThread
+from hyperion.view.base_guis import BaseGui
 from hyperion import ur
 from pynput.keyboard import Listener
 import logging
 
-class Thorlabs_motor_GUI(QWidget):
+class Thorlabs_motor_GUI(BaseGui):
     """
     | The initialization of the single_thorlabs gui.
     | Serial number and name are in the settings given underneath, so thorlabs_instrument knows them.
@@ -242,7 +243,7 @@ if __name__ == '__main__':
 
     WaveplateMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850090, 'name': 'Waveplate'}
 
-    with Thorlabsmotor(settings = WaveplateMotor) as thorlabs_instrument:
+    with Thorlabsmotor(settings = xMotor) as thorlabs_instrument:
 
         app = QApplication(sys.argv)
         ex = Thorlabs_motor_GUI(thorlabs_instrument)

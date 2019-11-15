@@ -20,8 +20,6 @@ python example code
     # >>> motorx.move_relative(10)
 """
 
-
-
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion.experiment.base_experiment import BaseExperiment
