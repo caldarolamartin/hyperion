@@ -113,6 +113,9 @@ if __name__ == "__main__":
         print('velocity parameters: {}'.format(dev.get_velocity_parameters()))
         print('velocity parameters: {}'.format(dev.get_velocity_parameter_limits()))
 
+        print('motor parameters {}'.format(dev.get_motor_parameters()))
+
+
         axis_info = dev.get_stage_axis_info()
         print('axis info: {}'.format(axis_info))
         if axis_info[1] > 359.0:
@@ -125,16 +128,16 @@ if __name__ == "__main__":
             print('connected kind of thorlabs device is unclear, max range: {}'.format(axis_info[1]))
             unit = '?'
 
-        dev.move_to(5.0,True)
-        print('position: {} {}'.format(dev.position,unit))
-        while dev.is_in_motion:
-            time.sleep(0.1)
-            print('is moving? {}'.format(dev.is_in_motion))
-
-        print('position: {} {}'.format(dev.position, unit))
-
-        dev.move_by(1.0, True)
-        print('position: {} {}'.format(dev.position,unit))
+        # dev.move_to(5.0,True)
+        # print('position: {} {}'.format(dev.position,unit))
+        # while dev.is_in_motion:
+        #     time.sleep(0.1)
+        #     print('is moving? {}'.format(dev.is_in_motion))
+        #
+        # print('position: {} {}'.format(dev.position, unit))
+        #
+        # dev.move_by(1.0, True)
+        # print('position: {} {}'.format(dev.position,unit))
 
         # dev.move_home(False)
         # time.sleep(1)

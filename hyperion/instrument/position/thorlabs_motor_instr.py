@@ -260,9 +260,6 @@ class Thorlabsmotor(BaseInstrument):
         """
         self.logger.debug('{} is making one step of size {}'.format(self._name, stepsize))
 
-
-
-
     def stop_moving(self):
         """| Stop motor but turn down velocity slowly (profiled).
         | **Pay attention: not tested yet**
