@@ -101,7 +101,7 @@ class ExampleExperiment(BaseExperiment):
 
     def image(self, actiondict, nesting):
         print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
-        #nesting()
+        nesting()
         data = np.array([[0,1],[2,3]])
         return data
 
