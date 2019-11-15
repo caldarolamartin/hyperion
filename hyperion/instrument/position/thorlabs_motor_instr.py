@@ -38,6 +38,8 @@ class Thorlabsmotor(BaseInstrument):
         self._name = self.settings['name']
         self.kind_of_device = 'stage'
 
+        self.initialize()
+
 
     def initialize(self):
         """Initializes the cube:
@@ -144,7 +146,7 @@ class Thorlabsmotor(BaseInstrument):
         :param blocking: wait until homed
         :type blocking: bool
         """
-        self.logger.info('Trying to move {} home.'.format(self._name))
+        self.logger.info('Moving {} home.'.format(self._name))
         self.controller.move_home(blocking)
         if not self.is_in_motion():
             self.logger.debug('Destination of {} is reached: {}'.format(self._name, self.position()))
@@ -257,7 +259,9 @@ class Thorlabsmotor(BaseInstrument):
         :type blocking: bool
         """
         self.logger.debug('{} is making one step of size {}'.format(self._name, stepsize))
-        self.move_relative(stepsize,blocking)
+
+
+
 
     def stop_moving(self):
         """| Stop motor but turn down velocity slowly (profiled).
@@ -294,20 +298,15 @@ if __name__ == "__main__":
     WaveplateMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850090, 'name': 'Waveplate'}
 
     with Thorlabsmotor(settings = xMotor) as sampleX, Thorlabsmotor(settings = WaveplateMotor) as waveplate:
-        sampleX = Thorlabsmotor(settings = xMotor)
-        sampleX.initialize()
         sampleX.position()
 
         sampleX.move_relative(-1*ur('mm'),True)
 
-        # sampleY.motor_current_limit_reached()
-        # sampleY.initialize()
         # sampleY.position()
         #
         # sampleY.move_relative(1*ur('mm'),True)
         # sampleY.position()
 
-        waveplate.initialize()
         waveplate.position()
 
         waveplate.move_absolute(30*ur('degree'),True)

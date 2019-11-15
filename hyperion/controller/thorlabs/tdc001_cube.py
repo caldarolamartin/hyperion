@@ -142,16 +142,3 @@ if __name__ == "__main__":
         #
         # dev.stop_profiled()
         # print('position: {} {}'.format(dev.position,unit))
-
-
-
-            #if motor[1] == 83850111:
-            # dev.core.initialize(motor[1])
-            # dev.core.idn()
-            # print(dev.core.get_stage_axis_info())
-            # #dev.move_to(0)
-            # print(dev.core.position)
-            # dev.core.finalize()
-            # print("-"*40)
-
-    # sys.exit()
