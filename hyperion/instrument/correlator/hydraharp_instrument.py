@@ -203,10 +203,7 @@ class HydraInstrument(BaseInstrument):
         self.controller.finalize()
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                  logging.StreamHandler()])
+    import hyperion
 
     with HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
                                    'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as q:

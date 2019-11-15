@@ -508,10 +508,7 @@ class Attocube_GUI(QWidget):
 
 
 if __name__ == '__main__':
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-        handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
-                  logging.StreamHandler()])
+    import hyperion
 
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as anc350_instrument:
         app = QApplication(sys.argv)
