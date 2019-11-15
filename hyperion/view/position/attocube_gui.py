@@ -14,8 +14,9 @@ from hyperion import ur
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QWidget
 from hyperion.instrument.position.anc_instrument import Anc350Instrument
+from hyperion.view.base_guis import BaseGui
 
-class Attocube_GUI(QWidget):
+class Attocube_GUI(BaseGui):
     """
     Attocube piezo GUI for the instrument
 

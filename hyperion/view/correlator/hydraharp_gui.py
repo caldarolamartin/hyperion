@@ -15,13 +15,14 @@ from PyQt5.QtWidgets import *
     #QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout,QFileDialog
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion.view.general_worker import WorkThread
+from hyperion.view.base_guis import BaseGui
 from hyperion import ur, root_dir
 import pyqtgraph as pg
 import pyqtgraph.exporters
 import logging
 import numpy as np
 
-class Hydraharp_GUI(QWidget):
+class Hydraharp_GUI(BaseGui):
     """
     GUI class for the Hydraharp correlator instrument
 
