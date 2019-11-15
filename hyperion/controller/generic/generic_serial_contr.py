@@ -342,13 +342,7 @@ class GenericSerialControllerDummy(GenericSerialController):
         return wrapper
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.WARNING, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    import hyperion
 
     dummy = False  # change this to False to work with the real device in the COM specified below.
 

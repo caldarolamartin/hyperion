@@ -878,8 +878,6 @@ class WinspecInstr(BaseInstrument):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-#   from hyperion import Q_
     import hyperion
 
 #    hyperion.set_logfile('winspec_instr.log')

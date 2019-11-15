@@ -54,7 +54,7 @@ This code assumes that the following files are stored in this folder (hyperion/c
 - anc350v2.lib
 - libusb0.dll
 
-And the calibration files:
+And the (actor) calibration files:
 
 - ANPx101-A3-1079.aps
 - ANPx101-A3-1087.aps
@@ -811,15 +811,9 @@ def debitmask(input_int,num_bits = False):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
     import hyperion
 
     import time
-
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
 
     with Anc350() as anc:
         anc.initialize()
