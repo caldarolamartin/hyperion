@@ -15,7 +15,7 @@ import winsound
 from time import sleep
 # from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
-
+from hyperion.tools.array_tools import *
 
 class ExampleExperiment(BaseExperiment):
     """ Example class with basic functions """
@@ -97,12 +97,42 @@ class ExampleExperiment(BaseExperiment):
         # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
         # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
 
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+    def image(self, actiondict, nesting):
+        print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
+        #nesting()
+        data = np.array([[0,1],[2,3]])
+        return data
+
+    def image_modified(self, actiondict, nesting):
+        print('image: ',actiondict['Name'])
+        nesting()
+
+    def spectrum(self, actiondict, nesting):
+        print('spectrum: ',actiondict['Name'])
+        nesting()
+
+    def spectrum_modified(self, actiondict, nesting):
+        print('spectrum: ',actiondict['Name'])
+        nesting()
+
+    def histogram(self, actiondict, nesting):
+        print('histogram: ',actiondict['Name'])
+        nesting()
+
+    def sweep_atto(self, actiondict, nesting):
+        print('sweep_atto: ',actiondict['Name'])
+        arr, unit = array_from_settings_dict(actiondict)
+        for s in arr:
+            print(actiondict['axis'],' : ', s)
+            nesting(s)
 
 if __name__ == '__main__':
 
     # For the new of logging: import hyperion
     import hyperion
+    import yaml
 
     # That will be enough for default logging, but if you want to change level or the location of the file:
     hyperion.stream_logger.setLevel( logging.WARNING )          # To change logging level on the console
@@ -169,8 +199,11 @@ if __name__ == '__main__':
     print('-------------- DONE LOADING DEVICES ----------------')
     #
 
+    #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
+    e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
+    e.perform_measurement(e.properties['Measurements']['Measurement A'])
     # save metadata
-
+    # print(yaml.dump(e.properties['Measurements']['Measurement A']))
 
 
     print('--------------------- DONE with the experiment')

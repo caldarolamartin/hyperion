@@ -229,7 +229,7 @@ ActionTypes:        # dictionary
     exposuretime: 1
   spectrum:
     exposuretime: 2
-    _method: spctrum
+    _method: spectrum
     _ui: spectrum.ui
 
 
