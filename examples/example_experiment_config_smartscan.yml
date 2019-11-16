@@ -222,6 +222,9 @@ ActionTypes:        # dictionary
   histogram:
     _method: histogram
     _ui: histogram.ui
+    _show: False    # ideas for more possible settings
+    _store: True    # ideas for more possible settings
+    _plot: False    # ideas for more possible settings
     exposuretime: 3
   image:
     _method: image
