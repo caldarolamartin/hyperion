@@ -91,26 +91,14 @@ class ExampleController(BaseController):
         :getter:
         :return: amplitude value in Volts
         :rtype: float
-
-        For example, to use the getter you can do the following
-
-        >>> with DummyOutputController() as dev:
-        >>>    dev.initialize('COM10')
-        >>>    dev.amplitude
-        1
-
         :setter:
         :param value: value for the amplitude to set in Volts
         :type value: float
 
+        For example, to use the getter you can do the following
+        ampl = this_controller.amplitude
         For example, using the setter looks like this:
-
-        >>> with DummyOutputController() as dev:
-        >>>    dev.initialize('COM10')
-        >>>    dev.amplitude = 5
-        >>>    dev.amplitude
-        5
-
+        this_controller.amplitude = 5
 
         """
         self.logger.debug('Getting the amplitude.')
