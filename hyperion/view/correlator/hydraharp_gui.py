@@ -3,8 +3,7 @@
 Hydraharp GUI
 =============
 
-This is to build a gui for the instrument correlator correlator.
-
+This is to build a gui for the hydraharp instrument (correlator).
 
 """
 
@@ -51,6 +50,7 @@ class Hydraharp_GUI(BaseGui):
         self.resolution = 1.0*ur('ps')
         self.integration_time = 20 * ur('s')
         self.channel = '0'
+        self.remaining_time = self.integration_time     #which also makes sure that the units are the same
 
         self.max_time = 24*ur('hour')
         self.max_length = 65536
@@ -58,12 +58,11 @@ class Hydraharp_GUI(BaseGui):
         self.endtime = []
         self.time_axis = []
 
-        self.remaining_time = 0*ur('s')
         self.hydra_instrument.configurate()
 
         self.initUI()
 
-        #This one is to continuously (= every 100ms) show the position of the axes
+        #This one is to continuously (= every 100ms) show the remaining time
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_remaining_time)
         self.timer.start(100)       #time in ms
@@ -81,11 +80,11 @@ class Hydraharp_GUI(BaseGui):
 
         #self.setPalette(p)
 
+        self.show()
+
         self.make_buttons()
         self.make_labels()
         self.make_textfields()
-
-        self.show()
 
     def make_buttons(self):
         self.make_save_histogram_button()
@@ -97,12 +96,10 @@ class Hydraharp_GUI(BaseGui):
         self.make_integration_time_label()
         self.make_channel_label()
         self.make_export_label()
-        self.make_remaining_time_label()
         self.make_showing_remaining_time()
         self.make_time_axis_label()
         self.make_endtime()
-        #self.make_progress_label()
-
+        self.make_progressbar()
     def make_textfields(self):
         self.make_array_length_spinbox()
         self.make_resolution_spinbox()
@@ -110,6 +107,7 @@ class Hydraharp_GUI(BaseGui):
         self.make_time_unit_combobox()
         self.make_channel_combobox()
         self.make_export_textfield()
+        self.show_remaining_time()
 
     # ------------------------------------------------------------------------------------
     def make_save_histogram_button(self):
@@ -129,6 +127,7 @@ class Hydraharp_GUI(BaseGui):
         self.stop_histogram_button.setToolTip(('stop your histogram'))
         self.stop_histogram_button.clicked.connect(self.stop_histogram)
         self.grid_layout.addWidget(self.stop_histogram_button, 1, 4)
+        self.stop_histogram_button.setStyleSheet("background-color: red")
     def make_array_length_label(self):
         self.array_length_label = QLabel(self)
         self.array_length_label.setText("Array length: ")
@@ -149,14 +148,17 @@ class Hydraharp_GUI(BaseGui):
         self.export_label = QLabel(self)
         self.export_label.setText("Export file: ")
         self.grid_layout.addWidget(self.export_label, 5, 0)
-    def make_remaining_time_label(self):
-        self.remaining_time_label = QLabel(self)
-        self.remaining_time_label.setText("Remaining time:\n")
-        self.grid_layout.addWidget(self.remaining_time_label, 2, 4)
     def make_showing_remaining_time(self):
         self.showing_remaining_time = QLabel(self)
         self.showing_remaining_time.setText(str(self.remaining_time))
         self.grid_layout.addWidget(self.showing_remaining_time, 3, 4)
+    def make_progressbar(self):
+        self.progressbar = QProgressBar(self)
+        self.progressbar.setMaximum(int(self.integration_time.magnitude))
+        self.progressbar.setValue(int(self.remaining_time.magnitude))
+        self.progressbar.setTextVisible(False)
+        self.progressbar.valueChanged.connect(lambda: self.show_remaining_time)
+        self.grid_layout.addWidget(self.progressbar, 4,4)
     def make_time_axis_label(self):
         self.time_axis_label = QLabel(self)
         self.time_axis_label.setText("Time on axis: ")
@@ -210,13 +212,18 @@ class Hydraharp_GUI(BaseGui):
 
     #------------------------------------------------------------------------------------
     def show_remaining_time(self):
+        """| This method asks the remaining time from the instrument level,
+        | and calculates the progress, so both can be displayed.
+        """
         self.remaining_time = self.hydra_instrument.remaining_time
         self.showing_remaining_time.setText(str(self.remaining_time))
 
+        self.progressbar.setMaximum(int(self.integration_time.magnitude))
+        self.progressbar.setValue(int(self.remaining_time.magnitude))
 
     # ------------------------------------------------------------------------------------
     def set_channel(self):
-        """ This method sets the channel that the user puts, and remembers the string in the init in self.channel
+        """ This method sets the channel that the user puts, and remembers the string in the init in self.channel.
         """
         self.logger.info('setting the channel')
 
@@ -225,8 +232,8 @@ class Hydraharp_GUI(BaseGui):
 
     def set_array_length(self):
         """| This method sets the array length that the user puts,
-        | and remembers the int in the init in self.array_length
-        | It compares it to a max and min value
+        | and remembers the int in the init in self.array_length.
+        | It compares it to a max and min value.
         """
         self.logger.info('setting the array length')
         self.logger.warning('are you sure you want to change this value?')
@@ -242,9 +249,9 @@ class Hydraharp_GUI(BaseGui):
         self.array_length = int(self.sender().value())
 
     def set_integration_time(self):
-        """|  This method combines the integration time that the user puts in the spinbox with the unit in the combobox
-        | and remembers the pint quantity in the init in self.integration_time
-        | It compares it to a max (24 hours) and min (1 s) value
+        """|  This method combines the integration time that the user puts in the spinbox with the unit in the combobox,
+        | and remembers the pint quantity in the init in self.integration_time.
+        | It compares it to a max (24 hours) and min (1 s) value.
         """
         self.logger.info('setting the integration time')
 
@@ -270,9 +277,9 @@ class Hydraharp_GUI(BaseGui):
 
 
     def set_resolution(self):
-        """| This method tries to take the user input and only allow resolutions from 2^n, where n = 1 to 20
-        | It doesnt work very well though
-        | The resolution is remembered in the init in self.resolution
+        """| This method tries to take the user input and only allow resolutions from 2^n, where n = 1 to 20.
+        | It doesnt work very well though.
+        | The resolution is remembered in the init in self.resolution.
         """
         self.logger.info('setting the resolution')
 
@@ -304,6 +311,9 @@ class Hydraharp_GUI(BaseGui):
         self.logger.debug(str(self.sender().value()))
 
     def calculate_axis(self):
+        """| This method calculates the axis that should be put on the graph.
+        | **Unused**, because I dont know how to communicate with the graph class.
+        """
         self.endtime = round(self.resolution.m_as('ns')*self.array_length*ur('s'),4)
 
         if self.endtime.m_as('s') < 60:  # below one minute, display in seconds
@@ -321,45 +331,46 @@ class Hydraharp_GUI(BaseGui):
 
     #------------------------------------------------------------------------------------
     def take_histogram(self):
-        """| In this method there will be made a histogram using the input of the user
-        | All user input were stored previously in the init
-        | To set(a method to clear the data from the previous histogram)the length of the array is needed and
-        | the resolution in picoseconds(ps). The histogram gets made by make_histogram using the integration time(how long
-        | does your measurement need to take?) and the channel on which to measure.
-        | The data gets plot in the DrawHistogram plot(self.draw.random_plot.plot())
+        """| In this method there will be made a histogram using the input of the user.
+        | All user inputs were stored previously in the values as declared in the init
+        | (histogram length, resolution, integration time and channel).
+        | A thread is started to be able to also stop the histogram taking.
+        | The data gets plot in the DrawHistogram plot(self.draw.random_plot.plot()).
         """
         self.logger.info("Take the histrogram")
 
         self.show_remaining_time()
 
         #first, set the array length and resolution of the histogram
-
         self.logger.debug('chosen histogram length: ' + str(self.array_length))
         self.logger.debug('chosen resolution: ' + str(self.resolution))
 
         self.hydra_instrument.set_histogram(self.array_length, self.resolution)
 
-        #self.make_progress_label(str(self.hydra_instrument.prepare_to_take_histogram(tijd)))
-
-        # needs count_channel(0 or 1)
+        #Then, start the histogram + thread
         self.logger.debug('chosen integration time: ' + str(self.integration_time))
         self.logger.debug('chosen channel: ' + str(self.channel))
 
-        # self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
-        # self.histogram_thread.start()
+        self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
+        self.histogram_thread.start()
 
-        self.histogram= self.hydra_instrument.make_histogram(self.integration_time, self.channel)
+        self.histogram = self.hydra_instrument.hist
+
+        while self.hydra_instrument.hist_ended == False:
+            self.take_histogram_button.setEnabled(False)
+
+        #self.histogram= self.hydra_instrument.make_histogram(self.integration_time, self.channel)
 
         self.draw.random_plot.plot(self.histogram, clear=True)
 
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
+        self.take_histogram_button.setEnabled(True)
         #self.make_progress_label("Done, the histogram has been made")
 
     def save_histogram(self):
-        """
-        In this method the made histogram gets saved.
-        This is done with pyqtgraph.exporters. The widht and height can be set of the picture below.
+        """| In this method the made histogram gets saved.
+        | This is done with pyqtgraph.exporters. The width and height can be set of the picture below.
         """
         self.logger.info('saving the histogram')
         try:
@@ -377,10 +388,9 @@ class Hydraharp_GUI(BaseGui):
 
 
     def actually_save_histogram(self, exporter):
-        """
-        In this method it is defined what the file_name is via checking if
-        there is text in the export textfield. If there is none, than a file_chooser will be
-        used to have a location where the .png's will be saved.
+        """|  In this method it is defined what the file_name is via checking if there is text in the export textfield.
+        |If there is none, than a file_chooser will be used to have a location where the .png's will be saved.
+
         :param exporter: A exporter object with which you can save data
         :type pyqtgraph.exporter, doesn't say that much, I know
         """
@@ -394,13 +404,12 @@ class Hydraharp_GUI(BaseGui):
             #a file chooser will be used
             file_name = self.get_file_path_via_filechooser()
             exporter.export(file_name)
-        self.make_progress_label.setText("The histogram has been saved at: \n" + str(file_name))
+        #self.make_progress_label.setText("The histogram has been saved at: \n" + str(file_name))
 
     def get_file_path_via_filechooser(self):
-        """
-        This is code plucked from the internet...so I have no clou what is happening and
-        that is fine really. If the code breaks, go to: https://pythonspot.com/pyqt5-file-dialog/
-        It is where I got the code from.
+        """| This is code plucked from the internet...so I have no clou what is happening and that is fine really.
+        | If the code breaks, go to: https://pythonspot.com/pyqt5-file-dialog/
+
         :return: the filepath, .png needs to be attached in order to save the picture as a...picture
         :rtype string
         """
@@ -411,11 +420,16 @@ class Hydraharp_GUI(BaseGui):
         return fileName + ".png"
 
     def stop_histogram(self):
+        """| Here the self.hydra_instrument.stop is set to True, which means the while loop in the instrument breaks.
+        | Afterwards, the hydraharp itself is actually set to stop.
+        | To avoid errors, it is important to quit the thread.
+        """
         self.logger.info('Histogram should stop here')
         self.hydra_instrument.stop = True
         self.hydra_instrument.stop_histogram()
 
         if self.histogram_thread.isRunning:
+            self.logger.debug('histogram thread was running')
             self.histogram_thread.quit()
 
         self.hydra_instrument.stop = False
