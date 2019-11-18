@@ -35,6 +35,7 @@ class HydraInstrument(BaseInstrument):
         self.hist = []
         self.initialize()
 
+        self.stop = False
         self.hist_ended = False
         self.remaining_time = 0*ur('s')
 
@@ -178,14 +179,17 @@ class HydraInstrument(BaseInstrument):
         self.logger.debug('status of endedness: ' + str(self.hist_ended))
 
         while self.hist_ended == False:
+            if self.stop:
+                self.logger.info('Stopping the histogram')
+                self.stop = False
+                break
             self.hist_ended = self.controller.ctc_status
             self.logger.debug('Is the histogram finished? ' +  str(self.hist_ended))
             time.sleep(t)
             total_time_passed += t * ur('s')
             #this line returns a pint quantity which tells the user how much time the program needs before it can take the histogram
             self.logger.debug('time passed ' + str(total_time_passed))
-
-        self.remaining_time = tijd - total_time_passed
+            self.remaining_time = tijd - total_time_passed
 
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
         self.logger.debug('Ended? ' + str(self.hist_ended))

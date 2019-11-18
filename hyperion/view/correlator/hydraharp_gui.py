@@ -30,7 +30,6 @@ class Hydraharp_GUI(BaseGui):
     :type hydra_instrument: instance of the class for the instrument to control
     :param draw: a window where the plotting o the data acquired will be shown.
     :type draw: a plot widget class
-
     """
 
     def __init__(self, hydra_instrument, draw):
@@ -59,28 +58,39 @@ class Hydraharp_GUI(BaseGui):
         self.endtime = []
         self.time_axis = []
 
+        self.remaining_time = 0*ur('s')
+        self.hydra_instrument.configurate()
+
         self.initUI()
+
+        #This one is to continuously (= every 100ms) show the position of the axes
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.show_remaining_time)
+        self.timer.start(100)       #time in ms
+
+        self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
 
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-        #initialize and configurate the settings of the correlator
-        self.hydra_instrument.initialize()
-        self.hydra_instrument.configurate()
 
         self.setAutoFillBackground(True)
-        p = self.palette()
-        p.setColor(self.backgroundRole(), Qt.magenta)
-        self.setPalette(p)
+        #p = self.palette()
+        #p.setColor(self.backgroundRole(), Qt.magenta)
+        #p.setStyleSheet("QGroupBox {border: 1px solid magenta;}")
+
+        #self.setPalette(p)
 
         self.make_buttons()
         self.make_labels()
         self.make_textfields()
+
         self.show()
 
     def make_buttons(self):
         self.make_save_histogram_button()
         self.make_take_histogram_button()
+        self.make_stop_histogram_button()
     def make_labels(self):
         self.make_array_length_label()
         self.make_resolution_label()
@@ -88,6 +98,7 @@ class Hydraharp_GUI(BaseGui):
         self.make_channel_label()
         self.make_export_label()
         self.make_remaining_time_label()
+        self.make_showing_remaining_time()
         self.make_time_axis_label()
         self.make_endtime()
         #self.make_progress_label()
@@ -107,48 +118,54 @@ class Hydraharp_GUI(BaseGui):
         #The maek_save_button should be setEnabled False
         self.save_histogram_button.setEnabled(False)
         self.save_histogram_button.clicked.connect(self.save_histogram)
-        self.grid_layout.addWidget(self.save_histogram_button, 1, 0)
+        self.grid_layout.addWidget(self.save_histogram_button, 5, 4)
     def make_take_histogram_button(self):
         self.take_histogram_button = QPushButton('take histogram', self)
         self.take_histogram_button.setToolTip('take the histogram')
         self.take_histogram_button.clicked.connect(self.take_histogram)
-        self.grid_layout.addWidget(self.take_histogram_button, 0, 0)
-
+        self.grid_layout.addWidget(self.take_histogram_button, 0, 4)
+    def make_stop_histogram_button(self):
+        self.stop_histogram_button = QPushButton('stop histogram', self)
+        self.stop_histogram_button.setToolTip(('stop your histogram'))
+        self.stop_histogram_button.clicked.connect(self.stop_histogram)
+        self.grid_layout.addWidget(self.stop_histogram_button, 1, 4)
     def make_array_length_label(self):
         self.array_length_label = QLabel(self)
-        self.array_length_label.setText("Array lengh\n(standard value is fine): ")
-        self.grid_layout.addWidget(self.array_length_label, 0, 1)
+        self.array_length_label.setText("Array length: ")
+        self.grid_layout.addWidget(self.array_length_label, 3, 0)
     def make_resolution_label(self):
         self.resolution_label = QLabel(self)
         self.resolution_label.setText("Resolution: ")
-        self.grid_layout.addWidget(self.resolution_label, 1, 1)
+        self.grid_layout.addWidget(self.resolution_label, 1, 0)
     def make_integration_time_label(self):
         self.integration_time_label = QLabel(self)
-        self.integration_time_label.setText("Integration time(in sec.): ")
-        self.grid_layout.addWidget(self.integration_time_label, 2, 1)
+        self.integration_time_label.setText("Integration time: ")
+        self.grid_layout.addWidget(self.integration_time_label, 0, 0)
     def make_channel_label(self):
         self.channel_label = QLabel(self)
         self.channel_label.setText("Channel: ")
-        self.grid_layout.addWidget(self.channel_label, 3, 1)
+        self.grid_layout.addWidget(self.channel_label, 2, 0)
     def make_export_label(self):
         self.export_label = QLabel(self)
         self.export_label.setText("Export file: ")
-        self.grid_layout.addWidget(self.export_label, 4, 0)
+        self.grid_layout.addWidget(self.export_label, 5, 0)
     def make_remaining_time_label(self):
         self.remaining_time_label = QLabel(self)
         self.remaining_time_label.setText("Remaining time:\n")
-        self.grid_layout.addWidget(self.remaining_time_label, 2, 0)
+        self.grid_layout.addWidget(self.remaining_time_label, 2, 4)
+    def make_showing_remaining_time(self):
+        self.showing_remaining_time = QLabel(self)
+        self.showing_remaining_time.setText(str(self.remaining_time))
+        self.grid_layout.addWidget(self.showing_remaining_time, 3, 4)
     def make_time_axis_label(self):
         self.time_axis_label = QLabel(self)
-        self.time_axis_label.setText("Resulting end time on axis: ")
-        self.grid_layout.addWidget(self.time_axis_label, 0, 3)
+        self.time_axis_label.setText("Time on axis: ")
+        self.grid_layout.addWidget(self.time_axis_label, 4, 0)
     def make_endtime(self):
         self.endtime_label = QLabel(self)
         self.calculate_axis()
         self.endtime_label.setText(str(self.endtime))
-        self.grid_layout.addWidget(self.endtime_label, 1, 3)
-    def make_progress_label(self, iets):
-        self.remaining_time_label.setText("Remaining time:\n"+iets)
+        self.grid_layout.addWidget(self.endtime_label, 4, 1)
 
     # ------------------------------------------------------------------------------------
     def make_array_length_spinbox(self):
@@ -156,39 +173,45 @@ class Hydraharp_GUI(BaseGui):
         self.array_length_spinbox.setMaximum(999999999)
         self.array_length_spinbox.setValue(self.array_length)
         self.array_length_spinbox.valueChanged.connect(self.set_array_length)
-        self.grid_layout.addWidget(self.array_length_spinbox, 0, 2)
+        self.grid_layout.addWidget(self.array_length_spinbox, 3, 1)
 
     def make_resolution_spinbox(self):
         self.resolution_spinbox = QDoubleSpinBox(self)
         self.resolution_spinbox.setMaximum(999999999)
         self.resolution_spinbox.setValue(self.resolution.m_as('ps'))
         self.resolution_spinbox.setSuffix('ps')
-        self.grid_layout.addWidget(self.resolution_spinbox, 1, 2)
+        self.grid_layout.addWidget(self.resolution_spinbox, 1, 1)
         self.resolution_spinbox.valueChanged.connect(self.set_resolution)
 
     def make_integration_time_spinbox(self):
         self.integration_time_spinbox = QSpinBox(self)
         self.integration_time_spinbox.setValue(self.integration_time.m_as('s'))
-        self.grid_layout.addWidget(self.integration_time_spinbox, 2, 2)
+        self.grid_layout.addWidget(self.integration_time_spinbox, 0, 1)
         self.integration_time_spinbox.valueChanged.connect(self.set_integration_time)
     def make_time_unit_combobox(self):
         self.time_unit_combobox = QComboBox(self)
         self.time_unit_combobox.addItems(["s","min","hour"])
         self.time_unit_combobox.setCurrentText('s')
-        self.grid_layout.addWidget(self.time_unit_combobox, 2, 3)
+        self.grid_layout.addWidget(self.time_unit_combobox, 0, 2)
         self.time_unit_combobox.currentTextChanged.connect(self.set_integration_time)
 
     def make_channel_combobox(self):
         self.channel_combobox = QComboBox(self)
         self.channel_combobox.addItems(["0","1"])
         self.channel_combobox.setCurrentText(self.channel)
-        self.grid_layout.addWidget(self.channel_combobox, 3, 2)
+        self.grid_layout.addWidget(self.channel_combobox, 2, 1)
         self.channel_combobox.currentTextChanged.connect(self.set_channel)
 
     def make_export_textfield(self):
         self.export_textfield = QLineEdit(self)
         self.export_textfield.setText(root_dir)
-        self.grid_layout.addWidget(self.export_textfield, 4, 1, 1, 2)
+        self.grid_layout.addWidget(self.export_textfield, 5, 1, 1, 2)
+
+
+    #------------------------------------------------------------------------------------
+    def show_remaining_time(self):
+        self.remaining_time = self.hydra_instrument.remaining_time
+        self.showing_remaining_time.setText(str(self.remaining_time))
 
 
     # ------------------------------------------------------------------------------------
@@ -307,6 +330,8 @@ class Hydraharp_GUI(BaseGui):
         """
         self.logger.info("Take the histrogram")
 
+        self.show_remaining_time()
+
         #first, set the array length and resolution of the histogram
 
         self.logger.debug('chosen histogram length: ' + str(self.array_length))
@@ -320,12 +345,16 @@ class Hydraharp_GUI(BaseGui):
         self.logger.debug('chosen integration time: ' + str(self.integration_time))
         self.logger.debug('chosen channel: ' + str(self.channel))
 
+        # self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
+        # self.histogram_thread.start()
+
         self.histogram= self.hydra_instrument.make_histogram(self.integration_time, self.channel)
+
         self.draw.random_plot.plot(self.histogram, clear=True)
 
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
-        self.make_progress_label("Done, the histogram has been made")
+        #self.make_progress_label("Done, the histogram has been made")
 
     def save_histogram(self):
         """
@@ -380,6 +409,16 @@ class Hydraharp_GUI(BaseGui):
         fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
                                                   "All Files (*);;Text Files (*.txt)", options=options)
         return fileName + ".png"
+
+    def stop_histogram(self):
+        self.logger.info('Histogram should stop here')
+        self.hydra_instrument.stop = True
+        self.hydra_instrument.stop_histogram()
+
+        if self.histogram_thread.isRunning:
+            self.histogram_thread.quit()
+
+        self.hydra_instrument.stop = False
 
 
 class DrawHistogram(QWidget):

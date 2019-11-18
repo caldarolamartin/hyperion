@@ -66,7 +66,7 @@ class Attocube_GUI(BaseGui):
         #This one is to continuously (= every 100ms) show the position of the axes
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_position)
-        self.timer.start(100)
+        self.timer.start(100)       #time in ms
 
         self.moving_thread = WorkThread(self.anc350_instrument.move_to, self.current_axis, self.distance)
 
