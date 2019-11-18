@@ -68,6 +68,8 @@ class Attocube_GUI(BaseGui):
         self.timer.timeout.connect(self.show_position)
         self.timer.start(100)
 
+        self.moving_thread = WorkThread(self.anc350_instrument.move_to, self.current_axis, self.distance)
+
 
     def initUI(self):
         """Connect all buttons, comboBoxes and doubleSpinBoxes to methods
@@ -134,6 +136,8 @@ class Attocube_GUI(BaseGui):
         self.gui.doubleSpinBox_frequencyY.valueChanged.connect(lambda: self.set_value('Z','frequency'))
 
         self.gui.pushButton_configurateStepper.clicked.connect(self.configure_stepper)
+
+        self.get_axis()
 
     def make_combobox_movements(self):
         """| *Layout of combobox of all movements*
@@ -319,6 +323,23 @@ class Attocube_GUI(BaseGui):
 
             self.gui.groupBox_distance.setEnabled(False)
 
+        elif self.current_move == 'step':
+            # disable the user input possibility, show either the step size on current axes (depends on frequency)
+            if 'Z' in self.current_axis:
+                self.gui.label_speed_stepZ.setText('step size Z')
+                self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Stepwidth[1]*ur('nm')))
+                self.gui.groupBox_infoXY.setEnabled(False)
+                self.gui.groupBox_infoZ.setEnabled(True)
+            else:
+                self.gui.label_speed_stepX.setText('step size X')
+                self.gui.label_speed_stepY.setText('step size Y')
+                self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Stepwidth[0] * ur('nm')))
+                self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Stepwidth[2] * ur('nm')))
+                self.gui.groupBox_infoXY.setEnabled(True)
+                self.gui.groupBox_infoZ.setEnabled(False)
+
+            self.gui.groupBox_distance.setEnabled(False)
+
     def set_value(self, axis, value_type):
         """| Reads the values that the user filled in: amplitude, frequency or dc level on scanner.
         | Sets either the user input or the default amplitudes/frequencies as in the dictionary.
@@ -423,23 +444,6 @@ class Attocube_GUI(BaseGui):
 
 
 
-        elif self.current_move == 'step':
-            # disable the user input possibility, show either the step size on current axes (depends on frequency)
-            if 'Z' in self.current_axis:
-                self.gui.label_speed_stepZ.setText('step size Z')
-                self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Stepwidth[1]*ur('nm')))
-                self.gui.groupBox_infoXY.setEnabled(False)
-                self.gui.groupBox_infoZ.setEnabled(True)
-            else:
-                self.gui.label_speed_stepX.setText('step size X')
-                self.gui.label_speed_stepY.setText('step size Y')
-                self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Stepwidth[0] * ur('nm')))
-                self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Stepwidth[2] * ur('nm')))
-                self.gui.groupBox_infoXY.setEnabled(True)
-                self.gui.groupBox_infoZ.setEnabled(False)
-
-            self.gui.groupBox_distance.setEnabled(False)
-
     def move(self, direction):
         """| Here the actual move takes place, after the user clicked on one of the four directional buttons.
         | The clicked button determines the direction that is chosen.
@@ -536,6 +540,10 @@ class Attocube_GUI(BaseGui):
         self.anc350_instrument.stop_moving('XPiezoStepper')
         self.anc350_instrument.stop_moving('YPiezoStepper')
         self.anc350_instrument.stop_moving('ZPiezoStepper')
+
+        if self.moving_thread.isRunning:
+            print('is running')
+            self.moving_thread.quit()
 
         self.anc350_instrument.stop = False
 
