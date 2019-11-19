@@ -95,38 +95,47 @@ if __name__ == "__main__":
     settingsX = {'serial': 83850129}
     settingsWave = {'serial': 83850090}
 
-    with my_class(settings = settingsX) as dev:
+#    with my_class(settings = settingsX) as dev:
 
-        #This function comes from the core, outside of this specific motor
-        print('T-cubes available: {}'.format(dev.core.list_available_devices()))
+    dev = my_class(settings=settingsX)
+    #This function comes from the core, outside of this specific motor
+    print('T-cubes available: {}'.format(dev.core.list_available_devices()))
 
-        #Example on how to communicate with this T-cube
-        print('serial number: {}'.format(dev.serial_number))
-        print('hardware info {}'.format(dev.hardware_info))
-        dev.identify
+    #Example on how to communicate with this T-cube
+    print('serial number: {}'.format(dev.serial_number))
+    print('hardware info {}'.format(dev.hardware_info))
+    dev.identify
 
-        print('position: {}'.format(dev.position))
-        print('in motion? {}'.format(dev.is_in_motion))
-        print('motor limit reached? {}'.format(dev.motor_current_limit_reached))
-        print('motor error? {}'.format(dev.motion_error))
+    print('position: {}'.format(dev.position))
+    print('in motion? {}'.format(dev.is_in_motion))
+    print('motor limit reached? {}'.format(dev.motor_current_limit_reached))
+    print('motor error? {}'.format(dev.motion_error))
 
-        print('velocity parameters: {}'.format(dev.get_velocity_parameters()))
-        print('velocity parameters: {}'.format(dev.get_velocity_parameter_limits()))
+    print('velocity parameters: {}'.format(dev.get_velocity_parameters()))
+    print('velocity parameters: {}'.format(dev.get_velocity_parameter_limits()))
 
-        print('motor parameters {}'.format(dev.get_motor_parameters()))
+    print('motor parameters {}'.format(dev.get_motor_parameters()))
 
 
-        axis_info = dev.get_stage_axis_info()
-        print('axis info: {}'.format(axis_info))
-        if axis_info[1] > 359.0:
-            print('this is probably connected to a waveplate')
-            unit = 'degree'
-        elif 11.0 < axis_info[1] < 13.0:
-            print('this is probably connected to a motor stage')
-            unit = 'mm'
-        else:
-            print('connected kind of thorlabs device is unclear, max range: {}'.format(axis_info[1]))
-            unit = '?'
+    axis_info = dev.get_stage_axis_info()
+    print('axis info: {}'.format(axis_info))
+    if axis_info[1] > 359.0:
+        print('this is probably connected to a waveplate')
+        unit = 'degree'
+    elif 11.0 < axis_info[1] < 13.0:
+        print('this is probably connected to a motor stage')
+        unit = 'mm'
+    else:
+        print('connected kind of thorlabs device is unclear, max range: {}'.format(axis_info[1]))
+        unit = '?'
+
+    new_min_pos = -12.0
+
+    #def set_stage_axis_info(self, min_pos, max_pos, units, pitch):
+
+    dev.set_stage_axis_info(new_min_pos,axis_info[1], axis_info[2], axis_info[3])
+
+    print(dev.get_stage_axis_info())
 
         # dev.move_to(5.0,True)
         # print('position: {} {}'.format(dev.position,unit))

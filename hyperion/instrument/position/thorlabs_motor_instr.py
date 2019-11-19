@@ -47,7 +47,8 @@ class Thorlabsmotor(BaseInstrument):
             - runs list_device to check whether this serial number actually exists in all connected T-cubes
             - asks the harware info just in case
             - blinks the light to identify the T-cube
-            - runs get_axis_info, which will figure out whether you are connected to a waveplate or stage motor
+            - runs set_axis_info, which will set the minimum position to -12 and
+            - run get_axis_info, which will figure out whether you are connected to a waveplate or stage motor **always run this one!!**
         """
         self.logger.info('Initializing your {} and checking some basic things.'.format(self._name))
 
@@ -59,7 +60,8 @@ class Thorlabsmotor(BaseInstrument):
             else:
                 self.logger.debug('hardware info: {}'.format(self.controller.hardware_info))
                 self.controller.identify
-                self.get_axis_info()
+                #self.get_axis_info()
+                self.set_axis_info()
         else:
             self.logger.error('Your serial number does not exist in this whole thorlabs device.')
 
@@ -88,6 +90,18 @@ class Thorlabsmotor(BaseInstrument):
         else:
             self.logger.info('connected kind of thorlabs device is unclear, max range: {}'.format(max_pos))
         return (min_pos, max_pos, units, pitch)
+
+    def set_axis_info(self):
+        """| Executes get_axis_info to set the kind of device, and changes the minimum position to -12.0.
+        | This is important because the stage axis puts itself at 0 if you shut down the cubes,
+        | so it happens that afterwards you want to go to a negative position.
+        | To prevent errors, this method changes the minimum position from 0 to -12.0.
+        """
+        current_axis_info = self.get_axis_info()
+        new_minimum_position = -12.0
+
+        self.controller.set_stage_axis_info(new_minimum_position, current_axis_info[1], current_axis_info[2], current_axis_info[3])
+        self.logger.debug('Minimum position changed to -12.0 to prevent errors.')
 
     def position(self):
         """| Asks the position to the controller and returns that.
@@ -188,7 +202,6 @@ class Thorlabsmotor(BaseInstrument):
 
         return you_can_move, unit
 
-
     def move_absolute(self, new_position, blocking):
         """| Moves the T-cube to a new position, but first checks the units by calling check_move.
         | The method check_move will give back the correct units.
@@ -259,6 +272,7 @@ class Thorlabsmotor(BaseInstrument):
         :type blocking: bool
         """
         self.logger.debug('{} is making one step of size {}'.format(self._name, stepsize))
+        self.move_relative(stepsize, blocking)
 
     def stop_moving(self):
         """| Stop motor but turn down velocity slowly (profiled).
@@ -297,7 +311,7 @@ if __name__ == "__main__":
     with Thorlabsmotor(settings = xMotor) as sampleX, Thorlabsmotor(settings = WaveplateMotor) as waveplate:
         sampleX.position()
 
-        sampleX.move_relative(-1*ur('mm'),True)
+        sampleX.move_relative(100*ur('um'),True)
 
         # sampleY.position()
         #
