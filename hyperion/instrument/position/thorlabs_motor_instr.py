@@ -19,7 +19,6 @@ import time
 
 class Thorlabsmotor(BaseInstrument):
     """ Thorlabsmotor instrument
-
     """
     
     def __init__(self, settings):
@@ -39,6 +38,8 @@ class Thorlabsmotor(BaseInstrument):
         self.kind_of_device = 'stage'
 
         self.initialize()
+        self.current_position = []
+        self.stop = False
 
 
     def initialize(self):
@@ -62,6 +63,7 @@ class Thorlabsmotor(BaseInstrument):
                 self.controller.identify
                 #self.get_axis_info()
                 self.set_axis_info()
+                self.current_position = self.position()
         else:
             self.logger.error('Your serial number does not exist in this whole thorlabs device.')
 
@@ -106,6 +108,7 @@ class Thorlabsmotor(BaseInstrument):
     def position(self):
         """| Asks the position to the controller and returns that.
         | Units depend on the kind of device; either mm or degrees.
+        | Remembers the current_position as declared in the init.
 
         :return: position in mm or degrees
         :rtype: pint quantity
@@ -115,6 +118,8 @@ class Thorlabsmotor(BaseInstrument):
             pos = pos*ur('degrees')
         elif self.kind_of_device == 'stage':
             pos = pos*ur('mm')
+
+        self.current_position = pos
         return pos
 
     def is_in_motion(self):
@@ -125,7 +130,7 @@ class Thorlabsmotor(BaseInstrument):
         """
         in_motion = self.controller.is_in_motion
         if in_motion:
-            self.logger.warning('You are still moving {}'.format(self._name))
+            self.logger.debug('You are still moving {}'.format(self._name))
         return in_motion
 
     def motor_current_limit_reached(self):
@@ -152,8 +157,30 @@ class Thorlabsmotor(BaseInstrument):
             self.logger.warning('You have a motion error of {}'.format(self._name))
         return motion_error
 
+    def moving_loop(self):
+        """| This method is used by the move_home, move_relative and move_absolute methods.
+        | It stays in the while loop until the position is reached or self.stop is set to True,
+        | meanwhile updating the current_position as known in this instrument level.
+        | This means it can be used in higher levels to display the position on the gui and thread the stop function.
+        | If the sleeps are making your program too slow, they could be changed.
+        | Pay attention not to make the first sleep too short, otherwise it already starts asking before the guy even knows whether he moves.
+        """
+
+        time.sleep(0.2) # important not to put too short, otherwise it already starts asking before the guy even knows whether he moves
+
+        while self.is_in_motion():
+            self.position()
+            self.motion_error()
+            time.sleep(0.1)
+            if self.stop:
+                self.logger.info('Stopping the moving loop.')
+                self.stop = False
+                break
+
     def move_home(self, blocking):
         """| Moves to home position.
+        | You can use the blocking method of the core, but than higher layers will not be able to stop the move or know the position.
+        | So I implemented my own blocking that uses the is_in_motion method.
         | If blocking is True, it will move until its done.
         | If blocking is False, it might not reach its destination if you dont give it time.
 
@@ -161,9 +188,14 @@ class Thorlabsmotor(BaseInstrument):
         :type blocking: bool
         """
         self.logger.info('Moving {} home.'.format(self._name))
-        self.controller.move_home(blocking)
-        if not self.is_in_motion():
-            self.logger.debug('Destination of {} is reached: {}'.format(self._name, self.position()))
+        if blocking:
+            self.controller.move_home(False)  # the blocking for the controller is False now
+            self.moving_loop()
+        else:
+            self.controller.move_home(False)
+
+        #self.controller.move_home(blocking)
+        self.logger.debug('Destination of {} is reached: {}'.format(self._name, self.position()))
 
     def check_move(self, value):
         """| First checks whether there is no limit reached.
@@ -221,15 +253,18 @@ class Thorlabsmotor(BaseInstrument):
 
         if you_can_move:
             self.logger.debug('Moving {} to {}'.format(self._name, new_position))
-            self.controller.move_to(new_position.m_as(unit), blocking)
-            self.motion_error()
+            #self.controller.move_to(new_position.m_as(unit), blocking)
+            if blocking:
+                self.controller.move_to(new_position.m_as(unit), False)  # the blocking for the controller is False now
+                self.moving_loop()
+            else:
+                self.controller.move_to(new_position.m_as(unit), False)
             moved = True
 
-        if not self.is_in_motion():
-            if moved:
-                self.logger.debug('Destination is reached: {}'.format(self.position()))
-            else:
-                self.logger.debug('You did not move at all.')
+        if moved:
+            self.logger.debug('Destination is reached: {}'.format(self.position()))
+        else:
+            self.logger.debug('You did not move at all.')
 
     def move_relative(self, distance, blocking):
         """| Moves the T-cube with a distance relative to the current one, but first checks the units by calling check_move.
@@ -248,16 +283,16 @@ class Thorlabsmotor(BaseInstrument):
         (you_can_move, unit) = self.check_move(distance)
 
         if you_can_move:
-            self.logger.info('Moving {} by {}'.format(self._name, distance))
-            self.controller.move_by(distance.m_as(unit), blocking)
-            self.motion_error()
+            self.logger.info('Moving {} by {}'.format(self._name, distance))    # the blocking for the controller is False now
+            if blocking:
+                self.controller.move_by(distance.m_as(unit), False)
+                self.moving_loop()
             moved = True
 
-        if not self.is_in_motion():
-            if moved:
-                self.logger.debug('Destination is reached: {}'.format(self.position()))
-            else:
-                self.logger.debug('You did not move at all.')
+        if moved:
+            self.logger.debug('Destination is reached: {}'.format(self.position()))
+        else:
+            self.logger.debug('You did not move at all.')
 
     def make_step(self, stepsize, blocking):
         """| Moves the T-cube by one step of a stepsize.
@@ -311,7 +346,7 @@ if __name__ == "__main__":
     with Thorlabsmotor(settings = xMotor) as sampleX, Thorlabsmotor(settings = WaveplateMotor) as waveplate:
         sampleX.position()
 
-        sampleX.move_relative(100*ur('um'),True)
+        #sampleX.move_relative(100*ur('um'),True)
 
         # sampleY.position()
         #
@@ -320,13 +355,13 @@ if __name__ == "__main__":
 
         waveplate.position()
 
-        waveplate.move_absolute(30*ur('degree'),True)
+        waveplate.move_absolute(10*ur('degree'),True)
         # time.sleep(1)
         # waveplate.stop_moving()
         # waveplate.position()
 
-        waveplate.move_relative(-10*ur('degrees'),True)
+        #waveplate.move_relative(-10*ur('degrees'),True)
 
-        waveplate.make_step(1*ur('degrees'),True)
+        #waveplate.make_step(1*ur('degrees'),True)
 
         waveplate.move_home(True)

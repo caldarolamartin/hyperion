@@ -9,6 +9,7 @@ Works with the new Thorlabs Motor instrument. Keyboard stuff has not been tested
 
 import sys
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 from hyperion.instrument.position.thorlabs_motor_instr import Thorlabsmotor
 from hyperion.view.general_worker import WorkThread
 from hyperion.view.base_guis import BaseGui
@@ -26,7 +27,6 @@ class Thorlabs_motor_GUI(BaseGui):
     def __init__(self, thorlabs_instrument):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.title = 'Thorlabs motor GUI'
         self.left = 50
         self.top = 50
         self.width = 400
@@ -36,13 +36,23 @@ class Thorlabs_motor_GUI(BaseGui):
 
         self.motor = thorlabs_instrument
         self.logger.debug('You are connected to a {}'.format(self.motor.kind_of_device))
+        self.title = 'Thorlabs {} GUI'.format(self.motor._name)
 
         self.saved_position = None
         self.current_position = None
 
         self.distance = 1.0*ur('mm')
 
+        self.min_distance = -12.0 * ur('mm')
+        self.max_distance = 12.0 * ur('mm')
+
         self.initUI()
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.set_current_motor_position_label)
+        self.timer.start(100)       #time in ms
+
+        self.moving_thread = WorkThread(self.motor.move_absolute, self.current_position, True)
 
     def initUI(self):
         self.logger.debug('Setting up the Single Thorlabs Motor GUI')
@@ -60,6 +70,7 @@ class Thorlabs_motor_GUI(BaseGui):
         self.make_save_pos_button()
         self.make_recover_pos_button()
         self.make_keyboard_button()
+        self.make_stop_button()
     def make_labels(self):
         self.make_keyboard_label()
         self.make_current_pos_label()
@@ -95,6 +106,12 @@ class Thorlabs_motor_GUI(BaseGui):
         self.keyboard_button.setToolTip("use the keyboard to move the thorlabs_motor,\nit works great")
         self.keyboard_button.clicked.connect(self.use_keyboard)
         self.grid_layout.addWidget(self.keyboard_button, 2, 1)
+    def make_stop_button(self):
+        self.stop_button = QPushButton("stop moving", self)
+        self.stop_button.setToolTip("stop any moving")
+        self.stop_button.clicked.connect(self.stop_moving)
+        self.grid_layout.addWidget(self.stop_button, 2, 4)
+        self.stop_button.setStyleSheet("background-color: red")
 
     def make_current_pos_label(self):
         self.current_motor_position_label = QLabel(self)
@@ -103,9 +120,6 @@ class Thorlabs_motor_GUI(BaseGui):
         except Exception:
             self.current_motor_position_label.setText("currently/nunavailable")
         self.grid_layout.addWidget(self.current_motor_position_label, 0, 1)
-    def set_current_motor_position_label(self):
-        self.current_position = self.motor.position()
-        self.current_motor_position_label.setText(str(round(self.current_position, 2)))
 
     def make_keyboard_label(self):
         self.keyboard_label = QLabel(self)
@@ -113,7 +127,7 @@ class Thorlabs_motor_GUI(BaseGui):
         self.grid_layout.addWidget(self.keyboard_label, 2, 0)
     def make_save_label(self):
         self.save_label = QLabel(self)
-        self.save_label.setText("save pos:")
+        self.save_label.setText("saved:")
         self.grid_layout.addWidget(self.save_label, 0, 3)
     def make_recover_label(self):
         self.recover_label = QLabel(self)
@@ -125,21 +139,36 @@ class Thorlabs_motor_GUI(BaseGui):
         if self.motor.kind_of_device == 'waveplate':
             self.distance_spinbox.setValue(self.distance.m_as('mm'))
             self.distance = self.distance.m_as('mm')*ur('degrees')
+            self.min_distance = 0 * ur('degrees')
+            self.max_distance = 360 * ur('degrees')
         else:
             self.distance_spinbox.setValue(self.distance.m_as('mm'))
         self.grid_layout.addWidget(self.distance_spinbox, 1, 1)
+        self.distance_spinbox.setMinimum(-999999999)        #otherwise you cannot reach higher than 99
+        self.distance_spinbox.setMaximum(999999999)
         self.distance_spinbox.valueChanged.connect(self.set_distance)
+
     def make_unit_combobox(self):
         self.unit_combobox = QComboBox(self)
-        self.unit_combobox.addItems(["degrees"])
         if self.motor.kind_of_device == 'waveplate':
+            self.unit_combobox.addItems(["degrees"])
             self.unit_combobox.setCurrentText('degrees')
-            self.unit_combobox.setEnabled(True)
+            self.unit_combobox.setEnabled(False)
         else:
             self.unit_combobox.addItems(["nm", "um", "mm"])
             self.unit_combobox.setCurrentText('mm')
-        self.grid_layout.addWidget(self.unit_combobox, 1, 3)
+
         self.unit_combobox.currentTextChanged.connect(self.set_distance)
+        self.grid_layout.addWidget(self.unit_combobox, 1, 3)
+
+
+    def set_current_motor_position_label(self):
+        """ | In the instrument level, the current position is remembered and updated through self.position,
+        | which is called in the moving_loop during the moves.
+        | This method read this out (continuously, through the timer in the init) and displays the value.
+        """
+        self.current_position = self.motor.current_position
+        self.current_motor_position_label.setText(str(round(self.current_position, 2)))
 
 
 #----------------------------------------------------------------------------------------------------------------------
@@ -148,18 +177,34 @@ class Thorlabs_motor_GUI(BaseGui):
         value = self.distance_spinbox.value()
         unit = self.unit_combobox.currentText()
 
-        self.distance = ur(str(value)+unit)
+        local_distance = ur(str(value)+unit)
+        self.logger.debug('local distance value {}'.format(self.distance))
+        self.logger.debug("{}".format(value > self.max_distance.m_as(unit)))
 
-        self.logger.debug('setting the distance to {}'.format(self.distance))
+        if value > self.max_distance.m_as(unit):
+            self.logger.debug('value too high')
+            local_max = self.max_distance.to(unit)
+            self.logger.debug(str(local_max))
+            self.distance_spinbox.setValue(local_max.m_as(unit))
+        elif value < self.min_distance.m_as(unit):
+            self.logger.debug('value too low')
+            local_min = self.min_distance.to(unit)
+            self.distance_spinbox.setValue(local_min.m_as(unit))
+
+        self.distance = local_distance
+        self.logger.debug('dictionary distance changed to: ' + str(self.distance))
 
     def go_home_motor(self):
-        self.motor.move_home(True)
-        self.set_current_motor_position_label()
+        self.moving_thread = WorkThread(self.motor.move_home, True)
+        self.moving_thread.start()
+        #self.motor.move_home(True)
+        #self.set_current_motor_position_label()
 
     def go_to_input(self):
         try:
-            self.motor.move_absolute(self.distance, True)
-            self.set_current_motor_position_label()
+            self.moving_thread = WorkThread(self.motor.move_absolute, self.distance, True)
+            self.moving_thread.start()
+            #self.set_current_motor_position_label()
         except ValueError:
             self.logger.warning("The input is not a float, change this")
             return
@@ -170,6 +215,8 @@ class Thorlabs_motor_GUI(BaseGui):
         #get positions
         try:
             self.saved_position = self.motor.position()
+            self.logger.debug(str(round(self.saved_position,2)))
+            self.save_label.setText("saved: " + str(round(self.saved_position,2)))
         except Exception:
             #the thorlabs_motor position has not been found, could be because it is a
             #piezo thorlabs_motor or because the software is not running as expected.
@@ -185,7 +232,9 @@ class Thorlabs_motor_GUI(BaseGui):
             self.logger.warning("the positions have not been set!")
             return
         else:
-            self.motor.move_absolute(self.saved_position, True)
+            self.moving_thread = WorkThread(self.motor.move_absolute, self.saved_position, True)
+            self.moving_thread.start()
+            self.save_pos_button.setStyleSheet("default")
 
     def use_keyboard(self):
         #set text of keyboard_label to using keyboard
@@ -232,7 +281,23 @@ class Thorlabs_motor_GUI(BaseGui):
                 self.worker_thread.quit()
                 self.worker_thread.wait()
                 return False
-    
+
+    def stop_moving(self):
+        """|Stops movement of the current cube.
+        | The moving_loop method in the instrument level checks whether the stop is True, and if so, breaks the loop.
+        | The stop_moving method in the instrument actually stops the device.
+        | Because of the moving_thread that is started in the method move in this class, the loops in the methods in instrument actually keep checking for this stop value.
+        """
+        self.logger.info('stop moving')
+        self.motor.stop = True
+        self.motor.stop_moving()
+
+        if self.moving_thread.isRunning:
+            self.logger.debug('Moving thread was running.')
+            self.moving_thread.quit()
+
+        self.motor.stop = False
+
 
 if __name__ == '__main__':
     import hyperion
