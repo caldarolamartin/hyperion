@@ -17,4 +17,6 @@ cases is not needed.
     view/osa_gui
     view/polarimeter_gui
     view/variable_waveplate_gui
+    view/single_thorlabs_motor
+
 

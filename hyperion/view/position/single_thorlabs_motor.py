@@ -163,9 +163,9 @@ class Thorlabs_motor_GUI(BaseGui):
 
 
     def set_current_motor_position_label(self):
-        """ | In the instrument level, the current position is remembered and updated through self.position,
-        | which is called in the moving_loop during the moves.
-        | This method read this out (continuously, through the timer in the init) and displays the value.
+        """ In the instrument level, the current position is remembered and updated through self.position,
+        which is called in the moving_loop during the moves.
+        This method read this out (continuously, through the timer in the init) and displays the value.
         """
         self.current_position = self.motor.current_position
         self.current_motor_position_label.setText(str(round(self.current_position, 2)))
@@ -174,6 +174,12 @@ class Thorlabs_motor_GUI(BaseGui):
 #----------------------------------------------------------------------------------------------------------------------
 
     def set_distance(self):
+        """| Reads the value that the user filled in the spinbox and combines it with the unit to make a pint quantity.
+        | The pint quantity is saved in self.distance.
+        | Also compares the wanted distance with the maximum and minimum values,
+        | which are set in the init or changed to degrees in make_distance_spinbox.
+        | If the user input is too high or low, the spinbox is changed to the maximum or minimum value.
+        """
         value = self.distance_spinbox.value()
         unit = self.unit_combobox.currentText()
 
@@ -195,12 +201,18 @@ class Thorlabs_motor_GUI(BaseGui):
         self.logger.debug('dictionary distance changed to: ' + str(self.distance))
 
     def go_home_motor(self):
+        """Starts a thread and communicates to the instrument to move home.
+        The instrument loop will take care of updating the current position and checking whether self.stop is True or False.
+        """
         self.moving_thread = WorkThread(self.motor.move_home, True)
         self.moving_thread.start()
         #self.motor.move_home(True)
         #self.set_current_motor_position_label()
 
     def go_to_input(self):
+        """Starts a thread to make an absolute move with the distance that is read out in self.set_distance from the spinbox.
+        Value error has become a little bit irrelevant, now that I changed to pint quantities for distance.
+        """
         try:
             self.moving_thread = WorkThread(self.motor.move_absolute, self.distance, True)
             self.moving_thread.start()
@@ -210,23 +222,24 @@ class Thorlabs_motor_GUI(BaseGui):
             return
 
     def save_position(self):
-        #make sure the user knows the button is pressed by setting it to a different color
+        """Saves the current position for the user.
+        Makes sure the user knows the button is pressed by setting it to a different color.
+        Gives an error if the thorlabs_motor position has not been found, could be because it is a
+        piezo thorlabs_motor or because the software is not running as expected.
+        """
         self.save_pos_button.setStyleSheet("background-color: green")
-        #get positions
         try:
             self.saved_position = self.motor.position()
             self.logger.debug(str(round(self.saved_position,2)))
             self.save_label.setText("saved: " + str(round(self.saved_position,2)))
         except Exception:
-            #the thorlabs_motor position has not been found, could be because it is a
-            #piezo thorlabs_motor or because the software is not running as expected.
             self.logger.warning("the position has not been set yet")
             self.saved_position = None
 
     def recover_position(self):
-        #set position of motors
-        #(this only works if the position of the motors is from the home position):
-        #so, that should be changed.
+        """Sets position of motors to the saved position with a thread.
+        When done, changes the save button to default.
+        """
         self.logger.info("current position: {}".format(self.current_position))
         if self.saved_position == None:
             self.logger.warning("the positions have not been set!")
@@ -237,17 +250,21 @@ class Thorlabs_motor_GUI(BaseGui):
             self.save_pos_button.setStyleSheet("default")
 
     def use_keyboard(self):
-        #set text of keyboard_label to using keyboard
+        """Set text of keyboard_label to using keyboard.
+        Collect events until released.
+        """
         self.keyboard_label.setText("using keyboard/npress q to exit")
-        # Collect events until released
+
         self.worker_thread = WorkThread(self.create_keyboard_listener)
         self.worker_thread.start()
 
         #set the text back to you can use the keyboard.
         self.keyboard_label.setText("use keyboard\nto control selected\n combobox thorlabs_motor:")
+
     def create_keyboard_listener(self):
         with Listener(on_press=self.on_press, on_release=self.on_release) as listener:
             listener.join()
+
     def on_press(self, key):
         """ 
         In this method if the w is pressed the thorlabs_motor
@@ -283,10 +300,11 @@ class Thorlabs_motor_GUI(BaseGui):
                 return False
 
     def stop_moving(self):
-        """|Stops movement of the current cube.
+        """| Stops movement of the current cube.
         | The moving_loop method in the instrument level checks whether the stop is True, and if so, breaks the loop.
         | The stop_moving method in the instrument actually stops the device.
-        | Because of the moving_thread that is started in the method move in this class, the loops in the methods in instrument actually keep checking for this stop value.
+        | Because of the moving_thread that is started in the method move in this class,
+        | the loops in the methods in instrument actually keep checking for this stop value.
         """
         self.logger.info('stop moving')
         self.motor.stop = True

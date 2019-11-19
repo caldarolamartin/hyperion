@@ -43,13 +43,13 @@ class Thorlabsmotor(BaseInstrument):
 
 
     def initialize(self):
-        """Initializes the cube:
-            - checks whether the serial number is recognized by the cube
-            - runs list_device to check whether this serial number actually exists in all connected T-cubes
-            - asks the harware info just in case
-            - blinks the light to identify the T-cube
-            - runs set_axis_info, which will set the minimum position to -12 and
-            - run get_axis_info, which will figure out whether you are connected to a waveplate or stage motor **always run this one!!**
+        """ - Initializes the cube:
+        - checks whether the serial number is recognized by the cube
+        - runs list_device to check whether this serial number actually exists in all connected T-cubes
+        - asks the harware info just in case
+        - blinks the light to identify the T-cube
+        - runs set_axis_info, which will set the minimum position to -12 and
+        - run get_axis_info, which will figure out whether you are connected to a waveplate or stage motor **always run this one!!**
         """
         self.logger.info('Initializing your {} and checking some basic things.'.format(self._name))
 
@@ -311,7 +311,6 @@ class Thorlabsmotor(BaseInstrument):
 
     def stop_moving(self):
         """| Stop motor but turn down velocity slowly (profiled).
-        | **Pay attention: not tested yet**
         """
         self.logger.info('{} stops with moving.'.format(self._name))
         self.controller.stop_profiled()
@@ -330,7 +329,6 @@ class Thorlabsmotor(BaseInstrument):
         for ii in range(len(self.aptmotorlist)):
             if self.settings['serial'] in self.aptmotorlist[ii]:
                 found = True
-
         return found
 
 

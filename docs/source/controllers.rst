@@ -21,6 +21,6 @@ Here we group all the controllers we use for the Hyperion project.
     controller/osa
     controller/sk_pol_ana
     controller/sr830
-    controller/TDC001
+    controller/tdc001_cube
     controller/thermometer
     controller/winspec

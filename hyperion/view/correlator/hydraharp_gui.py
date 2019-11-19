@@ -3,7 +3,7 @@
 Hydraharp GUI
 =============
 
-This is to build a gui for the hydraharp instrument (correlator).
+This is to build a gui for the Hydraharp instrument (correlator).
 
 """
 
@@ -34,7 +34,7 @@ class Hydraharp_GUI(BaseGui):
     def __init__(self, hydra_instrument, draw):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.title = 'correlator gui, hail hydra'
+        self.title = 'Hydraharp400 correlator gui'
         self.left = 50
         self.top = 50
         self.width = 320
@@ -212,8 +212,8 @@ class Hydraharp_GUI(BaseGui):
 
     #------------------------------------------------------------------------------------
     def show_remaining_time(self):
-        """| This method asks the remaining time from the instrument level,
-        | and calculates the progress, so both can be displayed.
+        """This method asks the remaining time from the instrument level,
+        and calculates the progress, so both can be displayed.
         """
         self.remaining_time = self.hydra_instrument.remaining_time
         self.showing_remaining_time.setText(str(self.remaining_time))
@@ -231,9 +231,9 @@ class Hydraharp_GUI(BaseGui):
         self.logger.debug('channel: ' + self.channel)
 
     def set_array_length(self):
-        """| This method sets the array length that the user puts,
-        | and remembers the int in the init in self.array_length.
-        | It compares it to a max and min value.
+        """This method sets the array length that the user puts,
+        and remembers the int in the init in self.array_length.
+        It compares it to a max and min value.
         """
         self.logger.info('setting the array length')
         self.logger.warning('are you sure you want to change this value?')
@@ -249,9 +249,9 @@ class Hydraharp_GUI(BaseGui):
         self.array_length = int(self.sender().value())
 
     def set_integration_time(self):
-        """|  This method combines the integration time that the user puts in the spinbox with the unit in the combobox,
-        | and remembers the pint quantity in the init in self.integration_time.
-        | It compares it to a max (24 hours) and min (1 s) value.
+        """This method combines the integration time that the user puts in the spinbox with the unit in the combobox,
+        and remembers the pint quantity in the init in self.integration_time.
+        It compares it to a max (24 hours) and min (1 s) value.
         """
         self.logger.info('setting the integration time')
 
@@ -312,7 +312,7 @@ class Hydraharp_GUI(BaseGui):
 
     def calculate_axis(self):
         """| This method calculates the axis that should be put on the graph.
-        | **Unused**, because I dont know how to communicate with the graph class.
+        | **Unused**, because I don't know how to communicate with the graph class.
         """
         self.endtime = round(self.resolution.m_as('ns')*self.array_length*ur('s'),4)
 
@@ -392,7 +392,7 @@ class Hydraharp_GUI(BaseGui):
         |If there is none, than a file_chooser will be used to have a location where the .png's will be saved.
 
         :param exporter: A exporter object with which you can save data
-        :type pyqtgraph.exporter, doesn't say that much, I know
+        :type exporter: pyqtgraph.exporter, doesn't say that much, I know
         """
 
         if self.export_textfield.text() != "":
@@ -411,7 +411,7 @@ class Hydraharp_GUI(BaseGui):
         | If the code breaks, go to: https://pythonspot.com/pyqt5-file-dialog/
 
         :return: the filepath, .png needs to be attached in order to save the picture as a...picture
-        :rtype string
+        :rtype: string
         """
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog

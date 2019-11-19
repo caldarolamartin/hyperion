@@ -14,7 +14,6 @@ from hyperion import root_dir, ur
 import matplotlib.pyplot as plt
 
 from hyperion.instrument.base_instrument import BaseInstrument
-ureg = ur
 
 class HydraInstrument(BaseInstrument):
     """
@@ -40,15 +39,15 @@ class HydraInstrument(BaseInstrument):
         self.remaining_time = 0*ur('s')
 
     def initialize(self):
-        """ Starts the connection to the device, calibrates it and configurates based on the yml file
+        """ Starts the connection to the device, calibrates it and configures based on the yml file.
         """        
         self.logger.info('Opening connection to correlator.')
         self.controller.calibrate()
         self.configurate()
 
     def configurate(self, filename = None):
-        """ | Loads the yml configuration file of default intrument settings that probably nobody is going to change
-        | File in folder \instrument\correlator\HydrahaInstrument_config.yml
+        """ | Loads the yml configuration file of default instrument settings that probably nobody is going to change.
+        | File in folder \instrument\correlator\HydrahaInstrument_config.yml.
         
         :param filename: the name of the configuration file
         :type filename: string
@@ -64,7 +63,7 @@ class HydraInstrument(BaseInstrument):
         
         #put units after all things in config file
         for key in self.settings:
-            self.settings[key] = ureg(self.settings[key])
+            self.settings[key] = ur(self.settings[key])
 
         self.logger.info('Status info:')
         self.logger.info('number of input channels: ' + str(self.controller.number_input_channels))
@@ -83,17 +82,17 @@ class HydraInstrument(BaseInstrument):
         
     
     def sync_rate(self):
-        """Asks the controller the rate of counts on the sync channel and adds units
+        """Asks the controller the rate of counts on the sync channel and adds units.
 
         :return: counts per second on the sync channel
         :rtype: pint quantity
         """
-        self.sync = self.controller.sync_rate()*ureg('cps')
+        self.sync = self.controller.sync_rate() * ur('cps')
         return self.sync
 
         
     def count_rate(self,channel):
-        """ Asks the controller the rate of counts on the count channels and adds units
+        """ Asks the controller the rate of counts on the count channels and adds units.
         
         :param channel: count rate channel 1 or 2 connected to the photon counter
         :type channel: int
@@ -101,13 +100,13 @@ class HydraInstrument(BaseInstrument):
         :return: count rate that is read out in counts per second
         :rtype: pint quantity
         """
-        self.count = self.controller.count_rate(channel)*ureg('cps')
+        self.count = self.controller.count_rate(channel) * ur('cps')
         return self.count
 
     def set_histogram(self,leng,res):
-        """ | Clears the possible previous histogram, sets the histogram length and resolution
-        | *Has also to do with the binning and the length of the histogram*
-        | In the correlator software, the length is fixed to 2^16 and the resolution determines the binning and thus the time axis that is plot
+        """ | Clears the possible previous histogram, sets the histogram length and resolution.
+        | *Has also to do with the binning and the length of the histogram.*
+        | In the correlator software, the length is fixed to 2^16 and the resolution determines the binning and thus the time axis that is plot.
         
         :param leng: length of histogram
         :type leng: int
@@ -121,9 +120,9 @@ class HydraInstrument(BaseInstrument):
         self.logger.debug('Set the parameters for taking a histogram')
     
     def make_histogram(self, tijd, count_channel):
-        """ | Does the histogram measurement, checking for the status, saving the histogram
-        | **It is not clear however whether you need to start measurement and than make the histogram**
-        | The start measurement method of the controller is called in prepare_to_take_histogram
+        """ | Does the histogram measurement, checking for the status, saving the histogram.
+        | **It is not clear however whether you need to start measurement and than make the histogram.**
+        | The start measurement method of the controller is called in prepare_to_take_histogram.
         
         :param count_channel: number of channel that is correlated with the sync channel, 1 or 2
         :type count_channel: int
@@ -132,6 +131,7 @@ class HydraInstrument(BaseInstrument):
         :type tijd: pint quantity
 
         :return: array containing the histogram
+        :rtype: array
         """
         #self.logger.info('Remaining time: ' + str(self.prepare_to_take_histogram(tijd)))
         self.prepare_to_take_histogram(tijd)
@@ -143,7 +143,7 @@ class HydraInstrument(BaseInstrument):
         return self.hist
 
     def prepare_to_take_histogram(self, tijd):
-        """This communicates with the controller method start_measurement and then in theory should wait untill it is finished
+        """This communicates with the controller method start_measurement and then in theory should wait until it is finished.
 
         :param tijd: acquisition time of the histogram; **please don't use the English word**
         :type tijd: pint quantity
@@ -162,8 +162,10 @@ class HydraInstrument(BaseInstrument):
         #return (self.wait_till_finished(tijd))
 
     def wait_till_finished(self, tijd):
-        """| This method should ask the device its status and keep asking until it's finished
-        | Doesn't work completely yet
+        """| **Work in progress!**
+        | This method should ask the device its status and keep asking until it's finished.
+        | However, the status for some reason is set to finished already after 3 seconds or so.
+        | The loop breaks if self.stop is put to True, which could be done in a higher level with a thread.
 
         :param tijd: integration time of histogram in s **(please don't use the English word for tijd)**
         :type tijd: pint quantity
@@ -196,13 +198,12 @@ class HydraInstrument(BaseInstrument):
         #return (tijd - total_time_passed)
 
     def stop_histogram(self):
-        """| This method stops taking the histogram
-        | in theory, I didn't test it yet with threads
+        """| This method stops taking the histogram, could be used in higher levels with a thread.
         """
         self.controller.stop_measurement()
 
     def finalize(self):
-        """ this is to close connection to the device."""
+        """ This method is to close connection to the device."""
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
@@ -216,7 +217,7 @@ if __name__ == "__main__":
         print('The count rate is: ' , q.count_rate(0))
 
         # use the hist
-        q.set_histogram(leng = 65536,res = 8.0*ureg('ps'))
+        q.set_histogram(leng = 65536, res =8.0 * ur('ps'))
         hist = q.make_histogram(20*ur('s'), count_channel = 0)
         print('The histogram: ', hist)
 

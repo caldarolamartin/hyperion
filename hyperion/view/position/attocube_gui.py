@@ -21,7 +21,11 @@ from hyperion.view.general_worker import WorkThread
 
 class Attocube_GUI(BaseGui):
     """
-    Attocube piezo GUI for the instrument
+    | **Attocube piezo GUI for the instrument.**
+    | Uses the attocube.ui file that was made with qt Designer. The maximum values for amplitude, frequency dcLevel on Scanner and distance are set here to be used in the rest of the class.
+    | The start parameters for current_axis, current_move, direction and distance are set here, to be used and changed in the rest of the class.
+    | A timer is started here to update the position real time.
+    | A moving_thread is already made here, so the program doesnt break if somebody clicks stop before he has moved anywhere.
 
     :param anc350_instrument: class for the instrument to control.
     :type anc350_instrument: instance of the instrument class
@@ -70,7 +74,6 @@ class Attocube_GUI(BaseGui):
 
         self.moving_thread = WorkThread(self.anc350_instrument.move_to, self.current_axis, self.distance)
 
-
     def initUI(self):
         """Connect all buttons, comboBoxes and doubleSpinBoxes to methods
         """
@@ -84,7 +87,6 @@ class Attocube_GUI(BaseGui):
         self.make_combobox_movements()
         self.make_combobox_configurate()
         self.make_combobox_basic()
-
 
     def make_combobox_basic(self):
         """| *Layout of basic combobox*
@@ -113,9 +115,8 @@ class Attocube_GUI(BaseGui):
 
     def make_combobox_configurate(self):
         """| *Layout of configurate combobox*
-        | Sets the blue border.
-        | Connects the spinboxes to methode set_value. Values are read and remembered in the whole class.
-        | Connects the configurate button.
+        | Sets the blue border. Connects the spinboxes to methode set_value.
+        | Values are read and remembered in the whole class. Connects the configurate button.
         """
         self.gui.doubleSpinBox_amplitudeX.setValue(self.settings['amplitudeX'])
         self.gui.doubleSpinBox_frequencyX.setValue(self.settings['frequencyX'])
@@ -141,8 +142,7 @@ class Attocube_GUI(BaseGui):
 
     def make_combobox_movements(self):
         """| *Layout of combobox of all movements*
-        | Sets the blue border.
-        | Runs the self.get_move method to find out what kind of movement is selected (step, continuous, ...).
+        | Sets the blue border. Runs the self.get_move method to find out what kind of movement is selected (step, continuous, ...).
         | Connects the spinbox and unit combobox to method set_value. Values are read and remembered in the whole class.
         | Connects all buttons to the methode self.move, that figures out in which way and direction to move.
         """
@@ -161,7 +161,7 @@ class Attocube_GUI(BaseGui):
 
     def make_combobox_scanner(self):
         """| *Layout of scanner combobox*
-        | Connects the spinboxes to set_value, that in case of the scanner will imediately put the voltage to move the scanner.
+        | Connects the spinboxes to set_value, that in case of the scanner will immediately put the voltage to move the scanner.
         """
         self.gui.doubleSpinBox_scannerX.setValue(self.settings['dcX'])
         self.gui.doubleSpinBox_scannerY.setValue(self.settings['dcY'])
@@ -172,8 +172,8 @@ class Attocube_GUI(BaseGui):
         self.gui.doubleSpinBox_scannerZ.valueChanged.connect(lambda: self.set_value('Z','dc'))
 
     def show_position(self):
-        """ | In the instrument level, the current positions are remembered in a dictionary and updated through get_position.
-        | This methode read them out (continuously, through the timer in the init) and displays their values.
+        """In the instrument level, the current positions are remembered in a dictionary and updated through get_position.
+        This method read them out (continuously, through the timer in the init) and displays their values.
         """
         self.current_positions = self.anc350_instrument.current_positions
 
@@ -184,13 +184,13 @@ class Attocube_GUI(BaseGui):
     def get_axis(self):
         """| *Layout enabling and disabling plus blue borders*
         | Depending on the selected axis, the gui looks differently.
-        | The basic box is always enabled.
-        | If one of the Steppers is selected, only the configuration box is enabled.
-        | After configuration, also the box with all the moves will be enabled.
-        | If one of the Scanners is selected, only the scanner box is enabled.
-        | When the Z Piezo Stepper is selected, all of the X values change to Z, and the Y values are disabled.
-        | When the Z Piezo Scanner is selected, similar but now only for the two boxes in the scanner part.
-        | self.current_axis is saved here and used in the whole program.
+        | - The basic box is always enabled.
+        | - If one of the Steppers is selected, only the configuration box is enabled.
+        | - After configuration, also the box with all the moves will be enabled.
+        | - If one of the Scanners is selected, only the scanner box is enabled.
+        | - When the Z Piezo Stepper is selected, all of the X values change to Z, and the Y values are disabled.
+        | - When the Z Piezo Scanner is selected, similar but now only for the two boxes in the scanner part.
+        | - **Important** self.current_axis is saved here and used in the whole program.
         """
         self.current_axis = self.gui.comboBox_axis.currentText()
         self.logger.debug('current axis:' + str(self.current_axis))
@@ -258,10 +258,10 @@ class Attocube_GUI(BaseGui):
 
     def get_move(self):
         """| *Layout of all moving options*
-        | Similar to the get_axis, the box with all the moves has lots of options that get disabled or enabled
-        | When continuous is selected, it gives you the speed in the selected axes
-        | When step is selected, it gives you the stepsize of the selected axes
-        | When move absolute or move relative are selected, the user can enter the desired position/distance
+        | Similar to the get_axis, the box with all the moves has lots of options that get disabled or enabled.
+        | - When continuous is selected, it gives you the speed in the selected axes.
+        | - When step is selected, it gives you the stepsize of the selected axes.
+        | - When move absolute or move relative are selected, the user can enter the desired position/distance.
         """
 
         self.current_move = self.gui.comboBox_kindOfMove.currentText()
@@ -342,12 +342,11 @@ class Attocube_GUI(BaseGui):
 
     def set_value(self, axis, value_type):
         """| Reads the values that the user filled in: amplitude, frequency or dc level on scanner.
-        | Sets either the user input or the default amplitudes/frequencies as in the dictionary.
-        | The value is saved in self.settings.
+        | Sets either the user input or the default amplitudes/frequencies as in the dictionary. The value is saved in self.settings.
         | If X and Y Scanner are selected, values are set separately; with Z, there is only one spinbox to fill in.
-        | Values from dictionary are used in configurate stepper, but only if the user clicks configurate.
-        | If scanner values were changed, this method calls to moving of the the scanner as soon as the user clicks Enter.
+        | Values from dictionary are used in configure_stepper, but only if the user clicks configure.
         | axis and value_type are locally changed into the name as known in the dictionaries, like amplitudeX or dcZ.
+        | If scanner values were changed, this method calls to moving of the the scanner as soon as the user clicks Enter.
 
         :param axis: axis X, Y, Z
         :type axis: string
@@ -384,9 +383,9 @@ class Attocube_GUI(BaseGui):
             self.move_scanner(local_axis_name)
 
     def set_distance(self):
-        """| Works similar to set_value method, but now only for the distance spinBox and unit.
-        | Combines value of spinbox with unit to make pint quantity and checks against maximum value defined up.
-        | Either applies the dictionary value of the distance, or changes that dictionary value and than applies it.
+        """Works similar to set_value method, but now only for the distance spinBox and unit.
+        Combines value of spinbox with unit to make pint quantity and checks against maximum value defined up.
+        Either applies the dictionary value of the distance, or changes that dictionary value and than applies it.
         """
         distance = self.gui.doubleSpinBox_distance.value()
         unit = self.gui.comboBox_unit.currentText()
@@ -407,9 +406,9 @@ class Attocube_GUI(BaseGui):
         self.logger.debug('dictionary distance changed to: ' + str(self.distance))
 
     def configure_stepper(self):
-        """| Configurates the stepper, using the amplitude and frequency that had been set in set_frequency and set_amplitude.
-        | After configuration, the box with all the different moves is enabled
-        | and the get_move is run to set the layout fit for the current move.
+        """Configures the stepper, using the amplitude and frequency that had been set in set_frequency and set_amplitude.
+        After configuration, the box with all the different moves is enabled
+        and the get_move is run to set the layout fit for the current move.
         """
         self.logger.info('configurating stepper')
         if 'Z' in self.current_axis:
@@ -427,8 +426,8 @@ class Attocube_GUI(BaseGui):
         self.get_move()
 
     def move_scanner(self, axis):
-        """| Moves the scanner
-        | Is called by set_value, moves as soon as the user clicked Enter
+        """| Moves the scanner.
+        | Is called by set_value, moves as soon as the user clicked Enter.
 
         :param axis: axis as they are called in the dictionary self.stepper_settings: dcX, dcY, dcZ
         :type axis: string
@@ -442,15 +441,14 @@ class Attocube_GUI(BaseGui):
         elif 'Y' in axis:
             self.anc350_instrument.move_scanner('YPiezoScanner', self.settings[axis] * ur('V'))
 
-
-
     def move(self, direction):
         """| Here the actual move takes place, after the user clicked on one of the four directional buttons.
         | The clicked button determines the direction that is chosen.
-        | For the continuous and step move, that is than converted to 0 or 1.
+        | - For the continuous and step move, that is than converted to 0 or 1.
         | This is correct as it is written right now, I checked it.
-        | For the relative move, the direction is than converted in adding a minus sign or not.
-        | For every kind of move, the self.moving_thread is started, so the stop button can be used and the position label can be updated.
+        | - For the relative move, the direction is than converted in adding a minus sign or not.
+        | - For every kind of move, the self.moving_thread is started, so the stop button can be used and the position label can be updated.
+        | I gave this thread the same name every time, don't know whether that is bad practice. The thread is quit in the stop method.
 
         :param direction: direction of move, left, right, up, down
         :type direction: string
@@ -529,7 +527,7 @@ class Attocube_GUI(BaseGui):
                 self.show_position()
 
     def stop_moving(self):
-        """|Stops movement of all steppers.
+        """| Stops movement of all steppers.
         | The check_if_moving loop in the instrument level checks whether the stop is True, and if so, breaks the loop.
         | Similar for a loop in the move_continuous in the instrument level, that checks for the stop.
         | The stop_moving in the instrument level actually stops the device.
