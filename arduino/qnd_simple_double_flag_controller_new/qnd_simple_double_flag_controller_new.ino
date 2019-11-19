@@ -85,9 +85,21 @@ const uint8_t pin_led_2_red = 62;
 const uint8_t pin_led_3_green = 71;
 const uint8_t pin_led_3_red = 72;
 
-const uint8_t pin_flag_1 = 10;
-const uint8_t pin_flag_2 = 11;
-const uint8_t pin_flag_3 = 11;
+const uint8_t pin_flag_1a = 10;
+const uint8_t pin_flag_1b = 10;
+const uint8_t pin_flag_2a = 11;
+const uint8_t pin_flag_2b = 11;
+const uint8_t pin_flag_3a = 11;
+const uint8_t pin_flag_3b = 11;
+
+
+#define flag_1a_style use_servo
+#define flag_1b_style use_servo
+#define flag_2a_style use_servo
+#define flag_2b_style use_pin
+#define flag_3a_style use_servo
+#define flag_3b_style use_pin
+
 
 int8_t switch1_down = 0;
 int8_t switch2_down = 0;
@@ -129,12 +141,15 @@ void setup() {
     flag_3_state = EEPROM.read(eeprom_flag_2);
   #endif
 
-  pinMode(pin_flag_1, OUTPUT);
-  pinMode(pin_flag_2, OUTPUT);
-  pinMode(pin_flag_3, OUTPUT);
-  digitalWrite(pin_flag_1, flag_1_state);
-  digitalWrite(pin_flag_2, flag_2_state);
-  digitalWrite(pin_flag_3, flag_3_state);
+  pinMode(pin_flag_1a, OUTPUT);
+  pinMode(pin_flag_1b, OUTPUT);
+  pinMode(pin_flag_2a, OUTPUT);
+  pinMode(pin_flag_2b, OUTPUT);
+  pinMode(pin_flag_3a, OUTPUT);
+  pinMode(pin_flag_3b, OUTPUT);
+  digitalWrite(pin_flag_1a, flag_1_state);
+  digitalWrite(pin_flag_2a, flag_2_state);
+  digitalWrite(pin_flag_3a, flag_3_state);
   pinMode(pin_toggle_1_green,INPUT_PULLUP);
   pinMode(pin_toggle_1_red,  INPUT_PULLUP);
   pinMode(pin_toggle_2_green,INPUT_PULLUP);
@@ -343,10 +358,16 @@ void set_flag(uint8_t sflag, bool state) {
   if (sflag==1) {
     if (flag_1_state != state) {
       flag_1_state = state;
-
-      digitalWrite(pin_flag_1, flag_1_state);  // replace this line with code or function to toggle servo
-
-
+      #if flag_1a_style == use_servo
+        // replace this line with code or function to toggle servo
+      #else
+        digitalWrite(pin_flag_1a, flag_1_state);
+      #endif
+      #if flag_1b_style == use_servo
+        // replace this line with code or function to toggle servo
+      #else
+        digitalWrite(pin_flag_1a, flag_1_state);
+      #endif
       digitalWrite(pin_led_1_green, state ^ inverse_leds);
       digitalWrite(pin_led_1_red, !(state^ inverse_leds) );
       #ifdef include_eeprom
@@ -361,9 +382,16 @@ void set_flag(uint8_t sflag, bool state) {
   if (sflag==2) {
     if (flag_2_state != state) {
       flag_2_state = state;
-
-      digitalWrite(pin_flag_2, flag_2_state);  // replace this line with code or function to toggle servo
-
+      #if flag_2a_style == use_servo
+        // replace this line with code or function to toggle servo
+      #else
+        digitalWrite(pin_flag_2a, flag_2_state);
+      #endif
+      #if flag_2b_style == use_servo
+        // replace this line with code or function to toggle servo
+      #else
+        digitalWrite(pin_flag_2a, flag_2_state);
+      #endif
       digitalWrite(pin_led_2_green, state ^ inverse_leds);
       digitalWrite(pin_led_2_red, !(state^ inverse_leds) );
       #ifdef include_eeprom
@@ -378,10 +406,16 @@ void set_flag(uint8_t sflag, bool state) {
   if (sflag==3) {
     if (flag_3_state != state) {
       flag_3_state = state;
-
-      digitalWrite(pin_flag_3, flag_3_state);  // replace this line with code or function to toggle servo
-
-
+      #if flag_3a_style == use_servo
+        // replace this line with code or function to toggle servo
+      #else
+        digitalWrite(pin_flag_3a, flag_3_state);
+      #endif
+      #if flag_3b_style == use_servo
+        // replace this line with code or function to toggle servo
+      #else
+        digitalWrite(pin_flag_3a, flag_3_state);
+      #endif
       digitalWrite(pin_led_3_green, state ^ inverse_leds);
       digitalWrite(pin_led_3_red, !(state^ inverse_leds) );
       #ifdef include_eeprom
