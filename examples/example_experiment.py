@@ -99,34 +99,35 @@ class ExampleExperiment(BaseExperiment):
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    def image(self, actiondict, nesting):
+
+    def image(self, actiondict, perform_nested_actions):
         print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
-        nesting()
+        perform_nested_actions()
         data = np.array([[0,1],[2,3]])
         return data
 
-    def image_modified(self, actiondict, nesting):
+    def image_modified(self, actiondict, perform_nested_actions):
         print('image: ',actiondict['Name'])
-        nesting()
+        perform_nested_actions()
 
-    def spectrum(self, actiondict, nesting):
+    def spectrum(self, actiondict, perform_nested_actions):
         print('spectrum: ',actiondict['Name'])
-        nesting()
+        perform_nested_actions()
 
-    def spectrum_modified(self, actiondict, nesting):
+    def spectrum_modified(self, actiondict, perform_nested_actions):
         print('spectrum: ',actiondict['Name'])
-        nesting()
+        perform_nested_actions()
 
-    def histogram(self, actiondict, nesting):
+    def histogram(self, actiondict, perform_nested_actions):
         print('histogram: ',actiondict['Name'])
-        nesting()
+        perform_nested_actions()
 
-    def sweep_atto(self, actiondict, nesting):
+    def sweep_atto(self, actiondict, perform_nested_actions):
         print('sweep_atto: ',actiondict['Name'])
         arr, unit = array_from_settings_dict(actiondict)
         for s in arr:
             print(actiondict['axis'],' : ', s)
-            nesting(s)
+            perform_nested_actions(s)
 
 if __name__ == '__main__':
 

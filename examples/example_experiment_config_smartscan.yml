@@ -174,9 +174,9 @@ Measurements:       # dictionary of Measurement s
     - Name: atto X
       Type: atto_scanner
       axis: x
-      start: 2mm    # if you use 'start', 'step' and 'stop' array_from_settings_dict() can interpret it automatically
-      step: 100um
-      stop: 3mm
+      start: 0mm    # if you use 'start', 'step' and 'stop' array_from_settings_dict() can interpret it automatically
+      step: 1mm
+      stop: 2mm
       ~nested:
       - Name: spec long
         Type: spectrum
@@ -186,8 +186,8 @@ Measurements:       # dictionary of Measurement s
         Type: atto_scanner
         axis: y
         start: 4mm
-        stop: 5mm
-        num: 6      # instead of using 'step', array_from_settings_dict() also understands 'num' as the number of points
+        stop: 6mm
+        num: 3      # instead of using 'step', array_from_settings_dict() also understands 'num' as the number of points
         ~nested:
         - Name: histogram
           Type: histogram
