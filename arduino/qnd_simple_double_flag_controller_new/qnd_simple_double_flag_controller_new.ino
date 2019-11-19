@@ -36,14 +36,21 @@
  * written by Aron Opheij
  */
 
+// You could flip the meaning of green == true and red == false
+// You may want/need to toggle the characters and/or inverse_leds
 #define green false
 #define red true
+
 #define include_eeprom       // comment this line to exclude all eeprom memory stuff from code
 #define print_start_message  // comment this line if you don't want the arduino to print the start message
 
 // The characters for the 'green' and the 'red' state can be changed here:
 #define char_green 'g'
 #define char_red 'r'
+
+// This parameter could be used to invert the behaviour of the leds.
+// (Might be useful in case of common cathode LEDs instead of common anode)
+bool inverse_leds = false;
 
 uint32_t debounce_timeout_ms = 50; // button debounce in ms
 
@@ -69,6 +76,14 @@ const uint8_t pin_toggle_2_red = 4;
 const uint8_t pin_toggle_3_green = 5;
 const uint8_t pin_toggle_3_red = 4;
 
+const uint8_t pin_led_1_green = 51;
+const uint8_t pin_led_1_red = 52;
+
+const uint8_t pin_led_2_green = 61;
+const uint8_t pin_led_2_red = 62;
+
+const uint8_t pin_led_3_green = 71;
+const uint8_t pin_led_3_red = 72;
 
 const uint8_t pin_flag_1 = 10;
 const uint8_t pin_flag_2 = 11;
@@ -126,6 +141,14 @@ void setup() {
   pinMode(pin_toggle_2_red,  INPUT_PULLUP);
   pinMode(pin_toggle_3_green,INPUT_PULLUP);
   pinMode(pin_toggle_3_red,  INPUT_PULLUP);
+
+  pinMode(pin_led_1_green, OUTPUT);
+  pinMode(pin_led_1_red, OUTPUT);
+  pinMode(pin_led_2_green, OUTPUT);
+  pinMode(pin_led_2_red, OUTPUT);
+  pinMode(pin_led_3_green, OUTPUT);
+  pinMode(pin_led_3_red, OUTPUT);
+
 }
 
 void loop() {
@@ -320,7 +343,12 @@ void set_flag(uint8_t sflag, bool state) {
   if (sflag==1) {
     if (flag_1_state != state) {
       flag_1_state = state;
-      digitalWrite(pin_flag_1, flag_1_state);
+
+      digitalWrite(pin_flag_1, flag_1_state);  // replace this line with code or function to toggle servo
+
+
+      digitalWrite(pin_led_1_green, state ^ inverse_leds);
+      digitalWrite(pin_led_1_red, !(state^ inverse_leds) );
       #ifdef include_eeprom
         EEPROM.update(eeprom_flag_1, state);
       #endif
@@ -333,7 +361,11 @@ void set_flag(uint8_t sflag, bool state) {
   if (sflag==2) {
     if (flag_2_state != state) {
       flag_2_state = state;
-      digitalWrite(pin_flag_2, flag_2_state);
+
+      digitalWrite(pin_flag_2, flag_2_state);  // replace this line with code or function to toggle servo
+
+      digitalWrite(pin_led_2_green, state ^ inverse_leds);
+      digitalWrite(pin_led_2_red, !(state^ inverse_leds) );
       #ifdef include_eeprom
         EEPROM.update(eeprom_flag_2, flag_2_state);
       #endif
@@ -346,7 +378,12 @@ void set_flag(uint8_t sflag, bool state) {
   if (sflag==3) {
     if (flag_3_state != state) {
       flag_3_state = state;
-      digitalWrite(pin_flag_3, flag_3_state);
+
+      digitalWrite(pin_flag_3, flag_3_state);  // replace this line with code or function to toggle servo
+
+
+      digitalWrite(pin_led_3_green, state ^ inverse_leds);
+      digitalWrite(pin_led_3_red, !(state^ inverse_leds) );
       #ifdef include_eeprom
         EEPROM.update(eeprom_flag_3, state);
       #endif
