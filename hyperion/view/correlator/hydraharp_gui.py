@@ -88,23 +88,26 @@ class Hydraharp_GUI(BaseGui):
         self.make_textfields()
 
     def make_groupBoxes(self):
-        self.groupBox_basic = QGroupBox("basic")
+        self.groupBox_basic = QGroupBox()
         self.grid_layout.addWidget(self.groupBox_basic,0,1)
 
         self.groupBox_basic_layout = QGridLayout()
         self.groupBox_basic.setLayout(self.groupBox_basic_layout)
+        self.groupBox_basic.setStyleSheet("QGroupBox {border: 1px solid orange;}")
 
-        self.groupBox_values = QGroupBox("values")
+        self.groupBox_values = QGroupBox()
         self.grid_layout.addWidget(self.groupBox_values,0,0)
 
         self.groupBox_values_layout = QGridLayout()
         self.groupBox_values.setLayout(self.groupBox_values_layout)
+        self.groupBox_values.setStyleSheet("QGroupBox {border: 1px solid orange;}")
 
-        self.groupBox_saving = QGroupBox("saving")
-        self.grid_layout.addWidget(self.groupBox_saving,1,0)
+        self.groupBox_saving = QGroupBox()
+        self.grid_layout.addWidget(self.groupBox_saving,1,0,1,2)
 
         self.groupBox_saving_layout = QGridLayout()
         self.groupBox_saving.setLayout(self.groupBox_saving_layout)
+        self.groupBox_saving.setStyleSheet("QGroupBox {border: 1px solid orange;}")
 
     def make_buttons(self):
         self.make_save_histogram_button()
@@ -130,13 +133,7 @@ class Hydraharp_GUI(BaseGui):
         self.show_remaining_time()
 
     # ------------------------------------------------------------------------------------
-    def make_save_histogram_button(self):
-        self.save_histogram_button = QPushButton('save histrogram', self)
-        self.save_histogram_button.setToolTip('save your histogram in a file')
-        #The maek_save_button should be setEnabled False
-        self.save_histogram_button.setEnabled(False)
-        self.save_histogram_button.clicked.connect(self.save_histogram)
-        self.groupBox_saving_layout.addWidget(self.save_histogram_button, 0, 3) #5,4
+
     def make_take_histogram_button(self):
         self.take_histogram_button = QPushButton('take histogram', self)
         self.take_histogram_button.setToolTip('take the histogram')
@@ -146,8 +143,31 @@ class Hydraharp_GUI(BaseGui):
         self.stop_histogram_button = QPushButton('stop histogram', self)
         self.stop_histogram_button.setToolTip(('stop your histogram'))
         self.stop_histogram_button.clicked.connect(self.stop_histogram)
-        self.groupBox_basic_layout.addWidget(self.stop_histogram_button, 1, 4)    #1,4
+        self.groupBox_basic_layout.addWidget(self.stop_histogram_button, 1, 0)    #1,4
         self.stop_histogram_button.setStyleSheet("background-color: red")
+    def make_showing_remaining_time(self):
+        self.showing_remaining_time = QLabel(self)
+        self.showing_remaining_time.setText(str(self.remaining_time))
+        self.groupBox_basic_layout.addWidget(self.showing_remaining_time, 2,0) #3,4
+    def make_progressbar(self):
+        self.progressbar = QProgressBar(self)
+        self.progressbar.setMaximum(int(self.integration_time.magnitude))
+        self.progressbar.setValue(int(self.remaining_time.magnitude))
+        self.progressbar.setTextVisible(False)
+        self.progressbar.valueChanged.connect(lambda: self.show_remaining_time)
+        self.groupBox_basic_layout.addWidget(self.progressbar, 3,0) #4,4
+
+    def make_save_histogram_button(self):
+        self.save_histogram_button = QPushButton('save histrogram', self)
+        self.save_histogram_button.setToolTip('save your histogram in a file')
+        #The maek_save_button should be setEnabled False
+        self.save_histogram_button.setEnabled(False)
+        self.save_histogram_button.clicked.connect(self.save_histogram)
+        self.groupBox_saving_layout.addWidget(self.save_histogram_button, 0, 3) #5,4
+    def make_export_label(self):
+        self.export_label = QLabel(self)
+        self.export_label.setText("Export file: ")
+        self.groupBox_saving_layout.addWidget(self.export_label, 0, 0)
 
     def make_array_length_label(self):
         self.array_length_label = QLabel(self)
@@ -165,21 +185,6 @@ class Hydraharp_GUI(BaseGui):
         self.channel_label = QLabel(self)
         self.channel_label.setText("Channel: ")
         self.groupBox_values_layout.addWidget(self.channel_label, 2, 0)
-    def make_export_label(self):
-        self.export_label = QLabel(self)
-        self.export_label.setText("Export file: ")
-        self.groupBox_values_layout.addWidget(self.export_label, 5, 0)
-    def make_showing_remaining_time(self):
-        self.showing_remaining_time = QLabel(self)
-        self.showing_remaining_time.setText(str(self.remaining_time))
-        self.groupBox_basic_layout.addWidget(self.showing_remaining_time, 3,0) #3,4
-    def make_progressbar(self):
-        self.progressbar = QProgressBar(self)
-        self.progressbar.setMaximum(int(self.integration_time.magnitude))
-        self.progressbar.setValue(int(self.remaining_time.magnitude))
-        self.progressbar.setTextVisible(False)
-        self.progressbar.valueChanged.connect(lambda: self.show_remaining_time)
-        self.groupBox_basic_layout.addWidget(self.progressbar, 4,0) #4,4
     def make_time_axis_label(self):
         self.time_axis_label = QLabel(self)
         self.time_axis_label.setText("Time on axis: ")
@@ -196,7 +201,7 @@ class Hydraharp_GUI(BaseGui):
         self.array_length_spinbox.setMaximum(999999999)
         self.array_length_spinbox.setValue(self.array_length)
         self.array_length_spinbox.valueChanged.connect(self.set_array_length)
-        self.grid_layout.addWidget(self.array_length_spinbox, 3, 1)
+        self.groupBox_values_layout.addWidget(self.array_length_spinbox, 3, 1)
 
     def make_resolution_spinbox(self):
         self.resolution_spinbox = QDoubleSpinBox(self)
@@ -228,7 +233,7 @@ class Hydraharp_GUI(BaseGui):
     def make_export_textfield(self):
         self.export_textfield = QLineEdit(self)
         self.export_textfield.setText(root_dir)
-        self.groupBox_saving_layout.addWidget(self.export_textfield, 5, 1, 1, 2)
+        self.groupBox_saving_layout.addWidget(self.export_textfield, 0, 1, 1, 2)
 
 
     #------------------------------------------------------------------------------------
