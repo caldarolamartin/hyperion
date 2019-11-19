@@ -94,10 +94,10 @@ class Attocube_GUI(BaseGui):
         | Connects buttons and show_position, which works with a timer that is started in the init of this class.
         """
         self.gui.groupBox_basic.setObjectName("Colored_basic")
-        self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 1px solid blue;}")
+        self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 2px solid blue;}")
 
         self.gui.groupBox_configurate.setObjectName("Colored_configure")
-        self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 2px solid blue;}")
 
         #combobox basic
         self.gui.comboBox_axis.setCurrentText(self.current_axis)
@@ -201,7 +201,7 @@ class Attocube_GUI(BaseGui):
             self.gui.groupBox_scanner.setStyleSheet("QGroupBox default")
 
             self.gui.groupBox_configurate.setEnabled(True)
-            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 2px solid blue;}")
 
             self.gui.groupBox_moving.setEnabled(False)
             self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
@@ -247,7 +247,7 @@ class Attocube_GUI(BaseGui):
             self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
 
             self.gui.groupBox_scanner.setObjectName("Colored_scanner")
-            self.gui.groupBox_scanner.setStyleSheet("QGroupBox#Colored_scanner {border: 1px solid blue;}")
+            self.gui.groupBox_scanner.setStyleSheet("QGroupBox#Colored_scanner {border: 2px solid blue;}")
 
             if 'Z' in self.current_axis:
                 self.gui.groupBox_scanXY.setEnabled(False)
@@ -419,7 +419,7 @@ class Attocube_GUI(BaseGui):
 
         self.gui.groupBox_moving.setEnabled(True)
         self.gui.groupBox_moving.setObjectName("ColoredGroupBox")
-        self.gui.groupBox_moving.setStyleSheet("QGroupBox#ColoredGroupBox {border: 1px solid blue;}")
+        self.gui.groupBox_moving.setStyleSheet("QGroupBox#ColoredGroupBox {border: 2px solid blue;}")
 
         self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
 

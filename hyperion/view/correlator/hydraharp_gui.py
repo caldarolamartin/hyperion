@@ -9,9 +9,8 @@ This is to build a gui for the Hydraharp instrument (correlator).
 
 import sys
 
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-    #QApplication, QWidget, QPushButton, QGridLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout,QFileDialog
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion.view.general_worker import WorkThread
 from hyperion.view.base_guis import BaseGui
@@ -42,6 +41,7 @@ class Hydraharp_GUI(BaseGui):
         self.histogram_number = 0
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
+
         self.hydra_instrument = hydra_instrument
         self.draw = draw
 
@@ -82,9 +82,29 @@ class Hydraharp_GUI(BaseGui):
 
         self.show()
 
+        self.make_groupBoxes()
         self.make_buttons()
         self.make_labels()
         self.make_textfields()
+
+    def make_groupBoxes(self):
+        self.groupBox_basic = QGroupBox("basic")
+        self.grid_layout.addWidget(self.groupBox_basic,0,1)
+
+        self.groupBox_basic_layout = QGridLayout()
+        self.groupBox_basic.setLayout(self.groupBox_basic_layout)
+
+        self.groupBox_values = QGroupBox("values")
+        self.grid_layout.addWidget(self.groupBox_values,0,0)
+
+        self.groupBox_values_layout = QGridLayout()
+        self.groupBox_values.setLayout(self.groupBox_values_layout)
+
+        self.groupBox_saving = QGroupBox("saving")
+        self.grid_layout.addWidget(self.groupBox_saving,1,0)
+
+        self.groupBox_saving_layout = QGridLayout()
+        self.groupBox_saving.setLayout(self.groupBox_saving_layout)
 
     def make_buttons(self):
         self.make_save_histogram_button()
@@ -116,58 +136,59 @@ class Hydraharp_GUI(BaseGui):
         #The maek_save_button should be setEnabled False
         self.save_histogram_button.setEnabled(False)
         self.save_histogram_button.clicked.connect(self.save_histogram)
-        self.grid_layout.addWidget(self.save_histogram_button, 5, 4)
+        self.groupBox_saving_layout.addWidget(self.save_histogram_button, 0, 3) #5,4
     def make_take_histogram_button(self):
         self.take_histogram_button = QPushButton('take histogram', self)
         self.take_histogram_button.setToolTip('take the histogram')
         self.take_histogram_button.clicked.connect(self.take_histogram)
-        self.grid_layout.addWidget(self.take_histogram_button, 0, 4)
+        self.groupBox_basic_layout.addWidget(self.take_histogram_button, 0, 0)
     def make_stop_histogram_button(self):
         self.stop_histogram_button = QPushButton('stop histogram', self)
         self.stop_histogram_button.setToolTip(('stop your histogram'))
         self.stop_histogram_button.clicked.connect(self.stop_histogram)
-        self.grid_layout.addWidget(self.stop_histogram_button, 1, 4)
+        self.groupBox_basic_layout.addWidget(self.stop_histogram_button, 1, 4)    #1,4
         self.stop_histogram_button.setStyleSheet("background-color: red")
+
     def make_array_length_label(self):
         self.array_length_label = QLabel(self)
         self.array_length_label.setText("Array length: ")
-        self.grid_layout.addWidget(self.array_length_label, 3, 0)
+        self.groupBox_values_layout.addWidget(self.array_length_label, 3, 0)
     def make_resolution_label(self):
         self.resolution_label = QLabel(self)
         self.resolution_label.setText("Resolution: ")
-        self.grid_layout.addWidget(self.resolution_label, 1, 0)
+        self.groupBox_values_layout.addWidget(self.resolution_label, 1, 0)
     def make_integration_time_label(self):
         self.integration_time_label = QLabel(self)
         self.integration_time_label.setText("Integration time: ")
-        self.grid_layout.addWidget(self.integration_time_label, 0, 0)
+        self.groupBox_values_layout.addWidget(self.integration_time_label, 0, 0)
     def make_channel_label(self):
         self.channel_label = QLabel(self)
         self.channel_label.setText("Channel: ")
-        self.grid_layout.addWidget(self.channel_label, 2, 0)
+        self.groupBox_values_layout.addWidget(self.channel_label, 2, 0)
     def make_export_label(self):
         self.export_label = QLabel(self)
         self.export_label.setText("Export file: ")
-        self.grid_layout.addWidget(self.export_label, 5, 0)
+        self.groupBox_values_layout.addWidget(self.export_label, 5, 0)
     def make_showing_remaining_time(self):
         self.showing_remaining_time = QLabel(self)
         self.showing_remaining_time.setText(str(self.remaining_time))
-        self.grid_layout.addWidget(self.showing_remaining_time, 3, 4)
+        self.groupBox_basic_layout.addWidget(self.showing_remaining_time, 3,0) #3,4
     def make_progressbar(self):
         self.progressbar = QProgressBar(self)
         self.progressbar.setMaximum(int(self.integration_time.magnitude))
         self.progressbar.setValue(int(self.remaining_time.magnitude))
         self.progressbar.setTextVisible(False)
         self.progressbar.valueChanged.connect(lambda: self.show_remaining_time)
-        self.grid_layout.addWidget(self.progressbar, 4,4)
+        self.groupBox_basic_layout.addWidget(self.progressbar, 4,0) #4,4
     def make_time_axis_label(self):
         self.time_axis_label = QLabel(self)
         self.time_axis_label.setText("Time on axis: ")
-        self.grid_layout.addWidget(self.time_axis_label, 4, 0)
+        self.groupBox_values_layout.addWidget(self.time_axis_label, 4, 0)
     def make_endtime(self):
         self.endtime_label = QLabel(self)
         self.calculate_axis()
         self.endtime_label.setText(str(self.endtime))
-        self.grid_layout.addWidget(self.endtime_label, 4, 1)
+        self.groupBox_values_layout.addWidget(self.endtime_label, 4, 1)
 
     # ------------------------------------------------------------------------------------
     def make_array_length_spinbox(self):
@@ -182,32 +203,32 @@ class Hydraharp_GUI(BaseGui):
         self.resolution_spinbox.setMaximum(999999999)
         self.resolution_spinbox.setValue(self.resolution.m_as('ps'))
         self.resolution_spinbox.setSuffix('ps')
-        self.grid_layout.addWidget(self.resolution_spinbox, 1, 1)
+        self.groupBox_values_layout.addWidget(self.resolution_spinbox, 1, 1)
         self.resolution_spinbox.valueChanged.connect(self.set_resolution)
 
     def make_integration_time_spinbox(self):
         self.integration_time_spinbox = QSpinBox(self)
         self.integration_time_spinbox.setValue(self.integration_time.m_as('s'))
-        self.grid_layout.addWidget(self.integration_time_spinbox, 0, 1)
+        self.groupBox_values_layout.addWidget(self.integration_time_spinbox, 0, 1)
         self.integration_time_spinbox.valueChanged.connect(self.set_integration_time)
     def make_time_unit_combobox(self):
         self.time_unit_combobox = QComboBox(self)
         self.time_unit_combobox.addItems(["s","min","hour"])
         self.time_unit_combobox.setCurrentText('s')
-        self.grid_layout.addWidget(self.time_unit_combobox, 0, 2)
+        self.groupBox_values_layout.addWidget(self.time_unit_combobox, 0, 2)
         self.time_unit_combobox.currentTextChanged.connect(self.set_integration_time)
 
     def make_channel_combobox(self):
         self.channel_combobox = QComboBox(self)
         self.channel_combobox.addItems(["0","1"])
         self.channel_combobox.setCurrentText(self.channel)
-        self.grid_layout.addWidget(self.channel_combobox, 2, 1)
+        self.groupBox_values_layout.addWidget(self.channel_combobox, 2, 1)
         self.channel_combobox.currentTextChanged.connect(self.set_channel)
 
     def make_export_textfield(self):
         self.export_textfield = QLineEdit(self)
         self.export_textfield.setText(root_dir)
-        self.grid_layout.addWidget(self.export_textfield, 5, 1, 1, 2)
+        self.groupBox_saving_layout.addWidget(self.export_textfield, 5, 1, 1, 2)
 
 
     #------------------------------------------------------------------------------------
