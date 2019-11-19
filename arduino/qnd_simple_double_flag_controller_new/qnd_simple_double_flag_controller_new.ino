@@ -1,5 +1,5 @@
 /* QND (quick and dirty) Simple Double Flag Controller
- * version 2019-11-19
+ * version 2019-09-17
  * 
  * To upload firmware with Arduino IDE, set it to 'Arduino Nano' and 'Atmega328P (Old Bootloader)'
  * For quick testing the built in Serial Monitor of the Arduino IDE can be used,
@@ -36,6 +36,10 @@
 #define red true
 #define include_eeprom       // comment this line to exclude all eeprom memory stuff from code
 #define print_start_message  // comment this line if you don't want the arduino to print the start message
+
+// It's possible to change the characters for the two states here:
+#define char_green 'g'
+#define char_red 'r'
 
 uint32_t debounce_timeout_ms = 50; // button debounce in ms
 
@@ -199,11 +203,11 @@ void loop() {
           flag = 2;
           command_a = false;
           break;         
-        case 'g':
+        case char_green:
           if (flag) set_flag(flag,green);
           flag = 0;
           break;
-        case 'r':
+        case char_red:
           if (flag) set_flag(flag,red);
           flag = 0;
           break;
@@ -269,7 +273,7 @@ void set_flag(uint8_t sflag, bool state) {
     }
     if (announce_state) {
       Serial.print('1');
-      (state==red) ? Serial.println('r') : Serial.println('g');
+      (state==red) ? Serial.println(char_red) : Serial.println(char_green);
     }
   }
   if (sflag==2) {
@@ -282,16 +286,16 @@ void set_flag(uint8_t sflag, bool state) {
     }
     if (announce_state) {
       Serial.print('2');
-      (state==red) ? Serial.println('r') : Serial.println('g');
+      (state==red) ? Serial.println(char_red) : Serial.println(char_green);
     }
   }
 }
 
 void query_flag(uint8_t qflag) {
   if (qflag==1) {
-    (flag_1_state==red) ? Serial.println('r') : Serial.println('g');
+    (flag_1_state==red) ? Serial.println(char_red) : Serial.println(char_green);
   } else if (qflag==2) {
-    (flag_2_state==red) ? Serial.println('r') : Serial.println('g');
+    (flag_2_state==red) ? Serial.println(char_red) : Serial.println(char_green);
   }
 }
 
@@ -307,7 +311,7 @@ void check_idn() {
 }
 
 void print_idn() {
-  Serial.println("QND Simple Double Flag Controller, version 0.2, date 2019-11-19");
+  Serial.println("QND Simple Double Flag Controller, version 0.1, date 2019-09-17");
 }
 
 void shift_serial_buffer() {
