@@ -1,9 +1,11 @@
 /* QND (quick and dirty) Simple Double Flag Controller
  * version 2019-11-19
  *
- * NEW MODIFICATIONS:
- * - toggle red-green LED
- * - toggle pin
+ * New in this version:
+ * - expanded to three toggle switches
+ * - toggle switches are accompanied by a red-green LED
+ * - per toggle switch one can toggle two "objects"
+ * - each of thos objects can be a regular pins or a servos
  *
  * To upload firmware with Arduino IDE, set it to 'Arduino Nano' and 'Atmega328P (Old Bootloader)'
  * For quick testing the built in Serial Monitor of the Arduino IDE can be used,
@@ -22,8 +24,11 @@
  *   1r    set flag 1 to "red" position
  *   2g    set flag 2 to "green" position
  *   2r    set flag 2 to "red" position
+ *   3g    set flag 3 to "green" position
+ *   3r    set flag 3 to "red" position
  *   1?    returns single character ('g' or 'r') indicating the current state
  *   2?
+ *   3?
  *   *IDN?
  *   at   announce true: makes the arduino send a state change (e.g. '1g', if 1 was switched to green)
  *   af   announce off: turns announcing states off
@@ -44,18 +49,70 @@
 #define include_eeprom       // comment this line to exclude all eeprom memory stuff from code
 #define print_start_message  // comment this line if you don't want the arduino to print the start message
 
-// The characters for the 'green' and the 'red' state can be changed here:
-#define char_green 'g'
-#define char_red 'r'
+// Toggle these parameters to switch between use_servo and use_pin for using a servo or regular pin
+#define flag_1a_style use_servo
+#define flag_1b_style use_servo
+#define flag_2a_style use_servo
+#define flag_2b_style use_pin
+#define flag_3a_style use_servo
+#define flag_3b_style use_pin
+
+// Set the two angles for each (potential) servo:
+const int servo_1a_angles[2] = {40,130};
+const int servo_1b_angles[2] = {40,130};
+const int servo_2a_angles[2] = {40,130};
+const int servo_2b_angles[2] = {40,130};
+const int servo_3a_angles[2] = {40,130};
+const int servo_3b_angles[2] = {40,130};
 
 // This parameter could be used to invert the behaviour of the leds.
 // (Might be useful in case of common cathode LEDs instead of common anode)
 bool inverse_leds = false;
 
-uint32_t debounce_timeout_ms = 50; // button debounce in ms
+// The characters for the 'green' and the 'red' state can be changed here:
+#define char_green 'g'
+#define char_red 'r'
+
+uint32_t debounce_timeout_ms = 50; // button debounce in ms (50ms seems to be good)
 
 const int baudrate = 9600; // Baudrates that work: 9600 (default) and 19200.
 // Usually higher baudrates should also work, but they seem to be unstable on this arduino.
+
+// Define pins:
+// I suggest to stick with the chosen pin selection
+const uint8_t pin_toggle_1_green = 2;   // connect to "green" side of momentary toggle switch
+const uint8_t pin_toggle_1_red = 4;     // connect to "red" side of momentary toggle switch
+const uint8_t pin_led_1_green = 3;      // connect to green side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
+const uint8_t pin_led_1_red = 5;        // connect to red side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
+const uint8_t pin_flag_1a = A0;         // connect to servo or something else (make sure not to exceed 20mA),
+const uint8_t pin_flag_1b = A1;         // connect to servo or something else (make sure not to exceed 20mA)
+
+const uint8_t pin_toggle_2_green = 7;
+const uint8_t pin_toggle_2_red = 8;
+const uint8_t pin_led_2_green = 6;      // connect to green side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
+const uint8_t pin_led_2_red = 9;        // connect to red side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
+const uint8_t pin_flag_2a = A2;
+const uint8_t pin_flag_2b = A3;
+
+const uint8_t pin_toggle_3_green = 11;
+const uint8_t pin_toggle_3_red = 13;
+const uint8_t pin_led_3_green = 10;     // connect to green side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
+const uint8_t pin_led_3_red = 12;       // connect to red side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
+const uint8_t pin_flag_3a = A4;
+const uint8_t pin_flag_3b = A5;
+
+/////////////////////////////  END OF USER SETTINGS ////////////////////////////////
+
+// You should probably not change anything beyond this point unless you know what you're doing
+
+#include <Servo.h>
+// Might not need all of them, but there's plenty of memory
+Servo myservo_1a;  // create servo object to control a servo; twelve servo objects can be created on most boards
+Servo myservo_1b;
+Servo myservo_2a;
+Servo myservo_2b;
+Servo myservo_3a;
+Servo myservo_3b;
 
 #ifdef include_eeprom
   #include <EEPROM.h>
@@ -65,41 +122,6 @@ const int baudrate = 9600; // Baudrates that work: 9600 (default) and 19200.
   const int16_t eeprom_flag_2  = EEPROM.length() - eeprom_offset - 3;
   const int16_t eeprom_flag_3  = EEPROM.length() - eeprom_offset - 4;
 #endif
-
-// Define pins:
-const uint8_t pin_toggle_1_green = 8;
-const uint8_t pin_toggle_1_red = 7;
-
-const uint8_t pin_toggle_2_green = 5;
-const uint8_t pin_toggle_2_red = 4;
-
-const uint8_t pin_toggle_3_green = 5;
-const uint8_t pin_toggle_3_red = 4;
-
-const uint8_t pin_led_1_green = 51;
-const uint8_t pin_led_1_red = 52;
-
-const uint8_t pin_led_2_green = 61;
-const uint8_t pin_led_2_red = 62;
-
-const uint8_t pin_led_3_green = 71;
-const uint8_t pin_led_3_red = 72;
-
-const uint8_t pin_flag_1a = 10;
-const uint8_t pin_flag_1b = 10;
-const uint8_t pin_flag_2a = 11;
-const uint8_t pin_flag_2b = 11;
-const uint8_t pin_flag_3a = 11;
-const uint8_t pin_flag_3b = 11;
-
-
-#define flag_1a_style use_servo
-#define flag_1b_style use_servo
-#define flag_2a_style use_servo
-#define flag_2b_style use_pin
-#define flag_3a_style use_servo
-#define flag_3b_style use_pin
-
 
 int8_t switch1_down = 0;
 int8_t switch2_down = 0;
@@ -164,6 +186,24 @@ void setup() {
   pinMode(pin_led_3_green, OUTPUT);
   pinMode(pin_led_3_red, OUTPUT);
 
+  #if flag_1a_style == use_servo
+    myservo_1a.attach(pin_flag_1a);  // attaches the servo on pin ... to the servo object
+  #endif
+  #if flag_1b_style == use_servo
+    myservo_1b.attach(pin_flag_1b);
+  #endif
+  #if flag_2a_style == use_servo
+    myservo_2a.attach(pin_flag_2a);  // attaches the servo on pin ... to the servo object
+  #endif
+  #if flag_2b_style == use_servo
+    myservo_2b.attach(pin_flag_2b);
+  #endif
+  #if flag_3a_style == use_servo
+    myservo_3a.attach(pin_flag_3a);  // attaches the servo on pin ... to the servo object
+  #endif
+  #if flag_3b_style == use_servo
+    myservo_3b.attach(pin_flag_3b);
+  #endif
 }
 
 void loop() {
@@ -359,12 +399,12 @@ void set_flag(uint8_t sflag, bool state) {
     if (flag_1_state != state) {
       flag_1_state = state;
       #if flag_1a_style == use_servo
-        // replace this line with code or function to toggle servo
+        myservo_1a.write(servo_1a_angles[state]);
       #else
         digitalWrite(pin_flag_1a, flag_1_state);
       #endif
       #if flag_1b_style == use_servo
-        // replace this line with code or function to toggle servo
+        myservo_1b.write(servo_1b_angles[state]);
       #else
         digitalWrite(pin_flag_1a, flag_1_state);
       #endif
@@ -383,12 +423,12 @@ void set_flag(uint8_t sflag, bool state) {
     if (flag_2_state != state) {
       flag_2_state = state;
       #if flag_2a_style == use_servo
-        // replace this line with code or function to toggle servo
+        myservo_2a.write(servo_2a_angles[state]);
       #else
         digitalWrite(pin_flag_2a, flag_2_state);
       #endif
       #if flag_2b_style == use_servo
-        // replace this line with code or function to toggle servo
+        myservo_2b.write(servo_2b_angles[state]);
       #else
         digitalWrite(pin_flag_2a, flag_2_state);
       #endif
@@ -407,12 +447,12 @@ void set_flag(uint8_t sflag, bool state) {
     if (flag_3_state != state) {
       flag_3_state = state;
       #if flag_3a_style == use_servo
-        // replace this line with code or function to toggle servo
+        myservo_3a.write(servo_3a_angles[state]);
       #else
         digitalWrite(pin_flag_3a, flag_3_state);
       #endif
       #if flag_3b_style == use_servo
-        // replace this line with code or function to toggle servo
+        myservo_3b.write(servo_3b_angles[state]);
       #else
         digitalWrite(pin_flag_3a, flag_3_state);
       #endif
