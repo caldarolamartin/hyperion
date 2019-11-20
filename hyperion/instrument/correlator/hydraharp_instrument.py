@@ -157,9 +157,8 @@ class HydraInstrument(BaseInstrument):
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
 
     def wait_till_finished(self, tijd):
-        """| **Work in progress!**
-        | This method should ask the device its status and keep asking until it's finished.
-        | However, the status for some reason is set to finished already after 3 seconds or so.
+        """| This method should ask the device its status and keep asking until it's finished.
+        | However, the remaining time is printed but not shown with the timer in the gui.
         | The loop breaks if self.stop is put to True, which could be done in a higher level with a thread.
 
         :param tijd: integration time of histogram **(please don't use the English word for tijd)**
@@ -175,23 +174,38 @@ class HydraInstrument(BaseInstrument):
 
         self.logger.debug('status of endedness: ' + str(self.hist_ended))
 
-        while self.hist_ended == False:
-            self.hist_ended = self.controller.ctc_status
-            self.logger.debug('Is the histogram finished? ' + str(self.hist_ended))
+        time.sleep(1)
 
-            if self.stop:
-                self.logger.info('Stopping the histogram')
-                self.stop = False
-                break
-            time.sleep(t)
+        # time.sleep(
+        #     0.5)  # important not to put too short, otherwise it already starts asking before the guy even knows whether he moves
+        # while self.controller.getStatus(ax)['moving']:
+        #     # self.logger.debug('controller moving? '+str(self.controller.getStatus(ax)['moving']))
+        #     self.get_position(axis)
+        #     self.logger.debug('{}'.format(self.current_positions[axis]))
+        #     time.sleep(0.1)
+        #     if self.stop:
+        #         self.logger.info('Stopping approaching')
+        #         self.stop = False
+        #         break
+
+        while self.controller.ctc_status == False:
+            self.logger.debug('Is the histogram finished? ' + str(self.controller.ctc_status))
+
             total_time_passed += t * ur('s')
             #this line returns a pint quantity which tells the user how much time the program needs before it can collect the histogram
             self.logger.debug('time passed ' + str(total_time_passed))
             self.remaining_time = tijd - total_time_passed
             self.logger.debug("{}".format(self.remaining_time))
 
+            time.sleep(t)
+
+            if self.stop:
+                self.logger.info('Stopping the histogram')
+                self.stop = False
+                break
+
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
-        self.logger.debug('Ended? ' + str(self.hist_ended))
+        self.logger.debug('Ended? ' + str(self.controller.ctc_status))
 
     def stop_histogram(self):
         """| This method stops taking the histogram, could be used in higher levels with a thread.

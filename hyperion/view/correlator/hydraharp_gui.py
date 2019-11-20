@@ -17,8 +17,11 @@ from hyperion.view.base_guis import BaseGui
 from hyperion import ur, root_dir
 import pyqtgraph as pg
 import pyqtgraph.exporters
+from pyqtgraph.Qt import QtGui
 import logging
 import numpy as np
+import matplotlib.pyplot as plt
+import datetime
 
 class Hydraharp_GUI(BaseGui):
     """
@@ -48,7 +51,7 @@ class Hydraharp_GUI(BaseGui):
         #default values, could be put in a yml file as well
         self.array_length = 65536
         self.resolution = 1.0*ur('ps')
-        self.integration_time = 20 * ur('s')
+        self.integration_time = 5 * ur('s')
         self.channel = '0'
         self.remaining_time = self.integration_time     #which also makes sure that the units are the same
 
@@ -57,6 +60,7 @@ class Hydraharp_GUI(BaseGui):
 
         self.endtime = []
         self.time_axis = []
+        self.units = 's'
 
         self.hydra_instrument.configurate()
 
@@ -192,7 +196,7 @@ class Hydraharp_GUI(BaseGui):
     def make_endtime(self):
         self.endtime_label = QLabel(self)
         self.calculate_axis()
-        self.endtime_label.setText(str(self.endtime))
+        self.endtime_label.setText(str(round(self.endtime.to(self.units),4)))
         self.groupBox_values_layout.addWidget(self.endtime_label, 4, 1)
 
     # ------------------------------------------------------------------------------------
@@ -235,7 +239,6 @@ class Hydraharp_GUI(BaseGui):
         self.export_textfield.setText(root_dir)
         self.groupBox_saving_layout.addWidget(self.export_textfield, 0, 1, 1, 2)
 
-
     #------------------------------------------------------------------------------------
     def show_remaining_time(self):
         """This method asks the remaining time from the instrument level,
@@ -243,9 +246,11 @@ class Hydraharp_GUI(BaseGui):
         """
         self.remaining_time = self.hydra_instrument.remaining_time
         self.showing_remaining_time.setText(str(self.remaining_time))
+        #self.showing_remaining_time.setText(str(self.hydra_instrument.controller.ctc_status))
 
         self.progressbar.setMaximum(int(self.integration_time.magnitude))
         self.progressbar.setValue(int(self.remaining_time.magnitude))
+        #print(self.remaining_time)
 
     # ------------------------------------------------------------------------------------
     def set_channel(self):
@@ -338,22 +343,22 @@ class Hydraharp_GUI(BaseGui):
 
     def calculate_axis(self):
         """| This method calculates the axis that should be put on the graph.
-        | **Unused**, because I don't know how to communicate with the graph class.
+        | This end time is both displayed in the gui and used for the graph time axis.
         """
         self.endtime = round(self.resolution.m_as('ns')*self.array_length*ur('s'),4)
 
         if self.endtime.m_as('s') < 60:  # below one minute, display in seconds
-            units = 's'
+            self.units = 's'
         elif self.endtime.m_as('s') < 60 * 60:  # below one hour, display in minutes
-            units = 'min'
+            self.units = 'min'
         elif self.endtime.m_as('s') < 60 * 60 * 24:  # below one day, display in hours
-            units = 'hour'
+            self.units = 'hour'
         else:
-            units = 'days'
+            self.units = 'days'
 
-        self.logger.debug(str(self.endtime))
-        #self.endtime = self.endtime.m_as(units)
-        self.time_axis = np.linspace(0, self.endtime.m_as(units), int(self.resolution.m_as('ns')))
+        self.logger.debug('endtime: {}, units: {}, array length: {}'.format(self.endtime, self.units, self.array_length))
+        self.time_axis = np.linspace(0, float(self.endtime.m_as(self.units)), self.array_length)
+        self.logger.debug('time axis: {}'.format(self.time_axis))
 
     #------------------------------------------------------------------------------------
     def take_histogram(self):
@@ -361,7 +366,8 @@ class Hydraharp_GUI(BaseGui):
         | All user inputs were stored previously in the values as declared in the init
         | (histogram length, resolution, integration time and channel).
         | A thread is started to be able to also stop the histogram taking.
-        | The data gets plot in the DrawHistogram plot(self.draw.random_plot.plot()).
+        | The data gets plot in the DrawHistogram plot(self.draw.histogram_plot.plot()).
+        | The time axis is calculated in calculate_axis and used for the plot.
         """
         self.logger.info("Take the histrogram")
 
@@ -386,7 +392,17 @@ class Hydraharp_GUI(BaseGui):
 
         #self.histogram= self.hydra_instrument.make_histogram(self.integration_time, self.channel)
 
-        self.draw.random_plot.plot(self.histogram, clear=True)
+        self.calculate_axis()
+
+        self.logger.debug('length time axis: {}, length histogram: {}'.format(len(self.time_axis), len(self.histogram)))
+
+        pen = pg.mkPen(color = (0, 0, 0))       #makes the plotted lines black
+        if len(self.histogram) > 0:
+            self.draw.histogram_plot.plot(self.time_axis, self.histogram, clear=True, pen = pen)
+            self.draw.histogram_plot.setLabel('bottom',"<span style=\"color:black;font-size:20px\"> Time ({}) </span>".format(self.units))
+        else:
+            self.draw.histogram_plot.plot(self.histogram, clear=True)
+            self.draw.histogram_plot.setLabel('bottom',"<span style=\"color:black;font-size:20px\"> Time </span>")
 
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
@@ -473,16 +489,61 @@ class DrawHistogram(QWidget):
         self.top = 100
         self.width = 640
         self.height = 480
-        self.random_plot = pg.PlotWidget()
+        self.histogram_plot = pg.PlotWidget()
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         vbox = QVBoxLayout()
-        vbox.addWidget(self.random_plot)
+        vbox.addWidget(self.histogram_plot)
+
+        self.layout_plot()
+
         self.setLayout(vbox)
         self.show()
+
+    def layout_plot(self):
+        self.histogram_plot.setBackground('w')
+        self.histogram_plot.setTitle("<span style=\"color:orange;font-size:30px\">Histogram</span>")
+        #self.histogram_plot.setTitle("Histogram", color=(255,0,0))
+        #self.histogram_plot.setLabel('left','Correlated counts','a.u.')
+
+        Xaxis = TimeAxisItem(orientation = 'bottom')
+        Xaxis.attachToPlotItem(self.histogram_plot.getPlotItem())
+        Xaxis.setPen(color = (0,0,0))
+
+        Yaxis = TimeAxisItem(orientation = 'left')
+        Yaxis.attachToPlotItem(self.histogram_plot.getPlotItem())
+        Yaxis.setPen(color = (0,0,0))
+
+        self.histogram_plot.setLabel('left', "<span style=\"color:black;font-size:20px\"> Correlated counts </span>")
+        self.histogram_plot.setLabel('bottom', "<span style=\"color:black;font-size:20px\"> Time </span>")
+
+        font = QtGui.QFont()
+        font.setPixelSize(20)
+        self.histogram_plot.getAxis("bottom").tickFont = font
+        self.histogram_plot.getAxis("left").tickFont = font
+
+class TimeAxisItem(pg.AxisItem):
+    """This code I found on the internet to change the color of the axes.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def attachToPlotItem(self, plotItem):
+        """Add this axis to the given PlotItem
+        :param plotItem: (PlotItem)
+        """
+        self.setParentItem(plotItem)
+        viewBox = plotItem.getViewBox()
+        self.linkToView(viewBox)
+        self._oldAxis = plotItem.axes[self.orientation]['item']
+        self._oldAxis.hide()
+        plotItem.axes[self.orientation]['item'] = self
+        pos = plotItem.axes[self.orientation]['pos']
+        plotItem.layout.addItem(self, *pos)
+        self.setZValue(-1000)
 
 
 if __name__ == '__main__':
