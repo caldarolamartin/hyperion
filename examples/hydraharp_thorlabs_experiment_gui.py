@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication
 from hyperion.view.master_gui import MasterGui
 from examples.example_experiment import ExampleExperiment
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
-from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
+from hyperion.instrument.position.thorlabs_motor_instr import Thorlabsmotor
 from hyperion import ur
 ureg = ur
 
@@ -21,7 +21,7 @@ def hydraharp_and_thorlabsmotor_experiment():
     """
     #create instances of the correlator and thorlabsmotor
     hydra = HydraInstrument(settings={'devidx':0, 'mode':'Histogram', 'clock':'Internal',
-                                   'controller': 'hyperion.controller.picoquant.correlator/Hydraharp'})
+                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
     motor = Thorlabsmotor()
     #initialize the correlator and thorlabsmotor
     #motor.initialize(83815760)
