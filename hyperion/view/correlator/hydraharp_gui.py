@@ -365,8 +365,6 @@ class Hydraharp_GUI(BaseGui):
         """
         self.logger.info("Take the histrogram")
 
-        self.show_remaining_time()
-
         #first, set the array length and resolution of the histogram
         self.logger.debug('chosen histogram length: ' + str(self.array_length))
         self.logger.debug('chosen resolution: ' + str(self.resolution))
@@ -377,6 +375,7 @@ class Hydraharp_GUI(BaseGui):
         self.logger.debug('chosen integration time: ' + str(self.integration_time))
         self.logger.debug('chosen channel: ' + str(self.channel))
 
+        self.show_remaining_time()
         self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
         self.histogram_thread.start()
 

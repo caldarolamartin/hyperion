@@ -154,7 +154,7 @@ class HydraInstrument(BaseInstrument):
 
         #self.hist_ended = False         #why doesnt it remember this from up?
 
-        self.controller.start_measurement(tijd.m_as('s'))
+        self.controller.start_measurement(int(tijd.m_as('ms')))
         self.wait_till_finished(tijd)
         #print(self.wait_till_finished(tijd))
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
@@ -192,6 +192,7 @@ class HydraInstrument(BaseInstrument):
             #this line returns a pint quantity which tells the user how much time the program needs before it can take the histogram
             self.logger.debug('time passed ' + str(total_time_passed))
             self.remaining_time = tijd - total_time_passed
+            self.logger.debug("{}".format(self.remaining_time))
 
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
         self.logger.debug('Ended? ' + str(self.hist_ended))
@@ -218,7 +219,7 @@ if __name__ == "__main__":
 
         # use the hist
         q.set_histogram(leng = 65536, res =8.0 * ur('ps'))
-        hist = q.make_histogram(20*ur('s'), count_channel = 0)
+        hist = q.make_histogram(5*ur('s'), count_channel = 0)
         print('The histogram: ', hist)
 
         plt.figure()

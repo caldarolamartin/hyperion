@@ -326,7 +326,7 @@ if __name__ == '__main__':
 
     WaveplateMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850090, 'name': 'Waveplate'}
 
-    with Thorlabsmotor(settings = xMotor) as thorlabs_instrument:
+    with Thorlabsmotor(settings = WaveplateMotor) as thorlabs_instrument:
 
         app = QApplication(sys.argv)
         ex = Thorlabs_motor_GUI(thorlabs_instrument)
