@@ -1,5 +1,5 @@
 /* QND (quick and dirty) Simple Double Flag Controller
- * version 2019-09-17
+ * version 2019-11-19
  * 
  * To upload firmware with Arduino IDE, set it to 'Arduino Nano' and 'Atmega328P (Old Bootloader)'
  * For quick testing the built in Serial Monitor of the Arduino IDE can be used,
@@ -307,7 +307,7 @@ void check_idn() {
 }
 
 void print_idn() {
-  Serial.println("QND Simple Double Flag Controller, version 0.1, date 2019-09-17");
+  Serial.println("QND Simple Double Flag Controller, version 0.2, date 2019-11-19");
 }
 
 void shift_serial_buffer() {
