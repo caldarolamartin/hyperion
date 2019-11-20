@@ -139,7 +139,7 @@ class HydraInstrument(BaseInstrument):
 
         self.logger.debug('Collect the histogram after taking it.')
 
-        self.hist_ended = False  # why doesnt it remember this from up?
+        self.hist_ended = False
         return self.hist
 
     def prepare_to_take_histogram(self, tijd):
@@ -172,24 +172,16 @@ class HydraInstrument(BaseInstrument):
         t = 1       # in s
         total_time_passed = ur('0s')
 
-        self.logger.debug('status of endedness: ' + str(self.hist_ended))
+        self.logger.debug('Ended?: ' + str(self.hist_ended))
+        total_time_passed += t * ur('s')
+        self.remaining_time = tijd - total_time_passed
+        print(self.remaining_time)
 
         time.sleep(1)
 
-        # time.sleep(
-        #     0.5)  # important not to put too short, otherwise it already starts asking before the guy even knows whether he moves
-        # while self.controller.getStatus(ax)['moving']:
-        #     # self.logger.debug('controller moving? '+str(self.controller.getStatus(ax)['moving']))
-        #     self.get_position(axis)
-        #     self.logger.debug('{}'.format(self.current_positions[axis]))
-        #     time.sleep(0.1)
-        #     if self.stop:
-        #         self.logger.info('Stopping approaching')
-        #         self.stop = False
-        #         break
-
-        while self.controller.ctc_status == False:
-            self.logger.debug('Is the histogram finished? ' + str(self.controller.ctc_status))
+        while self.hist_ended == False:
+            self.hist_ended = self.controller.ctc_status
+            self.logger.debug('Is the histogram finished? ' + str(self.hist_ended))
 
             total_time_passed += t * ur('s')
             #this line returns a pint quantity which tells the user how much time the program needs before it can collect the histogram
@@ -205,7 +197,7 @@ class HydraInstrument(BaseInstrument):
                 break
 
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
-        self.logger.debug('Ended? ' + str(self.controller.ctc_status))
+        self.logger.debug('Ended? ' + str(self.hist_ended))
 
     def stop_histogram(self):
         """| This method stops taking the histogram, could be used in higher levels with a thread.

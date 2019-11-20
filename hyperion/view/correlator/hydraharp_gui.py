@@ -250,7 +250,7 @@ class Hydraharp_GUI(BaseGui):
 
         self.progressbar.setMaximum(int(self.integration_time.magnitude))
         self.progressbar.setValue(int(self.remaining_time.magnitude))
-        #print(self.remaining_time)
+        print(self.hydra_instrument.remaining_time)
 
     # ------------------------------------------------------------------------------------
     def set_channel(self):
