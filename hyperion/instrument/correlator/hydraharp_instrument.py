@@ -121,7 +121,7 @@ class HydraInstrument(BaseInstrument):
     
     def make_histogram(self, tijd, count_channel):
         """ | Does the histogram measurement, checking for the status, saving the histogram.
-        | **It is not clear however whether you need to start measurement and than make the histogram.**
+        | **You need to start the measurement and than you could collect the histogram.**
         | The start measurement method of the controller is called in prepare_to_take_histogram.
         
         :param count_channel: number of channel that is correlated with the sync channel, 1 or 2
@@ -137,7 +137,7 @@ class HydraInstrument(BaseInstrument):
         self.prepare_to_take_histogram(tijd)
         self.hist = self.controller.histogram(int(count_channel))
 
-        self.logger.debug('Make the actual histogram')
+        self.logger.debug('Collect the histogram after taking it.')
 
         self.hist_ended = False  # why doesnt it remember this from up?
         return self.hist
@@ -145,21 +145,16 @@ class HydraInstrument(BaseInstrument):
     def prepare_to_take_histogram(self, tijd):
         """This communicates with the controller method start_measurement and then in theory should wait until it is finished.
 
-        :param tijd: acquisition time of the histogram; **please don't use the English word**
+        :param tijd: acquisition time of the histogram, needs to be in ms; **please don't use the English word**
         :type tijd: pint quantity
 
         :return: time that is left until the histogram is finished
         """
         self.logger.debug('Start the histogram measurement')
 
-        #self.hist_ended = False         #why doesnt it remember this from up?
-
         self.controller.start_measurement(int(tijd.m_as('ms')))
         self.wait_till_finished(tijd)
-        #print(self.wait_till_finished(tijd))
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
-
-        #return (self.wait_till_finished(tijd))
 
     def wait_till_finished(self, tijd):
         """| **Work in progress!**
@@ -167,7 +162,7 @@ class HydraInstrument(BaseInstrument):
         | However, the status for some reason is set to finished already after 3 seconds or so.
         | The loop breaks if self.stop is put to True, which could be done in a higher level with a thread.
 
-        :param tijd: integration time of histogram in s **(please don't use the English word for tijd)**
+        :param tijd: integration time of histogram **(please don't use the English word for tijd)**
         :type tijd: pint quantity
 
         :return: remaining time in seconds
@@ -175,28 +170,28 @@ class HydraInstrument(BaseInstrument):
         """
         # ended = self.hist_ended
         #t = round(float(tijd.magnitude) / 20)
-        t = 1
+        t = 1       # in s
         total_time_passed = ur('0s')
 
         self.logger.debug('status of endedness: ' + str(self.hist_ended))
 
         while self.hist_ended == False:
+            self.hist_ended = self.controller.ctc_status
+            self.logger.debug('Is the histogram finished? ' + str(self.hist_ended))
+
             if self.stop:
                 self.logger.info('Stopping the histogram')
                 self.stop = False
                 break
-            self.hist_ended = self.controller.ctc_status
-            self.logger.debug('Is the histogram finished? ' +  str(self.hist_ended))
             time.sleep(t)
             total_time_passed += t * ur('s')
-            #this line returns a pint quantity which tells the user how much time the program needs before it can take the histogram
+            #this line returns a pint quantity which tells the user how much time the program needs before it can collect the histogram
             self.logger.debug('time passed ' + str(total_time_passed))
             self.remaining_time = tijd - total_time_passed
             self.logger.debug("{}".format(self.remaining_time))
 
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
         self.logger.debug('Ended? ' + str(self.hist_ended))
-        #return (tijd - total_time_passed)
 
     def stop_histogram(self):
         """| This method stops taking the histogram, could be used in higher levels with a thread.

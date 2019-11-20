@@ -650,10 +650,10 @@ class Hydraharp(BaseController):
 
     def start_measurement(self, acquisition_time=1000):
         """| Start acquisition.
-        | **Pay attention: acquisition+time is in ms
+        | **Pay attention: acquisition_time is in ms!**
 
         :param acquisition_time: Acquisition time in ms; 0.001, ... 360000
-        :type acquisition_time: float
+        :type acquisition_time: int
         """
 
         # devidx = self.__devidx
@@ -717,7 +717,7 @@ class Hydraharp(BaseController):
 
     def histogram(self, channel=0, clear=True):
         """| Histogram of channel.
-        | **Not clear whether you can use this one without first start_measurement.**
+        | **Have to use this one only after starting a measurement!**
         | The histogram is always taken between one of the input channels and the sync channel.
         | To perform start-stop measurements, connect one of the photon detectors to the sync channel.
 
