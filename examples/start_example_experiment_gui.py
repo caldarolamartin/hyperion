@@ -38,7 +38,7 @@ def hydraharp_and_thorlabsmotor_experiment():
         #for each step their should be done a scan and the thorlabs_motor should move a certain distance
         #take histogram with the correlator
         hydra.set_histogram(leng=65536, res=8.0 * ureg('ps'))
-        hist = hydra.make_histogram(tijd=5 * ureg('s'), count_channel=0)
+        hist = hydra.make_histogram(integration_time=5 * ureg('s'), count_channel=0)
         #move the thorlabs_motor 0.01 micrometer
         value = 0.01 *ur('micrometer')
         motor.move_relative(value.m_as('micrometer'), True)

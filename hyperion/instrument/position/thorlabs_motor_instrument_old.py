@@ -23,7 +23,7 @@ python example code
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion.experiment.base_experiment import BaseExperiment
-from hyperion.controller.thorlabs.TDC001 import TDC001
+from hyperion.controller.thorlabs.TDC001_old import TDC001
 from hyperion import ur
 
 
