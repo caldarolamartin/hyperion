@@ -139,35 +139,21 @@ class HydraInstrument(BaseInstrument):
         self.logger.debug('Start the histogram measurement')
         self.controller.start_measurement(int(integration_time.m_as('ms')))
 
-        self.wait_till_finished(integration_time)
+        self.wait_till_finished(integration_time, count_channel)
         self.logger.debug('Remaining time: ' + str(self.remaining_time))
 
-        self.hist = self.controller.histogram(int(count_channel))
+        self.hist = self.controller.histogram(int(count_channel), True)     #Last time, put the histogram memory to 0
 
         self.logger.debug('Collect the histogram after taking it.')
 
         self.hist_ended = False
         return self.hist
 
-    # def prepare_to_take_histogram(self, tijd):
-    #     """ and then in theory should wait until it is finished.
-    #
-    #     :param tijd: acquisition time of the histogram, needs to be in ms; **please don't use the English word**
-    #     :type tijd: pint quantity
-    #
-    #     :return: time that is left until the histogram is finished
-    #     """
-    #     self.logger.debug('Start the histogram measurement')
-    #
-    #     self.controller.start_measurement(int(tijd.m_as('ms')))
-    #     self.wait_till_finished(tijd)
-    #     self.logger.debug('Remaining time: ' + str(self.remaining_time))
-
     def show_remaining_time(self, integration_time, time_passed):
         self.remaining_time = integration_time - time_passed
         return self.remaining_time
 
-    def wait_till_finished(self, integration_time):
+    def wait_till_finished(self, integration_time, count_channel):
         """| This method should ask the device its status and keep asking until it's finished.
         | However, the remaining time is printed but not shown with the timer in the gui.
         | The loop breaks if self.stop is put to True, which could be done in a higher level with a thread.
@@ -175,8 +161,12 @@ class HydraInstrument(BaseInstrument):
         :param integration_time: integration time of histogram **(please don't use the word time)**
         :type integration_time: pint quantity
 
+        :param count_channel: number of channel that is correlated with the sync channel, 1 or 2
+        :type count_channel: int
+
         :return: remaining time in seconds
         :rtype: pint quantity
+
         """
         # ended = self.hist_ended
         #t = round(float(tijd.magnitude) / 20)
@@ -201,10 +191,9 @@ class HydraInstrument(BaseInstrument):
             #this line returns a pint quantity which tells the user how much time the program needs before it can collect the histogram
             self.logger.debug('time passed ' + str(total_time_passed))
 
-            #self.show_remaining_time(integration_time, total_time_passed)
-
             self.logger.debug("{}".format(self.show_remaining_time(integration_time, total_time_passed)))
 
+            self.hist = self.controller.histogram(int(count_channel), False)        #Dont let the histogram memory be cleared
             time.sleep(t)
 
             if self.stop:
@@ -238,9 +227,9 @@ if __name__ == "__main__":
 
         # use the hist
         q.set_histogram(leng = 65536, res =8.0 * ur('ps'))
-        hist = q.make_histogram(5*ur('s'), count_channel = 0)
-        print('The histogram: ', hist)
+        q.make_histogram(5*ur('s'), count_channel = 0)
+        print('The histogram: ', q.hist)
 
         plt.figure()
-        plt.plot(hist)
+        plt.plot(q.hist)
         plt.show()

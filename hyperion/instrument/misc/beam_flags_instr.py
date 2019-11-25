@@ -244,7 +244,7 @@ if __name__ == "__main__":
     import hyperion
     hyperion.stream_logger.setLevel(logging.DEBUG)
 
-    example_settings = {'port': 'COM19', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+    example_settings = {'port': 'COM12', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
     with BeamFlagsInstr(settings = example_settings) as bf:

@@ -21,7 +21,7 @@ from pyqtgraph.Qt import QtGui
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
-import datetime
+import time
 
 class Hydraharp_GUI(BaseGui):
     """
@@ -69,7 +69,11 @@ class Hydraharp_GUI(BaseGui):
         #This one is to continuously (= every 100ms) show the remaining time
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_remaining_time)
-        self.timer.start(100)       #time in ms
+        #self.timer.start(100)       #time in ms
+
+        # timer to update
+        self.timer_plot = QTimer()
+        self.timer_plot.timeout.connect(self.update_plot)
 
         self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
 
@@ -196,6 +200,7 @@ class Hydraharp_GUI(BaseGui):
     def make_endtime(self):
         self.endtime_label = QLabel(self)
         self.calculate_axis()
+        #print(self.units)
         self.endtime_label.setText(str(round(self.endtime.to(self.units),4)))
         self.groupBox_values_layout.addWidget(self.endtime_label, 4, 1)
 
@@ -246,11 +251,10 @@ class Hydraharp_GUI(BaseGui):
         """
         self.remaining_time = self.hydra_instrument.remaining_time
         self.showing_remaining_time.setText(str(self.remaining_time))
-        #self.showing_remaining_time.setText(str(self.hydra_instrument.controller.ctc_status))
 
         self.progressbar.setMaximum(int(self.integration_time.magnitude))
         self.progressbar.setValue(int(self.remaining_time.magnitude))
-        print(self.hydra_instrument.remaining_time)
+        #print(self.hydra_instrument.remaining_time)
 
     # ------------------------------------------------------------------------------------
     def set_channel(self):
@@ -306,7 +310,6 @@ class Hydraharp_GUI(BaseGui):
         self.integration_time = local_time
         self.logger.debug('time remembered is: ' + str(self.integration_time))
 
-
     def set_resolution(self):
         """| This method tries to take the user input and only allow resolutions from 2^n, where n = 1 to 20.
         | It doesnt work very well though.
@@ -337,7 +340,7 @@ class Hydraharp_GUI(BaseGui):
         self.resolution = self.sender().value()*ur('ps')
 
         self.calculate_axis()
-        self.endtime_label.setText(str(self.endtime))
+        self.endtime_label.setText(str(round(self.endtime.to(self.units), 4)))
 
         self.logger.debug(str(self.sender().value()))
 
@@ -347,11 +350,11 @@ class Hydraharp_GUI(BaseGui):
         """
         self.endtime = round(self.resolution.m_as('ns')*self.array_length*ur('s'),4)
 
-        if self.endtime.m_as('s') < 60:  # below one minute, display in seconds
+        if self.endtime.m_as('s') < 120:  # below two minutes, display in seconds
             self.units = 's'
-        elif self.endtime.m_as('s') < 60 * 60:  # below one hour, display in minutes
+        elif self.endtime.m_as('s') < 120 * 60:  # below two hours, display in minutes
             self.units = 'min'
-        elif self.endtime.m_as('s') < 60 * 60 * 24:  # below one day, display in hours
+        elif self.endtime.m_as('s') < 120 * 60 * 24:  # below two days, display in hours
             self.units = 'hour'
         else:
             self.units = 'days'
@@ -381,33 +384,43 @@ class Hydraharp_GUI(BaseGui):
         self.logger.debug('chosen integration time: ' + str(self.integration_time))
         self.logger.debug('chosen channel: ' + str(self.channel))
 
+        self.timer.start(100)
+        self.timer_plot.start(100)
         self.show_remaining_time()
         self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
         self.histogram_thread.start()
-
-        self.histogram = self.hydra_instrument.hist
-
-        while self.hydra_instrument.hist_ended == False:
-            self.take_histogram_button.setEnabled(False)
-
-        #self.histogram= self.hydra_instrument.make_histogram(self.integration_time, self.channel)
-
-        self.calculate_axis()
-
-        self.logger.debug('length time axis: {}, length histogram: {}'.format(len(self.time_axis), len(self.histogram)))
-
-        pen = pg.mkPen(color = (0, 0, 0))       #makes the plotted lines black
-        if len(self.histogram) > 0:
-            self.draw.histogram_plot.plot(self.time_axis, self.histogram, clear=True, pen = pen)
-            self.draw.histogram_plot.setLabel('bottom',"<span style=\"color:black;font-size:20px\"> Time ({}) </span>".format(self.units))
-        else:
-            self.draw.histogram_plot.plot(self.histogram, clear=True)
-            self.draw.histogram_plot.setLabel('bottom',"<span style=\"color:black;font-size:20px\"> Time </span>")
 
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
         self.take_histogram_button.setEnabled(True)
         #self.make_progress_label("Done, the histogram has been made")
+
+    def update_plot(self):
+
+        pen = pg.mkPen(color=(0, 0, 0))  # makes the plotted lines black
+        if self.hydra_instrument.hist_ended:
+            self.take_histogram_button.setEnabled(True)
+            self.timer_plot.stop()
+            self.timer.stop()
+            time.sleep(1)
+            self.histogram = self.hydra_instrument.hist
+            self.calculate_axis()
+            print(len(self.histogram))
+            self.draw.histogram_plot.plot(self.time_axis, self.histogram, clear=True, pen=pen)
+            self.draw.histogram_plot.setLabel('bottom',
+                                              "<span style=\"color:black;font-size:20px\"> Time ({}) </span>".format(
+                                                  self.units))
+
+        else:
+            self.take_histogram_button.setEnabled(False)
+            self.histogram = self.hydra_instrument.hist
+
+            self.calculate_axis()
+            self.logger.debug(
+            'length time axis: {}, length histogram: {}'.format(len(self.time_axis), len(self.histogram)))
+
+            self.draw.histogram_plot.plot(self.histogram, clear=True)
+            self.draw.histogram_plot.setLabel('bottom', "<span style=\"color:black;font-size:20px\"> Time </span>")
 
     def save_histogram(self):
         """| In this method the made histogram gets saved.
