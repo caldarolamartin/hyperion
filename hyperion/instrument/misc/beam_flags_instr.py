@@ -31,6 +31,11 @@ class BeamFlagsInstr(BaseInstrument):
         self.logger.debug('Class BeamFlags created.')
         self.settings = settings
 
+        if 'start_up_delay' not in settings:
+            self._start_up_delay = 1.5
+        else:
+            self._start_up_delay = settings['start_up_delay']
+        
         # Create and add flag_names to the settings dictionary.
         # Note that flag names need to be 1 character long.
         if 'flag_names' not in self.settings:
@@ -70,7 +75,7 @@ class BeamFlagsInstr(BaseInstrument):
         """ Starts the connection to the device."""
         self.logger.debug('Opening connection to device.')
         self.controller.initialize()
-        time.sleep(1.5)  # this appears to be a safe delay for the arduino
+        time.sleep(self._start_up_delay)    # If you experience trouble connecting, increase this in the settings (1.5 seems to be quite safe for arduino)
         self.controller.read_lines()
         self._announce(self._use_passive_queries) # make sure arduino "announce" matches _use_passive_queries
         self.update_all_states()
@@ -244,7 +249,7 @@ if __name__ == "__main__":
     import hyperion
     hyperion.stream_logger.setLevel(logging.DEBUG)
 
-    example_settings = {'port': 'COM12', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+    example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
     with BeamFlagsInstr(settings = example_settings) as bf:

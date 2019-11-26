@@ -162,7 +162,7 @@ if __name__ == '__main__':
     # beam_flag_settings['port']='COM4'   # modify the port if required
 
     with BeamFlagsInstr(beam_flag_settings) as instr:
-        instr.initialize()
+        #instr.initialize()    # removed this line because instruments should initialize themselves
         app = QApplication(sys.argv)
         ex = BeamFlagsGui(instr)
         # sys.exit(app.exec_())
