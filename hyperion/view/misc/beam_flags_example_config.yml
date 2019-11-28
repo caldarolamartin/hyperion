@@ -1,10 +1,11 @@
 Instruments:
   BeamFlags:
     name: BeamFlags
-    port: COM19 #COM4
+    port: COM4
     dummy: False
     baudrate: 9600
     read_timeout: 0.1
+    start_up_delay: 0.5      # Increase this if you have difficulty connecting
     instrument: hyperion.instrument.misc.beam_flags_instr/BeamFlagsInstr
     controller: hyperion.controller.generic.generic_serial_contr/GenericSerialController
     view: hyperion.view.misc.beam_gui/BeamFlagsGui
@@ -25,3 +26,8 @@ Instruments:
         red_name: In
         green_name: Out
         shortkey: Ctrl+2
+      '3':
+        name: FilterC
+        red_name: In
+        green_name: Out
+        shortkey: Ctrl+3

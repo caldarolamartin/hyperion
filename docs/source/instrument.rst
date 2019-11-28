@@ -20,5 +20,6 @@ in another setup.
     instrument/hydraharp_instrument
     instrument/osa
     instrument/anc_instrument
+    instrument/thorlabs_motor_instr
     instrument/winspec_instr
     instrument/beam_flags_instr

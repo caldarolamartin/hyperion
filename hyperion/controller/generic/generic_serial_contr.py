@@ -351,7 +351,7 @@ if __name__ == "__main__":
     else:
         my_class = GenericSerialController
 
-    example_settings = {'port': 'COM8', 'baudrate': 9600, 'write_termination': '\n'}
+    example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n'}
 
     # some test code for my arduino testing device:
     with my_class(settings = example_settings) as dev:

@@ -53,7 +53,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    graphView: hyperion.view.spectrum.osa_gui/DrawSpectrum
     dummy: True
     settings:
     output: True
@@ -61,7 +61,7 @@ Instruments:
     port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    graphView: hyperion.view.spectrum.osa_gui/DrawSpectrum
     dummy: True
     settings:
     output: True
@@ -78,7 +78,7 @@ Measurements:
   #list of measurement views which need to be loaded and accesible for the main experiment class.
   exampleMeasurement:
     view: examples.measurement_gui/App
-    graphView: hyperion.view.osa.osa_gui/DrawSpectrum
+    graphView: hyperion.view.spectrum.osa_gui/DrawSpectrum
 
 Data:
   save_folder: C:\Users\ariel\Desktop\Delft_code\hyperion\

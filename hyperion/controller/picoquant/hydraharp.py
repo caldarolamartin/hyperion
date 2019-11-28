@@ -650,26 +650,32 @@ class Hydraharp(BaseController):
 
     def start_measurement(self, acquisition_time=1000):
         """| Start acquisition.
-        | **It is not clear what is the relation between this method and histogram**
-        | ** and which one actually takes the histogram**
+        | **Pay attention: acquisition_time is in ms!**
 
-        :param acquisition_time: Acquisition time in seconds; 0.001, ... 360000
-        :type acquisition_time: float
+        :param acquisition_time: Acquisition time in ms; 0.001, ... 360000
+        :type acquisition_time: int
         """
+
+        # devidx = self.__devidx
+        # assert devidx in range(self.settings['MAXDEVNUM'])
+        # tacq = acquisition_time * ur('ms')# acquisition time in seconds(later it is converted to miliseconds)
+        # #tacq = tacq.to('ms')
+        # min_acqt = self.settings['ACQTMIN'] * ur('ms')
+        # max_acqt = self.settings['ACQTMAX'] * ur('ms')
+        # assert (float(tacq.magnitude) >= float(min_acqt.magnitude)) and (float(tacq.magnitude) <= float(max_acqt.magnitude)), "HH_StartMeas, tacq not valid."
 
         devidx = self.__devidx
         assert devidx in range(self.settings['MAXDEVNUM'])
-        tacq = acquisition_time * ur('s')# acquisition time in seconds(later it is converted to miliseconds)
-        #tacq = tacq.to('ms')
-        min_acqt = self.settings['ACQTMIN'] * ur('ms')
-        max_acqt = self.settings['ACQTMAX'] * ur('ms')
-        assert (float(tacq.magnitude) >= float(min_acqt.magnitude)) and (float(tacq.magnitude) <= float(max_acqt.magnitude)), "HH_StartMeas, tacq not valid."
+        tacq = acquisition_time  # acquisition time in seconds(later it is converted to miliseconds)
+        min_acqt = self.settings['ACQTMIN']
+        max_acqt = self.settings['ACQTMAX']
+        assert (tacq >= min_acqt) and (tacq <= max_acqt), "HH_StartMeas, tacq not valid."
 
         func = self.hhlib.HH_StartMeas
         func.argtypes = [ctypes.c_int, ctypes.c_int]
         func.restype = ctypes.c_int
         data = ctypes.c_int(devidx)
-        data2 = ctypes.c_int(int(tacq.m_as('s')))
+        data2 = ctypes.c_int(tacq)
         self.error_code = func(data, data2)
         #print(data, data2)
         if self.error_code is not 0:
@@ -711,7 +717,7 @@ class Hydraharp(BaseController):
 
     def histogram(self, channel=0, clear=True):
         """| Histogram of channel.
-        | **Not clear whether you can use this one without first start_measurement.**
+        | **Have to use this one only after starting a measurement!**
         | The histogram is always taken between one of the input channels and the sync channel.
         | To perform start-stop measurements, connect one of the photon detectors to the sync channel.
 
@@ -787,35 +793,33 @@ if __name__ == "__main__":
     import hyperion
     
     with Hydraharp({'devidx':0, 'mode':'Histogram', 'clock':'Internal'}) as q:
+#    q = Hydraharp({'devidx':0, 'mode':'Histogram', 'clock':'Internal'})
+
         q.calibrate()
-        
+
         print('The sync rate is: ' , q.sync_rate())
-        
+
         print('The count rate is: ' , q.count_rate(0))
-        
+
         q.clear_histogram()
-        
+
         q.histogram_length = 1024
 
+        q.start_measurement(acquisition_time = 5000)
 
+        status = q.ctc_status
+        wait_time = 1
 
-        q.start_measurement(acquisition_time = 10)
+        while status == False:
+            time.sleep(wait_time)
+            status = q.ctc_status
+            print('Finished? ', q.ctc_status)
+
+        print('Now finished? ', q.ctc_status)
 
         hist = q.histogram(channel=0)
 
-        status = q.ctc_status
-        # wait_time = 1
-        #
-        # while status == False:
-        #     time.sleep(wait_time)
-        #     status = q.ctc_status
-        #     print('Finished? ', q.ctc_status)
-        #
-        # print('Now finished? ', q.ctc_status)
-        
-
-        
         print(hist)
-        
-        q.finalize()
+
+    #q.finalize()
         

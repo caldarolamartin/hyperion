@@ -20,16 +20,14 @@ python example code
     # >>> motorx.move_relative(10)
 """
 
-
-
 import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion.experiment.base_experiment import BaseExperiment
-from hyperion.controller.thorlabs.TDC001 import TDC001
+from hyperion.controller.thorlabs.TDC001_old import TDC001
 from hyperion import ur
 
 
-class Thorlabsmotor(BaseInstrument):
+class Thorlabsmotor_old(BaseInstrument):
     """ Thorlabsmotor instrument
 
     """
@@ -219,7 +217,7 @@ if __name__ == "__main__":
                 'controller': 'hyperion.controller.thorlabs.TDC001/TDC001'}
 
 
-    with Thorlabsmotor(settings = xMotor) as sampleX, Thorlabsmotor(settings = yMotor) as sampleY:
+    with Thorlabsmotor_old(settings = xMotor) as sampleX, Thorlabsmotor_old(settings = yMotor) as sampleY:
         # dev.initialize()
 
         print(type(sampleX.controller._serial_number))
