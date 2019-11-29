@@ -100,33 +100,52 @@ class ExampleExperiment(BaseExperiment):
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     def image(self, actiondict, nesting):
-        print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
+        # print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
+        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        self.save(0)
         nesting()
-        data = np.array([[0,1],[2,3]])
-        return data
+        # data = np.array([[0,1],[2,3]])
+        # return data
 
     def image_modified(self, actiondict, nesting):
-        print('image: ',actiondict['Name'])
+        #print('image: ',actiondict['Name'])
+        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        self.save(0)
         nesting()
 
     def spectrum(self, actiondict, nesting):
-        print('spectrum: ',actiondict['Name'])
+        # print('spectrum: ',actiondict['Name'])
+        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        self.save(0)
         nesting()
 
     def spectrum_modified(self, actiondict, nesting):
-        print('spectrum: ',actiondict['Name'])
+        # print('spectrum: ',actiondict['Name'])
+        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        self.save(0)
         nesting()
 
     def histogram(self, actiondict, nesting):
-        print('histogram: ',actiondict['Name'])
+        # print('histogram: ',actiondict['Name'])
+        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        self.save(0)
+        #store_data
         nesting()
 
     def sweep_atto(self, actiondict, nesting):
-        print('sweep_atto: ',actiondict['Name'])
+        # print('sweep_atto: ',actiondict['Name'])
+        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        self.save(0)
         arr, unit = array_from_settings_dict(actiondict)
         for s in arr:
             print(actiondict['axis'],' : ', s)
-            nesting(s)
+            #store_coord()
+
+            nesting()
+
+    def insideXafterY(self, actiondict, nesting):
+        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        self.save(0)
 
 if __name__ == '__main__':
 

@@ -1,5 +1,9 @@
 User:
-  name: Martin
+  name: Aron
+
+Saving:
+  auto: True
+  directory:
 
 Instruments:
   HydraHarp:
@@ -193,6 +197,8 @@ Measurements:       # dictionary of Measurement s
           Type: histogram
           _ui: None   # You can specify a different _ui or set it to None to prevent it from showing
           exposuretime: 4
+      - Name: insideXafterY
+        _method: insideXafterY
     - Name: after
       exposuretime: 3
       _method: image_modified                     # It's possible to not use Type. In that case _method HAS TO BE SPECIFIED

@@ -12,7 +12,7 @@ import logging
 import yaml
 import importlib
 from hyperion.tools.saving_tools import name_incrementer
-
+import copy     # used in action validation methods
 
 class BaseExperiment():
     """ Example class with basic functions """
@@ -34,6 +34,12 @@ class BaseExperiment():
 
         self.filename = ''
 
+        self._nesting_indices = []
+        self._nesting_parents = []
+
+
+        self._auto_save_store
+
     def __enter__(self):
         return self
 
@@ -43,6 +49,7 @@ class BaseExperiment():
 
     # SMARTSCAN METHODS: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+
     def _validate_actionlist(self, actionlist, _complete=None):
         """
         returns a corrected copy (does not modify input)
@@ -50,8 +57,7 @@ class BaseExperiment():
         _validate_actionlist(complete_actionlist)
         _complete is used for recursion
         """
-        import copy
-        local_actionlist = copy.deepcopy(actionlist)
+        local_actionlist = copy.deepcopy(actionlist)        # this is required for a new copy (without it the original gets modified)
         # recursive function
         if _complete is None:
             _complete = local_actionlist
@@ -68,7 +74,6 @@ class BaseExperiment():
         """
         returns new corrected dictionary (does not alter the dictionary )
         """
-        import copy
         actiondict = copy.deepcopy(actiondictionary)
         # auto gerate a name if it doesn't exist
         all_names, unnamed = self.all_action_names(complete_actionlist)
@@ -209,7 +214,24 @@ class BaseExperiment():
                     return act
         return None
 
-    def perform_measurement(self, actionlist, parent = None):
+    # def perform_measurement(self, actionlist, parent_values = [], parents=[]):
+    def perform_measurement(self, actionlist, parents=[]):
+
+        if parents == []:
+            self._nesting_indices = []
+
+
+        if len(parents) > len(self._nesting_indices):
+            self._nesting_indices += [0]
+        elif len(parents) == len(self._nesting_indices):
+            if len(self._nesting_indices):
+                self._nesting_indices[-1] += 1
+        else:
+            print('??????????????')
+
+
+
+        # print('parents: ', parents, 'values: ', parent_values)
         # typically used on the whole list
         # In a an action that has nested Actions
         for actiondict in actionlist:
@@ -232,20 +254,53 @@ class BaseExperiment():
 
             if '_method' in actiondict:
 
+                # if parents == []:
+                #     self._nesting_indices = []  # reset it just to be sure
+                # # if it's a new parent, add a zero index to
+                # elif len(self._nesting_indices) < len(parents):
+                #     self._nesting_indices += [0]
+
+
+                # else:
+                #     print("what's going on")
+
+                # repeat this here so actions outside   NO this only works outside all loops
+                # if parents == []:
+                #     self._nesting_indices = []
+
+                self._nesting_parents = parents  # to make it available outside
+
                 if '~nested' in actiondict:
                     # without error checking for now:
-                    nesting = lambda parent : self.perform_measurement(actiondict['~nested'], parent)
+                    # else:
+                    #     indices += [0]  # append 0 to list  current_values
+                    nesting = lambda  : self.perform_measurement(actiondict['~nested'], parents+[actionname])
                 else:
-                    nesting = lambda *args: None
-
+                    nesting = lambda *args: None        # a "do nothing" function
                 method = getattr(self, actiondict['_method'])
+                # print('                                       ', actionname, '   parents: ', parents, '   indices: ',self._nesting_indices)
                 method(actiondict, nesting)
+
+
+
+            # if len(parents) == len(self._nesting_indices) and len(self._nesting_indices):
+            #         self._nesting_indices[-1] += 1
+            #
+            # if len(self._nesting_indices) > len(parents):
+            #     del self._nesting_indices[-1]
+
             else:
-                self.logger.warning('in {}: actiondict requires either method or a type that contains a method'.format(
+                self.logger.warning('in {}: actiondict requires either method or an actiontype that contains a method'.format(
                     actiondict['Name']))
 
 
+        if len(parents) < len(self._nesting_indices):
+            del self._nesting_indices[-1]
 
+
+    def save(self, data, auto=True, **kwargs):
+        indx = self._nesting_indices[:len(self._nesting_parents)]
+        print(indx)
 
        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SMARTSCAN METHODS
 
