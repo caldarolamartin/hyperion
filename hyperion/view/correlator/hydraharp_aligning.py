@@ -11,11 +11,11 @@ import sys, os
 import logging
 import numpy as np
 import time
+from datetime import datetime
 from hyperion import ur
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
@@ -43,7 +43,7 @@ class Hydraharp_aligning_GUI(BaseGui):
         self.hydra_instrument = hydra_instrument
 
         self.exp_type = 'Finite'
-        self.pausetime = 500*ur('ms')
+        self.pausetime = 50*ur('ms')
         self.lengthaxis = 10*ur('s')
         self.sync = True
         self.chan1 = False
@@ -54,11 +54,15 @@ class Hydraharp_aligning_GUI(BaseGui):
         self.counts2 = 0.0
 
         self.running = False
-        self.data = []
-        self.counts = [[],[],[],[]]     #first column will be time, the others counts on different channels
-        #self.tijd = []
-        # self.chan_name = {'sync':0, 'counts1':1, 'counts2':2}
+        self.Sync_counts_array = []
+        self.Counts1_array = []
+        self.Counts2_array = []
         self.time_axis = []
+
+        self.default_name = 'counts.txt'
+        self.path = 'D:\\LabSoftware\\Data\\'
+
+        self.something_selected = False
 
         self.pen = pg.mkPen(color=(0, 0, 0))  # makes the plotted lines black
 
@@ -130,88 +134,96 @@ class Hydraharp_aligning_GUI(BaseGui):
         self.chan2 = self.gui.checkBox_chan2.isChecked()
         self.logger.debug('Sync channel: {}, channel 1: {}, channel 2: {}'.format(self.sync, self.chan1, self.chan2))
 
+    def get_name(self):
+        self.gui.lineEdit_name.setText('blub')
+        self.gui.lineEdit_name.textChanged.connect(self.set_name_path)
+
+    def get_path(self):
+        self.gui.lineEdit_path.setText(self.path)
+        self.gui.lineEdit_path.textChanged.connect(self.set_name_path)
+
+
     #Actual methods doing something
     #-----------------------------------------------------------------------------------------
+    def set_name_path(self):
+        self.default_name = self.gui.lineEdit_name.text()
+        self.path = self.gui.lineEdit_path.text()
+
+        print(self.gui.lineEdit_name.text())
+        print(self.gui.lineEdit_path.text())
+
     def ask_counts(self):
         """ | Connects to the device and read out the count rate of either the sync or on of the count channels.
         | Displays this on the labels on the gui, which are updated via the timer in the init.
         """
-        self.logger.debug('Asking for counts')
+        #self.logger.debug('Asking for counts')
 
-        something_selected = False
+        self.something_selected = False
 
         if self.sync:
             self.sync_counts = self.hydra_instrument.sync_rate()
             #self.logger.debug("{}".format(self.sync_counts))
             self.gui.label_counts_sync.setText(str(self.sync_counts))
-            something_selected = True
+            self.something_selected = True
+        else:
+            self.gui.label_counts_sync.setText('currently unavailable')
 
         if self.chan1:
             self.counts1 = self.hydra_instrument.count_rate(0)
             #self.logger.debug("{}".format(self.counts1))
-            something_selected = True
+            self.something_selected = True
             self.gui.label_counts1.setText(str(self.counts1))
+        else:
+            self.gui.label_counts1.setText('currently unavailable')
 
         if self.chan2:
             self.counts2 = self.hydra_instrument.count_rate(1)
             #self.logger.debug("{}".format(self.counts2))
             self.gui.label_counts2.setText(str(self.counts2))
-            something_selected = True
+            self.something_selected = True
+        else:
+            self.gui.label_counts2.setText('currently unavailable')
 
-        if something_selected == False:
+        if self.something_selected == False:
             self.logger.warning('Nothing is selected')
 
 
     def start_plotting(self):
         """| Prepares for plotting by making a time axis based on the axis length and pause time, and starts an empty counts array.
-        | Then opens 1 to 3 plot windows and threads, depending on the selected channels.
-
+        | Then opens 1 to 3 plot windows and a thread to plot them, depending on the selected channels.
         """
-        self.logger.debug('Should start counting here')
+        self.logger.info('Should start counting here')
 
         self.logger.debug('Settings: {}, {}, {}'.format(self.exp_type, self.pausetime, self.lengthaxis))
 
         self.time_axis = np.linspace(0, self.lengthaxis.m_as('s') * self.pausetime.m_as('s'), int(self.lengthaxis.m_as('s'))) * ur('s')
         self.logger.debug("{}".format(self.time_axis))
 
-        Counts = np.zeros(int(self.lengthaxis.m_as('s')))
+        if self.something_selected:
+            if self.sync:
+                self.draw0 = DrawCounts()
+                self.draw0.counts_plot.setTitle("<span style=\"color:orange;font-size:30px\">Counts on sync channel </span>")
+                #self.draw0.counts_plot.plot(self.time_axis.m_as('s'), Counts, clear=True, pen=self.pen)
 
-        if self.sync:
-            channel = 'sync'
+            if self.chan1:
+                self.draw1 = DrawCounts()
+                self.draw1.counts_plot.setTitle("<span style=\"color:orange;font-size:30px\">Counts on channel 1 </span>")
+                #self.draw1.counts_plot.plot(self.time_axis.m_as('s'), Counts, clear=True, pen=self.pen)
 
-            self.draw0 = DrawCounts()
-            self.draw0.counts_plot.setTitle("<span style=\"color:orange;font-size:30px\">{} channel </span>".format(channel))
+            if self.chan2:
+                self.draw2 = DrawCounts()
+                self.draw2.counts_plot.setTitle("<span style=\"color:orange;font-size:30px\">Counts on channel 2 </span>")
+                #self.draw2.counts_plot.plot(self.time_axis.m_as('s'), Counts, clear=True, pen=self.pen)
 
-            self.draw0.counts_plot.plot(self.time_axis.m_as('s'), Counts, clear=True, pen=self.pen)
+            self.plotting_thread = WorkThread(self.update_plot)
+            self.plotting_thread.start()
 
-            self.plotting_sync_thread = WorkThread(self.update_plot, Counts, channel)
-            self.plotting_sync_thread.start()
-
-        if self.chan1:
-            channel = 'counts1'
-
-            self.draw1 = DrawCounts()
-            self.draw1.counts_plot.setTitle("<span style=\"color:orange;font-size:30px\">{} channel </span>".format(channel))
-
-            self.draw1.counts_plot.plot(self.time_axis.m_as('s'), Counts, clear=True, pen=self.pen)
-
-            self.plotting_counts1_thread = WorkThread(self.update_plot, Counts, channel)
-            self.plotting_counts1_thread.start()
-
-        if self.chan2:
-            channel = 'counts2'
-
-            self.draw2 = DrawCounts()
-            self.draw2.counts_plot.setTitle("<span style=\"color:orange;font-size:30px\">{} channel </span>".format(channel))
-
-            self.draw2.counts_plot.plot(self.time_axis.m_as('s'), Counts, clear=True, pen=self.pen)
-
-            self.plotting_counts2_thread = WorkThread(self.update_plot, Counts, channel)
-            self.plotting_counts2_thread.start()
+        else:
+            self.logger.warning('You have to select something first, before making a graph.')
 
 
-    def update_plot(self, Counts, channel):
-        """| This method is called and threaded from start_plotting, depending on the selected channels can be started 1 to 3 times.
+    def update_plot(self):
+        """| This method is called and threaded from start_plotting, depending on the selected channels it plots in 1 to 3 graphs.
         | It either works for a Finite amount of time or works infinitely, to make aligning possible.
         | It draws the plot with the time axis, which is the same for all channels,
         | and the Counts, that are a numpy array that is constantly filled with the current Rate.
@@ -219,13 +231,12 @@ class Hydraharp_aligning_GUI(BaseGui):
 
         :param Counts: array of the size of the axis length
         :type Counts: numpy array
-
-        :param channel: sync, counts1 or counts2
-        :type channel: string
         """
         self.running = True
 
-        self.logger.debug('channel: {}'.format(channel))
+        self.Sync_counts_array = np.zeros(int(self.lengthaxis.m_as('s')))
+        self.Counts1_array = np.zeros(int(self.lengthaxis.m_as('s')))
+        self.Counts2_array = np.zeros(int(self.lengthaxis.m_as('s')))
 
         if self.exp_type == 'Finite':
 
@@ -233,81 +244,123 @@ class Hydraharp_aligning_GUI(BaseGui):
                 if self.running == False:
                     break
                 else:
-                    if channel == 'sync':
-                        currRate = self.sync_counts
-                        Counts[ii] = currRate.m_as('cps')
-                        self.logger.debug('Counts: {}'.format(Counts[ii]))
+                    if self.sync:
+                        curr_sync_Rate = self.sync_counts
+                        self.Sync_counts_array[ii] = curr_sync_Rate.m_as('cps')
+                        self.logger.debug('Counts: {}'.format(self.Sync_counts_array))
 
-                        self.draw0.counts_plot.plot(self.time_axis, Counts, clear=True, pen=self.pen)
+                        self.draw0.counts_plot.plot(self.time_axis, self.Sync_counts_array, clear = True,pen=self.pen)
 
-                    elif channel == 'counts1':
-                        currRate = self.counts1
-                        Counts[ii] = currRate.m_as('cps')
-                        self.logger.debug('Counts: {}'.format(Counts[ii]))
+                    if self.chan1:
+                        currRate1 = self.counts1
+                        self.Counts1_array[ii] = currRate1.m_as('cps')
+                        self.logger.debug('Counts: {}'.format(self.Counts1_array))
 
-                        self.draw1.counts_plot.plot(self.time_axis, Counts, clear=True, pen=self.pen)
+                        self.draw1.counts_plot.plot(self.time_axis, self.Counts1_array, clear = True, pen=self.pen)
 
-                    elif channel == 'counts2':
-                        currRate = self.counts2
-                        Counts[ii] = currRate.m_as('cps')
-                        self.logger.debug('Counts: {}'.format(Counts[ii]))
+                    if self.chan2:
+                        currRate2 = self.counts2
+                        self.Counts2_array[ii] = currRate2.m_as('cps')
+                        self.logger.debug('Counts: {}'.format(self.Counts2_array))
 
-                        self.draw2.counts_plot.plot(self.time_axis, Counts, clear=True, pen=self.pen)
+                        self.draw2.counts_plot.plot(self.time_axis, self.Counts2_array, clear = True, pen=self.pen)
 
                     time.sleep(self.pausetime.m_as('s'))
 
         elif self.exp_type == 'Infinite':
             ii=0
             while self.running:
-                if ii < int(self.lengthaxis.m_as('s')):
-                    Counts[ii] = currRate.m_as('cps')
+                if self.sync:
+                    curr_sync_Rate = self.sync_counts
+                    if ii < int(self.lengthaxis.m_as('s')):
+                        self.Sync_counts_array[ii] = curr_sync_Rate.m_as('cps')
+                    else:
+                        self.Sync_counts_array = np.roll(self.Sync_counts_array, -1)
+                        self.Sync_counts_array[-1] = curr_sync_Rate.m_as('cps')
+                        self.logger.debug('{}'.format(self.Sync_counts_array))
 
-                else:
-                    Counts = np.roll(Counts, -1)
-                    Counts[-1] = currRate.m_as('cps')
-                    self.logger.debug('{}'.format(Counts))
+                    self.draw0.counts_plot.plot(self.time_axis, self.Sync_counts_array, clear=True, pen=self.pen)
 
-                if channel == 'sync':
-                    currRate = self.sync_counts
-                    self.draw0.counts_plot.plot(self.time_axis, Counts, clear=True, pen=self.pen)
+                if self.chan1:
+                    currRate1 = self.counts1
+                    if ii < int(self.lengthaxis.m_as('s')):
+                        self.Counts1_array[ii] = currRate1.m_as('cps')
+                    else:
+                        self.Counts1_array = np.roll(self.Counts1_array, -1)
+                        self.Counts1_array[-1] = currRate1.m_as('cps')
+                        self.logger.debug('{}'.format(self.Counts1_array))
+                    self.draw1.counts_plot.plot(self.time_axis, self.Counts1_array, clear=True, pen=self.pen)
 
-                elif channel == 'counts1':
-                    currRate = self.counts1
-                    self.draw1.counts_plot.plot(self.time_axis, Counts, clear=True, pen=self.pen)
-
-                elif channel == 'counts2':
-                    currRate = self.counts2
-                    self.draw2.counts_plot.plot(self.time_axis, Counts, clear=True, pen=self.pen)
+                if self.chan2:
+                    currRate2 = self.counts2
+                    if ii < int(self.lengthaxis.m_as('s')):
+                        self.Counts2_array[ii] = currRate2.m_as('cps')
+                    else:
+                        self.Counts2_array = np.roll(self.Counts2_array, -1)
+                        self.Counts2_array[-1] = currRate2.m_as('cps')
+                        self.logger.debug('{}'.format(self.Counts2_array))
+                    self.draw2.counts_plot.plot(self.time_axis, self.Counts2_array, clear=True, pen=self.pen)
 
                 ii+=1
                 time.sleep(self.pausetime.m_as('s'))
 
         self.running = False
 
-        # self.counts[0] = Tijd
-        # self.counts[self.chan_name[channel]+1]=Counts   #change this back again
-        # self.tijd = (pausetime.m_as('s') * lengthaxis)*ur('s')
-
     def stop_plotting(self):
         if self.running:
-            self.logger.debug('Should stop counting here')
+            self.logger.info('Should stop counting here')
             self.running = False
 
-            if self.sync:
-                self.plotting_sync_thread.quit()
-
-            if self.chan1:
-                self.plotting_counts1_thread.quit()
-
-            if self.chan2:
-                self.plotting_counts2_thread.quit()
-
+            self.plotting_thread.quit()
         else:
-            self.logger.warning('There is nothing to stop here')
+            self.logger.warning('There is nothing to stop.')
 
 
     def save_counts(self):
-        self.logger.debug('Should save all plots here')
+        self.logger.warning('Should save all plots here, doesnt work yet')
+
+        if self.something_selected:
+            if self.running == False:
+                data =  [[],[],[],[]]   #first column will be time, the others counts on different channels
+
+                data[0] = self.time_axis.m_as('s')
+
+                channels = ''
+
+                if self.sync:
+                    data[1] = self.Sync_counts_array
+                    channels += 'sync_'
+
+                if self.chan1:
+                    data[2] = self.Counts1_array
+                    channels += 'counts1_'
+
+                if self.chan2:
+                    data[3] = self.Counts2_array
+                    channels += 'counts2_'
+
+                print(data)
+                total_time = (self.pausetime.m_as('ms')*self.lengthaxis.m_as('s'))
+
+                now = datetime.now()
+                datum = str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '_'
+
+                filename = '{}counts_{}time{}ms'.format(datum,channels,total_time)
+                self.logger.debug('filename: {}'.format(filename))
+
+                self.default_name = filename
+                self.set_name_path()
+
+                self.logger.info('Saving the last plot')
+
+                print(self.path + filename + '.txt')
+
+                np.savetxt(self.path + filename + '.txt',data[1])
+
+            else:
+                self.logger.warning('Stop the graph first!')
+        else:
+            self.logger.warning('Select something first!')
 
 class DrawCounts(QWidget):
 
@@ -338,9 +391,6 @@ class DrawCounts(QWidget):
 
     def layout_plot(self):
         self.counts_plot.setBackground('w')
-
-        #self.histogram_plot.setTitle("Histogram", color=(255,0,0))
-        #self.histogram_plot.setLabel('left','Correlated counts','a.u.')
 
         Xaxis = TimeAxisItem(orientation = 'bottom')
         Xaxis.attachToPlotItem(self.counts_plot.getPlotItem())
