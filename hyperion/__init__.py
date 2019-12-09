@@ -1,21 +1,19 @@
-import os
 
-# paths:
+__version__ = 0.3
+
+import os
+# useful paths:
 package_path =    os.path.dirname(__file__)          #   ###/###/hyperion/hyperion/
 repository_path = os.path.dirname(package_path)      #   ###/###/hyperion/
 parent_path =     os.path.dirname(repository_path)   #   ###/###/
 log_path =        os.path.join(parent_path, 'logs')  #   ###/###/logs/
-
 # keep root_dir for backward compatability
 root_dir = package_path
 ls = os.pardir
-
-from hyperion.core import ANSIcolorFormat
-
+# It's important that log_path is defined before importing from hyperion.core
+from hyperion.core import log as logging
+# It's important that lantz is after hyperion.core import
 from lantz.core import UnitRegistry, Q_
-
-__version__ = 0.3
-
 # units
 ur = UnitRegistry()
 
