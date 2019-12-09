@@ -194,7 +194,7 @@ class WinspecInstr(BaseInstrument):
             wav.append(cal.Lambda(index+1))
         return wav
 
-    def collect_spectrum(self, wait=True):
+    def collect_spectrum(self, wait=True, sleeptime=True):
         """
         | Retrieves the last acquired spectrum from Winspec.
         | **Pay attention: I added some extra sleeps to make it work**
@@ -204,9 +204,15 @@ class WinspecInstr(BaseInstrument):
         """
         if wait:
             while self.is_acquiring:
-                time.sleep(1)
+                if sleeptime:
+                    time.sleep(1)
+                else:
+                    time.sleep(0.1)
                 self.logger.debug("acquiring? {}".format(self.is_acquiring))
-            time.sleep(2)
+
+            if sleeptime:
+                time.sleep(2)
+
         self.frame = self.doc.GetFrame(1,self.controller._variant_array)
         # return frame                      # direct tuple of tuples
         # return np.asarray(frame)          # np approach
@@ -215,7 +221,7 @@ class WinspecInstr(BaseInstrument):
         else:
             return [list(col) for col in self.frame] # convert to nested list
 
-    def take_spectrum(self, name=None):
+    def take_spectrum(self, name=None, sleeptime=True):
         """
         Acquire spectrum, wait for data and collect it.
         Performs start_acquiring(name), followed by collect_spectrum(True).
@@ -223,7 +229,7 @@ class WinspecInstr(BaseInstrument):
         """
 
         self.start_acquiring(name)
-        return self.collect_spectrum(True)
+        return self.collect_spectrum(True, sleeptime)
 
     def saveas(self, filename):
         """
@@ -475,6 +481,7 @@ class WinspecInstr(BaseInstrument):
         setROI(41, 60, None, 101, 601)      modify horizontal range
         setROI(41, 60, None, 101, 601, 10)  apply horizontal binning of 10 pixels (result will be 50 datapoints wide)
         """
+        self.logger.debug('right{}, left{}'.format(right,left))
 
         if bottom is None:
             bottom = self.controller.ydim[0]
@@ -535,15 +542,16 @@ class WinspecInstr(BaseInstrument):
         # if not left <= right <= self.controller.xdim: self.logger.error('right value invalid')
 
         pix = right - (left - 1)
+        self.logger.debug('right{}, left{}'.format(right,left))
         if self._horz_width_multiple > 1:
             # note: I've generalized this from 4 to self._horz_width_multiple
             # Check if horizontal range is multiple of 4 pixels. Expand if required.
-            # This is rquired for the new spectrometer (the one with 1024x1024 pixels)
+            # This is required for the new spectrometer (the one with 1024x1024 pixels)
             self.logger.debug("pix{}, _horz_width_multiple{}".format(pix, self._horz_width_multiple))
-            self.logger.debug("{}".format(pix%self._horz_width_multiple))
             if pix%self._horz_width_multiple:
                 self.logger.debug('pix%self._horz_width_multiple is true')
                 ad = self._horz_width_multiple-pix+self._horz_width_multiple*int(pix/self._horz_width_multiple) # number of pixels to add (1,2,3)
+                self.logger.debug('ad: {}'.format(ad))
                 while ad:
                     if ad and right < self.controller.xdim:
                         right += 1
@@ -573,7 +581,7 @@ class WinspecInstr(BaseInstrument):
                 new_v -= 1
 
         if new_v != v_binsize:
-            self.logger.warning('v_group {} does not fit in verical range of [{}-{}]: changing to: {}'.format(v_binsize, top, bottom, v_new))
+            self.logger.warning('v_group {} does not fit in vertical range of [{}-{}]: changing to: {}'.format(v_binsize, top, bottom, v_new))
             v_binsize = v_new
 
         # set the new ROI:

@@ -114,4 +114,24 @@ class BaseGraph(BaseGui):
         self.setLayout(vbox)
         self.show()
 
+class TimeAxisItem(pg.AxisItem):
+    """This code I found on the internet to change things of the axes, for instance the color or the size of the numbers.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def attachToPlotItem(self, plotItem):
+        """Add this axis to the given PlotItem
+        :param plotItem: (PlotItem)
+        """
+        self.setParentItem(plotItem)
+        viewBox = plotItem.getViewBox()
+        self.linkToView(viewBox)
+        self._oldAxis = plotItem.axes[self.orientation]['item']
+        self._oldAxis.hide()
+        plotItem.axes[self.orientation]['item'] = self
+        pos = plotItem.axes[self.orientation]['pos']
+        plotItem.layout.addItem(self, *pos)
+        self.setZValue(-1000)
+
 
