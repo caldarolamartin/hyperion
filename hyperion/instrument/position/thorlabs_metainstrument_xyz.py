@@ -28,7 +28,7 @@ class Thorlabsmotor_xyz(BaseInstrument):
 
         self.motorx = Thorlabsmotor(settings=motorxsettings)
         self.motory = Thorlabsmotor(settings=motorysettings)
-        # self.motorz = Thorlabsmotor(settings=motorzsettings)
+        self.motorz = Thorlabsmotor(settings=motorzsettings)
 
 
 if __name__ == '__main__':
