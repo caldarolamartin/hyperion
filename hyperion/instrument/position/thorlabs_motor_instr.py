@@ -315,6 +315,7 @@ class Thorlabsmotor(BaseInstrument):
             direction_string = "Backward"
         if blocking:
             self.controller.move_velocity(direction)
+            self.moving_loop()
             self.logger.info('Moving in {} direction'.format(direction_string))    # the blocking for the controller is False now
 
 

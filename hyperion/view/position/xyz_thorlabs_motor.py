@@ -35,13 +35,22 @@ class Thorlabs_motor_GUI(BaseGui):
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
 
+        self.enable_homebutton = False
+        self.enable_zstage = False
 
         self.motorx = thorlabs_meta_instrument.motorx
         self.logger.debug('You are connected to a {}'.format(self.motorx.kind_of_device))
+
         self.motory = thorlabs_meta_instrument.motory
         self.logger.debug('You are connected to a {}'.format(self.motory.kind_of_device))
-        self.motorz = thorlabs_meta_instrument.motorz
-        self.enable_homebutton = False
+
+        if self.enable_zstage == True:
+            self.motorz = thorlabs_meta_instrument.motorz
+            self.logger.debug('You are connected to a {}'.format(self.motorz.kind_of_device))
+
+        else:
+            self.logger.info("Z-stage disabled")
+
 
         self.title = 'Thorlabs {} GUI xyz Motor'
 
@@ -206,7 +215,8 @@ class Thorlabs_motor_GUI(BaseGui):
     def make_current_posz_label(self):
         self.current_motorz_position_label = QLabel(self)
         try:
-            self.current_motorz_position_label.setText(self.motorz.position())
+            if self.enable_zstage == True:
+                self.current_motorz_position_label.setText(self.motorz.position())
         except Exception:
             self.current_motorz_position_label.setText("currently/unavailable")
         self.grid_layout.addWidget(self.current_motorz_position_label, 2, 0)
@@ -293,9 +303,9 @@ class Thorlabs_motor_GUI(BaseGui):
 
         self.current_positiony = self.motory.current_position
         self.current_motory_position_label.setText("pos y:" + str(round(self.current_positiony, 2)))
-
-        self.current_positionz = self.motorz.current_position
-        self.current_motorz_position_label.setText("pos z:"+ str(round(self.current_positionz, 2)))
+        if self.enable_zstage == True:
+            self.current_positionz = self.motorz.current_position
+            self.current_motorz_position_label.setText("pos z:"+ str(round(self.current_positionz, 2)))
 
 
     def set_toggle_distancex(self):
@@ -358,9 +368,9 @@ class Thorlabs_motor_GUI(BaseGui):
 
             self.movingy_thread = WorkThread(self.motory.move_home, True)
             self.movingy_thread.start()
-
-            self.movingz_thread = WorkThread(self.motorz.move_home, True)
-            self.movingz_thread.start()
+            if self.enable_zstage == True:
+                self.movingz_thread = WorkThread(self.motorz.move_home, True)
+                self.movingz_thread.start()
 
         else:
             self.logger.log("Homing disabled")
@@ -382,12 +392,14 @@ class Thorlabs_motor_GUI(BaseGui):
         self.movingy_thread.start()
 
     def move_rel_in(self):
-        self.movingz_thread = WorkThread(self.motorz.move_relative, self.toggledistance_z, True)
-        self.movingz_thread.start()
+        if self.enable_zstage == True:
+            self.movingz_thread = WorkThread(self.motorz.move_relative, self.toggledistance_z, True)
+            self.movingz_thread.start()
 
     def move_rel_out(self):
-        self.movingz_thread = WorkThread(self.motorz.move_relative, -1 * self.toggledistance_z, True)
-        self.movingz_thread.start()
+        if self.enable_zstage == True:
+            self.movingz_thread = WorkThread(self.motorz.move_relative, -1 * self.toggledistance_z, True)
+            self.movingz_thread.start()
 
     def go_to_input(self):
         """Starts a thread to make an absolute move with the distance that is read out in self.set_distance from the spinbox.
@@ -400,8 +412,9 @@ class Thorlabs_motor_GUI(BaseGui):
             self.movingy_thread = WorkThread(self.motory.move_absolute, self.distance, True)
             self.movingy_thread.start()
 
-            self.movingz_thread = WorkThread(self.motorz.move_absolute, self.distance, True)
-            self.movingz_thread.start()
+            if self.enable_zstage == True:
+                self.movingz_thread = WorkThread(self.motorz.move_absolute, self.distance, True)
+                self.movingz_thread.start()
             #self.set_current_motor_position_label()
         except ValueError:
             self.logger.warning("The input is not a float, change this")
@@ -565,12 +578,14 @@ class Thorlabs_motor_GUI(BaseGui):
             self.movingy_thread.start()
 
         elif str(key) == "'z'":
-            self.movingz_thread = WorkThread(self.motorz.move_velocity, 2, True)
-            self.movingz_thread.start()
+            if self.enable_zstage == True:
+                self.movingz_thread = WorkThread(self.motorz.move_velocity, 2, True)
+                self.movingz_thread.start()
 
         elif str(key) == "'x'":
-            self.movingz_thread = WorkThread(self.motorz.move_velocity, 1, True)
-            self.movingz_thread.start()
+            if self.enable_zstage == True:
+                self.movingz_thread = WorkThread(self.motorz.move_velocity, 1, True)
+                self.movingz_thread.start()
 
     def on_release_move(self, key):
         """
@@ -590,8 +605,9 @@ class Thorlabs_motor_GUI(BaseGui):
 
         elif str(key) == "'z'" or str(key) == "'x'":
             #stop the thorlabs_motor from going
-            self.movingz_thread.quit()
-            self.motorz.stop_moving()
+            if self.enable_zstage == True:
+                self.movingz_thread.quit()
+                self.motorz.stop_moving()
 
         elif str(key) == "'t'":
             # Stop listener
@@ -610,11 +626,13 @@ class Thorlabs_motor_GUI(BaseGui):
         self.logger.info('stop moving')
         self.motorx.stop = True
         self.motory.stop = True
-        self.motorz.stop = True
+        if self.enable_zstage == True:
+            self.motorz.stop = True
 
         self.motorx.stop_moving()
         self.motory.stop_moving()
-        self.motorz.stop_moving()
+        if self.enable_zstage == True:
+            self.motorz.stop_moving()
 
 
         if self.movingx_thread.isRunning:
@@ -631,7 +649,8 @@ class Thorlabs_motor_GUI(BaseGui):
 
         self.motorx.stop = False
         self.motory.stop = False
-        self.motorz.stop = False
+        if self.enable_zstage == True:
+            self.motorz.stop = False
 
 
 if __name__ == '__main__':
