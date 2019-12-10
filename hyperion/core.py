@@ -1,3 +1,91 @@
+# -*- coding: utf-8 -*-
+"""
+=======================
+Hyperion Core Utilities
+=======================
+
+---------------------------------
+Explanation of how to use logging
+---------------------------------
+
+Short version:
+There is a single logging manager that you import in your files. This logging manager can create a logger objects (which
+you use in your files and classes to do log-prints like logger.info('bla'). When creating the logger object, a stream
+handler (writes to screen) and a file handler are passed with it. These take care of the layout, the level (e.g. whether
+lower levels like debug or info are printed), and which file to write to. You can choose to disable the stream or file
+handler, modify their layout and levels individually. The stream handler colors can be turned on or off and the color
+format can be modified.
+
+Full explanation:
+
+In hyperion.core the class LoggingManager is defined. It is a "Singleton" class meaning that all instantiations of this
+class are actually one and the same object.
+In hyperion.core one object is already instantiated by the name of logman.
+In hyperion __init__.py this is imported under the alias name logging.
+Because it's a singleton class the following approaches of importing the logging manager object are all equivalent:
+- from hyperion import logging
+- from hyperion.core import logman as logging
+- from hyperion.core import logman
+- from hyperion.core import LoggingManager
+  import hyperion
+  log = LoggingManager( hyperion.log_path, 'my_log_name.log' )
+- import hyperion.core
+  log = hyperion.core.LoggingManager()
+In all cases above logging, logman and log refer to the same single object of class LoggingManager.
+For the rest of the following explanation logman is used, but if you're modifying an existing file that used logging,
+you could remove the 'import logging' and replace it with 'from hyperion import logging'.
+Note, the optional arguments are default_path and default_name for logging file.
+LoggingManager has two optional arguments default_path and default_name, which are used as default values for creating
+the log file. By default, the path is hyperion.log_path and the name is 'hyperion.log'
+In your own project you could change those if you like.
+
+Now, to use logging in your module (file) or in your class, you have to create a logger:
+logger = logman.getLogger(__name__)
+Note that instead of the usual module name __name__ you could hypothetically put in any string.
+Note that as a shorthand you can also do directly: logger=logman(__name__)
+When the logger is created, by default, both the stream handler and the file handler are passed with it. These take care
+of printing to the screen and to a file. If you don't want to add both, you could omit adding them by setting the
+optional keyword arguments add_stream or add_file to False. e.g.; logger = logman.getLogger(__name__, add_file=False)
+
+Before creating a logger object, you can:
+- Set the level of the default stream or file handler in the logging manager (defaults are DEBUG)
+  logman.stream_level = logman.WARNING      # note: you could also pass in the string 'WARNING'
+  logman.file_level = 'INFO'                # note: you could also pass in logman.INFO
+  (Note that changing the level in the manager after a logger object is created is likely to also affect that logger.
+  This depends if the handler was modified in the meantime. If it wasn't, then it's the same object.)
+- Change the default stream or file handler in the logging manager
+  Change layout, file name, colors. See below.
+- Enable/disable whether the stream of the file handler is passed when a logger object is created (default is True).
+  logman.enable_stream = False
+  logman.enable_file = True
+After creating a logger object you can still:
+- Add handlers
+  logman.remove_stream_handler(my_handler)
+  logman.remove_file_handler(my_handler)
+- Or remove handlers
+  logman.add_stream_handler(my_handler)
+  logman.add_file_handler(my_handler)
+- And you can modify the logging level of its handers. Just be aware that if the handlers in the manager weren't
+  modified in the meantime, changing the
+  logman.setLevel
+
+
+There are two optional arguments you can add: add_stream and add_file. Both are True by default, but if say you didn't
+want to print to screen you could omit adding the stream_handler
+
+When the logger object is created, the file and
+
+
+
+
+
+
+"""
+
+
+
+
+
 import os
 import logging
 import logging.handlers
@@ -377,18 +465,15 @@ class LoggingManager(metaclass=Singleton):
                        'DEBUG': DEBUG}
     _number_2_level = {CRITICAL: 'CRITICAL', ERROR: 'ERROR', WARNING: 'WARNING', INFO: 'INFO', DEBUG: 'DEBUG'}
 
-    def __init__(self, default_path, default_name='hyperion.log'):
+    def __init__(self, default_path=log_path, default_name='hyperion.log'):
         self._default_path = default_path
         self._default_name = default_name
         self._default_stream_level = logging.DEBUG
         self._default_file_level = logging.DEBUG
         self.set_stream()
-        self.file_handler = None
-        # self.set_file()
-        self.enable_stream = True   # add streamhandler to new logger objects
-        self.enable_file = True     # add filehandler to new logger objects
-        # This makes log(__name__) equivalent to log.getLogger(__name__)
-        # Just as a shorthand
+        self.file_handler = None    # don't create it until it's necessary
+        self.enable_stream = True   # add streamhandler to new logger objects, default value
+        self.enable_file = True     # add filehandler to new logger objects, default value
 
     def set_stream(self, color=True, level = None, compact=0.5, reduce_duplicates=True, maxwidth=None, color_mode=None, **kwargs):
         self.enable_stream = True
@@ -455,7 +540,8 @@ class LoggingManager(metaclass=Singleton):
     @file_level.setter
     def file_level(self, number_or_string):
         self._default_file_level = number_or_string
-        self.file_handler.setLevel(number_or_string)
+        if self.file_handler is not None:
+            self.file_handler.setLevel(number_or_string)
 
     def getLogger(self, name, add_stream=None, add_file=None):
         """
@@ -466,7 +552,6 @@ class LoggingManager(metaclass=Singleton):
         :param add_file: (bool or None) add the streamhandler. None (default) uses object.enalbe_stream
         :return: logger object
         """
-
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG)      # this is necessary for some reason
         logger.handlers = []                # to avoid duplicate handlers, remove all existing
@@ -481,21 +566,23 @@ class LoggingManager(metaclass=Singleton):
         # setattr(logger, 'remove_stream_handler', remove_stream_handler)
         # setattr(logger, 'remove_file_handler', remove_file_handler)
         if add_stream or (add_stream is None and self.enable_stream):
+            self.stream_level = self._default_stream_level      # assert the level in case it was changed externally
             logger.addHandler(self.stream_handler)
         if add_file or (add_file is None and self.enable_file):
             if self.file_handler is None:
                 self.set_file()
+            self.file_level = self._default_file_level          # assert the level in case it was changed externally
             logger.addHandler(self.file_handler)
         return logger
 
     def __call__(self,*args, **kwargs):
         """ A short hand for getLogger():
-        If log is the LoggingManager object, log(__name__) is equivalent to log.getLogger(__name__)"""
+        If logman is the LoggingManager object, logman(__name__) is equivalent to logman.getLogger(__name__)"""
         return self.getLogger(*args, **kwargs)
 
     def remove_stream_handler(self, logger):
         """
-        Remove stream_handlers from an existing logger.
+        Remove stream_handlers from an existing logger object.
         :param logger: a logger object
         """
         for i, h in enumerate(logger.handlers):
@@ -504,7 +591,7 @@ class LoggingManager(metaclass=Singleton):
 
     def remove_file_handlers(self, logger):
         """
-        Remove stream_handlers from an existing logger.
+        Remove stream_handlers from an existing logger object.
         :param logger: a logger object
         """
         for i, h in enumerate(logger.handlers):
@@ -513,17 +600,40 @@ class LoggingManager(metaclass=Singleton):
 
     def add_stream_handler(self, logger):
         """
-        Add stream_handler to an existing logger.
+        Add stream_handler to an existing logger object.
         :param logger: a logger object
         """
         logger.addHandler(self.stream_handler)
 
     def add_file_handler(self, logger):
         """
-        Add file_handler to an existing logger.
+        Add file_handler to an existing logger object.
         :param logger: a logger object
         """
         logger.addHandler(self.file_handler)
 
+    def set_logger_stream_level(self, logger, level):
+        """
+        Change level of the stream handler of an existing logger object.
+        Note that this may affect other logger object, because they may share the same stream handler object.
+        :param logger: existing logger object
+        :param level: string like 'WARNING' or level like logman.WARNING
+        """
+        for h in logger.handlers:
+            if type(h) is logging.StreamHandler:
+                h.setLevel(level)
+
+    def set_logger_file_level(self, logger, level):
+        """
+        Change level of the file handler of an existing logger object.
+        Note that this may affect other logger object, because they may share the same file handler object.
+        :param logger: existing logger object
+        :param level: string like 'WARNING' or level like logman.WARNING
+        """
+        for h in logger.handlers:
+            if type(h) is logging.handlers.RotatingFileHandler:
+                h.setLevel(level)
+
+
 # Initialize LoggingManager object. Import this in other modules inside this package.
-log = LoggingManager(default_path=log_path, default_name='hyperion.log')
+logman = LoggingManager(default_path=log_path, default_name='hyperion.log')

@@ -8,7 +8,7 @@
 
 """
 import os
-from hyperion.core import log as logging
+from hyperion.core import logman as logging
 import yaml
 import importlib
 

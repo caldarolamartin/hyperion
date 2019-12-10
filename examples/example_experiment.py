@@ -114,7 +114,7 @@ if __name__ == '__main__':
     import hyperion
 
     #logging.stream_level = logging.INFO
-    logging.enable_file = False
+    # logging.enable_file = False
     logging.set_stream(compact=0.5)#, color_mode=('universal', 'spy_uni'))
 
     with ExampleExperiment() as e:

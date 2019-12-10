@@ -11,7 +11,7 @@ log_path =        os.path.join(parent_path, 'logs')  #   ###/###/logs/
 root_dir = package_path
 ls = os.pardir
 # It's important that log_path is defined before importing from hyperion.core
-from hyperion.core import log as logging
+from hyperion.core import logman as logging
 # It's important that lantz is after hyperion.core import
 from lantz.core import UnitRegistry, Q_
 # units

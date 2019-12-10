@@ -9,7 +9,7 @@ developers to create new controllers for real devices.
 
 
 """
-from hyperion.core import log as logging
+from hyperion.core import logman as logging
 from hyperion.controller.base_controller import BaseController
 
 class ExampleController(BaseController):

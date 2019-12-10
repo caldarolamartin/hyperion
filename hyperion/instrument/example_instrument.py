@@ -8,7 +8,7 @@ This is an example instrument, created to give developers a canvas to start thei
 for real devices. This is only a dummy device.
 
 """
-from hyperion.core import log as logging
+from hyperion.core import logman as logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
 
