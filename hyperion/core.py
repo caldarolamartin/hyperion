@@ -48,6 +48,9 @@ of printing to the screen and to a file. If you don't want to add both, you coul
 optional keyword arguments add_stream or add_file to False. e.g.; logger = logman.getLogger(__name__, add_file=False)
 
 Before creating a logger object, you can:
+- Change the default path or name of the logfile in the stream_handler:
+  logman.default_path  = 'd:\\'
+  logman.default_name  = 'my_project.log'
 - Set the level of the default stream or file handler in the logging manager (defaults are DEBUG)
   logman.stream_level = logman.WARNING      # note: you could also pass in the string 'WARNING'
   logman.file_level = 'INFO'                # note: you could also pass in logman.INFO
@@ -66,19 +69,104 @@ After creating a logger object you can still:
   logman.add_stream_handler(my_handler)
   logman.add_file_handler(my_handler)
 - And you can modify the logging level of its handers. Just be aware that if the handlers in the manager weren't
-  modified in the meantime, changing the
-  logman.setLevel
+  modified in the meantime, changing the level of one logger may change the level of others as well.
+  logman.set_logger_stream_level(my_handler, 'WARNING')
+  logman.set_logger_file_level(my_handler, logman.INFO)
+
+Finally, explanation of setting up the handlers:
+To create (or replace) the handlers use:
+logman.set_stream( optional arguments )
+logman.set_file( optional arguments )
+All arguments are optional (they have a default value if omitted)
+The arguements in both set_stream and set_file are:
+- level                 If omitted, the default value is used
+                        (default value can be set by logman.stream_level / logman.file_level)
+- reduce_duplicates     Enables a Filer that detect repeated log comments (that were in a loop) and reduces the number
+                        of lines printed. Defaults to True
+- compact               A float between 0 and 1. A measure of how long or compact a line will be. 0 Means full length.
+                        As the value of compact is increased the lines will become shorter. At 1 the line will be most
+                        compact and it will be cut off at length maxwidth.
+                        Default value for set_stream is 0.5, default value for set_file is 0
+- maxwidth              See description of compact. Default value is 119
+Arguments only in set_stream:
+- color                 A bool that determines whether to use colors when printing levels names. Defaults to True
+- color_scheme          A string indicating color_scheme. Possible values are: bright, dim, mixed, bg, universal
+                        If the logger is used in Spyder it diverts to a modified scheme. To manually select different
+                        schemes for both non-Spyder and Spyder do something like color_scheme=('mixed', 'spy_bright')
+                        Scheme 'universal' will be readable and most similar on Spyder, Pycharm, PyCharm-darcula,
+                        regular black terminal and blue PowerShell terminal. But it's not ver esthetically pleasing, so
+                        the default is ('bright', 'spy_bright')
+- All other keyword arguments are passed into logging.StreamHandler().
+Arguments only in set_file:
+- pathname              The path or only filename or full file-path. If path is not included it will use the default
+                        path. If name is not included it will use the default name)
+- All other keyword arguments are passed into logging.handlers.RotatingFileHandler().
+  maxBytes will default to 5MB and backupCount will default to 9
 
 
-There are two optional arguments you can add: add_stream and add_file. Both are True by default, but if say you didn't
-want to print to screen you could omit adding the stream_handler
 
-When the logger object is created, the file and
+example code 1:
+
+from hyperion import logging
+
+class A:
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('object of class A created')
+
+if __name__=='__main__':
+    logging.enable_file = False
+    logging.stream_level = 'INFO'
+    logging.set_stream(compact=0.4, color=False)
+    a = A()
 
 
+example code 2:
+
+from hyperion.core import logman
+
+class A:
+    def __init__(self):
+        logger = logman(__name__, add_stream=False)     # no stream logging at all for this class
+        logger.info('object of class A created')
+
+class B:
+    def __init__(self):
+        self.logger = logman(__name__)
+        self.logger.info('object B: 1 - info')
+
+        # Temporarily change logging level (note that this may affect other loggers as well)
+        lvl = logman.get_logger_stream_level(self.logger)
+        logman.set_logger_stream_level(self.logger, 'WARNING')
+        self.logger.info('object B: 2 - info')
+        self.logger.warning('object B: 2 - warning')
+        logman.set_logger_stream_level(self.logger, lvl)
+
+        self.logger.info('object B: 3 - info')
+
+class C:
+    def __init__(self):
+        self.logger = logman(__name__)
+        self.logger.info('object C: 1 - info')
+
+        # Temporarily remove handler from logger
+        h = logman.remove_stream_handler(self.logger)       # storing it in h is optional
+        self.logger.info('object C: 2 - info')
+        self.logger.warning('object C: 2 - warning')
+        # To restore the exact handler:
+        self.logger.addHandler(h)
+        # It's also possible to add the handler from the manager:
+        # logman.add_file_handler(self.logger)
+
+        self.logger.info('object C: 3 - info')
 
 
-
+if __name__=='__main__':
+    logging.default_name = 'my_project.log'
+    logging.set_stream(compact=0.4, color=False)
+    a = A()
+    b = B()
+    c = C()
 
 """
 
@@ -112,6 +200,7 @@ class Singleton(type):
     """
     Metaclass to use for classes of which you only want one instance to exist.
     use like: class MyClass(ParentClass, metaclass=Singleton):
+    If one tries to create a second object, the original object is returned.
     """
     _instances = {}
 
@@ -297,14 +386,14 @@ class CustomFormatter(logging.Formatter):
     Adds a lot of information (time, module, line number, method, LEVEL, message)
     Setting the compact parameter to a value larger than 0 shrinks the date, module and method.
     Setting it to 1 (maximum) assures the length is maxwidth characters or less.
-    The possible regular color modes are: bright, dim, mixed, bg, universal.
-    The optional secondary color modes for Spyder are: spy_bri, spy_dim, spy_mix, spy_bg, spy_uni.
-    Specifying no color_mode defaults to bright (and spy_bri if Spyder is detected).
+    The possible regular color schemes are: bright, dim, mixed, bg, universal. The optional additional secondary color
+    schemes for Spyder are: spy_bright, spy_dim, spy_mixed, spy_bg, spy_universal.
+    Specifying no color_scheme defaults to bright (and spy_bright if Spyder is detected).
 
     :param compact: float from 0 for full length, to 1 for very compact (defaults to 0)
     :param maxwidth: integer indicating max line width when compact is 1. None (default) uses 119.
     :param color: boolean indicating if ANSI colors should be used (defaults to False)
-    :param color_mode: string or tuple/list of two strings (defaults to bright / spy_bri)
+    :param color_scheme: string or tuple/list of two strings (defaults to bright / spy_bri)
     """
 
     # 'universal' and 'spy_uni' are chosen to be similar and readable in:
@@ -323,12 +412,12 @@ class CustomFormatter(logging.Formatter):
                       logging.INFO: ('_lc', 'k'),
                       logging.DEBUG: ('_lb', 'lw'),
                       None: None},  # do nothing (for unknown codes)
-        'spy_uni': {logging.CRITICAL: '1;45;37',  # emph, magenta bg, white text
-                    logging.ERROR: '1;41;33',  # emph, red bg, yellow text
-                    logging.WARNING: '1;43;31',  # emph, yellow bg, red text
-                    logging.INFO: '1;46',  # emph, cyan bg, keep text default black
-                    logging.DEBUG: '1;44;37',  # emph, blue bg, white text
-                    None: None},  # do nothing (for unknown codes)
+        'spy_universal': {logging.CRITICAL: '1;45;37',  # emph, magenta bg, white text
+                         logging.ERROR: '1;41;33',  # emph, red bg, yellow text
+                         logging.WARNING: '1;43;31',  # emph, yellow bg, red text
+                         logging.INFO: '1;46',  # emph, cyan bg, keep text default black
+                         logging.DEBUG: '1;44;37',  # emph, blue bg, white text
+                         None: None},  # do nothing (for unknown codes)
         'bright': {logging.CRITICAL: 'lm',  # magenta text
                    logging.ERROR: 'lr',  # redtext
                    logging.WARNING: 'ly',  # yellowtext
@@ -353,18 +442,24 @@ class CustomFormatter(logging.Formatter):
                   logging.INFO: '36',
                   logging.DEBUG: '32',
                   None: None},  # do nothing (for unknown codes)
-        'spy_bri': {logging.CRITICAL: '1;35',  # magenta text
-                    logging.ERROR: '1;31',  # redtext
-                    logging.WARNING: '1;33',  # yellowtext
-                    logging.INFO: '1;32',
-                    logging.DEBUG: '1;36',
-                    None: None},  # do nothing (for unknown codes)
+        'spy_bright': {logging.CRITICAL: '1;35',  # magenta text
+                       logging.ERROR: '1;31',  # redtext
+                       logging.WARNING: '1;33',  # yellowtext
+                       logging.INFO: '1;32',
+                       logging.DEBUG: '1;36',
+                       None: None},  # do nothing (for unknown codes)
         'spy_dim': {logging.CRITICAL: '35',  # magenta text
                     logging.ERROR: '31',  # redtext
                     logging.WARNING: '33',  # yellowtext
                     logging.INFO: '32',
                     logging.DEBUG: '36',
                     None: None},  # do nothing (for unknown codes)
+        'spy_mixed': {logging.CRITICAL: '31;5',  # magenta text
+                      logging.ERROR: '1;31',  # redtext
+                      logging.WARNING: '33',  # yellowtext
+                      logging.INFO: '32',
+                      logging.DEBUG: '36',
+                      None: None},  # do nothing (for unknown codes)
         'spy_bg': {logging.CRITICAL: '1;45',
                    logging.ERROR: '1;41',
                    logging.WARNING: '1;43',
@@ -373,19 +468,32 @@ class CustomFormatter(logging.Formatter):
                    None: None},  # do nothing (for unknown codes)
     }
 
-    def __init__(self, compact=0.0, maxwidth=None, color=False, color_mode=None):
-        if color_mode is None:
-            self.color_mode = 'bright'  # choose default mode here
+    def __init__(self, compact=0.0, maxwidth=None, color=False, color_scheme=None):
+        __default_scheme =        'bright'      # choose default mode here
+        __default_scheme_spyder = 'spy_bright'  # choose default mode here
+        __spyder = any('SPYDER' in name for name in os.environ)
+
+        if color_scheme is None:
+            self.color_scheme = __default_scheme_spyder if __spyder else __default_scheme
         else:
-            if type(color_mode) is str:
-                self.color_mode = color_mode
-            else:
-                self.color_mode = color_mode[0]
-        if any('SPYDER' in name for name in os.environ):
-            if color_mode is not None and type(color_mode) is not str and len(color_mode) > 1:
-                self.color_mode = color_mode[1]
-            else:
-                self.color_mode = 'spy_bri'  # choose default mode for Spyder here
+            try:
+                # in case of tuple/list of length 1, extract that element:
+                if type(color_scheme) is not str and len(color_scheme)==1:
+                    color_scheme = color_scheme[0]
+                if type(color_scheme) is str:
+                    if __spyder:
+                        if color_scheme[:4] != 'spy_': color_scheme = 'spy_'+color_scheme
+                    else:
+                        if color_scheme[:4] == 'spy_': color_scheme = color_scheme[4:]
+                    self.color_scheme = color_scheme
+                else:
+                    if __spyder:
+                        self.color_scheme = [sch for sch in color_scheme if sch[:3]=='spy_'][0]
+                    else:
+                        self.color_scheme = [sch for sch in color_scheme if sch[:3] != 'spy_'][0]
+            except:
+                print('WARNING: invalid color_scheme(s). (using defaults instead)')
+                self.color_scheme = __default_scheme_spyder if __spyder else __default_scheme
 
         if compact > 1:
             self.compact = 1
@@ -408,30 +516,20 @@ class CustomFormatter(logging.Formatter):
         else:
             lvl_str = '{:>5}'.format(self.short_names[record.levelno])
         if self.color:
-            if record.levelno not in self.color_schemes[self.color_mode]:
-                lvl_str = self.ansicol(lvl_str, self.color_schemes[self.color_mode][None])
+            if record.levelno not in self.color_schemes[self.color_scheme]:
+                lvl_str = self.ansicol(lvl_str, self.color_schemes[self.color_scheme][None])
             else:
-                lvl_str = self.ansicol(lvl_str, self.color_schemes[self.color_mode][record.levelno])
-
-        #        colored_levelname = (COLOR+'{:>8} '+RESET).format('51', record.levelname)
-        #        colored_levelname = '{:>8} '.format(record.levelname)
-        if self.compact == 0:
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[
-                        :-3]  # show 3 out of 6 digits (i.e. milliseconds)
-            # module = module[-min(len(module), 50):]       # truncate from the left to 50 characters
-            # msg = '{:.200}'.format(record.msg)            # truncate to 200 characters
-            # if len(func)>30:
-            #     func = func[:27]+'...'
-            message = '{} |{:>50} |{:>5} | {:32}|{}| {}'.format(timestamp, module, record.lineno, func + '()', lvl_str,
-                                                                record.msg)
+                lvl_str = self.ansicol(lvl_str, self.color_schemes[self.color_scheme][record.levelno])
+        if self.compact == 0:            # The full length version
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # show 3 out of 6 digits (i.e. milliseconds)
+            message = '{} |{:>50} |{:>5} | {:32}|{}| {}'.format(timestamp, module, record.lineno, func + '()', lvl_str, record.msg)
         else:
             timestamp = datetime.now().strftime('%H:%M:%S')
             # module = '.'.join(module.split('.')[1:])  # strip off the first word before '.'(i.e. hyperion)
             lmod = int(50 - 33 * self.compact)  # >=14
             lfun = int(32 - 20 * self.compact)  # >=12
             if len(module) > lmod:
-                module = '...' + module[-(lmod - 3):]  # truncate from the left to 38 characters
-            #                msg = '{:.30}'.format(record.msg)           # truncate to 30 characters
+                module = '...' + module[-(lmod - 3):]  # truncate from the left
             if len(func) > lfun:
                 func = func[:(lfun - 3)] + '...'
 
@@ -455,6 +553,16 @@ class CustomFormatter(logging.Formatter):
         return message
 
 class LoggingManager(metaclass=Singleton):
+    """
+    LogginManager class. This is a "Singleton" class which means that all of its instantiatons refer to one and the same
+    object. If one tries to create a second object, the original object is returned.
+    For a more elaborate explanation on how to use, see beginning of page.
+
+    :ivar enable_stream: (bool) If true, the stream handler is passed to newly created logger objects (default is True)
+    :ivar enable_file:   (bool) If true, the file handler is passed to newly created logger objects (default is True)
+    :ivar default_path:  (str) Default path for logfile when file handler is created without specifying path (default hyperion.log_path)
+    :ivar default_name:  (str) Default filename for logfile when file handler is created without specifying filename (default 'hyperion.log;)
+    """
     CRITICAL = logging.CRITICAL
     ERROR = logging.ERROR
     WARNING = logging.WARNING
@@ -466,8 +574,8 @@ class LoggingManager(metaclass=Singleton):
     _number_2_level = {CRITICAL: 'CRITICAL', ERROR: 'ERROR', WARNING: 'WARNING', INFO: 'INFO', DEBUG: 'DEBUG'}
 
     def __init__(self, default_path=log_path, default_name='hyperion.log'):
-        self._default_path = default_path
-        self._default_name = default_name
+        self.default_path = default_path
+        self.default_name = default_name
         self._default_stream_level = logging.DEBUG
         self._default_file_level = logging.DEBUG
         self.set_stream()
@@ -475,10 +583,22 @@ class LoggingManager(metaclass=Singleton):
         self.enable_stream = True   # add streamhandler to new logger objects, default value
         self.enable_file = True     # add filehandler to new logger objects, default value
 
-    def set_stream(self, color=True, level = None, compact=0.5, reduce_duplicates=True, maxwidth=None, color_mode=None, **kwargs):
+    def set_stream(self, color=True, level = None, compact=0.5, reduce_duplicates=True, maxwidth=None, color_scheme=None, **kwargs):
+        """
+        Sets (replaces) the stream handler in the logging manager object.
+
+        :param color: (bool) whether to print levelnames with color
+        :param level: logging level. If omitted, default is used. To change default see file_level
+        :param compact: see CustomFormatter (defaults to 0)
+        :param maxwidth: see CustomFormatter
+        :param reduce_duplicates: (bool) (defaults to True)
+        :param color_scheme: (str or (str,str) ) color scheme to use, see above for possible values
+        :param **kwargs: additional keyword arguments are passed into logging.StreamHandler()
+        :return:
+        """
         self.enable_stream = True
         self.stream_handler = logging.StreamHandler(**kwargs)
-        self.stream_handler.setFormatter(CustomFormatter(compact=compact, color=color, color_mode=color_mode, maxwidth=maxwidth))
+        self.stream_handler.setFormatter(CustomFormatter(compact=compact, color=color, color_scheme=color_scheme, maxwidth=maxwidth))
         if level is None: level = self._default_stream_level
         self.stream_handler.setLevel(level)  # default level for stream handler
         if reduce_duplicates:
@@ -486,28 +606,29 @@ class LoggingManager(metaclass=Singleton):
 
     def set_file(self, pathname=None, level = None, compact=0, reduce_duplicates=True, maxwidth=None, maxBytes=(5 * 1024 * 1024), backupCount=9, **kwargs):
         """
-        Sets (overwrites) the file handler.
+        Sets (replaces) the file handler in the logging manager object.
 
-        :param pathname:
+        :param pathname: path or filename or full file-path (if only name of path is given, the other will use the default value)
+        :param level: logging level. If omitted, default is used. To change default see file_level
         :param compact: see CustomFormatter (defaults to 0)
+        :param maxwidth: see CustomFormatter
         :param reduce_duplicates: (bool) (defaults to True)
         :param maxBytes: see logging.handlers.RotatingFileHandler() (defaults to 5 * 1024 * 1024)
         :param backupCount: see logging.handlers.RotatingFileHandler() (defaults to 9)
-        :param **kwargs: additional keyword arguements are passed into logging.handlers.RotatingFileHandler()
+        :param **kwargs: additional keyword arguments are passed into logging.handlers.RotatingFileHandler()
         """
         self.enable_file = True
         if pathname is None or os.path.dirname(pathname)=='':
-            log_path = self._default_path
+            log_path = self.default_path
         else:
             log_path = os.path.dirname(pathname)
         if pathname is None or os.path.basename(pathname)=='':
-            log_name = self._default_name
+            log_name = self.default_name
         else:
             log_name = os.path.basename(pathname)
         # make the directory if it doesn't exist yet:
         if not os.path.isdir(log_path):
             os.makedirs(log_path)
-
         self.file_handler = logging.handlers.RotatingFileHandler(filename=os.path.join(log_path,log_name), maxBytes=maxBytes,
                                                                  backupCount=backupCount, **kwargs)
         self.file_handler.setFormatter(CustomFormatter(compact=compact, maxwidth=maxwidth))
@@ -522,7 +643,7 @@ class LoggingManager(metaclass=Singleton):
         Property to read and set the level of the current stream handler.
         When setting it also updates the default level.
         """
-        return self._number_2_level[self.stream_handler.level]
+        return self._number_2_level[self._default_stream_level]
 
     @stream_level.setter
     def stream_level(self, number_or_string):
@@ -535,7 +656,7 @@ class LoggingManager(metaclass=Singleton):
         Property to read and set the level of the current file handler.
         When setting it also updates the default level.
         """
-        return self._number_2_level[self.file_handler.level]
+        return self._number_2_level[self._default_file_level]
 
     @file_level.setter
     def file_level(self, number_or_string):
@@ -555,16 +676,6 @@ class LoggingManager(metaclass=Singleton):
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG)      # this is necessary for some reason
         logger.handlers = []                # to avoid duplicate handlers, remove all existing
-        # def remove_stream_handler(self):
-        #     for i,h in enumerate(self.handlers):
-        #         if type(h) is logging.StreamHandler:
-        #             del self.handlers[i]
-        # def remove_file_handler(self):
-        #     for i,h in enumerate(self.handlers):
-        #         if type(h) is logging.handlers.RotatingFileHandler:
-        #             del self.handlers[i]
-        # setattr(logger, 'remove_stream_handler', remove_stream_handler)
-        # setattr(logger, 'remove_file_handler', remove_file_handler)
         if add_stream or (add_stream is None and self.enable_stream):
             self.stream_level = self._default_stream_level      # assert the level in case it was changed externally
             logger.addHandler(self.stream_handler)
@@ -576,31 +687,42 @@ class LoggingManager(metaclass=Singleton):
         return logger
 
     def __call__(self,*args, **kwargs):
-        """ A short hand for getLogger():
+        """ A shorthand for getLogger():
         If logman is the LoggingManager object, logman(__name__) is equivalent to logman.getLogger(__name__)"""
         return self.getLogger(*args, **kwargs)
 
     def remove_stream_handler(self, logger):
         """
         Remove stream_handlers from an existing logger object.
+
         :param logger: a logger object
+        :return: the removed stream handler object (or None)
         """
+        r = None
         for i, h in enumerate(logger.handlers):
             if type(h) is logging.StreamHandler:
+                r = h
                 del logger.handlers[i]
+        return h
 
     def remove_file_handlers(self, logger):
         """
         Remove stream_handlers from an existing logger object.
+
         :param logger: a logger object
+        :return: the removed file handler object (or None)
         """
+        r = None
         for i, h in enumerate(logger.handlers):
             if type(h) is logging.handlers.RotatingFileHandler:
+                r = h
                 del logger.handlers[i]
+        return h
 
     def add_stream_handler(self, logger):
         """
         Add stream_handler to an existing logger object.
+
         :param logger: a logger object
         """
         logger.addHandler(self.stream_handler)
@@ -608,6 +730,7 @@ class LoggingManager(metaclass=Singleton):
     def add_file_handler(self, logger):
         """
         Add file_handler to an existing logger object.
+
         :param logger: a logger object
         """
         logger.addHandler(self.file_handler)
@@ -616,6 +739,7 @@ class LoggingManager(metaclass=Singleton):
         """
         Change level of the stream handler of an existing logger object.
         Note that this may affect other logger object, because they may share the same stream handler object.
+
         :param logger: existing logger object
         :param level: string like 'WARNING' or level like logman.WARNING
         """
@@ -623,10 +747,22 @@ class LoggingManager(metaclass=Singleton):
             if type(h) is logging.StreamHandler:
                 h.setLevel(level)
 
+    def get_logger_stream_level(self, logger):
+        """
+        Get the level of the (first) stream handler of an existing logger object.
+
+        :param logger: existing logger object
+        """
+        for h in logger.handlers:
+            if type(h) is logging.StreamHandler:
+                return h.level
+        return None
+
     def set_logger_file_level(self, logger, level):
         """
         Change level of the file handler of an existing logger object.
         Note that this may affect other logger object, because they may share the same file handler object.
+
         :param logger: existing logger object
         :param level: string like 'WARNING' or level like logman.WARNING
         """
@@ -634,6 +770,16 @@ class LoggingManager(metaclass=Singleton):
             if type(h) is logging.handlers.RotatingFileHandler:
                 h.setLevel(level)
 
+    def get_logger_file_level(self, logger):
+        """
+        Get the level of the (first) file handler of an existing logger object.
+
+        :param logger: existing logger object
+        """
+        for h in logger.handlers:
+            if type(h) is logging.handlers.RotatingFileHandler:
+                return h.level
+        return None
 
 # Initialize LoggingManager object. Import this in other modules inside this package.
 logman = LoggingManager(default_path=log_path, default_name='hyperion.log')
