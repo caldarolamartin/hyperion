@@ -19,7 +19,7 @@ from PyQt5.QtCore import *
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
-from hyperion.view.base_guis import BaseGui
+from hyperion.view.base_guis import BaseGui, BaseGraph, TimeAxisItem
 from hyperion.view.general_worker import WorkThread
 
 class Hydraharp_aligning_GUI(BaseGui):
@@ -92,6 +92,7 @@ class Hydraharp_aligning_GUI(BaseGui):
         self.pushButton_stop.setStyleSheet("background-color: red")
 
         self.gui.pushButton_save.clicked.connect(self.save_counts)
+        self.gui.pushButton_save.setEnabled(False)
 
         self.gui.comboBox_finite.setCurrentText(self.exp_type)
         self.gui.comboBox_finite.currentTextChanged.connect(self.get_exp_type)
@@ -110,6 +111,10 @@ class Hydraharp_aligning_GUI(BaseGui):
 
         self.gui.checkBox_chan2.setChecked(self.chan2)
         self.gui.checkBox_chan2.stateChanged.connect(self.set_channel)
+
+        self.set_name_path()
+        self.gui.lineEdit_name.textChanged.connect(self.get_name_path)
+        self.gui.lineEdit_path.textChanged.connect(self.get_name_path)
 
     #Read user inputs
     # -----------------------------------------------------------------------------------------
@@ -134,24 +139,19 @@ class Hydraharp_aligning_GUI(BaseGui):
         self.chan2 = self.gui.checkBox_chan2.isChecked()
         self.logger.debug('Sync channel: {}, channel 1: {}, channel 2: {}'.format(self.sync, self.chan1, self.chan2))
 
-    def get_name(self):
-        self.gui.lineEdit_name.setText('blub')
-        self.gui.lineEdit_name.textChanged.connect(self.set_name_path)
-
-    def get_path(self):
-        self.gui.lineEdit_path.setText(self.path)
-        self.gui.lineEdit_path.textChanged.connect(self.set_name_path)
-
-
-    #Actual methods doing something
-    #-----------------------------------------------------------------------------------------
     def set_name_path(self):
+        self.gui.lineEdit_name.setText(self.default_name)
+        self.gui.lineEdit_path.setText(self.path)
+
+    def get_name_path(self):
         self.default_name = self.gui.lineEdit_name.text()
         self.path = self.gui.lineEdit_path.text()
 
         print(self.gui.lineEdit_name.text())
         print(self.gui.lineEdit_path.text())
 
+    #Actual methods doing something
+    #-----------------------------------------------------------------------------------------
     def ask_counts(self):
         """ | Connects to the device and read out the count rate of either the sync or on of the count channels.
         | Displays this on the labels on the gui, which are updated via the timer in the init.
@@ -202,7 +202,7 @@ class Hydraharp_aligning_GUI(BaseGui):
         if self.something_selected:
             if self.sync:
                 self.draw0 = DrawCounts()
-                self.draw0.counts_plot.setTitle("<span style=\"color:orange;font-size:30px\">Counts on sync channel </span>")
+                self.draw0.counts_plot.setTitle("<span style=\"color:yellow;font-size:30px\">Counts on sync channel </span>")
                 #self.draw0.counts_plot.plot(self.time_axis.m_as('s'), Counts, clear=True, pen=self.pen)
 
             if self.chan1:
@@ -212,7 +212,7 @@ class Hydraharp_aligning_GUI(BaseGui):
 
             if self.chan2:
                 self.draw2 = DrawCounts()
-                self.draw2.counts_plot.setTitle("<span style=\"color:orange;font-size:30px\">Counts on channel 2 </span>")
+                self.draw2.counts_plot.setTitle("<span style=\"color:red;font-size:30px\">Counts on channel 2 </span>")
                 #self.draw2.counts_plot.plot(self.time_axis.m_as('s'), Counts, clear=True, pen=self.pen)
 
             self.plotting_thread = WorkThread(self.update_plot)
@@ -228,6 +228,7 @@ class Hydraharp_aligning_GUI(BaseGui):
         | It draws the plot with the time axis, which is the same for all channels,
         | and the Counts, that are a numpy array that is constantly filled with the current Rate.
         | Depending on the channel, the counts are plotted in three different self.draw windows.
+        | After the plotting is finished, the prepare_save method is started, so the name to be given to a potential file is set.
 
         :param Counts: array of the size of the axis length
         :type Counts: numpy array
@@ -305,8 +306,12 @@ class Hydraharp_aligning_GUI(BaseGui):
                 time.sleep(self.pausetime.m_as('s'))
 
         self.running = False
+        self.prepare_save()
 
     def stop_plotting(self):
+        """| Stops the thread and the plotting, if there was actually something running.
+        | Does not stop the showing of the counts, that happens no matter what.
+        """
         if self.running:
             self.logger.info('Should stop counting here')
             self.running = False
@@ -315,55 +320,53 @@ class Hydraharp_aligning_GUI(BaseGui):
         else:
             self.logger.warning('There is nothing to stop.')
 
+    def prepare_save(self):
+        """| Enables the save button and prepares for saving by constructing a filename based on the data taken,
+        | and filling that name in the input.
+        | The data always have 4 columns, some of which might just contain zeros.
+
+        """
+        self.gui.pushButton_save.setEnabled(True)
+
+        rowlength = len(self.time_axis)
+        self.data = np.zeros([rowlength, 4])  # first column will be time, the others counts on different channels
+
+        self.data[:, 0] = self.time_axis.m_as('s')
+        channels = ''
+
+        if self.sync:
+            self.data[:, 1] = self.Sync_counts_array
+            channels += 'sync_'
+
+        if self.chan1:
+            self.data[:, 2] = self.Counts1_array
+            channels += 'counts1_'
+
+        if self.chan2:
+            self.data[:, 3] = self.Counts2_array
+            channels += 'counts2_'
+
+        total_time = int(self.pausetime.m_as('ms') * self.lengthaxis.m_as('s'))
+
+        now = datetime.now()
+        datum = str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '_'
+
+        filename = '{}counts_{}time{}ms'.format(datum, channels, total_time)
+        self.logger.debug('filename: {}'.format(filename))
+
+        self.default_name = filename
+        self.set_name_path()
+
+        self.logger.debug(self.path + filename + '.txt')
 
     def save_counts(self):
-        self.logger.warning('Should save all plots here, doesnt work yet')
+        self.logger.info('Saving the last plot')
+        np.savetxt(self.path + self.default_name + '.txt',self.data)
 
-        if self.something_selected:
-            if self.running == False:
-                data =  [[],[],[],[]]   #first column will be time, the others counts on different channels
+        self.gui.pushButton_save.setEnabled(False)
 
-                data[0] = self.time_axis.m_as('s')
 
-                channels = ''
-
-                if self.sync:
-                    data[1] = self.Sync_counts_array
-                    channels += 'sync_'
-
-                if self.chan1:
-                    data[2] = self.Counts1_array
-                    channels += 'counts1_'
-
-                if self.chan2:
-                    data[3] = self.Counts2_array
-                    channels += 'counts2_'
-
-                print(data)
-                total_time = (self.pausetime.m_as('ms')*self.lengthaxis.m_as('s'))
-
-                now = datetime.now()
-                datum = str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '_'
-
-                filename = '{}counts_{}time{}ms'.format(datum,channels,total_time)
-                self.logger.debug('filename: {}'.format(filename))
-
-                self.default_name = filename
-                self.set_name_path()
-
-                self.logger.info('Saving the last plot')
-
-                print(self.path + filename + '.txt')
-
-                np.savetxt(self.path + filename + '.txt',data[1])
-
-            else:
-                self.logger.warning('Stop the graph first!')
-        else:
-            self.logger.warning('Select something first!')
-
-class DrawCounts(QWidget):
-
+class DrawCounts(BaseGraph):
     """
     In this class a widget is created to draw a graph on.
     """
@@ -408,35 +411,11 @@ class DrawCounts(QWidget):
         self.counts_plot.getAxis("bottom").tickFont = font
         self.counts_plot.getAxis("left").tickFont = font
 
-class TimeAxisItem(pg.AxisItem):
-    """This code I found on the internet to change the color of the axes.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def attachToPlotItem(self, plotItem):
-        """Add this axis to the given PlotItem
-        :param plotItem: (PlotItem)
-        """
-        self.setParentItem(plotItem)
-        viewBox = plotItem.getViewBox()
-        self.linkToView(viewBox)
-        self._oldAxis = plotItem.axes[self.orientation]['item']
-        self._oldAxis.hide()
-        plotItem.axes[self.orientation]['item'] = self
-        pos = plotItem.axes[self.orientation]['pos']
-        plotItem.layout.addItem(self, *pos)
-        self.setZValue(-1000)
-
-
 if __name__ == '__main__':
     import hyperion
 
     with HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as hydra_instrument:
         app = QApplication(sys.argv)
-        # draw1 = DrawCounts()
-        #draw2 = DrawCounts()
         ex = Hydraharp_aligning_GUI(hydra_instrument)
         sys.exit(app.exec_())
 

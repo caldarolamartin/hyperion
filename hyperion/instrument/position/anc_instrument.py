@@ -437,32 +437,34 @@ class Anc350Instrument(BaseInstrument):
 if __name__ == "__main__":
     import hyperion
 
-    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
-        axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
-        ampl = 30*ur('V')   #30V
-        freq = 100*ur('Hz')    #Hz
+#    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
 
-        q.configure_stepper(axis, ampl, freq)
+    q = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'})
+    axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
+    ampl = 30*ur('V')   #30V
+    freq = 100*ur('Hz')    #Hz
 
-        #q.move_to(axis,2.1*ur('mm'))
+    #q.configure_stepper(axis, ampl, freq)
 
-        # q.move_continuous(axis,1)
-        # for ii in range(10):
-        #     time.sleep(0.1)
-        #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
-        # q.stop_moving(axis)
+    #q.move_to(axis,2.1*ur('mm'))
 
-        q.move_relative(axis, -100 * ur('um'))
+    # q.move_continuous(axis,1)
+    # for ii in range(10):
+    #     time.sleep(0.1)
+    #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
+    # q.stop_moving(axis)
 
-        # direct = 0  #forward
-        # steps = 1  #amount of steps
-        #
-        # q.given_step(axis,direct,steps)
-        #
-        axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
+    #q.move_relative(axis, -100 * ur('um'))
 
-        q.configure_scanner(axis)
+    # direct = 0  #forward
+    # steps = 1  #amount of steps
+    #
+    # q.given_step(axis,direct,steps)
+    #
+    axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
 
-        volts = 1*ur('V')
-        q.move_scanner(axis,volts)
+    q.configure_scanner(axis)
+
+    #volts = 1*ur('V')
+    #q.move_scanner(axis,volts)
 
