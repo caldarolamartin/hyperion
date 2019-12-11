@@ -23,6 +23,7 @@ setuptools.setup(
         'lantz_drivers',
         'lantz_qt',
         'lantz_sims',
+        'h5py'
         'pyvisa-py',
         'pyserial',
         'pynput'],
