@@ -390,7 +390,7 @@ class Anc350Instrument(BaseInstrument):
         """
 
         if 0 <= voltage.m_as('mV') <= self.controller.max_dclevel_mV:
-            self.logger.info('moving '+ axis +' by putting ' + str(voltage))
+            self.logger.info('moving {} by putting {}'.format(axis, voltage))
             self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis]['axis'], voltage.m_as('mV')))
 
             self.controller.dcLevel(self.attocube_piezo_dict[axis]['axis'], int(voltage.m_as('mV')))

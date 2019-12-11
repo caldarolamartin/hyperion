@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>599</width>
+    <width>639</width>
     <height>730</height>
    </rect>
   </property>
@@ -484,7 +484,7 @@
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerX">
            <property name="suffix">
-            <string>V</string>
+            <string/>
            </property>
            <property name="maximum">
             <double>999999999.000000000000000</double>
@@ -515,7 +515,7 @@
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerY">
            <property name="suffix">
-            <string>V</string>
+            <string/>
            </property>
            <property name="maximum">
             <double>9999999999999.000000000000000</double>
@@ -555,7 +555,7 @@
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerZ">
            <property name="suffix">
-            <string>V</string>
+            <string/>
            </property>
            <property name="maximum">
             <double>9999999999999.000000000000000</double>
