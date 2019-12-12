@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+.. |br| raw:: html
+
+    <br>
 =======================
 Hyperion Core Utilities
 =======================
@@ -9,6 +12,8 @@ Explanation of how to use logging
 ---------------------------------
 
 Short version:
+^^^^^^^^^^^^^^
+
 There is a single logging manager that you import in your files. This logging manager can create a logger objects (which
 you use in your files and classes to do log-prints like logger.info('bla'). When creating the logger object, a stream
 handler (writes to screen) and a file handler are passed with it. These take care of the layout, the level (e.g. whether
@@ -17,12 +22,14 @@ handler, modify their layout and levels individually. The stream handler colors 
 format can be modified.
 
 Full explanation:
+^^^^^^^^^^^^^^^^^
 
 In hyperion.core the class LoggingManager is defined. It is a "Singleton" class meaning that all instantiations of this
-class are actually one and the same object.
-In hyperion.core one object is already instantiated by the name of logman.
-In hyperion __init__.py this is imported under the alias name logging.
+class are actually one and the same object.|br|
+In hyperion.core one object is already instantiated by the name of logman.|br|
+In hyperion __init__.py this is imported under the alias name logging.|br|
 Because it's a singleton class the following approaches of importing the logging manager object are all equivalent:
+
 - from hyperion import logging
 - from hyperion.core import logman as logging
 - from hyperion.core import logman
@@ -31,6 +38,7 @@ Because it's a singleton class the following approaches of importing the logging
   log = LoggingManager( hyperion.log_path, 'my_log_name.log' )
 - import hyperion.core
   log = hyperion.core.LoggingManager()
+
 In all cases above logging, logman and log refer to the same single object of class LoggingManager.
 For the rest of the following explanation logman is used, but if you're modifying an existing file that used logging,
 you could remove the 'import logging' and replace it with 'from hyperion import logging'.
@@ -48,6 +56,7 @@ of printing to the screen and to a file. If you don't want to add both, you coul
 optional keyword arguments add_stream or add_file to False. e.g.; logger = logman.getLogger(__name__, add_file=False)
 
 Before creating a logger object, you can:
+
 - Change the default path or name of the logfile in the stream_handler:
   logman.default_path  = 'd:\\'
   logman.default_name  = 'my_project.log'
@@ -61,7 +70,9 @@ Before creating a logger object, you can:
 - Enable/disable whether the stream of the file handler is passed when a logger object is created (default is True).
   logman.enable_stream = False
   logman.enable_file = True
+  
 After creating a logger object you can still:
+
 - Add handlers
   logman.remove_stream_handler(my_handler)
   logman.remove_file_handler(my_handler)
@@ -74,11 +85,14 @@ After creating a logger object you can still:
   logman.set_logger_file_level(my_handler, logman.INFO)
 
 Finally, explanation of setting up the handlers:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 To create (or replace) the handlers use:
 logman.set_stream( optional arguments )
 logman.set_file( optional arguments )
 All arguments are optional (they have a default value if omitted)
 The arguements in both set_stream and set_file are:
+
 - level                 If omitted, the default value is used
                         (default value can be set by logman.stream_level / logman.file_level)
 - reduce_duplicates     Enables a Filer that detect repeated log comments (that were in a loop) and reduces the number
@@ -88,7 +102,9 @@ The arguements in both set_stream and set_file are:
                         compact and it will be cut off at length maxwidth.
                         Default value for set_stream is 0.5, default value for set_file is 0
 - maxwidth              See description of compact. Default value is 119
+
 Arguments only in set_stream:
+
 - color                 A bool that determines whether to use colors when printing levels names. Defaults to True
 - color_scheme          A string indicating color_scheme. Possible values are: bright, dim, mixed, bg, universal
                         If the logger is used in Spyder it diverts to a modified scheme. To manually select different
@@ -97,7 +113,9 @@ Arguments only in set_stream:
                         regular black terminal and blue PowerShell terminal. But it's not ver esthetically pleasing, so
                         the default is ('bright', 'spy_bright')
 - All other keyword arguments are passed into logging.StreamHandler().
+
 Arguments only in set_file:
+
 - pathname              The path or only filename or full file-path. If path is not included it will use the default
                         path. If name is not included it will use the default name)
 - All other keyword arguments are passed into logging.handlers.RotatingFileHandler().
@@ -106,67 +124,73 @@ Arguments only in set_file:
 
 
 example code 1:
+^^^^^^^^^^^^^^^
 
-from hyperion import logging
+.. code-block:: python
 
-class A:
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.logger.info('object of class A created')
+    from hyperion import logging
 
-if __name__=='__main__':
-    logging.enable_file = False
-    logging.stream_level = 'INFO'
-    logging.set_stream(compact=0.4, color=False)
-    a = A()
+    class A:
+        def __init__(self):
+            self.logger = logging.getLogger(__name__)
+            self.logger.info('object of class A created')
+
+    if __name__=='__main__':
+        logging.enable_file = False
+        logging.stream_level = 'INFO'
+        logging.set_stream(compact=0.4, color=False)
+        a = A()
 
 
 example code 2:
+^^^^^^^^^^^^^^^
 
-from hyperion.core import logman
+.. code-block:: python
 
-class A:
-    def __init__(self):
-        logger = logman(__name__, add_stream=False)     # no stream logging at all for this class
-        logger.info('object of class A created')
+    from hyperion.core import logman
 
-class B:
-    def __init__(self):
-        self.logger = logman(__name__)
-        self.logger.info('object B: 1 - info')
+    class A:
+        def __init__(self):
+            logger = logman(__name__, add_stream=False)     # no stream logging at all for this class
+            logger.info('object of class A created')
 
-        # Temporarily change logging level (note that this may affect other loggers as well)
-        lvl = logman.get_logger_stream_level(self.logger)
-        logman.set_logger_stream_level(self.logger, 'WARNING')
-        self.logger.info('object B: 2 - info')
-        self.logger.warning('object B: 2 - warning')
-        logman.set_logger_stream_level(self.logger, lvl)
+    class B:
+        def __init__(self):
+            self.logger = logman(__name__)
+            self.logger.info('object B: 1 - info')
 
-        self.logger.info('object B: 3 - info')
+            # Temporarily change logging level (note that this may affect other loggers as well)
+            lvl = logman.get_logger_stream_level(self.logger)
+            logman.set_logger_stream_level(self.logger, 'WARNING')
+            self.logger.info('object B: 2 - info')
+            self.logger.warning('object B: 2 - warning')
+            logman.set_logger_stream_level(self.logger, lvl)
 
-class C:
-    def __init__(self):
-        self.logger = logman(__name__)
-        self.logger.info('object C: 1 - info')
+            self.logger.info('object B: 3 - info')
 
-        # Temporarily remove handler from logger
-        h = logman.remove_stream_handler(self.logger)       # storing it in h is optional
-        self.logger.info('object C: 2 - info')
-        self.logger.warning('object C: 2 - warning')
-        # To restore the exact handler:
-        self.logger.addHandler(h)
-        # It's also possible to add the handler from the manager:
-        # logman.add_file_handler(self.logger)
+    class C:
+        def __init__(self):
+            self.logger = logman(__name__)
+            self.logger.info('object C: 1 - info')
 
-        self.logger.info('object C: 3 - info')
+            # Temporarily remove handler from logger
+            h = logman.remove_stream_handler(self.logger)       # storing it in h is optional
+            self.logger.info('object C: 2 - info')
+            self.logger.warning('object C: 2 - warning')
+            # To restore the exact handler:
+            self.logger.addHandler(h)
+            # It's also possible to add the handler from the manager:
+            # logman.add_file_handler(self.logger)
+
+            self.logger.info('object C: 3 - info')
 
 
-if __name__=='__main__':
-    logging.default_name = 'my_project.log'
-    logging.set_stream(compact=0.4, color=False)
-    a = A()
-    b = B()
-    c = C()
+    if __name__=='__main__':
+        logging.default_name = 'my_project.log'
+        logging.set_stream(compact=0.4, color=False)
+        a = A()
+        b = B()
+        c = C()
 
 """
 
