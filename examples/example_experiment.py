@@ -8,8 +8,8 @@
     This is an example of an experiment class.
 """
 import os
-import logging
-
+# from hyperion.core import log as logging
+from hyperion import logging
 import numpy as np
 import winsound
 from time import sleep
@@ -22,9 +22,17 @@ class ExampleExperiment(BaseExperiment):
 
     def __init__(self):
         """ initialize the class"""
-
+        logging.set_stream(compact=0.6)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the Base_Experiment class.')
+        self.logger.critical('test critical')
+        self.logger.error('test error')
+        self.logger.warning('test warning')
+        self.logger.info('test info')
+        self.logger.debug('test debug')
+
+
+
 
         #initialize dictionaries where instances of instruments and gui's can be found
         self.devices = {}
@@ -77,25 +85,25 @@ class ExampleExperiment(BaseExperiment):
             print(i)
 
 
-    def load_instruments(self):
-        """"
-        This method gets the instance of every instrument and sets this instance
-        in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
-        The option to set the instruments by hand is still possible, but not necessary because the pointer
-        to the instrument 'lives' in the instruments_instances.
-        """
-
-        for instrument in self.properties['Instruments']:
-            try:
-                self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-                self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
-            except Exception:
-                self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
-                self.instruments_instances[instrument] = None
-        # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
-        # self.logger.debug('Class vwp: {}'.format(self.vwp))
-        # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
-        # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+    # def load_instruments(self):
+    #     """"
+    #     This method gets the instance of every instrument and sets this instance
+    #     in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
+    #     The option to set the instruments by hand is still possible, but not necessary because the pointer
+    #     to the instrument 'lives' in the instruments_instances.
+    #     """
+    #
+    #     for instrument in self.properties['Instruments']:
+    #         try:
+    #             self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+    #             self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
+    #         except Exception:
+    #             self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
+    #             self.instruments_instances[instrument] = None
+    #     # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
+    #     # self.logger.debug('Class vwp: {}'.format(self.vwp))
+    #     # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
+    #     # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
 
 
 
@@ -104,10 +112,9 @@ if __name__ == '__main__':
     # For the new of logging: import hyperion
     import hyperion
 
-    # That will be enough for default logging, but if you want to change level or the location of the file:
-    hyperion.stream_logger.setLevel( logging.WARNING )          # To change logging level on the console
-    # hyperion.file_logger.setLevel( logging.INFO )             # To change logging level in the file (default is DEBUG)
-    # hyperion.set_logfile('my_new_file_path_and_name.log')     # To change the logging file (default is DEBUG)
+    #logging.stream_level = logging.INFO
+    # logging.enable_file = False
+    logging.set_stream(compact=0.5)#, color_mode=('universal', 'spy_uni'))
 
     with ExampleExperiment() as e:
 
@@ -119,7 +126,7 @@ if __name__ == '__main__':
         e.load_config(config_file + '.yml')
 
         # read properties just loaded
-        print('\n {} \n'.format(e.properties))
+        #print('\n {} \n'.format(e.properties))
 
         #  remember you can change these values directly here
         #e.properties['Scan']['start'] = '0.5V'
@@ -140,7 +147,7 @@ if __name__ == '__main__':
         # perform scan
         # e.set_scan()
         # e.do_scan()
-        e.make_sound()
+        # e.make_sound()
 
         # # save data
         # e.save_scan_data()

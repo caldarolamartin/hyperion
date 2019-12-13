@@ -8,7 +8,7 @@
 
 """
 import os
-import logging
+from hyperion.core import logman as logging
 import yaml
 import importlib
 
@@ -60,6 +60,7 @@ class BaseExperiment():
         for name in self.instruments_instances:
             self.logger.info('Finalizing connection with device: {}'.format(name))
             self.instruments_instances[name].finalize()
+        self.logger.debug('Experiment object finalized.')
 
     def load_instrument(self, name):
         """ Loads an instrument given by name
@@ -169,7 +170,7 @@ class BaseExperiment():
 if __name__ == '__main__':
     import hyperion
 
-    hyperion.set_logfile(__file__)                    # not required, but recommended
+    # hyperion.set_logfile(__file__)                    # not required, but recommended
     # hyperion.file_logger.setLevel(logging.DEBUG)      # change logging level for the file (DEBUG, INFO, WARNING, ERROR)
     # hyperion.stream_logger.setLevel(logging.DEBUG)    # change logging level for the screen
 
