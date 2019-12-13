@@ -11,7 +11,7 @@ a method to unit_test the new methods in the controller, if any.
 
 
 """
-import logging
+from hyperion import logging
 from time import sleep
 from hyperion import Q_
 from hyperion.controller.cobolt.cobolt08NLD import Cobolt08NLD
@@ -50,12 +50,6 @@ class UTestCobolt08NLD():
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
-
     dummy_mode = [False]  # add false here to also unit_test the real device with connection
     true_port = 'COM5'
     for dummy in dummy_mode:
@@ -76,7 +70,7 @@ if __name__ == "__main__":
             print('Power setpoint: {}'.format(t.dev.power_sp))
             print('Output power now: {}'.format(t.dev.power))
 
-        print('done with dummy={} tests.'.format(dummy))
+        print('\n\n\n Done with dummy={} tests. \n\n\n NO PROBLEM, you are great!!!! \n\n\n '.format(dummy))
 
 
 

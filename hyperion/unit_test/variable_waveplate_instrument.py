@@ -89,25 +89,20 @@ class UTestVariableWaveplate():
         self.logger.info('Mode unit_test passed')
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
 
     dummy_mode = [True]  # add false here to also unit_test the real device with connection
     true_port = 'COM8'
-    for d in dummy_mode:
-        print('Running dummy={} tests.'.format(d))
+    for dummy in dummy_mode:
+        print('Running dummy={} tests.'.format(dummy))
         # run the tests
-        with UTestVariableWaveplate(settings = {'port':true_port, 'enable': False, 'dummy' : d,
+        with UTestVariableWaveplate(settings = {'port':true_port, 'enable': False, 'dummy' : dummy,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as t:
             t.test_voltage()
             t.test_output()
             t.test_freq()
             t.test_mode()
 
-        print('done with dummy={} tests.'.format(d))
+        print('\n\n\n Done with dummy={} tests. \n\n\n NO PROBLEM, you are great!!!! \n\n\n '.format(dummy))
 
 
 

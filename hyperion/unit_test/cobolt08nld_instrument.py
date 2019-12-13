@@ -60,22 +60,17 @@ class UTestCobolt08NLD():
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
 
     dummy_mode = [False]  # add false here to also unit_test the real device with connection
     true_port = 'COM5'
-    for d in dummy_mode:
-        print('Running dummy={} tests.'.format(d))
+    for dummy in dummy_mode:
+        print('Running dummy={} tests.'.format(dummy))
         # run the tests
-        with UTestCobolt08NLD(settings = {'dummy': d,
+        with UTestCobolt08NLD(settings = {'dummy': dummy,
                                    'controller': 'hyperion.controller.laser.cobolt08NLD/Cobolt08NLD',
                                    'via_serial': true_port}) as t:
             t.test_idn()
             t.test_power_setpoint()
 
 
-        print('done with dummy={} tests.'.format(d))
+        print('\n\n\n Done with dummy={} tests. \n\n\n NO PROBLEM, you are great!!!! \n\n\n '.format(dummy))

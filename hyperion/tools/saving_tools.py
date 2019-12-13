@@ -12,6 +12,7 @@ NOT DONE YET
 from hyperion import root_dir, ur
 import os
 import sys
+from hyperion import logging
 
 
 def name_incrementer(basename, list_of_existing, separator='_', fill_zeros=0, use_number_for_first=None,
