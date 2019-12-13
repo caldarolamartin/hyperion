@@ -16,8 +16,7 @@ class ExampleInstrument(BaseInstrument):
     """ Example instrument. it is a fake instrument
 
     """
-    def __init__(self, settings = {'port':'COM10', 'dummy': True,
-                                   'controller': 'hyperion.controller.example_controller/ExampleController'}):
+    def __init__(self, settings):
         """ init of the class"""
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)

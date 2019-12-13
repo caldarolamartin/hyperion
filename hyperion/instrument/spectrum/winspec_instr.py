@@ -27,7 +27,7 @@ ws.controller.exp_get('GRAT_GROOVES')
 
 """
 
-import logging
+from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
 from hyperion import root_dir
@@ -36,8 +36,6 @@ import time
 import os
 import yaml
 # import numpy as np      # I'm having issues with numpy on the computer I'm developing, so I disable it temporarily and modified take_spectrum not to depend on it
-
-
 
 class WinspecInstr(BaseInstrument):
     """ Winspec Instrument
@@ -886,11 +884,7 @@ class WinspecInstr(BaseInstrument):
 
 
 if __name__ == "__main__":
-    import hyperion
 
-#    hyperion.set_logfile('winspec_instr.log')
-    hyperion.file_logger.setLevel( logging.WARNING )
-    hyperion.stream_logger.setLevel( logging.DEBUG )
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}

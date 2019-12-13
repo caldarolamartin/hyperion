@@ -9,10 +9,8 @@ or installed in C:/Users/NAME/AppData/Local/Continuum/anaconda3/envs/hyperion/Li
 
 I implemented and documented those functions that I am actually going to use. If you want to use others, they might exist in the core.
 """
-
-import logging
+from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
-
 from hyperion import ur
 import time
 
@@ -333,7 +331,6 @@ class Thorlabsmotor(BaseInstrument):
 
 
 if __name__ == "__main__":
-    import hyperion
 
     xMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850129, 'name': 'xMotor'}
 

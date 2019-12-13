@@ -6,7 +6,7 @@ Hydraharp Instrument
 This is the instrument level of the correlator Hydraharp400 from Picoquant
 
 """
-import logging
+from hyperion import logging
 import yaml           #for the configuration file
 import os             #for playing with files in operation system
 import time
@@ -217,7 +217,6 @@ class HydraInstrument(BaseInstrument):
         self.controller.finalize()
 
 if __name__ == "__main__":
-    import hyperion
 
     with HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
                                    'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as q:

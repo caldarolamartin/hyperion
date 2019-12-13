@@ -17,9 +17,7 @@ class CoboltLaser(BaseInstrument, Cobolt08NLD):
     """ This class is to control the laser.
 
     """
-    def __init__(self, settings={'dummy': False,
-                                 'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD',
-                                 'via_serial': 'COM5'}):
+    def __init__(self, settings):
         """ init of the class"""
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)

@@ -6,17 +6,13 @@ ANC350 Attocube Instrument
 This is the instrument level of the position ANC350 from Attocube (in the Montana)
 
 """
-
-import logging
+from hyperion import logging
 import yaml           #for the configuration file
 import os             #for playing with files in operation system
-import sys
 import time
 import numpy as np
 from hyperion import root_dir
-
 from hyperion.instrument.base_instrument import BaseInstrument
-
 from hyperion import ur
 
 class Anc350Instrument(BaseInstrument):
@@ -435,7 +431,6 @@ class Anc350Instrument(BaseInstrument):
 
 
 if __name__ == "__main__":
-    import hyperion
 
 #    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
 
