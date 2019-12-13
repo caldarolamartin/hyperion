@@ -12,7 +12,7 @@ Based on pyvisa to send commands to the USB.
 """
 import visa
 import time
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
 
 
@@ -534,8 +534,6 @@ class Agilent33522ADummy(Agilent33522A):
 
 
 if __name__ == "__main__":
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.INFO)
 
     with Agilent33522A(settings = {'instrument_id':'8967', 'dummy': False}) as gen:
         # initialize

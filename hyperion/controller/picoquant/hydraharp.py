@@ -50,7 +50,7 @@ import sys
 from enum import Enum
 import time
 import yaml
-import logging
+from hyperion import logging
 
 c_int_p = ctypes.POINTER(ctypes.c_int)
 
@@ -790,7 +790,6 @@ class Reference_clock(Enum):
 
    
 if __name__ == "__main__":
-    import hyperion
     
     with Hydraharp({'devidx':0, 'mode':'Histogram', 'clock':'Internal'}) as q:
 #    q = Hydraharp({'devidx':0, 'mode':'Histogram', 'clock':'Internal'})

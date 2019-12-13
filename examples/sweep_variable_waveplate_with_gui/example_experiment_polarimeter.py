@@ -8,7 +8,10 @@
 
 """
 import os
-import logging
+from hyperion.core import logman
+# You could also import the logging manager as logging if you don't want to change your line: logger = logging.getLogger(__name_)
+# from hyperion.core import logman as logging
+# from hyperion import logging    # equivalent to line above
 import numpy as np
 import winsound
 from time import sleep
@@ -22,7 +25,7 @@ class ExampleExperimentPolarimeter(BaseExperiment):
 
     def __init__(self):
         super().__init__()
-        self.logger = logging.getLogger(__name__)
+        self.logger = logman.getLogger(__name__)
         self.logger.info('Initializing the ExampleExperimentPolarimeter class.')
 
         # data
@@ -107,11 +110,13 @@ class ExampleExperimentPolarimeter(BaseExperiment):
 
 
 if __name__ == '__main__':
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
+    # ### To change the logging level:
+    # logman.stream_level(logman.WARNING)
+    # logman.file_level('INFO')
+    # ### To change the stream logging layout:
+    # logman.set_stream(compact=0.2, color_scheme='dim') # and other parameters
+    # ### To change the logging file:
+    # logman.set_file('example_experiment.log')
 
     with ExampleExperimentPolarimeter() as e:
 

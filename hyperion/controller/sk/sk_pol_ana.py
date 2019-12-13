@@ -13,7 +13,7 @@ For now it only supports one polarization analyzer connected.
     :license: BSD, see LICENSE for more details.
 """
 import ctypes
-import logging
+from hyperion import logging
 from time import time, sleep
 from hyperion.controller.base_controller import BaseController
 
@@ -24,7 +24,7 @@ class Skpolarimeter(BaseController):
         :type settings: dict
 
     """
-    def __init__(self, settings = {'dll_name': 'SKPolarimeter'}):
+    def __init__(self, settings):
         """ Init method for the class
 
         """
@@ -209,25 +209,25 @@ class Skpolarimeter(BaseController):
         return v
 
 
-class SkpolarimeterDummy(BaseController):
+class SkpolarimeterDummy(Skpolarimeter):
     """ This is the dummy controller for the SK polarization. Based on their dll.
 
     """
-    def __init__(self):
-        """ Init method for the class
-
-        """
-        super().__init__()  # runs the init of the base_controller class.
-        self.logger = logging.getLogger(__name__)
-        self.name = 'SK polarization Dummy'
-        self.logger.warning('Dummy not implemented yet')
+    # def __init__(self, settings):
+    #     """ Init method for the class
+    #
+    #     """
+    #     super().__init__(settings=settings)  # runs the init of the base_controller class.
+    #     self.logger = logging.getLogger(__name__)
+    #     self.name = 'SK polarization Dummy'
+    #     self.logger.warning('Dummy not implemented yet')
+    pass
 
 
 if __name__ == "__main__":
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.DEBUG)
+    # logging.stream_level('DEBUG')
 
-    with Skpolarimeter() as s:
+    with Skpolarimeter(settings = {'dll_name': 'SKPolarimeter'}) as s:
         # get the info needed to open connection
         s.get_number_polarizers()
         s.get_device_information()

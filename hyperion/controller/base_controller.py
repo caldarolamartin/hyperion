@@ -19,7 +19,7 @@ class BaseController():
     """ General class for controller. Use it as parent of your (home-made) controller.
 
     """
-    def __init__(self, settings = {'port':'COM10', 'dummy': True} ):
+    def __init__(self, settings = {}):
         """ Init for the class
 
         """

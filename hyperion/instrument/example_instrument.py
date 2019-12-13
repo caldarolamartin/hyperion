@@ -8,7 +8,7 @@ This is an example instrument, created to give developers a canvas to start thei
 for real devices. This is only a dummy device.
 
 """
-from hyperion.core import logman as logging
+from hyperion.core import logman as logging # another way to do it
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
 
@@ -64,13 +64,6 @@ class ExampleInstrument(BaseInstrument):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
 
     dummy = [True, False]
     for d in dummy:

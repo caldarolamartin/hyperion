@@ -365,7 +365,7 @@ class LccDummy(Lcc):
 
     CHAR = {'ask' : '?', 'set' : '='}
 
-    def __init__(self, settings = {'port':'COM00', 'dummy':True}):
+    def __init__(self, settings):
         super().__init__(settings=settings)
         self.name = 'Dummy LCC25'
         self._buffer = []
@@ -460,7 +460,7 @@ if __name__ == "__main__":
     #     print((port, desc, hwid))
 
 
-    dummy = False  # change this to false to work with the real device in the COM specified below.
+    dummy = True  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = LccDummy

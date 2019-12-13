@@ -18,7 +18,7 @@ class ExampleController(BaseController):
     FAKE_RESPONSES = {'A': 1,
                      }
 
-    def __init__(self, settings = {'port':'COM10', 'dummy': False}):
+    def __init__(self, settings):
         """ Init of the class.
 
         :param settings: this includes all the settings needed to connect to the device in question.
@@ -141,13 +141,6 @@ class ExampleControllerDummy(ExampleController):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
 
     dummy = False  # change this to false to work with the real device in the COM specified below.
 
@@ -156,7 +149,7 @@ if __name__ == "__main__":
     else:
         my_class = ExampleController
 
-    with my_class(settings = {'dummy':dummy}) as dev:
+    with my_class(settings  = {'port':'COM10', 'dummy': False}) as dev:
         dev.initialize()
         print(dev.amplitude)
         dev.amplitude = 5

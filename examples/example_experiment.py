@@ -8,9 +8,10 @@
     This is an example of an experiment class.
 """
 import os
-# from hyperion.core import log as logging
-from hyperion import logging
-import numpy as np
+from hyperion.core import logman
+# You could also import the logging manager as logging if you don't want to change your line: logger = logging.getLogger(__name_)
+# from hyperion.core import logman as logging
+# from hyperion import logging    # equivalent to line aboveimport numpy as np
 import winsound
 from time import sleep
 # from hyperion import ur, root_dir
@@ -22,8 +23,7 @@ class ExampleExperiment(BaseExperiment):
 
     def __init__(self):
         """ initialize the class"""
-        logging.set_stream(compact=0.6)
-        self.logger = logging.getLogger(__name__)
+        self.logger = logman.getLogger(__name__)
         self.logger.info('Initializing the Base_Experiment class.')
         self.logger.critical('test critical')
         self.logger.error('test error')
@@ -108,13 +108,13 @@ class ExampleExperiment(BaseExperiment):
 
 
 if __name__ == '__main__':
-
-    # For the new of logging: import hyperion
-    import hyperion
-
-    #logging.stream_level = logging.INFO
-    # logging.enable_file = False
-    logging.set_stream(compact=0.5)#, color_mode=('universal', 'spy_uni'))
+    # ### To change the logging level:
+    # logman.stream_level(logman.WARNING)
+    # logman.file_level('INFO')
+    # ### To change the stream logging layout:
+    # logman.set_stream(compact=0.2, color_scheme='dim') # and other parameters
+    # ### To change the logging file:
+    # logman.set_file('example_experiment.log')
 
     with ExampleExperiment() as e:
 

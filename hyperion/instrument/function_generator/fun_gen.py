@@ -10,11 +10,10 @@ It ads the use of units with pint.
 """
 import os
 import yaml
-import logging
 from time import sleep
 from hyperion import ur, root_dir
 from hyperion.instrument.base_instrument import BaseInstrument
-
+from hyperion import logging
 
 class FunGen(BaseInstrument):
     """ This class is to control the function generator.
@@ -22,9 +21,7 @@ class FunGen(BaseInstrument):
     :param settings: to parse the settings needed. Some keys are needed: 'controller' and 'instrument_id'
     :type settings: dict
     """
-    def __init__(self, settings = {'instrument_id' : '8967', 'dummy' : False,
-                                   'controller' : 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
-                                   'apply_defaults' : False}):
+    def __init__(self, settings):
         """
          It needs a settings dictionary that contains the following fields (mandatory)
 
@@ -39,6 +36,7 @@ class FunGen(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.apply_defaults = settings['apply_defaults']
+        self.defaults_file = settings['defaults_file']
         self.dummy = settings['dummy']
         if self.dummy:
             self.logger.info('Working in dummy mode')
@@ -53,7 +51,7 @@ class FunGen(BaseInstrument):
         self.CHANNELS = self.controller.CHANNELS
         self.FUN = self.controller.FUNCTIONS
         self.DEFAULTS = {}
-        self.load_defaults(self.apply_defaults)
+        self.load_defaults(self.apply_defaults, self.defaults_file)
 
     def __enter__(self):
         return self
@@ -425,12 +423,11 @@ class FunGen(BaseInstrument):
 
 
 if __name__ == '__main__':
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.INFO)
 
-    with FunGen(settings={'instrument_id' : '8967', 'dummy' : False,
-                          'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
-                          'apply_defaults': True }) as d:
+    with FunGen(settings = {'instrument_id' : '8967', 'dummy' : False,
+                            'controller' : 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
+                            'apply_defaults' : True, 'defaults_file' : None}) as d:
+
         print('Output state for channels = {}'.format(d.output_state()))
 
         # #### unit_test idn

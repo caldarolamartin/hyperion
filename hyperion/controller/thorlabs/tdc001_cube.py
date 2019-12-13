@@ -3,6 +3,8 @@
 Thorlabs motor controller
 =======================
 
+Note: this is a wrapper class around an external controller to fit it into hyperion structure
+
 Is based on the imported Thorlabs APT python software from https://github.com/qpit/thorlabs_apt/tree/master/thorlabs_apt.
 This is installed in hyperion and can be found in C:/Users/NAME/AppData/Local/Continuum/anaconda3/envs/hyperion/Lib/site-packages/thorlabs_apt.
 This controller basically is just a wrapper to make things work within hyperion.
@@ -10,7 +12,7 @@ The core is not always well documented, for better descriptions see the thorlabs
 
 """
 
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
 import thorlabs_apt.core as core
 import sys

@@ -1,11 +1,8 @@
 import os, sys
-import logging
+from hyperion import logging
 from PyQt5.QtWidgets import QApplication
 from hyperion.view.master_gui import MasterGui
 from examples.sweep_variable_waveplate_with_gui.example_experiment_polarimeter import ExampleExperimentPolarimeter
-import hyperion
-
-hyperion.file_logger.setLevel(logging.INFO)
 
 logging.info('Running Example GUI file.')
 examples_folder = os.path.dirname( os.path.realpath(__file__) )

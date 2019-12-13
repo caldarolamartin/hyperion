@@ -634,7 +634,7 @@ class LoggingManager(metaclass=Singleton):
         """
         Sets (replaces) the file handler in the logging manager object.
 
-        :param pathname: path or filename or full file-path (if only name of path is given, the other will use the default value)
+        :param pathname: path or filename or full file-path (if only name or path is given, the other will use the default value)
         :param level: logging level. If omitted, default is used. To change default see file_level
         :param compact: see CustomFormatter (defaults to 0)
         :param maxwidth: see CustomFormatter
@@ -811,7 +811,6 @@ class LoggingManager(metaclass=Singleton):
 logman = LoggingManager(default_path=log_path, default_name='hyperion.log')
 
 if __name__ == '__main__':
-
     # ansicol = ANSIcolorFormat()
     # print(ansicol('Hello World', 'emph', 'r', '_y'))
     # print(ansicol('Hello World'))
@@ -819,4 +818,8 @@ if __name__ == '__main__':
     # print(ansicol('Hello World', 'emph', 'r', '_y'))
 
     logger = logman.getLogger(__name__)
+    logger.debug('debug')
     logger.info('info')
+    logger.warning('warning')
+    logger.error('error')
+    logger.critical('critical')

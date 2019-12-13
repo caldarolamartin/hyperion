@@ -141,7 +141,7 @@ class VariableWaveplate(BaseInstrument):
         """
         This method gives the voltage needed to set on the LCC25 to get a
         quarter waveplate (QWP) behaviour for a given wavelength.
-        It is based on the calibration data from date 2018-11-12
+        It is based on a calibration file that relates the QWP voltage to a wavelength
         and (so far) uses a linear fit to those data points.
 
         :param wavelength: The input wavelength

@@ -19,8 +19,7 @@ class BaseInstrument():
     """ General class for Instrument
 
     """
-    def __init__(self, settings = {'port':'COM10', 'dummy': True,
-                                   'controller': 'hyperion.controller.folder.file/ClassName'}):
+    def __init__(self, settings):    # passing settings is required !
         """ Init for the class
 
         """

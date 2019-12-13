@@ -26,7 +26,7 @@ remove self._busy and self._additional_timeout from the __init__
 import serial
 import serial.tools.list_ports
 import time
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
 
 class GenericSerialController(BaseController):
@@ -342,7 +342,6 @@ class GenericSerialControllerDummy(GenericSerialController):
         return wrapper
 
 if __name__ == "__main__":
-    import hyperion
 
     dummy = False  # change this to False to work with the real device in the COM specified below.
 
