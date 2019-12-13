@@ -8,7 +8,7 @@ This is to build a gui for the instrument piezo motor attocube.
 
 """
 import sys, os
-import logging
+from hyperion import logging
 import numpy as np
 import time
 from datetime import datetime
@@ -412,7 +412,6 @@ class DrawCounts(BaseGraph):
         self.counts_plot.getAxis("left").tickFont = font
 
 if __name__ == '__main__':
-    import hyperion
 
     with HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as hydra_instrument:
         app = QApplication(sys.argv)

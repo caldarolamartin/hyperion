@@ -12,7 +12,7 @@ This file contains different base classes to make several types of guis.
 
 """
 import traceback
-import logging
+from hyperion import logging
 import sys
 from hyperion import root_dir
 import pyqtgraph as pg

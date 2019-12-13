@@ -18,7 +18,7 @@ from hyperion import ur, root_dir
 import pyqtgraph as pg
 import pyqtgraph.exporters
 from pyqtgraph.Qt import QtGui
-import logging
+from hyperion import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import time

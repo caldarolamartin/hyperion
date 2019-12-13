@@ -8,13 +8,11 @@ This is to build a gui for the instrument piezo motor attocube.
 
 """
 import sys, os
-import logging
-import time
+from hyperion import logging
 from hyperion import ur
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 from hyperion.instrument.position.anc_instrument import Anc350Instrument
 from hyperion.view.base_guis import BaseGui
 from hyperion.view.general_worker import WorkThread
@@ -647,7 +645,6 @@ class Attocube_GUI(BaseGui):
 
 
 if __name__ == '__main__':
-    import hyperion
 
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as anc350_instrument:
         app = QApplication(sys.argv)
