@@ -11,8 +11,9 @@ you wrote the driver by hand (not using other library but the communication).
 
 
 """
-import logging
 import importlib
+from hyperion import logging
+
 
 class BaseInstrument():
     """ General class for Instrument

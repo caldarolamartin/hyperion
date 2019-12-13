@@ -810,8 +810,6 @@ class LoggingManager(metaclass=Singleton):
 # Initialize LoggingManager object. Import this in other modules inside this package.
 logman = LoggingManager(default_path=log_path, default_name='hyperion.log')
 
-print(modules['colorama'])      # temporary debug print
-
 if __name__ == '__main__':
 
     # ansicol = ANSIcolorFormat()

@@ -13,8 +13,6 @@
 """
 import os
 from hyperion import logging
-logger = logging.getLogger(__name__)
-logger.info('just after importing')
 import serial
 import yaml
 from time import sleep, time
@@ -454,15 +452,15 @@ if __name__ == "__main__":
     logging.stream_level= 'INFO'
     logger = logging.getLogger(__name__)
 
-    # this is to print the serial ports connected to the PC
-    import serial.tools.list_ports
+    # #### this is to print the serial ports connected to the PC
+    # import serial.tools.list_ports
+    #
+    # comports = serial.tools.list_ports.comports()
+    # for port, desc, hwid in comports:
+    #     print((port, desc, hwid))
 
-    comports = serial.tools.list_ports.comports()
-    for port, desc, hwid in comports:
-        print((port, desc, hwid))
 
-
-    dummy = True  # change this to false to work with the real device in the COM specified below.
+    dummy = False  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = LccDummy
