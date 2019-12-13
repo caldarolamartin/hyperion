@@ -10,7 +10,6 @@
 import os
 # from hyperion.core import log as logging
 from hyperion import logging
-
 import numpy as np
 import winsound
 from time import sleep

@@ -201,7 +201,7 @@ example code 2:
 import os
 import logging
 import logging.handlers
-from time import time
+from time import time, sleep
 from datetime import datetime
 from sys import modules
 
@@ -260,7 +260,7 @@ class ANSIcolorFormat:
         from hyperion.core import ANSIcolorFormat
         ansicol = ANSIcolorFormat()
         print(ansicol('Hello World','emph','r','_y'))
-        print(ansicol('Hello World')
+        print(ansicol('Hello World'))
         ansicol.enabled = False
         print(ansicol('Hello World','emph','r','_y'))
     """
@@ -602,6 +602,7 @@ class LoggingManager(metaclass=Singleton):
         self.default_name = default_name
         self._default_stream_level = logging.DEBUG
         self._default_file_level = logging.DEBUG
+        temp = CustomFormatter()  # Without this line it seems to cause a bug
         self.set_stream()
         self.file_handler = None    # don't create it until it's necessary
         self.enable_stream = True   # add streamhandler to new logger objects, default value
@@ -623,7 +624,8 @@ class LoggingManager(metaclass=Singleton):
         self.enable_stream = True
         self.stream_handler = logging.StreamHandler(**kwargs)
         self.stream_handler.setFormatter(CustomFormatter(compact=compact, color=color, color_scheme=color_scheme, maxwidth=maxwidth))
-        if level is None: level = self._default_stream_level
+        if level is None:
+            level = self._default_stream_level
         self.stream_handler.setLevel(level)  # default level for stream handler
         if reduce_duplicates:
             self.stream_handler.addFilter(DuplicateFilter())
@@ -807,3 +809,16 @@ class LoggingManager(metaclass=Singleton):
 
 # Initialize LoggingManager object. Import this in other modules inside this package.
 logman = LoggingManager(default_path=log_path, default_name='hyperion.log')
+
+print(modules['colorama'])      # temporary debug print
+
+if __name__ == '__main__':
+
+    # ansicol = ANSIcolorFormat()
+    # print(ansicol('Hello World', 'emph', 'r', '_y'))
+    # print(ansicol('Hello World'))
+    # ansicol.enabled = False
+    # print(ansicol('Hello World', 'emph', 'r', '_y'))
+
+    logger = logman.getLogger(__name__)
+    logger.info('info')
