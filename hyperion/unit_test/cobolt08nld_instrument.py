@@ -11,16 +11,14 @@ a method to unit_test the new methods in the instrument, if any.
 
 
 """
-import logging
+from hyperion import logging
 from time import sleep
 from hyperion import Q_
-from hyperion.instrument.cobolt.cobolt08nld import CoboltLaser
+from hyperion.instrument.laser.cobolt08nld import CoboltLaser
 
 class UTestCobolt08NLD():
     """ Class to unit_test the Cobolt08NLD  controller."""
-    def __init__(self, settings = {'dummy': False,
-                                   'controller': 'hyperion.controller.laser.cobolt08NLD/Cobolt08NLD',
-                                   'via_serial': 'COM5'}):
+    def __init__(self, settings):
         """ initialize the unit_test class
 
         """
@@ -67,7 +65,7 @@ if __name__ == "__main__":
         print('Running dummy={} tests.'.format(dummy))
         # run the tests
         with UTestCobolt08NLD(settings = {'dummy': dummy,
-                                   'controller': 'hyperion.controller.laser.cobolt08NLD/Cobolt08NLD',
+                                   'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD',
                                    'via_serial': true_port}) as t:
             t.test_idn()
             t.test_power_setpoint()

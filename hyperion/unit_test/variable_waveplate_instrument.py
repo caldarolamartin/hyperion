@@ -11,15 +11,14 @@ a method to unit_test the new methods in the instrument, if any.
 
 
 """
-import logging
+from hyperion import logging
 from time import sleep
 from hyperion import ur
 from hyperion.instrument.polarization.variable_waveplate import VariableWaveplate
 
 class UTestVariableWaveplate():
     """ Class to unit_test the LCC25 controller."""
-    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : True,
-                                       'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}):
+    def __init__(self, settings):
         """ initialize the unit_test class
 
         """
@@ -81,7 +80,8 @@ class UTestVariableWaveplate():
     def test_mode(self):
         """ Test the mode methods"""
         self.logger.debug('Starting unit_test on mode mode')
-        for m in [0, 1, 2]:
+        modes = ['Modulation','Voltage1','Voltage2']
+        for m in modes:
             self.inst.mode = m
             assert m == self.inst.mode
             self.logger.info('Mode assertion passed for mode: {}'.format(m))
@@ -89,8 +89,9 @@ class UTestVariableWaveplate():
         self.logger.info('Mode unit_test passed')
 
 if __name__ == "__main__":
+    logging.stream_level = 'INFO'
 
-    dummy_mode = [True]  # add false here to also unit_test the real device with connection
+    dummy_mode = [True, False]  # add false here to also unit_test the real device with connection
     true_port = 'COM8'
     for dummy in dummy_mode:
         print('Running dummy={} tests.'.format(dummy))

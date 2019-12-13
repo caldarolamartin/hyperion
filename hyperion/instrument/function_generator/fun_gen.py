@@ -36,7 +36,14 @@ class FunGen(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.apply_defaults = settings['apply_defaults']
-        self.defaults_file = settings['defaults_file']
+        self.logger.debug('Apply defaults: {}'.format(self.apply_defaults))
+
+        if self.apply_defaults:
+            self.defaults_file = settings['defaults_file']
+        else:
+            self.defaults_file = None
+            self.logger.debug('No file is loaded since we do not apply default settings.')
+
         self.dummy = settings['dummy']
         if self.dummy:
             self.logger.info('Working in dummy mode')

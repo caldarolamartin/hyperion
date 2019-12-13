@@ -14,7 +14,7 @@ NOTE: This is still not implemented as a class, it just runs commands using the 
 part has to be done, still.
 
 """
-import logging
+from hyperion import logging
 from time import sleep
 from hyperion import ur
 from hyperion.instrument.function_generator.fun_gen import FunGen
@@ -22,9 +22,7 @@ from hyperion.instrument.function_generator.fun_gen import FunGen
 class UTestFunGen():
     """ Class to unit_test the FunGen instrument."""
 
-    def __init__(self, settings={'instrument_id' : '8967', 'dummy' : False,
-                          'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
-                          'apply_defaults': True }):
+    def __init__(self, settings):
         """ initialize the unit_test class
 
         """
@@ -56,9 +54,9 @@ if __name__ == "__main__":
     for dummy in dummy_mode:
         print('Running dummy={} tests.'.format(dummy))
         # run the tests
-        with UTestFunGen(settings={'instrument_id' : '8967', 'dummy' : dummy,
-                          'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
-                          'apply_defaults': True}) as t:
+        with UTestFunGen(settings = {'instrument_id' : '8967', 'dummy' : False,
+                            'controller' : 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
+                            'apply_defaults' : True, 'defaults_file' : None}) as t:
 
             print('Identification = {}.'.format(t.inst.idn()))
             # #### unit_test High and low voltage
