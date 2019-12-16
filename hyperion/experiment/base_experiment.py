@@ -16,81 +16,81 @@ import copy     # used in action validation methods
 import h5py
 import numpy as np
 
-class autosaver:
-    """
-    :param filepath:
-    :param experiment:
-    :param version:
-    :param append:
-    """
-
-    file_version_compatability = {0.10:[0.1, 0.02, 0.01],
-                                  0.02:[0.1, 0.02, 0.01],
-                                  0.01:[0.01]}
-    def __init__(self, filepath, experiment, version=0.1, append=False, dialogs=None):
-        self.logger = logging.getLogger(__name__)
-        self.version = version
-        if version not in file_version_compatability.keys():
-            self.version = sorted(self.file_version_compatability.keys)[-1]
-            self.logger.warning("Invalid version {}, using version {} instead".format(version, self.version))
-        self.filepath = filepath
-        valid = False
-        while not valid:
-            if os.path.isfile(self.filepath):
-                self.logger.warning('File exists: {}'.format(self.filepath))
-                if not append:
-                    inp = input('File exists. choose [D]ifferent filename, try to [M]odify/append, or [Overwrite]: ')
-                    if inp[0].lower()=='d':
-                        self.filepath = input('New file name: ')
-                        continue
-                    if inp[0].lower()=='m': append=True
-                else:
-                    try:
-                        self.h5 = h5py.File(filepath, 'a')
-                    except OSError as e:
-                        self.logger.warning("Can't open file. Exception: {}".format(e))
-                        continue
-                    if 'hyperion_file_version' not in self.h5.attrs:
-                        print("Can't try to append/modify file because not a hyperion file type.")
-                        self.h5.close()
-                        continue
-                    else:
-                        file_version = self.h5.attrs['hyperion_file_version']
-                        if file_version not in self.file_version_compatability{self.version}:
-                            print("Can't modify version {} file with version {} settings.".format(file_version, self.version))
-                            self.h5.close()
-                            continue
-                    print('Modifying existing file')
-                    self.h5.attrs['hyperion_file_modified'] = self.version
-                    valid = True
-            else:
-                try:
-                    self.h5 = h5py.File(filepath, 'w')
-                except OSError as e:
-                    self.logger.warning("Can't create file. Exception: {}".format(e))
-                    continue
-                self.h5.attrs['hyperion_file_version'] = self.version
-                valid = True
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-       self.h5.close()
-
-    def coord(self):
-        pass
-
-    def data(self, name, data, flush=True):
-        """
-
-
-        :param name: Unique name (suggested to use actiondict['Name'])
-        :return:
-        """
-        pass
-        # self.exp._nesting_parents
-        # self.exp._nesting_indices
+# class autosaver:
+#     """
+#     :param filepath:
+#     :param experiment:
+#     :param version:
+#     :param append:
+#     """
+#
+#     file_version_compatability = {0.10:[0.1, 0.02, 0.01],
+#                                   0.02:[0.1, 0.02, 0.01],
+#                                   0.01:[0.01]}
+#     def __init__(self, filepath, experiment, version=0.1, append=False, dialogs=None):
+#         self.logger = logging.getLogger(__name__)
+#         self.version = version
+#         if version not in file_version_compatability.keys():
+#             self.version = sorted(self.file_version_compatability.keys)[-1]
+#             self.logger.warning("Invalid version {}, using version {} instead".format(version, self.version))
+#         self.filepath = filepath
+#         valid = False
+#         while not valid:
+#             if os.path.isfile(self.filepath):
+#                 self.logger.warning('File exists: {}'.format(self.filepath))
+#                 if not append:
+#                     inp = input('File exists. choose [D]ifferent filename, try to [M]odify/append, or [Overwrite]: ')
+#                     if inp[0].lower()=='d':
+#                         self.filepath = input('New file name: ')
+#                         continue
+#                     if inp[0].lower()=='m': append=True
+#                 else:
+#                     try:
+#                         self.h5 = h5py.File(filepath, 'a')
+#                     except OSError as e:
+#                         self.logger.warning("Can't open file. Exception: {}".format(e))
+#                         continue
+#                     if 'hyperion_file_version' not in self.h5.attrs:
+#                         print("Can't try to append/modify file because not a hyperion file type.")
+#                         self.h5.close()
+#                         continue
+#                     else:
+#                         file_version = self.h5.attrs['hyperion_file_version']
+#                         if file_version not in self.file_version_compatability{self.version}:
+#                             print("Can't modify version {} file with version {} settings.".format(file_version, self.version))
+#                             self.h5.close()
+#                             continue
+#                     print('Modifying existing file')
+#                     self.h5.attrs['hyperion_file_modified'] = self.version
+#                     valid = True
+#             else:
+#                 try:
+#                     self.h5 = h5py.File(filepath, 'w')
+#                 except OSError as e:
+#                     self.logger.warning("Can't create file. Exception: {}".format(e))
+#                     continue
+#                 self.h5.attrs['hyperion_file_version'] = self.version
+#                 valid = True
+#
+#     def __enter__(self):
+#         return self
+#
+#     def __exit__(self, exc_type, exc_val, exc_tb):
+#        self.h5.close()
+#
+#     def coord(self):
+#         pass
+#
+#     def data(self, name, data, flush=True):
+#         """
+#
+#
+#         :param name: Unique name (suggested to use actiondict['Name'])
+#         :return:
+#         """
+#         pass
+#         # self.exp._nesting_parents
+#         # self.exp._nesting_indices
 
 
 
@@ -480,25 +480,28 @@ class BaseExperiment():
 
 
 if __name__ == '__main__':
+
+    # Note: this logging section will be updated when merging with the new logging
     import hyperion
-
     hyperion.set_logfile(__file__)                    # not required, but recommended
-    # hyperion.file_logger.setLevel(logging.DEBUG)      # change logging level for the file (DEBUG, INFO, WARNING, ERROR)
-    # hyperion.stream_logger.setLevel(logging.DEBUG)    # change logging level for the screen
 
+
+    logger = logging.getLogger(__name__)
+
+    logger.warning("For testing it's better to run an example experiment from the examples folder.")
+
+    # print('')
+    # print("WARNING: Base experiment is not intended to be run directly.")
+    # print("         For testing it's better to run an example experiment from the examples folder.")
+    # print('')
 
     with BaseExperiment() as e:
 
-        config_folder = 'D:/mcaldarola/Data/2019-04-17_hyperion/'  # this should be your path for the config file you use
-        name = 'example_experiment_config'
-        config_file = os.path.join(config_folder, name)
-
-        logging.info('Using the config file: {}.yml'.format(config_file))
-        e.load_config(config_file + '.yml')
+        from hyperion import repository_path
+        config_file = os.path.join(repository_path, 'examples', 'example_experiment_config.yml')
+        logger.info('Using the config file: {}.yml'.format(config_file))
+        e.load_config(config_file)
 
         # read properties just loaded
-        print('\n {} \n'.format(e.properties))
+        logger.info('\n {} \n'.format(e.properties))
 
-        e.properties['Scan']['start'] = '0.5V'
-
-        print('\n {} \n'.format(e.properties))
