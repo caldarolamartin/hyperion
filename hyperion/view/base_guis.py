@@ -17,9 +17,9 @@ import sys
 from hyperion import package_path
 import pyqtgraph as pg
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont, QFontMetrics
 from os import path
-
+import yaml
 
 class BaseGui(QWidget):
     """Base class to build a gui that can be loaded in the master gui.
@@ -115,16 +115,82 @@ class BaseGraph(BaseGui):
         self.show()
 
 
-class BaseMeasurement(BaseGui):
+class ModifyMeasurement(BaseGui):
     def __init__(self, experiment, measurement):
-        super().__init__():
-        if measurement in experiment.properties['Measurements']:
-            self.actionlist = xperiment.properties['Measurements'][measurement]
-        if 'Defaults' in actionlist:
-            if 'folder' in self.actionlist['Defaults']:
-                self.folder = self.actionlist['Defaults']['folder']
-            else:
-                self.folder = os.path.join(package_path, 'data')
+        self.experiment = experiment
+        self.measurement = measurement
+        self.original_list = self.experiment.properties['Measurements'][measurement]
+        self.suggested_list, self.invalid_methods, self.invalid_names = self.experiment._validate_actionlist(self.original_list)
+        super().__init__()
+
+        self.initUI()
+        self.show()
+
+    def initUI(self):
+        grid = QGridLayout()
+        self.button_validate = QPushButton('validate')
+        self.button_current = QPushButton('original')
+
+
+        self.label_valid_1 = QLabel()
+        self.label_valid_2 = QLabel()
+        # self.button = QPushButton('original')
+        # self.button_suggestion = QPushButton('suggestion')
+
+        self.txt = QTextEdit()
+        self.txt.setLineWrapMode(QTextEdit.NoWrap)
+        # self.setLineWrapMode(QPlainTextEdit.NoWrap)
+        font = QFont("Courier New")
+        self.txt.setFont(font)
+        doc = yaml.dump(self.original_list, indent=2)
+        self.txt.setPlainText(doc)#.replace(r"\n", r"<br>") )
+        self.resize(400, 700)
+
+        grid.addWidget(self.button_validate, 0,0)
+        grid.addWidget(self.button_current, 0,1)
+        grid.addWidget(self.txt, 1, 0, 1, 2)
+        grid.addWidget(self.label_valid_1, 2, 0)
+        grid.addWidget(self.label_valid_1, 3, 0)
+        self.setLayout(grid)
+
+
+    # def toggle_txt(self, orig):
+    #     if orig:
+    #         self.txt.setText(self.original)
+    #     else:
+
+
+
+
+
+# class BaseMeasurement(BaseGui):
+#     def __init__(self, experiment, measurement):
+#         super().__init__():
+#         if measurement in experiment.properties['Measurements']:
+#             self.actionlist = experiment.properties['Measurements'][measurement]
+#         if 'Defaults' in actionlist:
+#             if 'folder' in self.actionlist['Defaults']:
+#                 self.folder = self.actionlist['Defaults']['folder']
+#             else:
+#                 self.folder = os.path.join(package_path, 'data')
+#
+#     def validate(self):
+#         new_action_list, self.invalid_methods, self.invalid_names = self.experiment._validate_actionlist(self.properties['Measurements'][measurement])
+#
+#
+#     def initUI(self):
+#         # default buttons:
+#         # start, pause, stop, modify
+#
+#         button3 = modify
+#         button1 = QPushButton('Start')
+#         button2 = QPushButton('Break')
+#
+#
+#         # before: start
+#         # while running: pause, stop
+#         # while paused: resume, stop
+#         # while breaking: pause, [], stop
 
 
 
@@ -175,4 +241,5 @@ class SaverWidget(BaseGui):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     sw = SaverWidget()
-    sys.exit(app.exec_())
+    app.exec_()
+    # sys.exit(app.exec_())

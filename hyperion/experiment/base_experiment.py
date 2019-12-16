@@ -138,9 +138,9 @@ class BaseExperiment():
     # SMARTSCAN METHODS: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
-    def _validate_actionlist(self, actionlist, _complete=None):
+    def _validate_actionlist(self, actionlist, _complete=None, invalid_methods=0, invalid_names=0):
         """
-        returns a corrected copy (does not modify input)
+        returns a corrected copy (does not modify input) and
 
         _validate_actionlist(complete_actionlist)
         _complete is used for recursion
@@ -149,23 +149,31 @@ class BaseExperiment():
         # recursive function
         if _complete is None:
             _complete = local_actionlist
+
         # Note: approach with 'for act in local_actionlist' would not change the list
         for indx in range(len(local_actionlist) - 1, -1, -1):
-            local_actionlist[indx] = self._validate_actiondict(local_actionlist[indx], _complete)
+            local_actionlist[indx], method_invalid, name_invalid = self._validate_actiondict(local_actionlist[indx], _complete)
+            invalid_methods += method_invalid
+            invalid_names += name_invalid
             #            print(act)
             #            print(local_actionlist)
             if '~nested' in local_actionlist[indx]:
-                local_actionlist[indx]['~nested'] = self._validate_actionlist(local_actionlist[indx]['~nested'], _complete)
-        return local_actionlist
+                local_actionlist[indx]['~nested'], invalid_methods, invalid_names = self._validate_actionlist(local_actionlist[indx]['~nested'], _complete, invalid_methods, invalid_names)
+                # invalid_methods += method_invalid
+                # invalid_names += name_invalid
+        return local_actionlist, invalid_methods, invalid_names
 
     def _validate_actiondict(self, actiondictionary, complete_actionlist):
         """
         returns new corrected dictionary (does not alter the dictionary )
         """
         actiondict = copy.deepcopy(actiondictionary)
-        # auto gerate a name if it doesn't exist
+
+        # Auto generate a name if it doesn't exist
+        invalid_name = 0
         all_names, unnamed = self.all_action_names(complete_actionlist)
         if 'Name' not in actiondict:
+            modified_name = 1
             if '_method' in actiondict:
                 actiondict['Name'] = name_incrementer(actiondict['_method'], all_names, ' ')
             elif 'Type' in actiondict:
@@ -177,73 +185,97 @@ class BaseExperiment():
         # Test if name is duplicate
         action_name = actiondict['Name']
         if all_names.count(action_name) > 1:
+            modified_name = 1
             actiondict['Name'] = name_incrementer(action_name, all_names, ' ')
             self.logger.warning("Duplicate Action Name. Changed '{}' to '{}'".format(action_name, actiondict['Name']))
         action_name = actiondict['Name']
 
-        # It method is specified in actiondict, test if the method exists.
-        # If not, set a flag to overwrite it with the one in actiontype
-        method_name = None
-        invalid_method = False
+        # Test if valid method specified
+        invalid_method = 0
         if '_method' in actiondict:
             method_name = actiondict['_method']
             if not hasattr(self, method_name):
-                self.logger.warning("[in Action: '{}'] _method '{}' doesn't exist, (trying default)".format(action_name, method_name))
-                invalid_method = True
-
-        # copy default parameters from action if they don't exist in actiondict
-        if 'Type' not in actiondict:
-            if invalid_method or method_name is None:
-                self.logger.warning("error: [in '{}'] if no ActionType is specified, a valid _method is required".format(method_name))
-                # NOTE TO SELF: WHY method_name ??????????????
-        else:
-            actiontype = actiondict['Type']
-            if actiontype not in self.actiontypes:
-                self.logger.warning("[in action: '{}'] unknown ActionType: '{}'".format(action_name, actiontype))
+                invalid_method = 1
+                self.logger.warning("[Action: '{}'] _method '{}' doesn't exist, (trying _method from ActionType)".format(action_name, method_name))
+        if invalid_method:
+            if 'Type' not in actiondict:
+                self.logger.error("[in Action: '{}'] No Type specified".format(action_name))
+            elif "_method" not in self.actiontypes[actiondict['Type']]:
+                self.logger.error("[Action: '{}'] No _method specified in Type {}".format(action_name, actiondict['Type']))
+            elif not hasattr(self, self.actiontypes[actiondict['Type']]['_method']):
+                self.logger.error("[ActionType: '{}'] _method '{}' also doesn't exist".format(actiondict['Type'], self.actiontypes[actiondict['Type']]['_method']))
             else:
-                # Copy parameters that don't exist in actiondict. Except '_method'
-                for key in self.actiontypes[actiontype]:
-                    if key not in actiondict and key is not '_method':
-                        actiondict[key] = self.actiontypes[actiontype][key]
-                # Special case for '_method'
-                #                type_has_method = '_method' in self.actiontypes[actiontype]
-                #                if not type_has_method:
-                #                    if invalid_method or method_name is None:
-                #                        print('error: [in {}] no method specified'.format(actiontype))
-                #                else:
-                #                    if
+                self.logger.info("[ActionType: '{}'] has valid _method {}: removing _method from Action {}".format(actiondict['Type'], self.actiontypes[actiondict['Type']]['_method'], action_name))
+                del actiondict['_method']
+                valid_method = True
+        # if invalid_method:
+        #     raise NameError('No valid _method found')
+        return actiondict, invalid_method, invalid_name
 
-                if invalid_method or method_name is None:
-                    if '_method' in self.actiontypes[actiontype]:
-                        method_name = self.actiontypes[actiontype]['_method']
-                        if hasattr(self, method_name):
-                            if invalid_method:
-                                self.logger.debug('_method {} in [Action: {}] replaced with default _method {} from [ActionType: {}] overwriting Actiondict method with default from Actiontype: {}'.format(
-                                        actiondict['_method'], action_name, method_name, actiontype))
-                            actiondict['_method'] = method_name
-                            invalid_method = False
-                        else:
-                            self.logger.warning("error: [in ActionType: {}] default _method {} doesn't exist".format(actiontype,
-                                                                                                      method_name))
-                            method_name = None
-                    else:
-                        self.logger.warning('error: [in ActionType: {}] no _method specified'.format(actiontype))
 
-        #                if invalid_method and '_method' in self.actiontypes[actiontype]:
-        #                    methodname =  self.actiontypes[actiontype]['_method']
-        #                    if hasattr(self, methodname):
-        #                        actiondict['_method'] = methodname
-        #                        print('debug: overwriting actiondict method with default from actiontype: {}'.format(methodname))
-        #                        invalid_method = False
-        #                    else:
-        #                        methodname = None
-        #                        print("error: default method from actiontype {} also doesn't exist".format(methodname))
-        #                        raise Exception('_method doe')
-
-        if method_name is None:
-            self.logger.warning('No valid _method specified')
-
-        return actiondict
+        # # It method is specified in actiondict, test if the method exists.
+        # # If not, set a flag to overwrite it with the one in actiontype
+        # method_name = None
+        # invalid_method = False
+        # if '_method' in actiondict:
+        #     method_name = actiondict['_method']
+        #     if not hasattr(self, method_name):
+        #         self.logger.warning("[in Action: '{}'] _method '{}' doesn't exist, (trying default)".format(action_name, method_name))
+        #         invalid_method = True
+        #
+        # # copy default parameters from action if they don't exist in actiondict
+        # if 'Type' not in actiondict:
+        #     if invalid_method or method_name is None:
+        #         self.logger.warning("error: [in '{}'] if no ActionType is specified, a valid _method is required".format(method_name))
+        #         # NOTE TO SELF: WHY method_name ??????????????
+        # else:
+        #     actiontype = actiondict['Type']
+        #     if actiontype not in self.actiontypes:
+        #         self.logger.warning("[in action: '{}'] unknown ActionType: '{}'".format(action_name, actiontype))
+        #     else:
+        #         # Copy parameters that don't exist in actiondict. Except '_method'
+        #         for key in self.actiontypes[actiontype]:
+        #             if key not in actiondict and key is not '_method':
+        #                 actiondict[key] = self.actiontypes[actiontype][key]
+        #         # Special case for '_method'
+        #         #                type_has_method = '_method' in self.actiontypes[actiontype]
+        #         #                if not type_has_method:
+        #         #                    if invalid_method or method_name is None:
+        #         #                        print('error: [in {}] no method specified'.format(actiontype))
+        #         #                else:
+        #         #                    if
+        #
+        #         if invalid_method or method_name is None:
+        #             if '_method' in self.actiontypes[actiontype]:
+        #                 method_name = self.actiontypes[actiontype]['_method']
+        #                 if hasattr(self, method_name):
+        #                     if invalid_method:
+        #                         self.logger.debug('_method {} in [Action: {}] replaced with default _method {} from [ActionType: {}] overwriting Actiondict method with default from Actiontype: {}'.format(
+        #                                 actiondict['_method'], action_name, method_name, actiontype))
+        #                     actiondict['_method'] = method_name
+        #                     invalid_method = False
+        #                 else:
+        #                     self.logger.warning("error: [in ActionType: {}] default _method {} doesn't exist".format(actiontype,
+        #                                                                                               method_name))
+        #                     method_name = None
+        #             else:
+        #                 self.logger.warning('error: [in ActionType: {}] no _method specified'.format(actiontype))
+        #
+        # #                if invalid_method and '_method' in self.actiontypes[actiontype]:
+        # #                    methodname =  self.actiontypes[actiontype]['_method']
+        # #                    if hasattr(self, methodname):
+        # #                        actiondict['_method'] = methodname
+        # #                        print('debug: overwriting actiondict method with default from actiontype: {}'.format(methodname))
+        # #                        invalid_method = False
+        # #                    else:
+        # #                        methodname = None
+        # #                        print("error: default method from actiontype {} also doesn't exist".format(methodname))
+        # #                        raise Exception('_method doe')
+        #
+        # if method_name is None:
+        #     self.logger.warning('No valid _method specified')
+        #
+        # return actiondict
 
     def all_action_names(self, complete_actionlist):  # , name_list = [], unnamed=0):
         # outputlist = all_action_names(complete_actionlist)
@@ -305,6 +337,9 @@ class BaseExperiment():
     def perform_measurement(self, measurement_name):
         self._measurement_name = measurement_name
         self.saver = None
+        # new_action_list, invalid_methods, invalid_names = self._validate_actionlist(self.properties['Measurements'][measurement_name])
+
+
         if measurement_name in self.properties['Measurements']:
             self.logger.debug('Starting measurement: {}'.format(measurement_name))
             self.perform_actionlist(self.properties['Measurements'][measurement_name])

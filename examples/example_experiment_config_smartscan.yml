@@ -172,8 +172,8 @@ MetaInstruments:
 # Name should
 Measurements:       # dictionary of Measurement s
   Measurement A:      # a Measurement is a list of Actions
-    - Name: DataFile     # special element in the actionlist
-      Type: saver
+#    - Name: DataFile     # special element in the actionlist
+#      Type: saver
 #        folder: None
 #        filename: None
     - Name: before      # an Action is a dictionary

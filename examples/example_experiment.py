@@ -16,6 +16,8 @@ from time import sleep
 # from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
 from hyperion.tools.array_tools import *
+from PyQt5.QtWidgets import QApplication
+import sys
 
 class ExampleExperiment(BaseExperiment):
     """ Example class with basic functions """
@@ -204,27 +206,37 @@ if __name__ == '__main__':
     print('Using the config file: {}'.format(config_file))
     e.load_config(config_file)
 
-    # read properties just loaded
-    print('\n {} \n'.format(e.properties))
-
-    #  remember you can change these values directly here
-    #e.properties['Scan']['start'] = '0.5V'
-
-
-    # # Initialize devices
-    print('\n-------------- LOADING DEVICES ----------------\n')
-    e.load_instruments()
-    print(e.instruments_instances.keys())
-    print('-------------- DONE LOADING DEVICES ----------------')
+    # # read properties just loaded
+    # print('\n {} \n'.format(e.properties))
     #
+    # #  remember you can change these values directly here
+    # #e.properties['Scan']['start'] = '0.5V'
+    #
+    #
+    # # # Initialize devices
+    # print('\n-------------- LOADING DEVICES ----------------\n')
+    # e.load_instruments()
+    # print(e.instruments_instances.keys())
+    # print('-------------- DONE LOADING DEVICES ----------------')
+    # #
+    #
+    # #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
+    # e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
+    #
+    # e.perform_measurement('Measurement A')
+    # # save metadata
+    # # print(yaml.dump(e.properties['Measurements']['Measurement A']))
+    #
+    #
+    # print('--------------------- DONE with the experiment')
 
-    #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
-    e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
-
-    e.perform_measurement('Measurement A')
-    # save metadata
-    # print(yaml.dump(e.properties['Measurements']['Measurement A']))
 
 
-    print('--------------------- DONE with the experiment')
+    ### test gui
+
+    from hyperion.view.base_guis import ModifyMeasurement
+    app = QApplication(sys.argv)
+    sw = ModifyMeasurement(e,'Measurement A')
+    app.exec_()
+    # sys.exit(app.exec_())
 
