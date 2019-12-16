@@ -27,7 +27,7 @@ from hyperion.tools.saving_tools import name_incrementer
 
 class BaseSaver:
     """
-    Base class to handle a few basic
+    Base class to handle a few basics for Saver Classes and to store some class methods for things like version compatibility.
     """
 
     # Default version to use
@@ -142,8 +142,16 @@ def Saver(*args, version=BaseSaver.default_version, **kwargs):
     return BaseSaver.__subclasses__()[versions.index(version)](*args, **kwargs)
 
 
-class Saver_v0p1(BaseSaver):
-    # IMPORTANT: When inheriting from other version, ALSO inherit from BaseSaver
+class Saver_v0p1(BaseSaver):    # IMPORTANT: When inheriting from other version, ALSO inherit from BaseSaver
+    """
+
+    :param args:
+    :param write_mode: list of strings ('increment', 'append_if_possible', 'overwrite', 'fail') specifying order of what to try when filename exists. DEFAULT is ['increment']
+    :param incrementor_settings: (dict) Optional settings for
+    :param default_folder: (str) folder to use when opening saver file if no folder is specified (optional)
+    :param default_filename: (str) filename to use when opening saver file if no filenmae is specified (optional)
+    :param kwargs:
+    """
     version = 0.1  # mandatory unique identification float
     # Specify version compatibilities (list of floats or 'all' or [])
     backward_compatible = 'all'
@@ -166,10 +174,15 @@ class Saver_v0p1(BaseSaver):
 
     @property
     def write_modes(self):
+        """ Returns list of possible write modes."""
         return self.__write_modes
 
     @property
     def write_mode(self):
+        """
+        Getter/setter for write_mode: a list of strings specifying the order of things to try when filename exists.
+        See write_modes for possible actions.
+        """
         return self._write_mode
 
     @write_mode.setter
@@ -192,9 +205,14 @@ class Saver_v0p1(BaseSaver):
             self.logger.warning('existing_file_mode not changed')
 
     def close(self):
-        self.h5.close()
-        self.__file_is_open = False
-        self.__append = False
+        """ Close the open h5 file."""
+        if self.__file_is_open:
+            self.h5.close()
+            self.__file_is_open = False
+            self.__append = False           # also reset this flag
+            self.logger.debug("File {} closed.".format(self.filename))
+        else:
+            self.logger.debug("Trying to close file that wasn't opened")
 
     def open_file(self, folder=None, filename=None):
         """
