@@ -14,7 +14,7 @@ This file contains different base classes to make several types of guis.
 import traceback
 import logging
 import sys
-from hyperion import root_dir
+from hyperion import package_path
 import pyqtgraph as pg
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
@@ -107,7 +107,7 @@ class BaseGraph(BaseGui):
 
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.setWindowIcon(QIcon(path.join(root_dir,'view','base_plot_windows_icon.png')))
+        self.setWindowIcon(QIcon(path.join(package_path,'view','base_plot_windows_icon.png')))
         self.setGeometry(self.left, self.top, self.width, self.height)
         vbox = QVBoxLayout()
         vbox.addWidget(self.pg_plot_widget)
@@ -115,3 +115,64 @@ class BaseGraph(BaseGui):
         self.show()
 
 
+class BaseMeasurement(BaseGui):
+    def __init__(self, experiment, measurement):
+        super().__init__():
+        if measurement in experiment.properties['Measurements']:
+            self.actionlist = xperiment.properties['Measurements'][measurement]
+        if 'Defaults' in actionlist:
+            if 'folder' in self.actionlist['Defaults']:
+                self.folder = self.actionlist['Defaults']['folder']
+            else:
+                self.folder = os.path.join(package_path, 'data')
+
+
+
+
+class SaverWidget(BaseGui):
+    def __init__(self):
+        super().__init__()
+
+        self.initUI()
+
+    def initUI(self):
+        form_layout = QFormLayout()
+        folder = QLineEdit()
+        filename = QLineEdit()
+        form_layout.addRow(QLabel('folder:'),folder)
+        form_layout.addRow(QLabel('filename:'), filename)
+        input_fields = QWidget()
+        input_fields.setLayout(form_layout)
+
+        grid_layout = QGridLayout()
+        combo_version = QComboBox()
+        # combo_version.addItems()
+        but_open = QPushButton('Browse')
+        but_open.clicked.connect(self.save_file_dialog)
+        grid_layout.addWidget(input_fields, 0, 0)
+        grid_layout.addWidget(but_open, 0, 1)
+
+        self.setLayout(grid_layout)
+        self.show()
+
+    def save_file_dialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
+                                                  "HDF5 Files (*.h5);;All Files (*)", options=options)
+        if fileName:
+            print(fileName)
+
+
+
+    # increment
+    # fail
+    # overwrite
+    # append, increment
+    # append, overwrite
+    # append, fail
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    sw = SaverWidget()
+    sys.exit(app.exec_())

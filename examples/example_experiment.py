@@ -154,7 +154,7 @@ if __name__ == '__main__':
     import yaml
 
     # That will be enough for default logging, but if you want to change level or the location of the file:
-    hyperion.stream_logger.setLevel( logging.WARNING )          # To change logging level on the console
+    hyperion.stream_logger.setLevel( logging.DEBUG )          # To change logging level on the console
     # hyperion.file_logger.setLevel( logging.INFO )             # To change logging level in the file (default is DEBUG)
     # hyperion.set_logfile('my_new_file_path_and_name.log')     # To change the logging file (default is DEBUG)
 
@@ -220,7 +220,8 @@ if __name__ == '__main__':
 
     #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
     e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
-    e.perform_measurement(e.properties['Measurements']['Measurement A'])
+
+    e.perform_measurement('Measurement A')
     # save metadata
     # print(yaml.dump(e.properties['Measurements']['Measurement A']))
 

@@ -3,6 +3,12 @@
     Base Experiment
     ===============
 
+    TO DO:
+
+    - stop copying everything when verifying list
+    - grab type info while executing
+
+
     This is a base experiment class. The propose is put all the common methods needed for the experiment
     classes so they are shared and easily modified.
 
@@ -11,7 +17,9 @@ import os
 import logging
 import yaml
 import importlib
+import hyperion
 from hyperion.tools.saving_tools import name_incrementer
+from hyperion.tools.saver import Saver
 import copy     # used in action validation methods
 import h5py
 import numpy as np
@@ -116,7 +124,7 @@ class BaseExperiment():
 
         self._nesting_indices = []
         self._nesting_parents = []
-
+        self._measurement_name = 'data'
 
         self._auto_save_store = None
 
@@ -294,8 +302,26 @@ class BaseExperiment():
                     return act
         return None
 
+    def perform_measurement(self, measurement_name):
+        self._measurement_name = measurement_name
+        self.saver = None
+        if measurement_name in self.properties['Measurements']:
+            self.logger.debug('Starting measurement: {}'.format(measurement_name))
+            self.perform_actionlist(self.properties['Measurements'][measurement_name])
+        else:
+            self.logger.error('Unknown measurement: {}'.format(measurement_name))
+
+
     # def perform_measurement(self, actionlist, parent_values = [], parents=[]):
-    def perform_measurement(self, actionlist, parents=[], save=True):
+    def perform_actionlist(self, actionlist, parents=[], save=True):
+        """
+        Used to perform a measuement based on the actionlist
+
+        :param actionlist:
+        :param parents:
+        :param save:
+        :return:
+        """
 
         if parents == []:
             self._nesting_indices = []
@@ -314,52 +340,72 @@ class BaseExperiment():
         # print('parents: ', parents, 'values: ', parent_values)
         # typically used on the whole list
         # In a an action that has nested Actions
-        for actiondict in actionlist:
-            actionname = actiondict['Name']
-            # if a method is specified it overrules the default from actiontype
-            if '_method' in actiondict:
-                self.logger.debug('Using direct _method {} for {}'.format(actiondict['_method'], actionname))
-                method = getattr(self, actiondict['_method'])
-            # get default values from actiontype, but don't overwrite existing values in actiondict
-            if 'Type' in actiondict:
-                actiontype = actiondict['Type']
-                if actiontype in self.actiontypes:
-                    for key, value in self.actiontypes[actiontype].items():
-                        if key not in actiondict:
-                            actiondict[key] = value
-                if '_method' not in actiondict:
-                    self.logger.warning(
-                        'error: actiontype {} does not specify method (and actiondict {} also does not specify method)'.format(
-                            actiontype))
-
-            if '_method' in actiondict:
-
-                # if parents == []:
-                #     self._nesting_indices = []  # reset it just to be sure
-                # # if it's a new parent, add a zero index to
-                # elif len(self._nesting_indices) < len(parents):
-                #     self._nesting_indices += [0]
-
-
-                # else:
-                #     print("what's going on")
-
-                # repeat this here so actions outside   NO this only works outside all loops
-                # if parents == []:
-                #     self._nesting_indices = []
-
-                self._nesting_parents = parents  # to make it available outside
-
-                if '~nested' in actiondict:
-                    # without error checking for now:
-                    # else:
-                    #     indices += [0]  # append 0 to list  current_values
-                    nesting = lambda  : self.perform_measurement(actiondict['~nested'], parents+[actionname])
+        for actiondictionary in actionlist:
+            actionname = actiondictionary['Name']
+            if 'Type' in actiondictionary:
+                if actiondictionary['Type'] in self.actiontypes:
+                    actiondict = copy.deepcopy(self.actiontypes[actiondictionary['Type']])
                 else:
-                    nesting = lambda *args: None        # a "do nothing" function
+                    actiondict = {}
+                    self.logger.warning('Ignoring unknown actiontype {}'.format(actiondictionary['Type']))
+            else:
+                actiondict = {}
+
+            # merge dictionaries (actiondictionary overrides actiontype)
+            actiondict.update(actiondictionary)
+
+            try:
                 method = getattr(self, actiondict['_method'])
-                # print('                                       ', actionname, '   parents: ', parents, '   indices: ',self._nesting_indices)
-                method(actiondict, nesting)
+            except KeyError:
+                raise KeyError('No _method found in actiondict or actiontype')
+            except AttributeError:
+                raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
+
+
+            # # if a method is specified it overrules the default from actiontype
+            # if '_method' in actiondict:
+            #     self.logger.debug('Using direct _method {} for {}'.format(actiondict['_method'], actionname))
+            #     method = getattr(self, actiondict['_method'])
+            # # get default values from actiontype, but don't overwrite existing values in actiondict
+            # if 'Type' in actiondict:
+            #     actiontype = actiondict['Type']
+            #     if actiontype in self.actiontypes:
+            #         for key, value in self.actiontypes[actiontype].items():
+            #             if key not in actiondict:
+            #                 actiondict[key] = value
+            #     if '_method' not in actiondict:
+            #         self.logger.warning(
+            #             'error: actiontype {} does not specify method (and actiondict {} also does not specify method)'.format(
+            #                 actiontype))
+
+            # if '_method' in actiondict:
+            #
+            #     # if parents == []:
+            #     #     self._nesting_indices = []  # reset it just to be sure
+            #     # # if it's a new parent, add a zero index to
+            #     # elif len(self._nesting_indices) < len(parents):
+            #     #     self._nesting_indices += [0]
+            #
+            #
+            #     # else:
+            #     #     print("what's going on")
+            #
+            #     # repeat this here so actions outside   NO this only works outside all loops
+            #     # if parents == []:
+            #     #     self._nesting_indices = []
+
+            self._nesting_parents = parents  # to make it available outside
+
+            if '~nested' in actiondict:
+                # without error checking for now:
+                # else:
+                #     indices += [0]  # append 0 to list  current_values
+                nesting = lambda  : self.perform_actionlist(actiondict['~nested'], parents+[actionname])
+            else:
+                nesting = lambda *args: None        # a "do nothing" function
+            # method = getattr(self, actiondict['_method'])
+            # print('                                       ', actionname, '   parents: ', parents, '   indices: ',self._nesting_indices)
+            method(actiondict, nesting)
 
 
 
@@ -369,9 +415,9 @@ class BaseExperiment():
             # if len(self._nesting_indices) > len(parents):
             #     del self._nesting_indices[-1]
 
-            else:
-                self.logger.warning('in {}: actiondict requires either method or an actiontype that contains a method'.format(
-                    actiondict['Name']))
+            # else:
+            #     self.logger.warning('in {}: actiondict requires either method or an actiontype that contains a method'.format(
+            #         actiondict['Name']))
 
 
         if len(parents) < len(self._nesting_indices):
@@ -381,6 +427,15 @@ class BaseExperiment():
     def save(self, data, auto=True, **kwargs):
         indx = self._nesting_indices[:len(self._nesting_parents)]
         print(indx)
+
+
+    def create_saver(self, actiondict, nesting):
+        version = actiondict['version'] if 'version' in actiondict else None
+        folder = actiondict['folder'] if 'folder' in actiondict else os.path.join(hyperion.parent_path, 'data')
+        filename = actiondict['filename'] if 'filename' in actiondict else self._measurement_name + '.h5'
+        write_mode = actiondict['write_mode'] if 'write_mode' in actiondict else ['increment']
+        self.saver = Saver(verion=version, default_folder=folder, default_filename=filename, write_mode=write_mode)
+        self.saver.open_file()
 
        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SMARTSCAN METHODS
 

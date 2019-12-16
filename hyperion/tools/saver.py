@@ -127,7 +127,7 @@ class BaseSaver:
         self.h5.close()
 
 
-def Saver(*args, version=BaseSaver.default_version, **kwargs):
+def Saver(*args, version=None, **kwargs):
     """
     Wrapper to use different classes based on the version.
     If an unknown version is specified, the newest will be used.
@@ -135,12 +135,14 @@ def Saver(*args, version=BaseSaver.default_version, **kwargs):
     """
     # Get all child classes of BaseSaver and their version number:
     versions = [cl.version for cl in BaseSaver.__subclasses__()]
-    if version not in versions:
-        invalid = version
-        version = sorted(versions)[-1]
-        logging.getLogger(__name__).warning('Unknown version {}, using {} instead'.format(invalid, version))
+    if version is None:
+        version = BaseSaver.default_version
+    elif version not in versions:
+        logging.getLogger(__name__).warning('Unknown version {}, using {} instead'.format(version, BaseSaver.default_version ))
+        version = BaseSaver.default_version
     return BaseSaver.__subclasses__()[versions.index(version)](*args, **kwargs)
 
+# HERE FOLLOWS THE LIST OF SAVER CLASSES OF DIFFERENT VERSIONS
 
 class Saver_v0p1(BaseSaver):    # IMPORTANT: When inheriting from other version, ALSO inherit from BaseSaver
     """
@@ -152,7 +154,7 @@ class Saver_v0p1(BaseSaver):    # IMPORTANT: When inheriting from other version,
     :param default_filename: (str) filename to use when opening saver file if no filenmae is specified (optional)
     :param kwargs:
     """
-    version = 0.1  # mandatory unique identification float
+    version = 0.1  # <<<<<<<<<<<<<   MANDATORY UNIQUE IDENTIFICATION FLOAT
     # Specify version compatibilities (list of floats or 'all' or [])
     backward_compatible = 'all'
     forward_compatible = [0.2]
@@ -315,3 +317,10 @@ if __name__=='__main__':
 
     s = Saver(version=0.1)
     s = Saver(0.1)
+
+
+    # ### Interesting thing to look into:
+    # import psutil
+    # print(psutil.virtual_memory())
+    # [int(m/1048576) for m in psutil.virtual_memory()]
+

@@ -19,7 +19,7 @@ log_path = os.path.join(parent_path, 'logs')        #   ###/###/logs/
 if not os.path.isdir(log_path):
     os.makedirs(log_path)
 
-# keep root_dir for backward compatability
+# keep root_dir for backward compatibility
 root_dir = os.path.dirname(__file__)
 
 ls = os.pardir
