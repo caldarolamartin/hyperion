@@ -45,6 +45,7 @@ class Thorlabs_motor_GUI(BaseGui):
         self.logger.debug('You are connected to a {}'.format(self.motory.kind_of_device))
 
         if self.enable_zstage == True:
+            print(test)
             self.motorz = thorlabs_meta_instrument.motorz
             self.logger.debug('You are connected to a {}'.format(self.motorz.kind_of_device))
 

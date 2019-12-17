@@ -42,7 +42,11 @@ class TDC001_cube(core.Motor, BaseController):
 
         #These lines are a copy of the init of BaseController, that is not executed because it is the second inheritance
         self._settings = settings
-        self.serial = settings['serial']
+        if 'serial' in settings:
+            self.serial = settings['serial']
+            self.logger.debug("Serial = {}".format(self.serial))
+        else:
+            self.logger.error("No serial specified in settings")
         self._is_initialized = True
 
         # Calls init of core.Motor, whose init is executed
@@ -51,6 +55,7 @@ class TDC001_cube(core.Motor, BaseController):
         # There is one function that is outside of the Motor class in the core, which would be useful to have accessible.
         # That would be list_available_devices.
         self.core = core
+        self.logger.debug("Done with motorcontroller")
 
     def initialize(self):
         """ | The external core.Motor object is already initialized by executing super().__init__(self.serial).
