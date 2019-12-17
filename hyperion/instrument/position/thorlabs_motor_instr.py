@@ -292,6 +292,33 @@ class Thorlabsmotor(BaseInstrument):
         else:
             self.logger.debug('You did not move at all.')
 
+    def move_velocity(self, direction, blocking):
+        """| Moves the T-cube with a certain velocity until it gets stoped.
+        | The method check_move will give back the correct units.
+        | If blocking is True, it will move until its done.
+        | If blocking is False, it might not reach its destination if you dont give it time.
+
+        :param blocking: wait until moving is finished; default False
+        :type blocking: bool
+
+        :param direction: direction of movement
+        :type direction: 1 for forward 2 for backward
+        """
+
+
+        direction_string = "unknown"
+        if direction == 1:
+            direction_string = "Forward"
+        elif direction == 2:
+            direction_string = "Backward"
+        if blocking:
+            self.controller.move_velocity(direction)
+            self.moving_loop()
+            self.logger.info('Moving in {} direction'.format(direction_string))    # the blocking for the controller is False now
+
+
+
+
     def make_step(self, stepsize, blocking):
         """| Moves the T-cube by one step of a stepsize.
         | Actually just uses move_relative, but I thought maybe this method might be useful for a gui.
