@@ -173,7 +173,7 @@ class BaseExperiment():
         invalid_name = 0
         all_names, unnamed = self.all_action_names(complete_actionlist)
         if 'Name' not in actiondict:
-            modified_name = 1
+            invalid_name = 1
             if '_method' in actiondict:
                 actiondict['Name'] = name_incrementer(actiondict['_method'], all_names, ' ')
             elif 'Type' in actiondict:
@@ -185,7 +185,7 @@ class BaseExperiment():
         # Test if name is duplicate
         action_name = actiondict['Name']
         if all_names.count(action_name) > 1:
-            modified_name = 1
+            invalid_name = 1
             actiondict['Name'] = name_incrementer(action_name, all_names, ' ')
             self.logger.warning("Duplicate Action Name. Changed '{}' to '{}'".format(action_name, actiondict['Name']))
         action_name = actiondict['Name']

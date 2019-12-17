@@ -119,17 +119,38 @@ class ModifyMeasurement(BaseGui):
     def __init__(self, experiment, measurement):
         self.experiment = experiment
         self.measurement = measurement
-        self.original_list = self.experiment.properties['Measurements'][measurement]
-        self.suggested_list, self.invalid_methods, self.invalid_names = self.experiment._validate_actionlist(self.original_list)
+        self._original_list = self.experiment.properties['Measurements'][measurement]
         super().__init__()
-
+        self.setWindowTitle('Modify Measurement: {}'.format(measurement))
+        self._indent = 2
+        self.plural = lambda num: 's' if num > 1 else ''
+        self._current_doc = 1 # 1 for original, -1 for modified, 0 for suggestion
+        self._modified = False
+        self._valid = False   # None for unknown, True, False
+        self._have_suggestion = False  # True, False
+        self._invalid_methods = True
         self.initUI()
+        self.reset()    # initialize to original
+
         self.show()
 
     def initUI(self):
         grid = QGridLayout()
-        self.button_validate = QPushButton('validate')
-        self.button_current = QPushButton('original')
+        self.button_reset = QPushButton('Reset Original')
+        self.button_reset.clicked.connect(self.reset)
+        self.button_validate = QPushButton('Validate')
+        self.button_validate.clicked.connect(self.validate)
+        self.button_suggestion = QPushButton('Show suggestion')
+        self.button_suggestion.clicked.connect(self.suggestion)
+
+
+        self.button_use = QPushButton('Use')
+        self.button_use.clicked.connect(self.use)
+        self.button_cancel = QPushButton('Cancel')
+        self.button_cancel.clicked.connect(self.close)
+        self.button_save_to_original_file = QPushButton('Save to original file')
+        #self.button_save_to_original_file.clicked.connect()
+        self.button_save_to_original_file.setEnabled(False)
 
 
         self.label_valid_1 = QLabel()
@@ -137,22 +158,109 @@ class ModifyMeasurement(BaseGui):
         # self.button = QPushButton('original')
         # self.button_suggestion = QPushButton('suggestion')
 
+
         self.txt = QTextEdit()
         self.txt.setLineWrapMode(QTextEdit.NoWrap)
-        # self.setLineWrapMode(QPlainTextEdit.NoWrap)
-        font = QFont("Courier New")
-        self.txt.setFont(font)
-        doc = yaml.dump(self.original_list, indent=2)
-        self.txt.setPlainText(doc)#.replace(r"\n", r"<br>") )
-        self.resize(400, 700)
+        self.txt.setFont(QFont("Courier New", 11))
+        self.txt.textChanged.connect(self.changed)
+        # self.txt.setPlainText(self._doc)
+        self.resize(500, 900)
 
-        grid.addWidget(self.button_validate, 0,0)
-        grid.addWidget(self.button_current, 0,1)
-        grid.addWidget(self.txt, 1, 0, 1, 2)
+        grid.addWidget(self.button_reset, 0, 0)
+        grid.addWidget(self.button_validate, 0, 1)
+        grid.addWidget(self.button_suggestion, 0, 2)
+        grid.addWidget(self.txt, 1, 0, 1, 3)
         grid.addWidget(self.label_valid_1, 2, 0)
-        grid.addWidget(self.label_valid_1, 3, 0)
+        grid.addWidget(self.label_valid_2, 3, 0)
+        grid.addWidget(self.button_use, 4, 0)
+        grid.addWidget(self.button_cancel, 4, 1)
+        grid.addWidget(self.button_save_to_original_file, 4, 2)
         self.setLayout(grid)
 
+    # def cancel(self):
+
+    def update_buttons(self):
+        self.button_reset.setEnabled(self._current_doc<1)
+        # self.button_validate.setEnabled(self._modified or (self._valid is None or not self._valid))
+        # self.button_validate.setEnabled(self._current_doc<1 and not self._valid)
+        # self.button_validate.setEnabled(self._valid is None or not self._current_doc==-1)
+        # print(self._valid, self._current_doc)
+        self.button_validate.setEnabled(not self._valid and self._current_doc and self._modified)
+        self.button_suggestion.setEnabled(self._have_suggestion and self._current_doc)
+        self.button_use.setEnabled(self._valid == True)
+
+
+    def use(self):
+        if not self.convert_text_to_list():
+            return
+        self.experiment.properties['Measurements'][self.measurement] = self._list
+        self.close()
+
+    def clear_labels(self):
+        self.label_valid_1.setText('')
+        self.label_valid_2.setText('')
+        self.label_valid_1.setStyleSheet('color: black')
+
+    def changed(self):
+        self.clear_labels()
+        self._current_doc = -1
+        self._modified = True
+        self._have_suggestion = False
+        self._valid = False
+        self.update_buttons()
+
+    def reset(self):
+        self._doc = yaml.dump(self._original_list, indent=self._indent)
+        self.txt.setPlainText(self._doc)
+        self.clear_labels()
+        self.validate()
+        self._current_doc = 1
+        self.update_buttons()
+
+    def convert_text_to_list(self):
+        self._doc = self.txt.toPlainText()
+        try:
+            self._list = yaml.safe_load(self._doc)
+            return True
+        except yaml.YAMLError as exc:
+            lines = [k.line for k in exc.args if type(k) is yaml.error.Mark]
+            self.label_valid_1.setText('Invalid yaml. Issues in lines: '+str(lines)[1:-1])
+            self.label_valid_1.setStyleSheet('color: red')
+            self._valid = False
+            self._modified = False
+            return False
+
+    def validate(self):
+        if not self.convert_text_to_list():
+            self.update_buttons()
+            return
+        self._suggested_list, self._invalid_methods, self._invalid_names = self.experiment._validate_actionlist(self._list)
+        self._valid = self._invalid_methods==0 and self._invalid_names==0
+        if self._valid:
+            self.label_valid_1.setText('Valid !')
+            self.label_valid_1.setStyleSheet('color: black')
+        else:
+            self.set_label_invalid()
+            self.label_valid_2.setText('{} invalid Name{}'.format(self._invalid_names, self.plural(self._invalid_names)))
+            if not self._invalid_methods:
+                self._have_suggestion = True
+        self._modified = False
+        self.update_buttons()
+
+
+    def set_label_invalid(self):
+        self.label_valid_1.setText('{} invalid _method{}'.format(self._invalid_methods, self.plural(self._invalid_methods)))
+        if self._invalid_methods:
+            self.label_valid_1.setStyleSheet('color: red')
+
+    def suggestion(self):
+        self._doc = yaml.dump(self._suggested_list, indent=self._indent)
+        self.txt.setPlainText(self._doc)
+        self.set_label_invalid()
+        self.label_valid_2.setText('{} Name{} modified'.format(self._invalid_names, self.plural(self._invalid_names)))
+        self._current_doc = 0
+        self._valid = True
+        self.update_buttons()
 
     # def toggle_txt(self, orig):
     #     if orig:
