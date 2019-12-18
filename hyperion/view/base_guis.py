@@ -106,10 +106,12 @@ class BaseGraph(BaseGui):
         # self.initUI()     # Removed this. It should be called by the child
 
     def initUI(self):
+
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(path.join(root_dir,'view','base_plot_windows_icon.png')))
         self.setGeometry(self.left, self.top, self.width, self.height)
         vbox = QVBoxLayout()
+        self.initialize_plot()
         vbox.addWidget(self.pg_plot_widget)
         self.setLayout(vbox)
         self.show()
