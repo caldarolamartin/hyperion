@@ -7,7 +7,7 @@ Here we group some array tools that we use in the project.
 
 
 """
-import logging
+from hyperion import logging
 import numpy as np
 from hyperion import Q_
 

@@ -13,12 +13,12 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion.view.general_worker import WorkThread
-from hyperion.view.base_guis import BaseGui
+from hyperion.view.base_guis import BaseGui, BaseGraph, TimeAxisItem
 from hyperion import ur, root_dir
 import pyqtgraph as pg
 import pyqtgraph.exporters
 from pyqtgraph.Qt import QtGui
-import logging
+from hyperion import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -489,7 +489,7 @@ class Hydraharp_GUI(BaseGui):
         self.hydra_instrument.stop = False
 
 
-class DrawHistogram(QWidget):
+class DrawHistogram(BaseGraph):
 
     """
     In this class a widget is created to draw a graph on.
@@ -537,26 +537,6 @@ class DrawHistogram(QWidget):
         font.setPixelSize(20)
         self.histogram_plot.getAxis("bottom").tickFont = font
         self.histogram_plot.getAxis("left").tickFont = font
-
-class TimeAxisItem(pg.AxisItem):
-    """This code I found on the internet to change the color of the axes.
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def attachToPlotItem(self, plotItem):
-        """Add this axis to the given PlotItem
-        :param plotItem: (PlotItem)
-        """
-        self.setParentItem(plotItem)
-        viewBox = plotItem.getViewBox()
-        self.linkToView(viewBox)
-        self._oldAxis = plotItem.axes[self.orientation]['item']
-        self._oldAxis.hide()
-        plotItem.axes[self.orientation]['item'] = self
-        pos = plotItem.axes[self.orientation]['pos']
-        plotItem.layout.addItem(self, *pos)
-        self.setZValue(-1000)
 
 
 if __name__ == '__main__':

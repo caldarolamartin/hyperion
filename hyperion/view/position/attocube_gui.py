@@ -8,13 +8,11 @@ This is to build a gui for the instrument piezo motor attocube.
 
 """
 import sys, os
-import logging
-import time
+from hyperion import logging
 from hyperion import ur
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtGui import *
 from hyperion.instrument.position.anc_instrument import Anc350Instrument
 from hyperion.view.base_guis import BaseGui
 from hyperion.view.general_worker import WorkThread
@@ -52,7 +50,7 @@ class Attocube_GUI(BaseGui):
 
         self.max_amplitude_V = 60
         self.max_frequency = 2000
-        self.max_dclevel_V = 140
+        self.max_dclevel_V = 140 * ur('V')
         self.max_distance = 5*ur('mm')
 
         self.current_positions = {}
@@ -63,7 +61,15 @@ class Attocube_GUI(BaseGui):
         self.distance = 0*ur('um')
 
         self.settings = {'amplitudeX': 30, 'amplitudeY': 40, 'amplitudeZ': 30,
-                                       'frequencyX': 100, 'frequencyY': 100, 'frequencyZ': 100, 'dcX': 1, 'dcY': 1, 'dcZ': 1}
+                                       'frequencyX': 100, 'frequencyY': 100, 'frequencyZ': 100}
+
+        self.scanner_unitX = 'V'
+        self.scanner_unitY = 'V'
+        self.scanner_unitZ = 'V'
+
+        self.dcX = 1*ur(self.scanner_unitX)
+        self.dcY = 1*ur(self.scanner_unitY)
+        self.dcZ = 0*ur(self.scanner_unitZ)
 
         self.initUI()
 
@@ -163,13 +169,22 @@ class Attocube_GUI(BaseGui):
         """| *Layout of scanner combobox*
         | Connects the spinboxes to set_value, that in case of the scanner will immediately put the voltage to move the scanner.
         """
-        self.gui.doubleSpinBox_scannerX.setValue(self.settings['dcX'])
-        self.gui.doubleSpinBox_scannerY.setValue(self.settings['dcY'])
-        self.gui.doubleSpinBox_scannerZ.setValue(self.settings['dcZ'])
+        self.gui.comboBox_unitX.setCurrentText(self.scanner_unitX)
+        self.gui.comboBox_unitX.currentTextChanged.connect(lambda: self.set_scanner_unit('X'))
 
-        self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_value('X','dc'))
-        self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_value('Y','dc'))
-        self.gui.doubleSpinBox_scannerZ.valueChanged.connect(lambda: self.set_value('Z','dc'))
+        self.gui.comboBox_unitY.setCurrentText(self.scanner_unitY)
+        self.gui.comboBox_unitY.currentTextChanged.connect(lambda: self.set_scanner_unit('Y'))
+
+        self.gui.comboBox_unitZ.setCurrentText(self.scanner_unitZ)
+        self.gui.comboBox_unitZ.currentTextChanged.connect(lambda: self.set_scanner_unit('Z'))
+
+        self.gui.doubleSpinBox_scannerX.setValue(int(self.dcX.m_as('V')))
+        self.gui.doubleSpinBox_scannerY.setValue(int(self.dcY.m_as('V')))
+        self.gui.doubleSpinBox_scannerZ.setValue(int(self.dcZ.m_as('V')))
+
+        self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_scanner_position('X'))
+        self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_scanner_position('Y'))
+        self.gui.doubleSpinBox_scannerZ.valueChanged.connect(lambda: self.set_scanner_position('Z'))
 
     def show_position(self):
         """In the instrument level, the current positions are remembered in a dictionary and updated through get_position.
@@ -346,7 +361,6 @@ class Attocube_GUI(BaseGui):
         | If X and Y Scanner are selected, values are set separately; with Z, there is only one spinbox to fill in.
         | Values from dictionary are used in configure_stepper, but only if the user clicks configure.
         | axis and value_type are locally changed into the name as known in the dictionaries, like amplitudeX or dcZ.
-        | If scanner values were changed, this method calls to moving of the the scanner as soon as the user clicks Enter.
 
         :param axis: axis X, Y, Z
         :type axis: string
@@ -363,9 +377,9 @@ class Attocube_GUI(BaseGui):
         elif value_type == 'frequency':
             self.logger.debug('changing the frequency')
             max_value = self.max_frequency
-        elif value_type == 'dc':
-            self.logger.debug('changing the dc level on scanner')
-            max_value = self.max_dclevel_V
+        # elif value_type == 'dc':
+        #     self.logger.debug('changing the dc level on scanner')
+        #     max_value = self.max_dclevel_V
 
         if self.sender().value() > max_value:
             self.sender().setValue(max_value)
@@ -379,8 +393,86 @@ class Attocube_GUI(BaseGui):
         self.logger.debug('axis changed: ' + str(local_axis_name))
         self.logger.debug('value put: ' + str(self.settings[local_axis_name]))
 
-        if value_type == 'dc':
-            self.move_scanner(local_axis_name)
+        # if value_type == 'dc':
+        #     self.move_scanner(local_axis_name)
+
+
+    def set_scanner_unit(self, axis):
+        """
+
+        :param axis:
+        """
+        if axis == 'X':
+            self.scanner_unitX = self.gui.comboBox_unitX.currentText()
+            self.logger.debug(self.scanner_unitX)
+        elif axis == 'Y':
+            self.scanner_unitY = self.gui.comboBox_unitY.currentText()
+            self.logger.debug(self.scanner_unitY)
+        elif axis == 'Z':
+            self.scanner_unitZ = self.gui.comboBox_unitZ.currentText()
+            self.logger.debug(self.scanner_unitZ)
+
+
+    def set_scanner_position(self, axis):
+        """To make it possible to use both V and mV for the scanner; NOT TESTED
+
+        :param axis:
+        """
+        change = 'not'
+        if axis == 'X':
+            scanner_pos = self.gui.doubleSpinBox_scannerX.value()
+            scanner_unit = self.scanner_unitX
+        elif axis == 'Y':
+            scanner_pos = self.gui.doubleSpinBox_scannerY.value()
+            scanner_unit = self.scanner_unitY
+        elif axis == 'Z':
+            scanner_pos = self.gui.doubleSpinBox_scannerZ.value()
+            scanner_unit = self.scanner_unitZ
+
+        local_position = ur(str(scanner_pos)+scanner_unit)
+        self.logger.debug('{} local position value: {}'.format(axis, local_position))
+
+        if local_position > self.max_dclevel_V:
+            self.logger.debug('value too high')
+            local_max = self.max_dclevel_V.to(scanner_unit)
+            self.logger.debug(str(local_max))
+            change = 'high'
+        elif local_position < 0:
+            self.logger.debug('value too low')
+            change = 'low'
+
+        if axis == 'X':
+            if change == 'high':
+                self.gui.doubleSpinBox_scannerX.setValue(local_max.m_as(scanner_unit))
+            elif change == 'low':
+                self.gui.doubleSpinBox_scannerX.setValue(0)
+            scanner_pos = self.gui.doubleSpinBox_scannerX.value()
+            local_position = ur(str(scanner_pos) + scanner_unit)
+            self.dcX = local_position
+            self.logger.debug('dictionary position {} changed to: {}'.format(axis, self.dcX))
+
+        elif axis == 'Y':
+            if change == 'high':
+                self.gui.doubleSpinBox_scannerY.setValue(local_max.m_as(scanner_unit))
+            elif change == 'low':
+                self.gui.doubleSpinBox_scannerY.setValue(0)
+            scanner_pos = self.gui.doubleSpinBox_scannerY.value()
+            local_position = ur(str(scanner_pos) + scanner_unit)
+            self.dcY = local_position
+            self.logger.debug('dictionary position {} changed to: {}'.format(axis, self.dcY))
+
+        elif axis == 'Z':
+            if change == 'high':
+                self.gui.doubleSpinBox_scannerZ.setValue(local_max.m_as(scanner_unit))
+            elif change == 'low':
+                self.gui.doubleSpinBox_scannerZ.setValue(0)
+            scanner_pos = self.gui.doubleSpinBox_scannerZ.value()
+            local_position = ur(str(scanner_pos) + scanner_unit)
+            self.dcZ = local_position
+            self.logger.debug('dictionary position {} changed to: {}'.format(axis, self.dcZ))
+
+        self.move_scanner('dc'+axis)
+
 
     def set_distance(self):
         """Works similar to set_value method, but now only for the distance spinBox and unit.
@@ -398,10 +490,13 @@ class Attocube_GUI(BaseGui):
             local_max = self.max_distance.to(unit)
             self.logger.debug(str(local_max))
             self.gui.doubleSpinBox_distance.setValue(local_max.m_as(unit))
+            distance = self.gui.doubleSpinBox_distance.value()
         elif local_distance < 0:
             self.logger.debug('value too low')
             self.gui.doubleSpinBox_distance.setValue(0)
+            distance = self.gui.doubleSpinBox_distance.value()
 
+        local_distance = ur(str(distance) + unit)           #in case something changed
         self.distance = local_distance
         self.logger.debug('dictionary distance changed to: ' + str(self.distance))
 
@@ -433,13 +528,16 @@ class Attocube_GUI(BaseGui):
         :type axis: string
         """
         self.logger.info('moving the scanner ' + axis)
-        self.logger.debug(self.settings)
-        if 'Z' in axis:
-            self.anc350_instrument.move_scanner('ZPiezoScanner',self.settings[axis]*ur('V'))
-        elif 'X' in axis:
-            self.anc350_instrument.move_scanner('XPiezoScanner', self.settings[axis] * ur('V'))
+
+        if 'X' in axis:
+            self.logger.debug('move by {}'.format(self.dcX))
+            self.anc350_instrument.move_scanner('XPiezoScanner', self.dcX)
         elif 'Y' in axis:
-            self.anc350_instrument.move_scanner('YPiezoScanner', self.settings[axis] * ur('V'))
+            self.logger.debug('move by {}'.format(self.dcY))
+            self.anc350_instrument.move_scanner('YPiezoScanner', self.dcY)
+        elif 'Z' in axis:
+            self.logger.debug('move by {}'.format(self.dcZ))
+            self.anc350_instrument.move_scanner('ZPiezoScanner',self.dcZ)
 
     def move(self, direction):
         """| Here the actual move takes place, after the user clicked on one of the four directional buttons.
@@ -547,7 +645,6 @@ class Attocube_GUI(BaseGui):
 
 
 if __name__ == '__main__':
-    import hyperion
 
     with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as anc350_instrument:
         app = QApplication(sys.argv)

@@ -4,6 +4,7 @@ from hyperion.view.master_gui import MasterGui
 from examples.example_experiment import ExampleExperiment
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion.instrument.position.thorlabs_motor_instr import Thorlabsmotor
+# from hyperion.core import logman
 from hyperion import ur
 ureg = ur
 

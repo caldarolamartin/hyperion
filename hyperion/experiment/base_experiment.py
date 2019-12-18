@@ -14,7 +14,7 @@
 
 """
 import os
-import logging
+from hyperion.core import logman as logging
 import yaml
 import importlib
 import hyperion
@@ -631,6 +631,7 @@ class BaseExperiment():
         for name in self.instruments_instances:
             self.logger.info('Finalizing connection with device: {}'.format(name))
             self.instruments_instances[name].finalize()
+        self.logger.debug('Experiment object finalized.')
 
     def load_instrument(self, name):
         """ Loads an instrument given by name
@@ -696,20 +697,8 @@ class BaseExperiment():
 
 
 if __name__ == '__main__':
-
-    # Note: this logging section will be updated when merging with the new logging
-    import hyperion
-    hyperion.set_logfile(__file__)                    # not required, but recommended
-
-
     logger = logging.getLogger(__name__)
-
     logger.warning("For testing it's better to run an example experiment from the examples folder.")
-
-    # print('')
-    # print("WARNING: Base experiment is not intended to be run directly.")
-    # print("         For testing it's better to run an example experiment from the examples folder.")
-    # print('')
 
     with BaseExperiment() as e:
 

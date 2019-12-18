@@ -4,13 +4,13 @@
     RS 1316 driver
     ==============
 
-    T
+    Very outdated code that does NOT follow hyperion structure and will not work.
 
     :copyright: (c)
     :license: , see LICENSE for more details.
 """
 import serial
-import logging
+from hyperion import logging
 import hyperion
 from hyperion.controller.base_controller import BaseController
 from time import sleep, time
@@ -38,13 +38,13 @@ class Rs1316(BaseController):
     _type = ['K', 'J', 'E', 'T', 'R', 'S', 'N']
 
 
-    def __init__(self):
+    def __init__(self, settings):                # note: usually it's not recommended to specify default value, but here I did because it's an empty dict
         """ This is the init for the controller aa_mod18012.
         It creates the instances of the objects needed to communicate with the device.
 
 
         """
-        self.port = None
+        self._port = settings['port']
         self.rsc = None
         self.logger.info('Class Rs 1316 init. Created object.')
 
@@ -56,9 +56,9 @@ class Rs1316(BaseController):
         self.last_call = []
         self.minimun_interval = 2   # sec
 
-    def initialize(self, port):
+    def initialize(self):
 
-        self.rsc = serial.Serial(port=port, baudrate=self.DEFAULTS['baudrate'], parity= self.DEFAULTS['parity'],
+        self.rsc = serial.Serial(port=self._port, baudrate=self.DEFAULTS['baudrate'], parity= self.DEFAULTS['parity'],
                       write_timeout = self.DEFAULTS['write_timeout'],
                       timeout = self.DEFAULTS['read_timeout'])
 
@@ -99,10 +99,9 @@ class Rs1316(BaseController):
 
 
 if __name__ == "__main__":
-    hyperion.file_logger.setLevel(logging.INFO)
 
-    ther = Rs1316()
-    ther.initialize('COM12')
+    ther = Rs1316(settings = {'port':'COM12'})
+    ther.initialize()
 
     for j in range(10):
         t = time()

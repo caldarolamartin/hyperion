@@ -5,6 +5,7 @@ from examples.example_experiment import ExampleExperiment
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
 from hyperion.instrument.position.thorlabs_motor_instr import Thorlabsmotor
 from hyperion import ur
+# from hyperion.core import logman
 ureg = ur
 
 def main():

@@ -14,12 +14,11 @@ import importlib
 import random
 import string
 import sys
-import logging
+from hyperion import logging
 import pyqtgraph as pg
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QPushButton, QVBoxLayout, QAction
-
 from examples.example_experiment import ExampleExperiment
 
 

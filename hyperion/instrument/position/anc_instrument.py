@@ -6,17 +6,13 @@ ANC350 Attocube Instrument
 This is the instrument level of the position ANC350 from Attocube (in the Montana)
 
 """
-
-import logging
+from hyperion import logging
 import yaml           #for the configuration file
 import os             #for playing with files in operation system
-import sys
 import time
 import numpy as np
 from hyperion import root_dir
-
 from hyperion.instrument.base_instrument import BaseInstrument
-
 from hyperion import ur
 
 class Anc350Instrument(BaseInstrument):
@@ -390,10 +386,12 @@ class Anc350Instrument(BaseInstrument):
         """
 
         if 0 <= voltage.m_as('mV') <= self.controller.max_dclevel_mV:
-            self.logger.info('moving '+ axis +' by putting ' + str(voltage))
+            self.logger.info('moving {} by putting {}'.format(axis, voltage))
             self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis]['axis'], voltage.m_as('mV')))
 
             self.controller.dcLevel(self.attocube_piezo_dict[axis]['axis'], int(voltage.m_as('mV')))
+
+            time.sleep(0.5)
 
             # dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
             #
@@ -433,34 +431,35 @@ class Anc350Instrument(BaseInstrument):
 
 
 if __name__ == "__main__":
-    import hyperion
 
-    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
-        axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
-        ampl = 30*ur('V')   #30V
-        freq = 100*ur('Hz')    #Hz
+#    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
 
-        q.configure_stepper(axis, ampl, freq)
+    q = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'})
+    axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
+    ampl = 30*ur('V')   #30V
+    freq = 100*ur('Hz')    #Hz
 
-        #q.move_to(axis,2.1*ur('mm'))
+    #q.configure_stepper(axis, ampl, freq)
 
-        # q.move_continuous(axis,1)
-        # for ii in range(10):
-        #     time.sleep(0.1)
-        #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
-        # q.stop_moving(axis)
+    #q.move_to(axis,2.1*ur('mm'))
 
-        q.move_relative(axis, -100 * ur('um'))
+    # q.move_continuous(axis,1)
+    # for ii in range(10):
+    #     time.sleep(0.1)
+    #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
+    # q.stop_moving(axis)
 
-        # direct = 0  #forward
-        # steps = 1  #amount of steps
-        #
-        # q.given_step(axis,direct,steps)
-        #
-        axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
+    #q.move_relative(axis, -100 * ur('um'))
 
-        q.configure_scanner(axis)
+    # direct = 0  #forward
+    # steps = 1  #amount of steps
+    #
+    # q.given_step(axis,direct,steps)
+    #
+    axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
 
-        volts = 1*ur('V')
-        q.move_scanner(axis,volts)
+    q.configure_scanner(axis)
+
+    #volts = 1*ur('V')
+    #q.move_scanner(axis,volts)
 

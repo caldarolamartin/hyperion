@@ -16,7 +16,7 @@ With this the class knows what voltages should be set when changing the waveleng
 
 """
 import os
-import logging
+from hyperion import logging
 import numpy as np
 from time import sleep
 from hyperion import ur, root_dir
@@ -36,8 +36,7 @@ class AaAotf(BaseInstrument):
                         'mode': 'internal',
                         }
 
-    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : False,
-                                   'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012'} ):
+    def __init__(self, settings):
         """
         Init of the class.
 
@@ -64,7 +63,7 @@ class AaAotf(BaseInstrument):
         self.controller.initialize()
 
         # loads the calibration file to transform freq to wavelength.
-        cal_file = os.path.join(root_dir, 'instrument', 'aotf', 'lookup_table_cal_aotf_2019-02-05.txt')
+        cal_file = os.path.join(os.path.dirname(__file__), 'lookup_table_cal_aotf_2019-02-05.txt')
         self.logger.info('Using freq to wavelength calibration for aotf from file {}'.format(cal_file))
         self.load_calibration(cal_file)
 
@@ -256,17 +255,11 @@ class AaAotf(BaseInstrument):
 
 
 if __name__ == '__main__':
-    from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
+    example_settings =  {'port':'COM10', 'dummy':False,
+                           'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012'}
 
-    with  AaAotf(settings={'port':'COM10', 'dummy':False,
-                           'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012'}) as d:
+    with  AaAotf(settings=example_settings) as d:
 
         d.blanking(True, mode='internal')
 

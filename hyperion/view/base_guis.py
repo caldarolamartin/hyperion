@@ -12,7 +12,7 @@ This file contains different base classes to make several types of guis.
 
 """
 import traceback
-import logging
+from hyperion import logging
 import sys
 from hyperion import package_path
 import pyqtgraph as pg
@@ -108,13 +108,35 @@ class BaseGraph(BaseGui):
         # self.initUI()     # Removed this. It should be called by the child
 
     def initUI(self):
+
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon(path.join(package_path,'view','base_plot_windows_icon.png')))
         self.setGeometry(self.left, self.top, self.width, self.height)
         vbox = QVBoxLayout()
+        self.initialize_plot()
         vbox.addWidget(self.pg_plot_widget)
         self.setLayout(vbox)
         self.show()
+
+class TimeAxisItem(pg.AxisItem):
+    """This code I found on the internet to change things of the axes, for instance the color or the size of the numbers.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def attachToPlotItem(self, plotItem):
+        """Add this axis to the given PlotItem
+        :param plotItem: (PlotItem)
+        """
+        self.setParentItem(plotItem)
+        viewBox = plotItem.getViewBox()
+        self.linkToView(viewBox)
+        self._oldAxis = plotItem.axes[self.orientation]['item']
+        self._oldAxis.hide()
+        plotItem.axes[self.orientation]['item'] = self
+        pos = plotItem.axes[self.orientation]['pos']
+        plotItem.layout.addItem(self, *pos)
+        self.setZValue(-1000)
 
 
 class ModifyMeasurement(QDialog):

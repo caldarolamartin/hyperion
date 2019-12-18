@@ -34,7 +34,7 @@ This controller connects to the Winspec software (which in turn is used to contr
 # Regarding opening Winspec before accessing it from python or letting python start Winspec:
 # In my tests so far, the order doesn't seem to matter. In both cases python can conrtol Winspec.
 # One difference so far is that killing python kernel closes Winspec only when python opened Winspec
-import logging
+from hyperion import logging
 import sys
 if sys.maxsize > 2**32:
     print('64 bit')
@@ -253,7 +253,6 @@ class WinspecContrDummy(WinspecContr):
 
 
 if __name__ == "__main__":
-    import hyperion
 
     # To change the logging file use this anywhere:
     # hyperion.set_logfile('my_new_file_path_and_name.log')

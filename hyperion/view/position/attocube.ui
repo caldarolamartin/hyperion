@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>599</width>
+    <width>639</width>
     <height>730</height>
    </rect>
   </property>
@@ -484,11 +484,25 @@
          <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerX">
            <property name="suffix">
-            <string>V</string>
+            <string/>
            </property>
            <property name="maximum">
             <double>999999999.000000000000000</double>
            </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QComboBox" name="comboBox_unitX">
+           <item>
+            <property name="text">
+             <string>mV</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>V</string>
+            </property>
+           </item>
           </widget>
          </item>
          <item row="1" column="0">
@@ -501,11 +515,25 @@
          <item row="1" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerY">
            <property name="suffix">
-            <string>V</string>
+            <string/>
            </property>
            <property name="maximum">
             <double>9999999999999.000000000000000</double>
            </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QComboBox" name="comboBox_unitY">
+           <item>
+            <property name="text">
+             <string>mV</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>V</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>
@@ -516,22 +544,36 @@
         <property name="title">
          <string/>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
+        <layout class="QGridLayout" name="gridLayout_14">
+         <item row="0" column="0">
           <widget class="QLabel" name="label_scannerZ">
            <property name="text">
             <string>move scanner Z</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerZ">
            <property name="suffix">
-            <string>V</string>
+            <string/>
            </property>
            <property name="maximum">
             <double>9999999999999.000000000000000</double>
            </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QComboBox" name="comboBox_unitZ">
+           <item>
+            <property name="text">
+             <string>mV</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>V</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>

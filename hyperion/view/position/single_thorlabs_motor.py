@@ -1,12 +1,11 @@
 """
-====================================
+=========================
 Single Thorlabs Motor GUI
-====================================
+=========================
 
 Works with the new Thorlabs Motor instrument. Keyboard stuff has not been tested or updated yet.
 
 """
-
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -15,7 +14,7 @@ from hyperion.view.general_worker import WorkThread
 from hyperion.view.base_guis import BaseGui
 from hyperion import ur
 from pynput.keyboard import Listener
-import logging
+from hyperion import logging
 
 class Thorlabs_motor_GUI(BaseGui):
     """
@@ -318,7 +317,6 @@ class Thorlabs_motor_GUI(BaseGui):
 
 
 if __name__ == '__main__':
-    import hyperion
 
     xMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850129, 'name': 'xMotor'}
 

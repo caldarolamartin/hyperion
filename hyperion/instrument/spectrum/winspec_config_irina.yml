@@ -11,8 +11,8 @@ data_file:
   autosave: 'Auto'
 timing:
   mode: 'Free Run'
-  fast_safe: 'Safe'
-  delay_time_s: 0.1
+  fast_safe: 'Fast'
+  delay_time_s: 0
 ascii_file: True
 
 

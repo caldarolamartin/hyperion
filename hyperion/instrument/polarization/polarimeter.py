@@ -9,7 +9,7 @@ The model is similar to the controller, but it adds specific functionalities suc
 and error descriptions
 
 """
-import logging
+from hyperion import logging
 from time import time, sleep
 import numpy as np
 from hyperion.instrument.base_instrument import BaseInstrument
@@ -48,9 +48,7 @@ class Polarimeter(BaseInstrument):
                         'norm', 'deg', 'norm',
                         'norm']
 
-    def __init__(self, settings = {'dummy' : False,
-                                   'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
-                                   'dll_name': 'SKPolarimeter'} ):
+    def __init__(self, settings):
         """
         Init of the class.
 
@@ -330,10 +328,7 @@ class Polarimeter(BaseInstrument):
         return w
 
 if __name__ == "__main__":
-    import hyperion
 
-    hyperion.file_logger.setLevel(logging.DEBUG)
-    hyperion.stream_logger.setLevel(logging.DEBUG)
 
 
     with Polarimeter(settings = {'dummy' : False,

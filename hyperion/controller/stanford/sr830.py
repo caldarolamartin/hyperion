@@ -12,7 +12,7 @@
     :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-import logging
+from hyperion import logging
 import visa
 import time
 from hyperion.controller.base_controller import BaseController
@@ -24,7 +24,7 @@ class sr830(BaseController):
         :type settings: dict
 
     """
-    def __init__(self, settings={'port': 'AUTO', 'dummy': False}):
+    def __init__(self, settings):
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class Lock-in created.')
@@ -310,14 +310,7 @@ class sr830(BaseController):
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format, _logger_settings
 
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
 
     dummy = True  # change this to false to work with the real device in the COM specified below.
 

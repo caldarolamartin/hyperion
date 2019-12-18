@@ -9,7 +9,7 @@ Device Model Controller
 Description of device controller
 """
 
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
 
 # Preferred class name includes the model name and ends with Controller
@@ -155,15 +155,6 @@ class DeviceModelControllerDummy(DeviceModelController):
 # It is run when you run this file directly.
 
 if __name__ == "__main__":
-    
-    # Import stuff for logging. This will change in a future version
-    from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.WARNING, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
 
     # Set dummy=False to work with the real device
     dummy = False

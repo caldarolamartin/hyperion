@@ -8,7 +8,7 @@
     :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-import logging
+from hyperion import logging
 import sys, os
 import numpy as np
 import pyqtgraph as pg
@@ -197,7 +197,6 @@ class PolarimeterGui(BaseGui):
     def start_button(self):
         """ Action when you press start """
         # add the extra plots needed with one data point
-        print(d)
         self.Plots = []
         for i in range(len(self.index_to_plot)):
             self.logger.debug('Adding a new plot. Index: {}'.format(i))
@@ -275,11 +274,8 @@ class Graph(BaseGraph):
         self.initUI()       # This should be called here (not in the parent)
 
 if __name__ == '__main__':
-    import hyperion
-    hyperion.file_logger.setLevel(logging.DEBUG)
-    hyperion.stream_logger.setLevel(logging.DEBUG)
-
-    logging.info('Running Polarimeter GUI file.')
+    log =logging.getLogger(__name__)
+    log.info('Running Polarimeter GUI file.')
 
     # Create the Instrument (in this case we use the with statement)
     with Polarimeter(settings = {'dummy' : False,
@@ -288,10 +284,10 @@ if __name__ == '__main__':
         # Mandatory line for gui
         app = QApplication(sys.argv)
 
-        logging.debug('Creating the graph for the GUI.')
+        log.debug('Creating the graph for the GUI.')
         plot_window = Graph()
 
-        logging.debug('Now starting the GUI')
+        log.debug('Now starting the GUI')
         PolarimeterGui(polarimeter_ins, plot_window)
 
         # Mandatory line for gui

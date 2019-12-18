@@ -4,7 +4,6 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 from hyperion.instrument.example_instrument import ExampleInstrument
 from hyperion.view.general_worker import WorkThread
-import logging
 
 class ExampleGui(QWidget):
     """"
@@ -82,12 +81,9 @@ class ExampleGui(QWidget):
         self.button.setEnabled(True)
 
 if __name__ == '__main__':
-    import hyperion
-    hyperion.file_logger.setLevel( logging.DEBUG )
-    hyperion.stream_logger.setLevel( logging.INFO )
 
-
-    example_ins = ExampleInstrument()
+    example_ins = ExampleInstrument(settings = {'port':'COM8', 'dummy':False,
+                                                'controller': 'hyperion.controller.example_controller/ExampleController'})
     app = QApplication(sys.argv)
     ex = ExampleGui(example_ins)
     sys.exit(app.exec_())

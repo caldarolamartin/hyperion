@@ -8,15 +8,15 @@
     This is an example of an experiment class.
 """
 import os
-import logging
-
-import numpy as np
+from hyperion.core import logman
+# You could also import the logging manager as logging if you don't want to change your line: logger = logging.getLogger(__name_)
+# from hyperion.core import logman as logging
+# from hyperion import logging    # equivalent to line aboveimport numpy as np
 import winsound
 from time import sleep
 # from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
 from hyperion.tools.array_tools import *
-from PyQt5.QtWidgets import QApplication
 import sys
 
 class ExampleExperiment(BaseExperiment):
@@ -24,10 +24,14 @@ class ExampleExperiment(BaseExperiment):
 
     def __init__(self):
         """ initialize the class"""
-
-        self.logger = logging.getLogger(__name__)
+        self.logger = logman.getLogger(__name__)
         self.logger.info('Initializing the ExampleExperiment object.')
-        super().__init__()
+        super().__init__()                      # Mandatory line
+        self.logger.critical('test critical')
+        self.logger.error('test error')
+        self.logger.warning('test warning')
+        self.logger.info('test info')
+        self.logger.debug('test debug')
 
         #initialize dictionaries where instances of instruments and gui's can be found
         self.devices = {}
@@ -80,25 +84,25 @@ class ExampleExperiment(BaseExperiment):
             print(i)
 
 
-    def load_instruments(self):
-        """"
-        This method gets the instance of every instrument and sets this instance
-        in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
-        The option to set the instruments by hand is still possible, but not necessary because the pointer
-        to the instrument 'lives' in the instruments_instances.
-        """
-
-        for instrument in self.properties['Instruments']:
-            try:
-                self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-                self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
-            except Exception:
-                self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
-                self.instruments_instances[instrument] = None
-        # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
-        # self.logger.debug('Class vwp: {}'.format(self.vwp))
-        # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
-        # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
+    # def load_instruments(self):
+    #     """"
+    #     This method gets the instance of every instrument and sets this instance
+    #     in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
+    #     The option to set the instruments by hand is still possible, but not necessary because the pointer
+    #     to the instrument 'lives' in the instruments_instances.
+    #     """
+    #
+    #     for instrument in self.properties['Instruments']:
+    #         try:
+    #             self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+    #             self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
+    #         except Exception:
+    #             self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
+    #             self.instruments_instances[instrument] = None
+    #     # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
+    #     # self.logger.debug('Class vwp: {}'.format(self.vwp))
+    #     # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
+    #     # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -151,15 +155,13 @@ class ExampleExperiment(BaseExperiment):
         self.save(0)
 
 if __name__ == '__main__':
-
-    # For the new of logging: import hyperion
-    import hyperion
-    import yaml
-
-    # That will be enough for default logging, but if you want to change level or the location of the file:
-    hyperion.stream_logger.setLevel( logging.DEBUG )          # To change logging level on the console
-    # hyperion.file_logger.setLevel( logging.INFO )             # To change logging level in the file (default is DEBUG)
-    # hyperion.set_logfile('my_new_file_path_and_name.log')     # To change the logging file (default is DEBUG)
+    # ### To change the logging level:
+    # logman.stream_level(logman.WARNING)
+    # logman.file_level('INFO')
+    # ### To change the stream logging layout:
+    # logman.set_stream(compact=0.2, color_scheme='dim') # and other parameters
+    # ### To change the logging file:
+    # logman.set_file('example_experiment.log')
 
     # with ExampleExperiment() as e:
     #
@@ -171,7 +173,7 @@ if __name__ == '__main__':
     #     e.load_config(config_file + '.yml')
     #
     #     # read properties just loaded
-    #     print('\n {} \n'.format(e.properties))
+    #     #print('\n {} \n'.format(e.properties))
     #
     #     #  remember you can change these values directly here
     #     #e.properties['Scan']['start'] = '0.5V'
@@ -196,7 +198,9 @@ if __name__ == '__main__':
     #
     #     # # save data
     #     # e.save_scan_data()
-
+    #
+    #
+    # print('--------------------- DONE with the experiment')
 
     e = ExampleExperiment()
 
@@ -233,9 +237,9 @@ if __name__ == '__main__':
 
 
 
-    ### test gui
-
+    from PyQt5.QtWidgets import QApplication
     from hyperion.view.base_guis import BaseMeasurement, ModifyMeasurement
+
     app = QApplication(sys.argv)
     # q = ModifyMeasurement(e,'Measurement A')
     # q.show()
@@ -245,5 +249,5 @@ if __name__ == '__main__':
 
     q = BaseMeasurement(e, 'Measurement A')
     app.exec_()
-    # sys.exit(app.exec_())
+
 
