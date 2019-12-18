@@ -26,7 +26,8 @@ class ExampleExperiment(BaseExperiment):
         """ initialize the class"""
 
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Initializing the Base_Experiment class.')
+        self.logger.info('Initializing the ExampleExperiment object.')
+        super().__init__()
 
         #initialize dictionaries where instances of instruments and gui's can be found
         self.devices = {}
@@ -234,9 +235,15 @@ if __name__ == '__main__':
 
     ### test gui
 
-    from hyperion.view.base_guis import ModifyMeasurement
+    from hyperion.view.base_guis import BaseMeasurement, ModifyMeasurement
     app = QApplication(sys.argv)
-    sw = ModifyMeasurement(e,'Measurement A')
+    # q = ModifyMeasurement(e,'Measurement A')
+    # q.show()
+
+    ### Introduce corruption in actionlist for testing:
+    # del(e.properties['Measurements']['Measurement A'][0]['Name'])
+
+    q = BaseMeasurement(e, 'Measurement A')
     app.exec_()
     # sys.exit(app.exec_())
 

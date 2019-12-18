@@ -18,6 +18,7 @@ import logging
 import yaml
 import importlib
 import hyperion
+import time
 from hyperion.tools.saving_tools import name_incrementer
 from hyperion.tools.saver import Saver
 import copy     # used in action validation methods
@@ -122,11 +123,136 @@ class BaseExperiment():
 
         self.filename = ''
 
+        # Flags that can be set externally to control the flow of a measurement:
+        self.apply_pause = False   # used for temporarily interrupting a measurement
+        self.apply_break = False   # used for a soft stop (e.g. stop after current loop iteration)
+        self.apply_stop =  False   # used for a hard stop
+        # Current status of the measurement:
+        self.running_status = 0    # 0 for not running, 1 for running, 1 for paused, 2 for breaking, 3 for stopping
+        self._not_running = 0
+        self._running =     1
+        self._pausing =      2
+        self._breaking =    3
+        self._stopping =    4
+
+        self._valid = False  # is this used?
+
         self._nesting_indices = []
         self._nesting_parents = []
         self._measurement_name = 'data'
 
         self._auto_save_store = None
+
+
+    def reset_measurement_flags(self):
+        self.apply_pause = False   # used for temporarily interrupting a measurement
+        self.apply_break = False   # used for a soft stop (e.g. stop after current loop iteration)
+        self.apply_stop =  False   # used for a hard stop
+        self.running_status = 0  # 0 for not running, 1 for paused, 2 for breaking, 3 for stopping
+
+    # decorator for stopping function:
+    def check_stop(function):
+        def wrapper_accepting_arguments(self, *args, force = False, **kwargs):
+            if force: self.apply_stop = True
+            if self.apply_stop or force:
+                self.running_status = self._stopping
+                function(self, *args, **kwargs)
+                self.reset_measurement_flags()
+                return True
+            return False
+        return wrapper_accepting_arguments
+
+    # decorator for breaking function:
+    def check_break(function):
+        def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
+            if force: self.apply_break = True
+            if self.apply_break:
+                self.running_status = self._breaking
+                function(self, *args, **kwargs)
+                self.reset_measurement_flags()      # maybe this line should go out
+                return True
+            return False
+        return wrapper_accepting_arguments
+
+    # def check_stop(self, stop_method=None, *args, **kwargs):
+    #     if self.apply_stop:
+    #         self.running_status = self._stopping        # the first line
+    #         if stop_method is None:
+    #             self.logger.info('Stopping measurement. Optional: input alternative method to call when Stopping.')
+    #         else:
+    #             stop_method( *args, **kwargs)
+    #         self.reset_measurement_flags()              # the last line
+    #         return True
+    #     return False
+
+    # decorator for pausing function:
+    def check_pause(function):
+        def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
+            if force: self.apply_pause = True
+            if self.apply_pause:
+                store_state = self.running_status
+                self.running_status = self._pausing
+                ret = function(self, *args, **kwargs)
+                self.running_status = store_state
+                self.apply_pause = False
+                return ret
+            return False
+        return wrapper_accepting_arguments
+
+
+    # def check_pause(self, pause_method=None, stop_method=None, *args, **kwargs):
+    #     if self.apply_pause:
+    #         store_state = self.running_status
+    #         self.running_status = self._pausing
+    #         self.logger.info('Pausing Measurement. Optional: input alternative method to call when pausing (or override default pause_measurment).')
+    #         if pause_method is None:
+    #             self.pause_measurement(*args, **kwargs)
+    #         else:
+    #             pause_method(*args, **kwargs)
+    #         self.running_status = store_state
+    #         self.apply_pause = False
+
+    def dummy_measurement_for_testing_gui_buttons(self):
+        self.logger.info('Starting test measurement')
+        self.reset_measurement_flags()
+        self.running_status = self._running
+        for outer in range(4):
+            print('outer', outer)
+            for inner in range(4):
+                print('    inner', inner)
+                time.sleep(1)
+                if self.stop_measurement(): return      # Use this line to check for stop
+                if self.pause_measurement(): return     # Use this line to check for pause
+            if self.apply_break:
+                # Place a breakpoint where the measurement will stop
+                self.apply_stop = True
+                self.stop_measurement()
+                return                                              # you still need to stop the measurement
+        self.reset_measurement_flags()
+        self.logger.info('Measurement finished')
+
+    @check_stop
+    def stop_measurement(self):
+        """ The decorator also gives it one extra keyword argument 'force' which will set the apply_stop flag for you. """
+        self.logger.info('Custom stop method: Override if you like. Just use @check_stop decorator')
+        # Do stuff
+        self.reset_measurement_flags()
+        self.logger.info('Measurement stopped')
+
+    @check_break
+    def break_measurement(self):
+        self.logger.info('Custom break method: Override if you like. Just use @check_break decorator')
+        # Do stuff
+        # Should end with stopping:
+        self.stop_measurement(force=True)
+
+    @check_pause
+    def pause_measurement(self):
+        self.logger.info('Custom pause method. Override if you like. Just use @check_pause decorator')
+        while self.apply_pause:
+            # While in pause mode: check if stop is "pressed":
+            if self.stop_measurement(): return True        # in that case return True
+
 
     def __enter__(self):
         return self

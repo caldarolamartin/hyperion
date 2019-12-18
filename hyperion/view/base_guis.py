@@ -17,17 +17,19 @@ import sys
 from hyperion import package_path
 import pyqtgraph as pg
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon, QFont, QFontMetrics
+from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtCore import QTimer
 from os import path
 import yaml
+from hyperion.view.general_worker import WorkThread
 
 class BaseGui(QWidget):
     """Base class to build a gui that can be loaded in the master gui.
 
 
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.logger = logging.getLogger(__name__)
 
         # To avoid the crash when there is an error
@@ -115,12 +117,14 @@ class BaseGraph(BaseGui):
         self.show()
 
 
-class ModifyMeasurement(BaseGui):
-    def __init__(self, experiment, measurement):
+class ModifyMeasurement(QDialog):
+    def __init__(self, experiment, measurement, parent=None):
+        self.logger = logging.getLogger(__name__)
         self.experiment = experiment
         self.measurement = measurement
+        self.parent = parent
         self._original_list = self.experiment.properties['Measurements'][measurement]
-        super().__init__()
+        super().__init__(parent)
         self.setWindowTitle('Modify Measurement: {}'.format(measurement))
         self._indent = 2
         self.plural = lambda num: 's' if num > 1 else ''
@@ -132,26 +136,16 @@ class ModifyMeasurement(BaseGui):
         self.initUI()
         self.reset()    # initialize to original
 
-        self.show()
+        # self.show()
 
     def initUI(self):
         grid = QGridLayout()
-        self.button_reset = QPushButton('Reset Original')
-        self.button_reset.clicked.connect(self.reset)
-        self.button_validate = QPushButton('Validate')
-        self.button_validate.clicked.connect(self.validate)
-        self.button_suggestion = QPushButton('Show suggestion')
-        self.button_suggestion.clicked.connect(self.suggestion)
-
-
-        self.button_use = QPushButton('Use')
-        self.button_use.clicked.connect(self.use)
-        self.button_cancel = QPushButton('Cancel')
-        self.button_cancel.clicked.connect(self.close)
-        self.button_save_to_original_file = QPushButton('Save to original file')
-        #self.button_save_to_original_file.clicked.connect()
-        self.button_save_to_original_file.setEnabled(False)
-
+        self.button_reset = QPushButton('Reset Original', clicked = self.reset)
+        self.button_validate = QPushButton('Validate', clicked = self.validate)
+        self.button_suggestion = QPushButton('Show suggestion', clicked = self.suggestion)
+        self.button_use = QPushButton('Use', clicked = self.use)
+        self.button_cancel = QPushButton('Cancel', clicked = self.close)
+        self.button_save_to_original_file = QPushButton('Save to original file', enabled = False)
 
         self.label_valid_1 = QLabel()
         self.label_valid_2 = QLabel()
@@ -164,7 +158,6 @@ class ModifyMeasurement(BaseGui):
         self.txt.setFont(QFont("Courier New", 11))
         self.txt.textChanged.connect(self.changed)
         # self.txt.setPlainText(self._doc)
-        self.resize(500, 900)
 
         grid.addWidget(self.button_reset, 0, 0)
         grid.addWidget(self.button_validate, 0, 1)
@@ -177,14 +170,11 @@ class ModifyMeasurement(BaseGui):
         grid.addWidget(self.button_save_to_original_file, 4, 2)
         self.setLayout(grid)
 
-    # def cancel(self):
+        self.resize(500, 900)
+        self.center()
 
     def update_buttons(self):
         self.button_reset.setEnabled(self._current_doc<1)
-        # self.button_validate.setEnabled(self._modified or (self._valid is None or not self._valid))
-        # self.button_validate.setEnabled(self._current_doc<1 and not self._valid)
-        # self.button_validate.setEnabled(self._valid is None or not self._current_doc==-1)
-        # print(self._valid, self._current_doc)
         self.button_validate.setEnabled(not self._valid and self._current_doc and self._modified)
         self.button_suggestion.setEnabled(self._have_suggestion and self._current_doc)
         self.button_use.setEnabled(self._valid == True)
@@ -194,6 +184,10 @@ class ModifyMeasurement(BaseGui):
         if not self.convert_text_to_list():
             return
         self.experiment.properties['Measurements'][self.measurement] = self._list
+        if hasattr(self.parent, '_valid'):
+            self.parent._valid = True
+        if hasattr(self.parent, 'update_buttons'):
+            self.parent.update_buttons()
         self.close()
 
     def clear_labels(self):
@@ -262,43 +256,135 @@ class ModifyMeasurement(BaseGui):
         self._valid = True
         self.update_buttons()
 
-    # def toggle_txt(self, orig):
-    #     if orig:
-    #         self.txt.setText(self.original)
-    #     else:
+    def center(self):
+        frameGm = self.frameGeometry()
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        frameGm.moveCenter(centerPoint)
+        self.move(frameGm.topLeft())
+
+
+
+
+class BaseMeasurement(BaseGui):
+    def __init__(self, experiment, measurement, parent=None):
+        self.logger = logging.getLogger(__name__)
+        super().__init__(parent)
+        self.experiment = experiment
+        self.measurement = measurement
+        if measurement in self.experiment.properties['Measurements']:
+            self.actionlist = self.experiment.properties['Measurements'][measurement]
+        else:
+            self.logger.error('Unknown measurement: {}'.format(measurement))
+
+        self.measurement_thread = WorkThread(experiment.dummy_measurement_for_testing_gui_buttons)
+
+
+        self._valid = False
+        self.validate()
+        self.initUI()
+        self.update_buttons()
+
+        # if 'Defaults' in actionlist:
+        #     if 'folder' in self.actionlist['Defaults']:
+        #         self.folder = self.actionlist['Defaults']['folder']
+        #     else:
+        #         self.folder = os.path.join(package_path, 'data')
+
+        self.dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
+        self.show()
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_buttons)
+        self.timer.start(50) # in ms
+
+    def initUI(self):
+        # default buttons:
+        # start, pause, stop, modify
+
+
+        self.button_start_pause = QPushButton('Start', clicked = self.start_pause)
+
+        self.button_break = QPushButton('Break', clicked = self.apply_break)
+
+        self.button_stop = QPushButton('Stop', clicked = self.apply_stop)
+
+        self.button_config = QPushButton('Config', clicked = self.config)
+
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(self.button_start_pause)
+        hlayout.addWidget(self.button_break)
+        hlayout.addWidget(self.button_stop)
+        hlayout.addWidget(self.button_config)
+
+        placeholder = QWidget()
+        placeholder.setLayout(hlayout)
+        self.vlayout = QVBoxLayout()
+        self.vlayout.addWidget(placeholder)
+        self.setLayout(self.vlayout)
+
+    def start_pause(self):
+        self.logger.debug('start/pause pressed')
+        self.experiment.apply_pause = not self.experiment.apply_pause
+        if self.experiment.running_status == self.experiment._not_running:
+            self.measurement_thread.start()
+        self.update_buttons()
+
+    def apply_break(self):
+        self.logger.debug('break pressed')
+        self.experiment.apply_break = True
+        self.update_buttons()
+
+    def apply_stop(self):
+        self.logger.debug('stop pressed')
+        self.experiment.apply_stop = True
+        self.update_buttons()
+
+    def config(self):
+        self.dialog_config.show()
+        self.update_buttons()
+
+
+
+
+    def update_buttons(self):
+
+        # note that:
+        # experiment._not_running = 0
+        # experiment._running =     1
+        # experiment._pausing =     2
+        # experiment._breaking =    3
+        # experiment._stopping =    4
+        if not self._valid:
+            self.button_start_pause.setEnabled(False)
+            self.button_break.setEnabled(False)
+            self.button_stop.setEnabled(False)
+            self.button_config.setEnabled(True)
+            return
+        else:
+            if self.experiment.running_status == self.experiment._not_running:
+                self.button_start_pause.setText('Start')
+            elif self.experiment.apply_pause:
+                self.button_start_pause.setText('Continue')
+            else:
+                self.button_start_pause.setText('Pause')
+            self.button_start_pause.setEnabled(self.experiment.running_status < self.experiment._breaking)
+            self.button_break.setEnabled(self.experiment._not_running < self.experiment.running_status < self.experiment._breaking)
+            self.button_stop.setEnabled(self.experiment._not_running < self.experiment.running_status < self.experiment._stopping)
+            self.button_config.setEnabled(self.experiment.running_status == self.experiment._not_running)
+
+
+    def validate(self):
+        new_action_list, invalid_methods, invalid_names = self.experiment._validate_actionlist(self.experiment.properties['Measurements'][self.measurement])
+        if invalid_methods==0 and invalid_names==0:
+            self._valid = True
+        else:
+            self._valid = False
 
 
 
 
 
-# class BaseMeasurement(BaseGui):
-#     def __init__(self, experiment, measurement):
-#         super().__init__():
-#         if measurement in experiment.properties['Measurements']:
-#             self.actionlist = experiment.properties['Measurements'][measurement]
-#         if 'Defaults' in actionlist:
-#             if 'folder' in self.actionlist['Defaults']:
-#                 self.folder = self.actionlist['Defaults']['folder']
-#             else:
-#                 self.folder = os.path.join(package_path, 'data')
-#
-#     def validate(self):
-#         new_action_list, self.invalid_methods, self.invalid_names = self.experiment._validate_actionlist(self.properties['Measurements'][measurement])
-#
-#
-#     def initUI(self):
-#         # default buttons:
-#         # start, pause, stop, modify
-#
-#         button3 = modify
-#         button1 = QPushButton('Start')
-#         button2 = QPushButton('Break')
-#
-#
-#         # before: start
-#         # while running: pause, stop
-#         # while paused: resume, stop
-#         # while breaking: pause, [], stop
+
+
 
 
 
