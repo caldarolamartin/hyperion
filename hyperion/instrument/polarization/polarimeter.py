@@ -274,7 +274,7 @@ class Polarimeter(BaseInstrument):
 
         self.logger.info('Data saved to {}'.format(file_path))
 
-    def create_header(self, extra_name = None, extra_unit = None, extra_description = None):
+    def create_header(self, errors= False, extra_name = None, extra_unit = None, extra_description = None):
         """ creates the header to save the data
 
         :param extra_name: if a first column has to be added, this is the name
@@ -311,6 +311,18 @@ class Polarimeter(BaseInstrument):
                                                                                        self.DATA_TYPES_UNITS[k],
                                                                                        self.DATA_TYPES[k])
             header += string
+            ind = k + N
+
+        # to add the errors
+        if errors:
+            for k in range(len(self.DATA_TYPES)):
+                string = '#   Column number {} is the std for {} [{}]. Physical meaning: {} \n'.format(k + ind,
+                                                                                           self.DATA_TYPES_NAME[k],
+                                                                                           self.DATA_TYPES_UNITS[k],
+                                                                                           self.DATA_TYPES[k])
+                header += string
+
+
 
         header += '# \n'
         header += '# --------------------- End of header --------------------- \n'
