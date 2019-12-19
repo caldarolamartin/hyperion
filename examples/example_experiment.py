@@ -79,80 +79,11 @@ class ExampleExperiment(BaseExperiment):
         winsound.Beep(1500, 200)
         winsound.Beep(3000, 500)
         sleep(0.1)
+
     def measurement(self):
         for i in range(1, 10):
             print(i)
 
-
-    # def load_instruments(self):
-    #     """"
-    #     This method gets the instance of every instrument and sets this instance
-    #     in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
-    #     The option to set the instruments by hand is still possible, but not necessary because the pointer
-    #     to the instrument 'lives' in the instruments_instances.
-    #     """
-    #
-    #     for instrument in self.properties['Instruments']:
-    #         try:
-    #             self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-    #             self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
-    #         except Exception:
-    #             self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
-    #             self.instruments_instances[instrument] = None
-    #     # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
-    #     # self.logger.debug('Class vwp: {}'.format(self.vwp))
-    #     # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
-    #     # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
-
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    def image(self, actiondict, nesting):
-        # print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        nesting()
-        # data = np.array([[0,1],[2,3]])
-        # return data
-
-    def image_modified(self, actiondict, nesting):
-        #print('image: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        nesting()
-
-    def spectrum(self, actiondict, nesting):
-        # print('spectrum: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        nesting()
-
-    def spectrum_modified(self, actiondict, nesting):
-        # print('spectrum: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        nesting()
-
-    def histogram(self, actiondict, nesting):
-        # print('histogram: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        #store_data
-        nesting()
-
-    def sweep_atto(self, actiondict, nesting):
-        # print('sweep_atto: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        arr, unit = array_from_settings_dict(actiondict)
-        for s in arr:
-            print(actiondict['axis'],' : ', s)
-            #store_coord()
-
-            nesting()
-
-    def insideXafterY(self, actiondict, nesting):
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
 
 if __name__ == '__main__':
     # ### To change the logging level:
@@ -163,91 +94,41 @@ if __name__ == '__main__':
     # ### To change the logging file:
     # logman.set_file('example_experiment.log')
 
-    # with ExampleExperiment() as e:
-    #
-    #     name = 'second_example_experiment_config_'
-    #     config_folder = os.path.dirname(os.path.abspath(__file__))
-    #     config_file = os.path.join(config_folder, name)
-    #
-    #     print('Using the config file: {}.yml'.format(config_file))
-    #     e.load_config(config_file + '.yml')
-    #
-    #     # read properties just loaded
-    #     #print('\n {} \n'.format(e.properties))
-    #
-    #     #  remember you can change these values directly here
-    #     #e.properties['Scan']['start'] = '0.5V'
-    #
-    #
-    #     # # Initialize devices
-    #     print('\n-------------- LOADING DEVICES ----------------\n')
-    #     e.load_instruments()
-    #     print(e.instruments_instances.keys())
-    #     print('-------------- DONE LOADING DEVICES ----------------')
-    #     #
-    #
-    #     # save metadata
-    #
-    #     #e.save_scan_metadata()
-    #     #e.save_scan_metadata()
-    #     #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
-    #     # perform scan
-    #     # e.set_scan()
-    #     # e.do_scan()
-    #     # e.make_sound()
-    #
-    #     # # save data
-    #     # e.save_scan_data()
-    #
-    #
-    # print('--------------------- DONE with the experiment')
+    with ExampleExperiment() as e:
 
-    e = ExampleExperiment()
+        name = 'second_example_experiment_config_'
+        config_folder = os.path.dirname(os.path.abspath(__file__))
+        config_file = os.path.join(config_folder, name)
 
-    name = 'example_experiment_config_smartscan.yml'
-    config_folder = os.path.dirname(os.path.abspath(__file__))
-    config_file = os.path.join(config_folder, name)
+        print('Using the config file: {}.yml'.format(config_file))
+        e.load_config(config_file + '.yml')
 
-    print('Using the config file: {}'.format(config_file))
-    e.load_config(config_file)
+        # read properties just loaded
+        #print('\n {} \n'.format(e.properties))
 
-    # # read properties just loaded
-    # print('\n {} \n'.format(e.properties))
-    #
-    # #  remember you can change these values directly here
-    # #e.properties['Scan']['start'] = '0.5V'
-    #
-    #
-    # # # Initialize devices
-    # print('\n-------------- LOADING DEVICES ----------------\n')
-    # e.load_instruments()
-    # print(e.instruments_instances.keys())
-    # print('-------------- DONE LOADING DEVICES ----------------')
-    # #
-    #
-    # #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
-    # e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
-    #
-    # e.perform_measurement('Measurement A')
-    # # save metadata
-    # # print(yaml.dump(e.properties['Measurements']['Measurement A']))
-    #
-    #
-    # print('--------------------- DONE with the experiment')
+        #  remember you can change these values directly here
+        #e.properties['Scan']['start'] = '0.5V'
 
 
+        # # Initialize devices
+        print('\n-------------- LOADING DEVICES ----------------\n')
+        e.load_instruments()
+        print(e.instruments_instances.keys())
+        print('-------------- DONE LOADING DEVICES ----------------')
+        #
 
-    from PyQt5.QtWidgets import QApplication
-    from hyperion.view.base_guis import BaseMeasurement, ModifyMeasurement
+        # save metadata
 
-    app = QApplication(sys.argv)
-    # q = ModifyMeasurement(e,'Measurement A')
-    # q.show()
+        #e.save_scan_metadata()
+        #e.save_scan_metadata()
+        #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
+        # perform scan
+        # e.set_scan()
+        # e.do_scan()
+        # e.make_sound()
 
-    ### Introduce corruption in actionlist for testing:
-    # del(e.properties['Measurements']['Measurement A'][0]['Name'])
-
-    q = BaseMeasurement(e, 'Measurement A')
-    app.exec_()
+        # # save data
+        # e.save_scan_data()
 
 
+    print('--------------------- DONE with the experiment')
