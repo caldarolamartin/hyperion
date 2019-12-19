@@ -311,7 +311,7 @@ class Polarimeter(BaseInstrument):
                                                                                        self.DATA_TYPES_UNITS[k],
                                                                                        self.DATA_TYPES[k])
             header += string
-            ind = k + N
+            ind = k + N + 1
 
         # to add the errors
         if errors:
