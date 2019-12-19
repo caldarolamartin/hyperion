@@ -179,6 +179,7 @@ Measurements:       # dictionary of Measurement s
     - Name: before      # an Action is a dictionary
       Type: image
       exposuretime: 5
+      _view: gui.gui_elements/ExampleAction
     - Name: atto X
       Type: atto_scanner
       axis: x
@@ -233,9 +234,9 @@ ActionTypes:        # dictionary
       - z
     _method: sweep_atto # key inside the ActionType-dictionary atto_scanner
     _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
+    _view: gui.gui_elements/ExampleAction
   histogram:
     _method: histogram
-    _ui: histogram.ui
     exposuretime: 3
   image:
     _method: image

@@ -204,9 +204,10 @@ if __name__ == '__main__':
 
     e = ExampleExperiment()
 
-    name = 'example_experiment_config_smartscan.yml'
-    config_folder = os.path.dirname(os.path.abspath(__file__))
-    config_file = os.path.join(config_folder, name)
+    name = 'my_experiment.yml'
+    # config_folder = os.path.dirname(os.path.abspath(__file__))
+    # config_file = os.path.join(config_folder, name)
+    config_file = name
 
     print('Using the config file: {}'.format(config_file))
     e.load_config(config_file)

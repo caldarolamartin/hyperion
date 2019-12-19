@@ -22,6 +22,7 @@ from PyQt5.QtCore import QTimer
 from os import path
 import yaml
 from hyperion.view.general_worker import WorkThread
+from hyperion.tools.loading import get_class
 
 class BaseGui(QWidget):
     """Base class to build a gui that can be loaded in the master gui.
@@ -285,11 +286,10 @@ class ModifyMeasurement(QDialog):
         self.move(frameGm.topLeft())
 
 
-
-
 class BaseMeasurement(BaseGui):
     def __init__(self, experiment, measurement, parent=None):
         self.logger = logging.getLogger(__name__)
+        self.logger.debug('Creating BaseMeasurement object')
         super().__init__(parent)
         self.experiment = experiment
         self.measurement = measurement
@@ -297,14 +297,14 @@ class BaseMeasurement(BaseGui):
             self.actionlist = self.experiment.properties['Measurements'][measurement]
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement))
+            self.actionlist = []
 
         self.measurement_thread = WorkThread(experiment.dummy_measurement_for_testing_gui_buttons)
 
 
-        self._valid = False
-        self.validate()
-        self.initUI()
-        self.update_buttons()
+        self._valid = self.validate()
+        self.button_layout =  self.create_buttons()
+        self.build_ui()
 
         # if 'Defaults' in actionlist:
         #     if 'folder' in self.actionlist['Defaults']:
@@ -313,35 +313,61 @@ class BaseMeasurement(BaseGui):
         #         self.folder = os.path.join(package_path, 'data')
 
         self.dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
-        self.show()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_buttons)
         self.timer.start(50) # in ms
 
-    def initUI(self):
-        # default buttons:
-        # start, pause, stop, modify
-
-
+    def create_buttons(self):
+        self.logger.debug('Creating start stop buttons')
+        layout_buttons = QHBoxLayout()
         self.button_start_pause = QPushButton('Start', clicked = self.start_pause)
-
         self.button_break = QPushButton('Break', clicked = self.apply_break)
-
         self.button_stop = QPushButton('Stop', clicked = self.apply_stop)
-
         self.button_config = QPushButton('Config', clicked = self.config)
+        layout_buttons.addWidget(self.button_start_pause)
+        layout_buttons.addWidget(self.button_break)
+        layout_buttons.addWidget(self.button_stop)
+        layout_buttons.addWidget(self.button_config)
+        return layout_buttons
 
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(self.button_start_pause)
-        hlayout.addWidget(self.button_break)
-        hlayout.addWidget(self.button_stop)
-        hlayout.addWidget(self.button_config)
+    def build_ui(self, actionlist):
+        outer_layout = QVBoxLayout()
+        outer_layout.setContentsMargins(5, 5, 5, 5)
+        outer_layout.setSpacing(5)
+        outer_layout.addLayout(self.button_layout)
+        self.logger.debug('Creating action list')
+        action_layout = None
+        if self._valid:
+            for actiondict in self.actionlist:
+                if '_view' in actiondict:
+                    action_layout = get_class(actiondict['_view'])(self.experiment, actiondict)
+                elif 'Type' in actiondict:
+                    tp = actiondict['Type']
+                    if tp in self.experiment.properties['ActionTypes']:
+                        type_dict = self.experiment.properties['ActionTypes'][tp]
+                        if '_view' in type_dict:
+                            action_layout = get_class(type_dict['_view'])(self.experiment, actiondict)
+                    else:
+                        self.logger.debug('ActionType {} not found for {}'.format(tp, actiondict['Name']))
+                else:
+                    self.logger.debug('No gui found for action: {}'.format(actiondict['Name']))
+                if '~nested' in actiondict:
+                    nested_layout = self.build_ui(actiondict['~nested'])
+                    if action_layout is None:
+                        action_layout = QGroupBox(actiondict['Name'])
+                        action_layout = setContentsMargins(0, 9, 0, 0)
+                        outer_layout.
 
-        placeholder = QWidget()
-        placeholder.setLayout(hlayout)
-        self.vlayout = QVBoxLayout()
-        self.vlayout.addWidget(placeholder)
-        self.setLayout(self.vlayout)
+
+                        action_layout = QVBoxLayout()
+                        action_layout.setContentsMargins(0, 0, 0, 0)
+                        action_layout.setSpacing(0)
+
+                    outer_layout.addWidget(action_widget)
+        return outer_layout
+
+    def _add_actionbox(self, actiondict):
+
 
     def start_pause(self):
         self.logger.debug('start/pause pressed')
@@ -396,17 +422,7 @@ class BaseMeasurement(BaseGui):
 
     def validate(self):
         new_action_list, invalid_methods, invalid_names = self.experiment._validate_actionlist(self.experiment.properties['Measurements'][self.measurement])
-        if invalid_methods==0 and invalid_names==0:
-            self._valid = True
-        else:
-            self._valid = False
-
-
-
-
-
-
-
+        return (invalid_methods==0 and invalid_names==0)
 
 
 
