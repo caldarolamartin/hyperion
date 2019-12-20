@@ -1,31 +1,9 @@
 from hyperion import logging
-from hyperion.view.base_guis import BaseGui
+from hyperion.view.base_guis import BaseActionGui
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import QTimer
-
-class BaseActionGui(BaseGui):
-    def __init__(self, experiment, actiondict):
-        self.logger = logging.getLogger(__name__)
-        super().__init__()
-        self.init()
-        self.experiment = experiment
-        self.actiondict = actiondict
-        outer_layout = QVBoxLayout()
-        outer_layout.setContentsMargins(0,0,0,0)
-        outer_layout.setSpacing(0)
-        self.box = QGroupBox(actiondict['Name'])
-        self.box.setContentsMargins(0, 9, 0, 0)
-        self.initUI()
-        outer_layout.addWidget(self.box)
-        self.setLayout(outer_layout)
-
-    def init(self):
-        self.logger.warning('This method should be overridden by child class')
-
-    def initUI(self):
-        self.logger.warning('This method should be overridden by child class')
 
 class ExampleAction(BaseActionGui):
     # Don't add an __init__. Or if you do make sure to call super().__init__(*args, **kwargs)

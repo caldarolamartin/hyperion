@@ -285,6 +285,30 @@ class ModifyMeasurement(QDialog):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
 
+class BaseActionGui(BaseGui):
+    def __init__(self, experiment, actiondict):
+        self.logger = logging.getLogger(__name__)
+        super().__init__()
+        self.init()
+        self.experiment = experiment
+        self.actiondict = actiondict
+        outer_layout = QVBoxLayout()
+        outer_layout.setContentsMargins(0,0,0,0)
+        outer_layout.setSpacing(0)
+        self.box = QGroupBox(actiondict['Name'])
+        self.box.setContentsMargins(0, 9, 0, 0)
+        self.initUI()
+        outer_layout.addWidget(self.box)
+        self.setLayout(outer_layout)
+
+    def init(self):
+        self.logger.debug('This method should be overridden by child class')
+
+    def initUI(self):
+        self.logger.debug('This method should be overridden by child class')
+
+class EmptyActionGui(BaseActionGui):
+    def init()
 
 class BaseMeasurement(BaseGui):
     def __init__(self, experiment, measurement, parent=None):
@@ -351,6 +375,7 @@ class BaseMeasurement(BaseGui):
                         self.logger.debug('ActionType {} not found for {}'.format(tp, actiondict['Name']))
                 else:
                     self.logger.debug('No gui found for action: {}'.format(actiondict['Name']))
+                    action_layout = QVBoxLayout
                 if '~nested' in actiondict:
                     nested_layout = self.build_ui(actiondict['~nested'])
                     if action_layout is None:
