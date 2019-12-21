@@ -366,6 +366,7 @@ class BaseMeasurement(BaseGui):
 
         self._valid = self.validate()
         self.outer_layout = QGridLayout()
+        self.outer_layout.setSpacing(20)
         # self.outer_layout.setContentsMargins(0,0,0,0)
 
         self.button_layout = self.create_buttons()
@@ -374,7 +375,6 @@ class BaseMeasurement(BaseGui):
         # self.outer_layout.addWidget(buttons_placeholder, 0, 0)
         self.outer_layout.addLayout(self.button_layout, 0, 0)
         # action_layout = self.build_action_gui_list(self.actionlist)
-        self.kanweg = 0
         actions_layout = self.add_actions_recursively(self.actionlist)
         self.outer_layout.addLayout(actions_layout, 1, 0)
         self.setLayout(self.outer_layout)
@@ -410,30 +410,46 @@ class BaseMeasurement(BaseGui):
         layout_buttons.addWidget(self.button_config)
         return layout_buttons
 
+    def __shift(self, level, maxlev=5):
+        inverted = max(0, maxlev - level)
+        shift = 0
+        for s in range(inverted, maxlev):
+            shift += s+2
+        return inverted, shift
+
     def add_actions_recursively(self, actionlist, nesting_level=0):
-        if nesting_level>3: nesting_level = 3
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         # layout.setContentsMargins(18,3,0,3)
-        layout.setSpacing(12-nesting_level*3)
+        # layout.setSpacing(15-min(nesting_level,3)*3)
+        layout.setSpacing(5+self.__shift(nesting_level)[0])
         for act in actionlist:
             actiondict = ActionDict(act, self.types)
             box = QGroupBox(actiondict['Name'])
-            box.setObjectName("ColoredGroupBox")  # Changed here...
-            # box.setStyleSheet("QGroupBox#ColoredGroupBox { border: 1px inset black; margin-top: 1ex}")
-            box.setContentsMargins(0, 19, 0, 0)
+            # box.setObjectName("ColoredGroupBox")  # Changed here...
+            # box.setStyleSheet("QGroupBox#ColoredGroupBox { border: 1px inset black; margin-top: 2ex} QGroupBox#ColoredGroupBox::title {subcontrol-origin: margin; subcontrol-position: top left; padding: 0 3px; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #FFOECE, stop: 1 #FFFFFF);}")
+            # box.setStyleSheet("QGroupBox#ColoredGroupBox { border: 1px inset black; margin-top: 2ex} QGroupBox#ColoredGroupBox::title {subcontrol-origin: margin; subcontrol-position: top left; padding: 3 3px;}")
+            # QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top left; padding: 0 3px; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #FFOECE, stop: 1 #FFFFFF);}
+
+            # box.setStyleSheet(
+            #     "QGroupBox#ColoredGroupBox {border-style: solid; border-width: 1px; border-color: black; text-align: left;} QGroupBox#ColoredGroupBox::title {left:10px; bottom : 0px;margin-top:8px;}")
+
+
+            # box.setContentsMargins(0, 25, 0, 0)
             box.setCheckable(True)
             box_layout = QVBoxLayout()
-            box_layout.setContentsMargins(0,0,0,0)
+            box_layout.setContentsMargins(0,5,0,0)
             box_layout.setSpacing(0)                    # distance between action widget and its nested items
             if '_view' in actiondict:
                 action_gui_class = get_class(actiondict['_view'])
                 action_gui_widget = action_gui_class(actiondict, self.experiment)
-                action_gui_widget.setContentsMargins(0,0,9-nesting_level*3,0)
+                action_gui_widget.layout.setContentsMargins(7,0,20-self.__shift(nesting_level)[1],10)
+                # action_gui_widget.layout.setContentsMargins(0, 0, 0, 0)
                 box_layout.addWidget(action_gui_widget)
             if '~nested' in actiondict:
                 nested_layout = self.add_actions_recursively(actiondict['~nested'], nesting_level+1)
-                nested_layout.setContentsMargins(15,0,3,6)
+                # right = 5 if nesting_level<2 else 0
+                nested_layout.setContentsMargins(max(3,12-nesting_level), 0, self.__shift(nesting_level)[0],5+max(0,5-nesting_level))
                 box_layout.addLayout(nested_layout)
             if box_layout.count():
                 box.setLayout(box_layout)

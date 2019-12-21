@@ -24,17 +24,17 @@ class ExampleActionGui(BaseGui):
 
     def initUI(self):
         # Create layout of your choice:
-        layout = QHBoxLayout()
-        # layout.setContentsMargins(0,0,0,0)
+        self.layout = QHBoxLayout()
+        # self.layout.setContentsMargins(0,0,0,0)
 
         # Create your gui elements and add them to the layout
         dsp = QDoubleSpinBox()
         cb = QComboBox()
-        layout.addWidget(dsp)
-        layout.addWidget(cb)
+        self.layout.addWidget(dsp)
+        self.layout.addWidget(cb)
 
         # Set your layout to self
-        self.setLayout(layout)
+        self.setLayout(self.layout)
 
 
 
