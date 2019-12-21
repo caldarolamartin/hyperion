@@ -1,5 +1,9 @@
 User:
-  name: Martin
+  name: Aron
+
+Saving:
+  auto: True
+  directory:
 
 Instruments:
   HydraHarp:
@@ -152,7 +156,7 @@ MetaInstruments:
 # _ui       Optional. Usually this is set in the ActionType, but if it is specified here it supercedes the one in the
 #           ActionType. _ui refers to gui python class. '_' causes it to be after the Captitals.
 # other     Other parameter can be specified as desired. These will mostly be the settings changed by the user.
-# params    They should start with a lowercase letter. They will supercede a default values in the ActionType of the same name.
+#   params  They should start with a lowercase letter. They will supercede a default values in the ActionType of the same name.
 # ~nested   If other Actions are to be performed from inside an Action those can be specified as a list in this key.
 #           Typically used when looping. The '~' makes this key always appear last when alphabetized.
 
@@ -168,6 +172,10 @@ MetaInstruments:
 # Name should
 Measurements:       # dictionary of Measurement s
   Measurement A:      # a Measurement is a list of Actions
+#    - Name: DataFile     # special element in the actionlist
+#      Type: saver
+#        folder: None
+#        filename: None
     - Name: before      # an Action is a dictionary
       Type: image
       exposuretime: 5
@@ -193,6 +201,8 @@ Measurements:       # dictionary of Measurement s
           Type: histogram
           _ui: None   # You can specify a different _ui or set it to None to prevent it from showing
           exposuretime: 4
+      - Name: insideXafterY
+        _method: insideXafterY
     - Name: after
       exposuretime: 3
       _method: image_modified                     # It's possible to not use Type. In that case _method HAS TO BE SPECIFIED
@@ -212,6 +222,10 @@ Measurements:       # dictionary of Measurement s
 # Note that an Action does not necessarily have to specify a Type. If no ActionType is specified, the _method has to be
 # specified in the Action and if a gui is required _ui has to be specified as well
 ActionTypes:        # dictionary
+  saver:
+    _method: create_saver
+    _ui: view.base_guis/SaverWidget
+    version: newest
   atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
     _axes:              # key inside the ActionType-dictionary atto_scanner
       - x

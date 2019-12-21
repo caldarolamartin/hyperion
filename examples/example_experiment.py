@@ -8,23 +8,30 @@
     This is an example of an experiment class.
 """
 import os
-import logging
-
-import numpy as np
+from hyperion.core import logman
+# You could also import the logging manager as logging if you don't want to change your line: logger = logging.getLogger(__name_)
+# from hyperion.core import logman as logging
+# from hyperion import logging    # equivalent to line aboveimport numpy as np
 import winsound
 from time import sleep
 # from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
 from hyperion.tools.array_tools import *
+import sys
 
 class ExampleExperiment(BaseExperiment):
     """ Example class with basic functions """
 
     def __init__(self):
         """ initialize the class"""
-
-        self.logger = logging.getLogger(__name__)
-        self.logger.info('Initializing the Base_Experiment class.')
+        self.logger = logman.getLogger(__name__)
+        self.logger.info('Initializing the ExampleExperiment object.')
+        super().__init__()                      # Mandatory line
+        self.logger.critical('test critical')
+        self.logger.error('test error')
+        self.logger.warning('test warning')
+        self.logger.info('test info')
+        self.logger.debug('test debug')
 
         #initialize dictionaries where instances of instruments and gui's can be found
         self.devices = {}
@@ -72,19 +79,22 @@ class ExampleExperiment(BaseExperiment):
         winsound.Beep(1500, 200)
         winsound.Beep(3000, 500)
         sleep(0.1)
+
     def measurement(self):
         for i in range(1, 10):
             print(i)
 
 
-    def load_instruments(self):
-        """"
-        This method gets the instance of every instrument and sets this instance
-        in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
-        The option to set the instruments by hand is still possible, but not necessary because the pointer
-        to the instrument 'lives' in the instruments_instances.
-        """
+if __name__ == '__main__':
+    # ### To change the logging level:
+    # logman.stream_level(logman.WARNING)
+    # logman.file_level('INFO')
+    # ### To change the stream logging layout:
+    # logman.set_stream(compact=0.2, color_scheme='dim') # and other parameters
+    # ### To change the logging file:
+    # logman.set_file('example_experiment.log')
 
+<<<<<<< HEAD
         for instrument in self.properties['Instruments']:
             try:
                 self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
@@ -128,84 +138,43 @@ class ExampleExperiment(BaseExperiment):
         for s in arr:
             print(actiondict['axis'],' : ', s)
             perform_nested_actions(s)
+=======
+    with ExampleExperiment() as e:
+>>>>>>> 565ffe25330348fcd10c9a59c951d7aca193bcbd
 
-if __name__ == '__main__':
+        name = 'second_example_experiment_config_'
+        config_folder = os.path.dirname(os.path.abspath(__file__))
+        config_file = os.path.join(config_folder, name)
 
-    # For the new of logging: import hyperion
-    import hyperion
-    import yaml
+        print('Using the config file: {}.yml'.format(config_file))
+        e.load_config(config_file + '.yml')
 
-    # That will be enough for default logging, but if you want to change level or the location of the file:
-    hyperion.stream_logger.setLevel( logging.WARNING )          # To change logging level on the console
-    # hyperion.file_logger.setLevel( logging.INFO )             # To change logging level in the file (default is DEBUG)
-    # hyperion.set_logfile('my_new_file_path_and_name.log')     # To change the logging file (default is DEBUG)
+        # read properties just loaded
+        #print('\n {} \n'.format(e.properties))
 
-    # with ExampleExperiment() as e:
-    #
-    #     name = 'second_example_experiment_config_'
-    #     config_folder = os.path.dirname(os.path.abspath(__file__))
-    #     config_file = os.path.join(config_folder, name)
-    #
-    #     print('Using the config file: {}.yml'.format(config_file))
-    #     e.load_config(config_file + '.yml')
-    #
-    #     # read properties just loaded
-    #     print('\n {} \n'.format(e.properties))
-    #
-    #     #  remember you can change these values directly here
-    #     #e.properties['Scan']['start'] = '0.5V'
-    #
-    #
-    #     # # Initialize devices
-    #     print('\n-------------- LOADING DEVICES ----------------\n')
-    #     e.load_instruments()
-    #     print(e.instruments_instances.keys())
-    #     print('-------------- DONE LOADING DEVICES ----------------')
-    #     #
-    #
-    #     # save metadata
-    #
-    #     #e.save_scan_metadata()
-    #     #e.save_scan_metadata()
-    #     #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
-    #     # perform scan
-    #     # e.set_scan()
-    #     # e.do_scan()
-    #     # e.make_sound()
-    #
-    #     # # save data
-    #     # e.save_scan_data()
+        #  remember you can change these values directly here
+        #e.properties['Scan']['start'] = '0.5V'
 
 
-    e = ExampleExperiment()
+        # # Initialize devices
+        print('\n-------------- LOADING DEVICES ----------------\n')
+        e.load_instruments()
+        print(e.instruments_instances.keys())
+        print('-------------- DONE LOADING DEVICES ----------------')
+        #
 
-    name = 'example_experiment_config_smartscan.yml'
-    config_folder = os.path.dirname(os.path.abspath(__file__))
-    config_file = os.path.join(config_folder, name)
+        # save metadata
 
-    print('Using the config file: {}'.format(config_file))
-    e.load_config(config_file)
+        #e.save_scan_metadata()
+        #e.save_scan_metadata()
+        #e.VariableWaveplate.set_analog_value(1,2.25*ur('volt'))
+        # perform scan
+        # e.set_scan()
+        # e.do_scan()
+        # e.make_sound()
 
-    # read properties just loaded
-    print('\n {} \n'.format(e.properties))
-
-    #  remember you can change these values directly here
-    #e.properties['Scan']['start'] = '0.5V'
-
-
-    # # Initialize devices
-    print('\n-------------- LOADING DEVICES ----------------\n')
-    e.load_instruments()
-    print(e.instruments_instances.keys())
-    print('-------------- DONE LOADING DEVICES ----------------')
-    #
-
-    #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
-    e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
-    e.perform_measurement(e.properties['Measurements']['Measurement A'])
-    # save metadata
-    # print(yaml.dump(e.properties['Measurements']['Measurement A']))
+        # # save data
+        # e.save_scan_data()
 
 
     print('--------------------- DONE with the experiment')
-

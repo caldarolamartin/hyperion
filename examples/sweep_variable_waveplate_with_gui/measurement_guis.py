@@ -6,7 +6,7 @@ Measurement GUIs
 This file contains the code to create different guis, one for each measurement you would like to perform.
 
 """
-import logging
+from hyperion import logging
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 from PyQt5.QtCore import pyqtSlot, QTimer
 from hyperion.view.base_guis import BaseGraph

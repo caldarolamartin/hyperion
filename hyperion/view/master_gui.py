@@ -14,12 +14,11 @@ import importlib
 import random
 import string
 import sys
-import logging
+from hyperion import logging
 import pyqtgraph as pg
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QPushButton, QVBoxLayout, QAction
-
 from examples.example_experiment import ExampleExperiment
 
 
@@ -36,15 +35,21 @@ class MasterGui(QMainWindow):
         self.height = 500
         self.button_pressed = False
 
-        #
+        self.logger.debug('I am in the init of master gui')
         self.experiment = experiment
 
         self.initUI()
 
     def initUI(self):
+        self.logger.debug('I am in the initUIT of master gui')
+
         self.set_gui_specifics()
 
+        self.logger.debug('I set the gui specifics')
+
         self.get_view_instances_and_load_instruments()
+
+        self.logger.debug('I got view instances and loaded instruments')
 
         self.set_menu_bar()
 
@@ -429,18 +434,27 @@ class MasterGui(QMainWindow):
             #self.experiment.instruments_instances[instr] = the name of the instrument for a device. This is necessary
             #to communicate between instrument and view. Instance is still an instance of for example OsaView.
             self.logger.debug('Current view class: {}'.format(MyClass))
+            self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
             try:
                 instance = MyClass(self.experiment.instruments_instances[instr])
+                # instance = MyClass(dictionairy)
+                # self.experiment.view_instances[name] = instance
+
                 self.logger.debug('{} view object created'.format(name))
+                #return instance
             except Exception:
                 #this is necessary to initialise gui's which need to connect to a graph gui.
                 instance = MyClass(self.experiment.instruments_instances[instr], self.experiment.graph_view_instance[name + "Graph"])
                 self.logger.debug('Instance in the Exception: {}'.format(instance))
+
             self.experiment.view_instances[name] = instance
+            #return instance
+
         except KeyError:
-            print("the view key(aka,"+str(name)+") does not exist in properties.\n This not a bad thing, if there is a gui, "
+            self.logger.warning("the view key(aka,"+str(name)+") does not exist in properties.\n This not a bad thing, if there is a gui, "
                                                 "then you can ignore this message.\n")
             return None
+
 
     def load_measurement_gui(self, name, view_path, graph = None):
         """ Loads the measurement gui. The controls, called view and the graph.

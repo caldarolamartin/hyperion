@@ -66,8 +66,7 @@ import sys
 import ctypes
 import math
 import os
-import numpy as np
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
 if sys.maxsize > 2**32:
     print('64 bit PC')
@@ -83,7 +82,7 @@ class Anc350(BaseController):
     :param settings: this includes all the settings needed to connect to the device in question.
     :type settings: dict
     """
-    def __init__(self, settings={'dummy': False}):
+    def __init__(self, settings):
         """ INIT of the class """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
@@ -811,11 +810,10 @@ def debitmask(input_int,num_bits = False):
 
 
 if __name__ == "__main__":
-    import hyperion
 
     import time
 
-    with Anc350() as anc:
+    with Anc350(setting = {'dummy': False}) as anc:
         anc.initialize()
 
         #-------------------------------

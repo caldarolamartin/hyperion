@@ -12,9 +12,8 @@
 """
 import serial
 from time import sleep
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
-from hyperion.controller.dummy_resource_manager import DummyResourceManager
 
 
 class AaModd18012(BaseController):
@@ -488,8 +487,6 @@ class AaModd18012Dummy(AaModd18012):
 
 
 if __name__ == "__main__":
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.DEBUG)
 
     with AaModd18012(settings={'port':'COM10', 'dummy': False}) as dev:
         dev.initialize()

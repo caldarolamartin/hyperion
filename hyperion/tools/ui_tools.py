@@ -6,7 +6,7 @@ UI tools
 We group many functions useful for when building GUIS.
 
 """
-import logging
+from hyperion import logging
 from numpy import log10
 from hyperion import Q_
 

@@ -1,5 +1,12 @@
+"""
+===============
+Beam Flags view
+===============
+
+
+"""
 import hyperion
-import logging
+from hyperion import logging
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -147,12 +154,6 @@ class BeamFlagsGui(QWidget):
 if __name__ == '__main__':
     import yaml
     import os
-    # import hyperion
-
-    hyperion.set_logfile(os.path.basename(__file__)+'.log')
-    hyperion.stream_logger.setLevel(logging.DEBUG)
-    hyperion.file_logger.setLevel(logging.DEBUG)
-
 
     example_config_file = 'beam_flags_example_config.yml'
     example_config_filepath = os.path.join(hyperion.root_dir, 'view', 'misc', example_config_file)
@@ -162,7 +163,7 @@ if __name__ == '__main__':
     # beam_flag_settings['port']='COM4'   # modify the port if required
 
     with BeamFlagsInstr(beam_flag_settings) as instr:
-        instr.initialize()
+        #instr.initialize()    # removed this line because instruments should initialize themselves
         app = QApplication(sys.argv)
         ex = BeamFlagsGui(instr)
         # sys.exit(app.exec_())

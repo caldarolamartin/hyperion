@@ -6,22 +6,18 @@ ANC350 Attocube Instrument
 This is the instrument level of the position ANC350 from Attocube (in the Montana)
 
 """
-
-import logging
+from hyperion import logging
 import yaml           #for the configuration file
 import os             #for playing with files in operation system
-import sys
 import time
 import numpy as np
 from hyperion import root_dir
-
 from hyperion.instrument.base_instrument import BaseInstrument
-
 from hyperion import ur
 
 class Anc350Instrument(BaseInstrument):
     """
-    Anc 350 instrument class
+    Anc 350 instrument class.
     """
     def __init__(self, settings):
         """ init of the class"""
@@ -42,7 +38,8 @@ class Anc350Instrument(BaseInstrument):
         self.initialize()
 
     def initialize(self):
-        """ Starts the connection to the device
+        """ | Starts the connection to the device by initializing the controller.
+        | Loads the axis names from the yml file.
         """
         self.logger.info('Opening connection to anc350.')
         self.controller.initialize()
@@ -57,13 +54,17 @@ class Anc350Instrument(BaseInstrument):
         #         self.attocube_piezo_dict[module] = info[module]['axis']
         #         print(self.attocube_piezo_dict)
 
-
         with open(filename, 'r') as f:
             self.attocube_piezo_dict = yaml.load(f, Loader=yaml.FullLoader)
 
         self.logger.info('Started the connection to the device and loaded the axis names yml file')
 
     def get_position(self, axis):
+        """ Asks the position from the controller level. This method is useful in higher levels where you want to display the position.
+
+        :param axis: stepper axis, XPiezoStepper, YPiezoStepper or ZPiezoStepper
+        :type axis: string
+        """
         ax = self.attocube_piezo_dict[axis]['axis']  # otherwise you keep typing this
         self.current_positions[axis] = round(self.controller.getPosition(ax) * ur('nm').to('mm'), 6)
 
@@ -133,7 +134,7 @@ class Anc350Instrument(BaseInstrument):
             return
 
     def capacitance(self,axis):
-        """Measures the capacitance of the stepper or scanner; no idea why you would want to do that
+        """Measures the capacitance of the stepper or scanner; no idea why you would want to do that.
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner, XPiezoStepper, etc.
         :type axis: string
@@ -156,11 +157,12 @@ class Anc350Instrument(BaseInstrument):
         self.logger.debug('is the scanner on INT mode? ' + str(self.controller.getIntEnable(self.attocube_piezo_dict[axis]['axis'])))
 
     def check_if_moving(self,axis,position):
-        """
-        | Checks whether the piezo is actually moving
-        | It checks if you are not out of range, or putting a too low voltage
-        | if that's okay, it keeps checking whether you are actually moving
-        | If the average moving is below the threshold of 1 um, this method will raise an exception
+        """| **work in progress!**
+        | Checks whether the piezo is actually moving.
+        | It checks if you are not out of range, or putting a too low voltage.
+        | If that's okay, it keeps checking whether you are actually moving.
+        | However, the status of the piezo is not always correct, and the movement is not linear, so this method is not finished yet.
+        | It also keeps checking whether self.stop is True, and asking the position. This can be used in higher levels with threads and timers.
 
         :param axis: scanner axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -275,8 +277,8 @@ class Anc350Instrument(BaseInstrument):
 
 
     def move_to(self,axis,position):
-        """| Moves to an absolute position with the Stepper and tells when it arrived
-        | **Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo**
+        """| Moves to an absolute position with the Stepper and tells when it arrived.
+        | **Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo.**
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -296,8 +298,8 @@ class Anc350Instrument(BaseInstrument):
 
 
     def move_relative(self, axis, step):
-        """| Moves the Stepper by an amount to be given by the user
-        | **Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo**
+        """| Moves the Stepper by an amount to be given by the user.
+        | **Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo.**
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -317,8 +319,8 @@ class Anc350Instrument(BaseInstrument):
             self.logger.info('has moved ' + str(round(begin - end, 6)))
 
     def given_step(self,axis,direction,amount):
-        """| Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different
-        | *You have to give it a lot of time, things break if you ask too much whether it is finished yet*
+        """| Moves by a number of steps that theoretically should be determined by the set amplitude and frequency; in practice it's different.
+        | *You have to give it a lot of time, things break if you ask too much whether it is finished yet.*
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -351,7 +353,7 @@ class Anc350Instrument(BaseInstrument):
             self.logger.info('average step size is ' + str(round(av_steps)*ur('nm')))
 
     def move_continuous(self, axis, direction):
-        """Keeps moving the stepper axis untill you manage to stop it (for which you need threading)
+        """Keeps moving the stepper axis until you manage to stop it (for which you need threading).
 
         :param axis: stepper axis to be set, XPiezoStepper, YPiezoStepper or ZPiezoStepper
         :type axis: string
@@ -372,9 +374,9 @@ class Anc350Instrument(BaseInstrument):
 
 
     def move_scanner(self, axis, voltage):
-        """ | Moves the Scanner by applying a certain voltage
-        | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V*
-        | Pay attention: if you put this one to 0V, it sort of turns itself off; and it takes a lot of time to get it running again, if you make a large step (10V or so)
+        """ | Moves the Scanner by applying a certain voltage.
+        | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V.*
+        | Pay attention: if you put this one to 0V, it sort of turns itself off; and it takes a lot of time to get it running again, if you make a large step (10V or so).
 
         :param axis: scanner axis to be set, XPiezoScanner, YPiezoScanner or ZPiezoScanner
         :type axis: string
@@ -384,10 +386,12 @@ class Anc350Instrument(BaseInstrument):
         """
 
         if 0 <= voltage.m_as('mV') <= self.controller.max_dclevel_mV:
-            self.logger.info('moving '+ axis +' by putting ' + str(voltage))
+            self.logger.info('moving {} by putting {}'.format(axis, voltage))
             self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis]['axis'], voltage.m_as('mV')))
 
             self.controller.dcLevel(self.attocube_piezo_dict[axis]['axis'], int(voltage.m_as('mV')))
+
+            time.sleep(0.5)
 
             # dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
             #
@@ -412,7 +416,7 @@ class Anc350Instrument(BaseInstrument):
             return
 
     def stop_moving(self, axis):
-        """Stops moving to target/relative/reference position
+        """Stops moving to target/relative/reference position.
 
         :param axis: scanner or stepper axis to be set, XPiezoStepper, XPiezoScanner, YPiezoScanner etc
         :type axis: string
@@ -420,41 +424,42 @@ class Anc350Instrument(BaseInstrument):
         self.controller.stopApproach(self.attocube_piezo_dict[axis]['axis'])
 
     def finalize(self):
-        """ This is to close connection to the device
+        """ This is to close connection to the device.
         """
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
 
 if __name__ == "__main__":
-    import hyperion
 
-    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
-        axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
-        ampl = 30*ur('V')   #30V
-        freq = 100*ur('Hz')    #Hz
+#    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
 
-        q.configure_stepper(axis, ampl, freq)
+    q = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'})
+    axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
+    ampl = 30*ur('V')   #30V
+    freq = 100*ur('Hz')    #Hz
 
-        #q.move_to(axis,2.1*ur('mm'))
+    #q.configure_stepper(axis, ampl, freq)
 
-        # q.move_continuous(axis,1)
-        # for ii in range(10):
-        #     time.sleep(0.1)
-        #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
-        # q.stop_moving(axis)
+    #q.move_to(axis,2.1*ur('mm'))
 
-        q.move_relative(axis, -100 * ur('um'))
+    # q.move_continuous(axis,1)
+    # for ii in range(10):
+    #     time.sleep(0.1)
+    #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
+    # q.stop_moving(axis)
 
-        # direct = 0  #forward
-        # steps = 1  #amount of steps
-        #
-        # q.given_step(axis,direct,steps)
-        #
-        axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
+    #q.move_relative(axis, -100 * ur('um'))
 
-        q.configure_scanner(axis)
+    # direct = 0  #forward
+    # steps = 1  #amount of steps
+    #
+    # q.given_step(axis,direct,steps)
+    #
+    axis = 'XPiezoScanner'  #x of scanner, should be in yml file for experiment and gui
 
-        volts = 1*ur('V')
-        q.move_scanner(axis,volts)
+    q.configure_scanner(axis)
+
+    #volts = 1*ur('V')
+    #q.move_scanner(axis,volts)
 

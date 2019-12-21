@@ -1,2 +1,0 @@
-.. automodule:: hyperion.controller.thorlabs.TDC001
-    :members:

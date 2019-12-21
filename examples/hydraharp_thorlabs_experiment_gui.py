@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import QApplication
 from hyperion.view.master_gui import MasterGui
 from examples.example_experiment import ExampleExperiment
 from hyperion.instrument.correlator.hydraharp_instrument import HydraInstrument
-from hyperion.instrument.motor.thorlabs_motor_instrument import Thorlabsmotor
+from hyperion.instrument.position.thorlabs_motor_instr import Thorlabsmotor
+# from hyperion.core import logman
 from hyperion import ur
 ureg = ur
 
@@ -21,7 +22,7 @@ def hydraharp_and_thorlabsmotor_experiment():
     """
     #create instances of the correlator and thorlabsmotor
     hydra = HydraInstrument(settings={'devidx':0, 'mode':'Histogram', 'clock':'Internal',
-                                   'controller': 'hyperion.controller.picoquant.correlator/Hydraharp'})
+                                   'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'})
     motor = Thorlabsmotor()
     #initialize the correlator and thorlabsmotor
     #motor.initialize(83815760)
@@ -36,7 +37,7 @@ def hydraharp_and_thorlabsmotor_experiment():
         #for each step their should be done a scan and the motor should move a certain distance
         #take histogram with the correlator
         hydra.set_histogram(leng=65536, res=8.0 * ureg('ps'))
-        hist = hydra.make_histogram(tijd=5 * ureg('s'), count_channel=0)
+        hist = hydra.make_histogram(integration_time=5 * ureg('s'), count_channel=0)
         #move the motor 0.01 micrometer
         motor.move_relative(0.01)
     motor.finalize()

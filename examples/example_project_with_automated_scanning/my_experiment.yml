@@ -1,0 +1,265 @@
+User:
+  name: Aron
+
+Saving:
+  auto: True
+  directory:
+
+Instruments:
+  HydraHarp:
+    port: COM0
+    mode: Histogram
+    clock: Internal
+    devidx: 0
+    instrument: hyperion.instrument.correlator.hydraharp_instrument/HydraInstrument
+    controller: hyperion.controller.picoquant.correlator/Hydraharp
+    view: hyperion.view.correlator.hydraharp_gui/App
+    graphView: hyperion.view.correlator.hydraharp_gui/DrawHistogram
+  VariableWaveplate:
+    port: COM8
+    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
+    controller: hyperion.controller.thorlabs.lcc25/Lcc
+    dummy: True
+    enable: True
+    settings: # not implemented yet
+      output: True
+      voltage1: 1V
+      voltage2: 1V
+  ExampleInstrument:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    dummy: True
+    settings:
+      output: True
+  xMotor:
+    serial_number: 83841160 #83817644
+    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+    controller: hyperion.controller.thorlabs.TDC001/TDC001
+  yMotor:
+    serial_number: 83850123 #83815760
+    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+    controller: hyperion.controller.thorlabs.TDC001/TDC001
+  zMotor:
+    serial_number: 83850111 #83815758
+    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+    controller: hyperion.controller.thorlabs.TDC001/TDC001
+  testMotor:
+    serial_number: 83817677
+    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+    controller: hyperion.controller.thorlabs.TDC001/TDC001
+  piezoMotor:
+    serial_number: 81818266
+    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+    controller: hyperion.controller.thorlabs.TDC001/TDC001
+  XPiezoStepper:
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+    axis_number: 0
+  YPiezoStepper:
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+    axis_number: 2
+  ZPiezoStepper:
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+    axis_number: 1
+  XPiezoScanner:
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+    axis_number: 3
+  YPiezoScanner:
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+    axis_number: 5
+  ZPiezoScanner:
+    controller: hyperion.controller.attocube.anc350/Anc350
+    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+    axis_number: 4
+  ExampleInstrument_2:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_3:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_4:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_5:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+    dummy: True
+    settings:
+      output: True
+  OsaInstrument:
+    port: AUTO
+    instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
+    controller: hyperion.controller.osa.osa_controller/OsaController
+    view: hyperion.view.osa.osa_gui/OsaGui
+    graphView: hyperion.view.osa.osa_gui/DrawSpectrum
+    dummy: False
+  Gui_with_graph:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_7:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    dummy: True
+    settings:
+      output: True
+  ExampleInstrument_8:
+    port: COM0
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    dummy: True
+    settings:
+      output: True
+
+MetaInstruments:
+  SampleXyzStageMotor:
+    x: xMotor
+    y: yMotor
+    z: testMotor
+
+
+# Choice of capitals, underscores and tilde:
+# Because of the
+# Name      Mandatory and unique. 'N' causes it to be on top when alphabetized
+# Type      Optional but recommended. Refers to type in ActionTypes list. 'T' causes it to be second when alphabetized.
+# _method   Optional. Usually this is set in the ActionType, but if it is specified here it supercedes the one in the
+#           ActionType. _method refers to a method in the experiment class. '_' causes it to be after the Captitals.
+# _ui       Optional. Usually this is set in the ActionType, but if it is specified here it supercedes the one in the
+#           ActionType. _ui refers to gui python class. '_' causes it to be after the Captitals.
+# other     Other parameter can be specified as desired. These will mostly be the settings changed by the user.
+#   params  They should start with a lowercase letter. They will supercede a default values in the ActionType of the same name.
+# ~nested   If other Actions are to be performed from inside an Action those can be specified as a list in this key.
+#           Typically used when looping. The '~' makes this key always appear last when alphabetized.
+
+
+# A Measurement should consist of a list of Actions.
+# Each Action is a dictionary of the following structure:
+# It has a mandatory Name, which has to be unique for that measurement. Note that Name is with a capital N.
+# It has an optional Type which has to refer to an exisiting ActionType in the list of ActionTypes. The ActionType is
+# used to hold default values and hide away values that are not
+#
+# An Action can have nested Action inside (for example inside an action that loops over )
+# These nested actions are placed in a list with key ~nested
+# Name should
+Measurements:       # dictionary of Measurement s
+  Measurement A:      # a Measurement is a list of Actions
+#    - Name: DataFile     # special element in the actionlist
+#      Type: saver
+#        folder: None
+#        filename: None
+    - Name: before      # an Action is a dictionary
+      Type: image
+      exposuretime: 5
+      _view: gui.gui_elements/ExampleActionGui
+    - Name: atto X
+      Type: atto_scanner
+      axis: x
+      start: 2mm    # if you use 'start', 'step' and 'stop' array_from_settings_dict() can interpret it automatically
+      step: 100um
+      stop: 3mm
+      ~nested:
+      - Name: spec long
+        Type: spectrum
+        _method: spectrum_modified   # when specifying the _method it will overrule the one in ActionType
+        exposuretime: 5
+      - Name: atto Y
+        Type: atto_scanner
+        axis: y
+        start: 4mm
+        stop: 5mm
+        num: 6      # instead of using 'step', array_from_settings_dict() also understands 'num' as the number of points
+        ~nested:
+        - Name: histogram
+          Type: histogram
+          _ui: None   # You can specify a different _ui or set it to None to prevent it from showing
+          exposuretime: 4
+      - Name: insideXafterY
+        _view: gui.gui_elements/ExampleActionGui
+        _method: insideXafterY
+    - Name: after
+      exposuretime: 3
+      _view: gui.gui_elements/ExampleActionGui
+      _method: image_modified                     # It's possible to not use Type. In that case _method HAS TO BE SPECIFIED
+      _ui: examples.view.spectrum_gui/ImageGui    # You can also include the _ui if you want to show a gui.
+
+
+# ActionTypes are used to specify 'defaults' for an Action.
+# (Multiple Actions could be of the same ActionType)
+# 'ActionTypes' is a dictionary. The keys are the names of each ActionType
+# Each ActionType is a dictionary itself holding in the dictionary of parameters.
+# At the moment of "loading"(?) the Measurement all keys without an underscore (_) are copied to the Action.
+# You can interpret keys without an underscore as default values to be loaded into the Action.
+# Keys with an underscore are not copied
+# Special undercore keys are _method an _ui. _method specifies the name of the method to be called.
+# _ui specifies the gui file to load for building the gui of the Measurement.
+# Note that if the Action contains a _ui or a _method, those will be used instead of the one in the ActionType.
+# Note that an Action does not necessarily have to specify a Type. If no ActionType is specified, the _method has to be
+# specified in the Action and if a gui is required _ui has to be specified as well
+ActionTypes:        # dictionary
+  saver:
+    _method: create_saver
+    _ui: view.base_guis/SaverWidget
+    version: newest
+  atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
+    _axes:              # key inside the ActionType-dictionary atto_scanner
+      - x
+      - y
+      - z
+    _method: sweep_atto # key inside the ActionType-dictionary atto_scanner
+    _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
+    _view: gui.gui_elements/ExampleActionGui
+  histogram:
+    _method: histogram
+    _view: gui.gui_elements/ExampleActionGui
+    exposuretime: 3
+  image:
+    _method: image
+    _view: gui.gui_elements/ExampleActionGui
+    _ui: image.ui
+    exposuretime: 1
+  spectrum:
+    exposuretime: 2
+    _view: gui.gui_elements/ExampleActionGui
+    _method: spectrum
+    _ui: spectrum.ui
+
+
+#Measurements:
+#  #specific for this experiment
+#  #list of measurement views which need to be loaded and accesible for the main experiment class.
+#  exampleMeasurement:
+#    view: examples.measurement_gui/App
+#    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+    
+Data:
+  save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
+  data_type: txt

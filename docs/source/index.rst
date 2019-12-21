@@ -20,3 +20,4 @@ Index for this documentation
     users
     contributors
     developers
+    core

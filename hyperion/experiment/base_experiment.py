@@ -3,15 +3,172 @@
     Base Experiment
     ===============
 
+    TO DO:
+
+    - stop copying everything when verifying list
+    - grab type info while executing
+
+
     This is a base experiment class. The propose is put all the common methods needed for the experiment
     classes so they are shared and easily modified.
 
 """
 import os
-import logging
+from hyperion.core import logman as logging
 import yaml
 import importlib
+import hyperion
+import time
 from hyperion.tools.saving_tools import name_incrementer
+# from hyperion.tools.saver import Saver
+import copy
+# import h5py
+import numpy as np
+
+# class autosaver:
+#     """
+#     :param filepath:
+#     :param experiment:
+#     :param version:
+#     :param append:
+#     """
+#
+#     file_version_compatability = {0.10:[0.1, 0.02, 0.01],
+#                                   0.02:[0.1, 0.02, 0.01],
+#                                   0.01:[0.01]}
+#     def __init__(self, filepath, experiment, version=0.1, append=False, dialogs=None):
+#         self.logger = logging.getLogger(__name__)
+#         self.version = version
+#         if version not in file_version_compatability.keys():
+#             self.version = sorted(self.file_version_compatability.keys)[-1]
+#             self.logger.warning("Invalid version {}, using version {} instead".format(version, self.version))
+#         self.filepath = filepath
+#         valid = False
+#         while not valid:
+#             if os.path.isfile(self.filepath):
+#                 self.logger.warning('File exists: {}'.format(self.filepath))
+#                 if not append:
+#                     inp = input('File exists. choose [D]ifferent filename, try to [M]odify/append, or [Overwrite]: ')
+#                     if inp[0].lower()=='d':
+#                         self.filepath = input('New file name: ')
+#                         continue
+#                     if inp[0].lower()=='m': append=True
+#                 else:
+#                     try:
+#                         self.h5 = h5py.File(filepath, 'a')
+#                     except OSError as e:
+#                         self.logger.warning("Can't open file. Exception: {}".format(e))
+#                         continue
+#                     if 'hyperion_file_version' not in self.h5.attrs:
+#                         print("Can't try to append/modify file because not a hyperion file type.")
+#                         self.h5.close()
+#                         continue
+#                     else:
+#                         file_version = self.h5.attrs['hyperion_file_version']
+#                         if file_version not in self.file_version_compatability{self.version}:
+#                             print("Can't modify version {} file with version {} settings.".format(file_version, self.version))
+#                             self.h5.close()
+#                             continue
+#                     print('Modifying existing file')
+#                     self.h5.attrs['hyperion_file_modified'] = self.version
+#                     valid = True
+#             else:
+#                 try:
+#                     self.h5 = h5py.File(filepath, 'w')
+#                 except OSError as e:
+#                     self.logger.warning("Can't create file. Exception: {}".format(e))
+#                     continue
+#                 self.h5.attrs['hyperion_file_version'] = self.version
+#                 valid = True
+#
+#     def __enter__(self):
+#         return self
+#
+#     def __exit__(self, exc_type, exc_val, exc_tb):
+#        self.h5.close()
+#
+#     def coord(self):
+#         pass
+#
+#     def data(self, name, data, flush=True):
+#         """
+#
+#
+#         :param name: Unique name (suggested to use actiondict['Name'])
+#         :return:
+#         """
+#         pass
+#         # self.exp._nesting_parents
+#         # self.exp._nesting_indices
+
+
+class DefaultDict(dict):
+    """
+    Special dictionary that returns obj.default_dict[key] if obj.main_dict[key] doesn't exist.
+    Writing and deleting always act on main_dict.
+    Methods like keys(), values(), items() act on the combined list.
+    Original default_dict is never changed. Also changes to default_dict after creation of obj are ignored.
+
+    obj = DefaultDict(main_dict, default_dict)
+
+    :param main_dict: dict
+    :param default_dict: dict (defaults to {})
+    """
+
+    def __init__(self, main_dict, default_dict={}):
+        combined = copy.deepcopy(default_dict)
+        combined.update(main_dict)
+        super().__init__(combined)
+
+        self.main_dict = main_dict
+        self.default_dict = copy.deepcopy(default_dict)
+
+    def __getitem__(self, key):
+        if key in self.main_dict:
+            return self.main_dict[key]
+        elif key in self.default_dict:
+            return self.default_dict[key]
+        else:
+            raise KeyError(key)
+
+    def __setitem__(self, key, value):
+        self.main_dict[key] = value
+        super().__setitem__(key, value)
+
+    def __delitem__(self, key):
+        if key in self.main_dict:
+            del self.main_dict[key]
+        super().__delitem__(key)
+
+    def __repr__(self):
+        return self.__dict__.__repr__()
+
+    def __str__(self):
+        return self.__dict__.__str__()
+
+
+class ActionDict(DefaultDict):
+    def __init__(self, actiondict, types={}, exp=None):
+        """
+        Special dictionary similar to DefaultDict except it used actiondict['Type] to extracts the default_dict either
+        from types, a dictionary of ActionTypes, or from exp, an Experiment.
+        See DefaultDict for more information.
+        Note: if both types and experiment are specified, types is used.
+
+        :param actiondict: dict (following the Action dictionary format)
+        :param types: dict of ActionTypes (which are dicts following the Action dictionary format) (optional, defaults to {})
+        :param exp: object of type BaseExperiment (which should contain .properties['ActionTypes']) (optional, defaults to None)
+
+        """
+
+        if types == {} and exp is not None:
+            types = exp.properties['ActionTypes']
+
+        if 'Type' in actiondict and actiondict['Type'] in types:
+            actiontype = types[actiondict['Type']]
+        else:
+            actiontype = {}
+        super().__init__(actiondict, actiontype)
 
 
 class BaseExperiment():
@@ -34,6 +191,137 @@ class BaseExperiment():
 
         self.filename = ''
 
+        # Flags that can be set externally to control the flow of a measurement:
+        self.apply_pause = False   # used for temporarily interrupting a measurement
+        self.apply_break = False   # used for a soft stop (e.g. stop after current loop iteration)
+        self.apply_stop =  False   # used for a hard stop
+        # Current status of the measurement:
+        self.running_status = 0    # 0 for not running, 1 for running, 1 for paused, 2 for breaking, 3 for stopping
+        self._not_running = 0
+        self._running =     1
+        self._pausing =      2
+        self._breaking =    3
+        self._stopping =    4
+
+        self._valid = False  # is this used?
+
+        self._nesting_indices = []
+        self._nesting_parents = []
+        self._measurement_name = 'data'
+
+        self._auto_save_store = None
+
+
+    def reset_measurement_flags(self):
+        self.apply_pause = False   # used for temporarily interrupting a measurement
+        self.apply_break = False   # used for a soft stop (e.g. stop after current loop iteration)
+        self.apply_stop =  False   # used for a hard stop
+        self.running_status = 0  # 0 for not running, 1 for paused, 2 for breaking, 3 for stopping
+
+    # decorator for stopping function:
+    def check_stop(function):
+        def wrapper_accepting_arguments(self, *args, force = False, **kwargs):
+            if force: self.apply_stop = True
+            if self.apply_stop or force:
+                self.running_status = self._stopping
+                function(self, *args, **kwargs)
+                self.reset_measurement_flags()
+                return True
+            return False
+        return wrapper_accepting_arguments
+
+    # decorator for breaking function:
+    def check_break(function):
+        def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
+            if force: self.apply_break = True
+            if self.apply_break:
+                self.running_status = self._breaking
+                function(self, *args, **kwargs)
+                self.reset_measurement_flags()      # maybe this line should go out
+                return True
+            return False
+        return wrapper_accepting_arguments
+
+    # def check_stop(self, stop_method=None, *args, **kwargs):
+    #     if self.apply_stop:
+    #         self.running_status = self._stopping        # the first line
+    #         if stop_method is None:
+    #             self.logger.info('Stopping measurement. Optional: input alternative method to call when Stopping.')
+    #         else:
+    #             stop_method( *args, **kwargs)
+    #         self.reset_measurement_flags()              # the last line
+    #         return True
+    #     return False
+
+    # decorator for pausing function:
+    def check_pause(function):
+        def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
+            if force: self.apply_pause = True
+            if self.apply_pause:
+                store_state = self.running_status
+                self.running_status = self._pausing
+                ret = function(self, *args, **kwargs)
+                self.running_status = store_state
+                self.apply_pause = False
+                return ret
+            return False
+        return wrapper_accepting_arguments
+
+
+    # def check_pause(self, pause_method=None, stop_method=None, *args, **kwargs):
+    #     if self.apply_pause:
+    #         store_state = self.running_status
+    #         self.running_status = self._pausing
+    #         self.logger.info('Pausing Measurement. Optional: input alternative method to call when pausing (or override default pause_measurment).')
+    #         if pause_method is None:
+    #             self.pause_measurement(*args, **kwargs)
+    #         else:
+    #             pause_method(*args, **kwargs)
+    #         self.running_status = store_state
+    #         self.apply_pause = False
+
+    def dummy_measurement_for_testing_gui_buttons(self):
+        self.logger.info('Starting test measurement')
+        self.reset_measurement_flags()
+        self.running_status = self._running
+        for outer in range(4):
+            print('outer', outer)
+            for inner in range(4):
+                print('    inner', inner)
+                time.sleep(1)
+                if self.stop_measurement(): return      # Use this line to check for stop
+                if self.pause_measurement(): return     # Use this line to check for pause
+            if self.apply_break:
+                # Place a breakpoint where the measurement will stop
+                self.apply_stop = True
+                self.stop_measurement()
+                return                                              # you still need to stop the measurement
+        self.reset_measurement_flags()
+        self.logger.info('Measurement finished')
+
+    @check_stop
+    def stop_measurement(self):
+        """ The decorator also gives it one extra keyword argument 'force' which will set the apply_stop flag for you. """
+        self.logger.info('Custom stop method: Override if you like. Just use @check_stop decorator')
+        # Do stuff
+        self.reset_measurement_flags()
+        self.logger.info('Measurement stopped')
+
+    @check_break
+    def break_measurement(self):
+        self.logger.info('Custom break method: Override if you like. Just use @check_break decorator')
+        # Do stuff
+        # Should end with stopping:
+        self.stop_measurement(force=True)
+
+    @check_pause
+    def pause_measurement(self):
+        self.logger.info('Custom pause method. Override if you like. Just use @check_pause decorator')
+        while self.apply_pause:
+            # While in pause mode: check if stop is "pressed":
+            if self.stop_measurement(): return True        # in that case return True
+
+
     def __enter__(self):
         return self
 
@@ -43,36 +331,43 @@ class BaseExperiment():
 
     # SMARTSCAN METHODS: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    def _validate_actionlist(self, actionlist, _complete=None):
+
+    def _validate_actionlist(self, actionlist, _complete=None, invalid_methods=0, invalid_names=0):
         """
-        returns a corrected copy (does not modify input)
+        returns a corrected copy (does not modify input) and
 
         _validate_actionlist(complete_actionlist)
         _complete is used for recursion
         """
-        import copy
-        local_actionlist = copy.deepcopy(actionlist)
+        local_actionlist = copy.deepcopy(actionlist)        # this is required for a new copy (without it the original gets modified)
         # recursive function
         if _complete is None:
             _complete = local_actionlist
+
         # Note: approach with 'for act in local_actionlist' would not change the list
         for indx in range(len(local_actionlist) - 1, -1, -1):
-            local_actionlist[indx] = self._validate_actiondict(local_actionlist[indx], _complete)
+            local_actionlist[indx], method_invalid, name_invalid = self._validate_actiondict(local_actionlist[indx], _complete)
+            invalid_methods += method_invalid
+            invalid_names += name_invalid
             #            print(act)
             #            print(local_actionlist)
             if '~nested' in local_actionlist[indx]:
-                local_actionlist[indx]['~nested'] = self._validate_actionlist(local_actionlist[indx]['~nested'], _complete)
-        return local_actionlist
+                local_actionlist[indx]['~nested'], invalid_methods, invalid_names = self._validate_actionlist(local_actionlist[indx]['~nested'], _complete, invalid_methods, invalid_names)
+                # invalid_methods += method_invalid
+                # invalid_names += name_invalid
+        return local_actionlist, invalid_methods, invalid_names
 
     def _validate_actiondict(self, actiondictionary, complete_actionlist):
         """
         returns new corrected dictionary (does not alter the dictionary )
         """
-        import copy
         actiondict = copy.deepcopy(actiondictionary)
-        # auto gerate a name if it doesn't exist
+
+        # Auto generate a name if it doesn't exist
+        invalid_name = 0
         all_names, unnamed = self.all_action_names(complete_actionlist)
         if 'Name' not in actiondict:
+            invalid_name = 1
             if '_method' in actiondict:
                 actiondict['Name'] = name_incrementer(actiondict['_method'], all_names, ' ')
             elif 'Type' in actiondict:
@@ -84,73 +379,97 @@ class BaseExperiment():
         # Test if name is duplicate
         action_name = actiondict['Name']
         if all_names.count(action_name) > 1:
+            invalid_name = 1
             actiondict['Name'] = name_incrementer(action_name, all_names, ' ')
             self.logger.warning("Duplicate Action Name. Changed '{}' to '{}'".format(action_name, actiondict['Name']))
         action_name = actiondict['Name']
 
-        # It method is specified in actiondict, test if the method exists.
-        # If not, set a flag to overwrite it with the one in actiontype
-        method_name = None
-        invalid_method = False
+        # Test if valid method specified
+        invalid_method = 0
         if '_method' in actiondict:
             method_name = actiondict['_method']
             if not hasattr(self, method_name):
-                self.logger.warning("[in Action: '{}'] _method '{}' doesn't exist, (trying default)".format(action_name, method_name))
-                invalid_method = True
-
-        # copy default parameters from action if they don't exist in actiondict
-        if 'Type' not in actiondict:
-            if invalid_method or method_name is None:
-                self.logger.warning("error: [in '{}'] if no ActionType is specified, a valid _method is required".format(method_name))
-                # NOTE TO SELF: WHY method_name ??????????????
-        else:
-            actiontype = actiondict['Type']
-            if actiontype not in self.actiontypes:
-                self.logger.warning("[in action: '{}'] unknown ActionType: '{}'".format(action_name, actiontype))
+                invalid_method = 1
+                self.logger.warning("[Action: '{}'] _method '{}' doesn't exist, (trying _method from ActionType)".format(action_name, method_name))
+        if invalid_method:
+            if 'Type' not in actiondict:
+                self.logger.error("[in Action: '{}'] No Type specified".format(action_name))
+            elif "_method" not in self.actiontypes[actiondict['Type']]:
+                self.logger.error("[Action: '{}'] No _method specified in Type {}".format(action_name, actiondict['Type']))
+            elif not hasattr(self, self.actiontypes[actiondict['Type']]['_method']):
+                self.logger.error("[ActionType: '{}'] _method '{}' also doesn't exist".format(actiondict['Type'], self.actiontypes[actiondict['Type']]['_method']))
             else:
-                # Copy parameters that don't exist in actiondict. Except '_method'
-                for key in self.actiontypes[actiontype]:
-                    if key not in actiondict and key is not '_method':
-                        actiondict[key] = self.actiontypes[actiontype][key]
-                # Special case for '_method'
-                #                type_has_method = '_method' in self.actiontypes[actiontype]
-                #                if not type_has_method:
-                #                    if invalid_method or method_name is None:
-                #                        print('error: [in {}] no method specified'.format(actiontype))
-                #                else:
-                #                    if
+                self.logger.info("[ActionType: '{}'] has valid _method {}: removing _method from Action {}".format(actiondict['Type'], self.actiontypes[actiondict['Type']]['_method'], action_name))
+                del actiondict['_method']
+                valid_method = True
+        # if invalid_method:
+        #     raise NameError('No valid _method found')
+        return actiondict, invalid_method, invalid_name
 
-                if invalid_method or method_name is None:
-                    if '_method' in self.actiontypes[actiontype]:
-                        method_name = self.actiontypes[actiontype]['_method']
-                        if hasattr(self, method_name):
-                            if invalid_method:
-                                self.logger.debug('_method {} in [Action: {}] replaced with default _method {} from [ActionType: {}] overwriting Actiondict method with default from Actiontype: {}'.format(
-                                        actiondict['_method'], action_name, method_name, actiontype))
-                            actiondict['_method'] = method_name
-                            invalid_method = False
-                        else:
-                            self.logger.warning("error: [in ActionType: {}] default _method {} doesn't exist".format(actiontype,
-                                                                                                      method_name))
-                            method_name = None
-                    else:
-                        self.logger.warning('error: [in ActionType: {}] no _method specified'.format(actiontype))
 
-        #                if invalid_method and '_method' in self.actiontypes[actiontype]:
-        #                    methodname =  self.actiontypes[actiontype]['_method']
-        #                    if hasattr(self, methodname):
-        #                        actiondict['_method'] = methodname
-        #                        print('debug: overwriting actiondict method with default from actiontype: {}'.format(methodname))
-        #                        invalid_method = False
-        #                    else:
-        #                        methodname = None
-        #                        print("error: default method from actiontype {} also doesn't exist".format(methodname))
-        #                        raise Exception('_method doe')
-
-        if method_name is None:
-            self.logger.warning('No valid _method specified')
-
-        return actiondict
+        # # It method is specified in actiondict, test if the method exists.
+        # # If not, set a flag to overwrite it with the one in actiontype
+        # method_name = None
+        # invalid_method = False
+        # if '_method' in actiondict:
+        #     method_name = actiondict['_method']
+        #     if not hasattr(self, method_name):
+        #         self.logger.warning("[in Action: '{}'] _method '{}' doesn't exist, (trying default)".format(action_name, method_name))
+        #         invalid_method = True
+        #
+        # # copy default parameters from action if they don't exist in actiondict
+        # if 'Type' not in actiondict:
+        #     if invalid_method or method_name is None:
+        #         self.logger.warning("error: [in '{}'] if no ActionType is specified, a valid _method is required".format(method_name))
+        #         # NOTE TO SELF: WHY method_name ??????????????
+        # else:
+        #     actiontype = actiondict['Type']
+        #     if actiontype not in self.actiontypes:
+        #         self.logger.warning("[in action: '{}'] unknown ActionType: '{}'".format(action_name, actiontype))
+        #     else:
+        #         # Copy parameters that don't exist in actiondict. Except '_method'
+        #         for key in self.actiontypes[actiontype]:
+        #             if key not in actiondict and key is not '_method':
+        #                 actiondict[key] = self.actiontypes[actiontype][key]
+        #         # Special case for '_method'
+        #         #                type_has_method = '_method' in self.actiontypes[actiontype]
+        #         #                if not type_has_method:
+        #         #                    if invalid_method or method_name is None:
+        #         #                        print('error: [in {}] no method specified'.format(actiontype))
+        #         #                else:
+        #         #                    if
+        #
+        #         if invalid_method or method_name is None:
+        #             if '_method' in self.actiontypes[actiontype]:
+        #                 method_name = self.actiontypes[actiontype]['_method']
+        #                 if hasattr(self, method_name):
+        #                     if invalid_method:
+        #                         self.logger.debug('_method {} in [Action: {}] replaced with default _method {} from [ActionType: {}] overwriting Actiondict method with default from Actiontype: {}'.format(
+        #                                 actiondict['_method'], action_name, method_name, actiontype))
+        #                     actiondict['_method'] = method_name
+        #                     invalid_method = False
+        #                 else:
+        #                     self.logger.warning("error: [in ActionType: {}] default _method {} doesn't exist".format(actiontype,
+        #                                                                                               method_name))
+        #                     method_name = None
+        #             else:
+        #                 self.logger.warning('error: [in ActionType: {}] no _method specified'.format(actiontype))
+        #
+        # #                if invalid_method and '_method' in self.actiontypes[actiontype]:
+        # #                    methodname =  self.actiontypes[actiontype]['_method']
+        # #                    if hasattr(self, methodname):
+        # #                        actiondict['_method'] = methodname
+        # #                        print('debug: overwriting actiondict method with default from actiontype: {}'.format(methodname))
+        # #                        invalid_method = False
+        # #                    else:
+        # #                        methodname = None
+        # #                        print("error: default method from actiontype {} also doesn't exist".format(methodname))
+        # #                        raise Exception('_method doe')
+        #
+        # if method_name is None:
+        #     self.logger.warning('No valid _method specified')
+        #
+        # return actiondict
 
     def all_action_names(self, complete_actionlist):  # , name_list = [], unnamed=0):
         # outputlist = all_action_names(complete_actionlist)
@@ -209,43 +528,143 @@ class BaseExperiment():
                     return act
         return None
 
-    def perform_measurement(self, actionlist, parent = None):
+    def perform_measurement(self, measurement_name):
+        self._measurement_name = measurement_name
+        self.saver = None
+        # new_action_list, invalid_methods, invalid_names = self._validate_actionlist(self.properties['Measurements'][measurement_name])
+
+
+        if measurement_name in self.properties['Measurements']:
+            self.logger.debug('Starting measurement: {}'.format(measurement_name))
+            self.perform_actionlist(self.properties['Measurements'][measurement_name])
+        else:
+            self.logger.error('Unknown measurement: {}'.format(measurement_name))
+
+
+    # def perform_measurement(self, actionlist, parent_values = [], parents=[]):
+    def perform_actionlist(self, actionlist, parents=[], save=True):
+        """
+        Used to perform a measuement based on the actionlist
+
+        :param actionlist:
+        :param parents:
+        :param save:
+        :return:
+        """
+
+        if parents == []:
+            self._nesting_indices = []
+
+
+        if len(parents) > len(self._nesting_indices):
+            self._nesting_indices += [0]
+        elif len(parents) == len(self._nesting_indices):
+            if len(self._nesting_indices):
+                self._nesting_indices[-1] += 1
+        else:
+            print('??????????????')
+
+
+
+        # print('parents: ', parents, 'values: ', parent_values)
         # typically used on the whole list
         # In a an action that has nested Actions
-        for actiondict in actionlist:
-            actionname = actiondict['Name']
-            # if a method is specified it overrules the default from actiontype
-            if '_method' in actiondict:
-                self.logger.debug('Using direct _method {} for {}'.format(actiondict['_method'], actionname))
-                method = getattr(self, actiondict['_method'])
-            # get default values from actiontype, but don't overwrite existing values in actiondict
-            if 'Type' in actiondict:
-                actiontype = actiondict['Type']
-                if actiontype in self.actiontypes:
-                    for key, value in self.actiontypes[actiontype].items():
-                        if key not in actiondict:
-                            actiondict[key] = value
-                if '_method' not in actiondict:
-                    self.logger.warning(
-                        'error: actiontype {} does not specify method (and actiondict {} also does not specify method)'.format(
-                            actiontype))
-
-            if '_method' in actiondict:
-
-                if '~nested' in actiondict:
-                    # without error checking for now:
-                    nesting = lambda parent : self.perform_measurement(actiondict['~nested'], parent)
+        for actiondictionary in actionlist:
+            actionname = actiondictionary['Name']
+            if 'Type' in actiondictionary:
+                if actiondictionary['Type'] in self.actiontypes:
+                    actiondict = copy.deepcopy(self.actiontypes[actiondictionary['Type']])
                 else:
-                    nesting = lambda *args: None
-
-                method = getattr(self, actiondict['_method'])
-                method(actiondict, nesting)
+                    actiondict = {}
+                    self.logger.warning('Ignoring unknown actiontype {}'.format(actiondictionary['Type']))
             else:
-                self.logger.warning('in {}: actiondict requires either method or a type that contains a method'.format(
-                    actiondict['Name']))
+                actiondict = {}
+
+            # merge dictionaries (actiondictionary overrides actiontype)
+            actiondict.update(actiondictionary)
+
+            try:
+                method = getattr(self, actiondict['_method'])
+            except KeyError:
+                raise KeyError('No _method found in actiondict or actiontype')
+            except AttributeError:
+                raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
+
+
+            # # if a method is specified it overrules the default from actiontype
+            # if '_method' in actiondict:
+            #     self.logger.debug('Using direct _method {} for {}'.format(actiondict['_method'], actionname))
+            #     method = getattr(self, actiondict['_method'])
+            # # get default values from actiontype, but don't overwrite existing values in actiondict
+            # if 'Type' in actiondict:
+            #     actiontype = actiondict['Type']
+            #     if actiontype in self.actiontypes:
+            #         for key, value in self.actiontypes[actiontype].items():
+            #             if key not in actiondict:
+            #                 actiondict[key] = value
+            #     if '_method' not in actiondict:
+            #         self.logger.warning(
+            #             'error: actiontype {} does not specify method (and actiondict {} also does not specify method)'.format(
+            #                 actiontype))
+
+            # if '_method' in actiondict:
+            #
+            #     # if parents == []:
+            #     #     self._nesting_indices = []  # reset it just to be sure
+            #     # # if it's a new parent, add a zero index to
+            #     # elif len(self._nesting_indices) < len(parents):
+            #     #     self._nesting_indices += [0]
+            #
+            #
+            #     # else:
+            #     #     print("what's going on")
+            #
+            #     # repeat this here so actions outside   NO this only works outside all loops
+            #     # if parents == []:
+            #     #     self._nesting_indices = []
+
+            self._nesting_parents = parents  # to make it available outside
+
+            if '~nested' in actiondict:
+                # without error checking for now:
+                # else:
+                #     indices += [0]  # append 0 to list  current_values
+                nesting = lambda  : self.perform_actionlist(actiondict['~nested'], parents+[actionname])
+            else:
+                nesting = lambda *args: None        # a "do nothing" function
+            # method = getattr(self, actiondict['_method'])
+            # print('                                       ', actionname, '   parents: ', parents, '   indices: ',self._nesting_indices)
+            method(actiondict, nesting)
 
 
 
+            # if len(parents) == len(self._nesting_indices) and len(self._nesting_indices):
+            #         self._nesting_indices[-1] += 1
+            #
+            # if len(self._nesting_indices) > len(parents):
+            #     del self._nesting_indices[-1]
+
+            # else:
+            #     self.logger.warning('in {}: actiondict requires either method or an actiontype that contains a method'.format(
+            #         actiondict['Name']))
+
+
+        if len(parents) < len(self._nesting_indices):
+            del self._nesting_indices[-1]
+
+
+    def save(self, data, auto=True, **kwargs):
+        indx = self._nesting_indices[:len(self._nesting_parents)]
+        print(indx)
+
+
+    def create_saver(self, actiondict, nesting):
+        version = actiondict['version'] if 'version' in actiondict else None
+        folder = actiondict['folder'] if 'folder' in actiondict else os.path.join(hyperion.parent_path, 'data')
+        filename = actiondict['filename'] if 'filename' in actiondict else self._measurement_name + '.h5'
+        write_mode = actiondict['write_mode'] if 'write_mode' in actiondict else ['increment']
+        self.saver = Saver(verion=version, default_folder=folder, default_filename=filename, write_mode=write_mode)
+        self.saver.open_file()
 
        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SMARTSCAN METHODS
 
@@ -280,6 +699,7 @@ class BaseExperiment():
         for name in self.instruments_instances:
             self.logger.info('Finalizing connection with device: {}'.format(name))
             self.instruments_instances[name].finalize()
+        self.logger.debug('Experiment object finalized.')
 
     def load_instrument(self, name):
         """ Loads an instrument given by name
@@ -345,25 +765,16 @@ class BaseExperiment():
 
 
 if __name__ == '__main__':
-    import hyperion
-
-    hyperion.set_logfile(__file__)                    # not required, but recommended
-    # hyperion.file_logger.setLevel(logging.DEBUG)      # change logging level for the file (DEBUG, INFO, WARNING, ERROR)
-    # hyperion.stream_logger.setLevel(logging.DEBUG)    # change logging level for the screen
-
+    logger = logging.getLogger(__name__)
+    logger.warning("For testing it's better to run an example experiment from the examples folder.")
 
     with BaseExperiment() as e:
 
-        config_folder = 'D:/mcaldarola/Data/2019-04-17_hyperion/'  # this should be your path for the config file you use
-        name = 'example_experiment_config'
-        config_file = os.path.join(config_folder, name)
-
-        logging.info('Using the config file: {}.yml'.format(config_file))
-        e.load_config(config_file + '.yml')
+        from hyperion import repository_path
+        config_file = os.path.join(repository_path, 'examples', 'example_experiment_config.yml')
+        logger.info('Using the config file: {}.yml'.format(config_file))
+        e.load_config(config_file)
 
         # read properties just loaded
-        print('\n {} \n'.format(e.properties))
+        logger.info('\n {} \n'.format(e.properties))
 
-        e.properties['Scan']['start'] = '0.5V'
-
-        print('\n {} \n'.format(e.properties))
