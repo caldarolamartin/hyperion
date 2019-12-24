@@ -84,6 +84,15 @@ class BaseGui(QWidget):
         if i.text() == 'Abort':
             self.close() # to close the Qwidget
 
+    def deleteItemsOfLayout(self, layout):
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.setParent(None)
+                else:
+                    self.deleteItemsOfLayout(item.layout())
 
 class BaseGraph(BaseGui):
     """
@@ -161,6 +170,7 @@ class ModifyMeasurement(QDialog):
         self.initUI()
         self.reset()    # initialize to original
 
+
         # self.show()
 
     def initUI(self):
@@ -206,7 +216,9 @@ class ModifyMeasurement(QDialog):
 
 
     def use(self):
+        self.logger.debug('"Use" pressed')
         if not self.convert_text_to_list():
+            self.logger.warning('Failed to convert yaml-text to list')
             return
         self.experiment.properties['Measurements'][self.measurement] = self._list
         if hasattr(self.parent, '_valid'):
@@ -214,6 +226,7 @@ class ModifyMeasurement(QDialog):
         if hasattr(self.parent, 'update_buttons'):
             self.parent.update_buttons()
         self.close()
+
 
     def clear_labels(self):
         self.label_valid_1.setText('')
@@ -352,11 +365,9 @@ class BaseMeasurement(BaseGui):
         self.measurement = measurement
         if not hasattr(self.experiment, 'properties'):
             self.logger.error('Experiment object needs to have properties dictionary. Make sure you load config.')
-        if measurement in self.experiment.properties['Measurements']:
-            self.actionlist = self.experiment.properties['Measurements'][measurement]
-        else:
+        if measurement not in self.experiment.properties['Measurements']:
             self.logger.error('Unknown measurement: {}'.format(measurement))
-            self.actionlist = []
+
         if 'ActionTypes' in self.experiment.properties:
             self.types = self.experiment.properties['ActionTypes']
         else:
@@ -375,9 +386,16 @@ class BaseMeasurement(BaseGui):
         # self.outer_layout.addWidget(buttons_placeholder, 0, 0)
         self.outer_layout.addLayout(self.button_layout, 0, 0)
         # action_layout = self.build_action_gui_list(self.actionlist)
-        actions_layout = self.add_actions_recursively(self.actionlist)
-        self.outer_layout.addLayout(actions_layout, 1, 0)
+
+        self.actions_layout = QVBoxLayout()
+        self.actions_layout.addWidget(QLabel('incorrect config file'))
+
+        self.create_actionlist_guis()
         self.setLayout(self.outer_layout)
+        self.show()
+        # self.update()
+
+        # self.setLayout(self.outer_layout)
 
 
         # if 'Defaults' in actionlist:
@@ -390,9 +408,6 @@ class BaseMeasurement(BaseGui):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_buttons)
         self.timer.start(50) # in ms
-        self.show()
-
-
 
 
 
@@ -409,6 +424,22 @@ class BaseMeasurement(BaseGui):
         layout_buttons.addWidget(self.button_stop)
         layout_buttons.addWidget(self.button_config)
         return layout_buttons
+
+    def create_actionlist_guis(self):
+
+        self.deleteItemsOfLayout(self.actions_layout)
+
+        # if tmp is not None:
+        #     if tmp.widget() is not None:
+        #         tmp.widget().setParent(None)
+        #     tmp.setParent(None)
+        if self._valid:
+            self.actions_layout = self.add_actions_recursively(self.experiment.properties['Measurements'][self.measurement])
+        else:
+            self.actions_layout = QVBoxLayout()
+            self.actions_layout.addWidget(QLabel('incorrect config file'))
+        self.outer_layout.addLayout(self.actions_layout, 1, 0)
+        self.update()
 
     def __shift(self, level, maxlev=5):
         inverted = max(0, maxlev - level)
@@ -522,8 +553,15 @@ class BaseMeasurement(BaseGui):
         self.update_buttons()
 
     def config(self):
-        self.dialog_config.show()
+        # self.dialog_config.show()
+        answ = self.dialog_config.exec_()
+        print(answ)
+        print('self._valid = ', self._valid)
+        # self.actionlist = self.experiment.properties['Measurements'][self.measurement]
+        # print(self.actionlist[0])
         self.update_buttons()
+        self.create_actionlist_guis()
+        self.update()
 
 
 

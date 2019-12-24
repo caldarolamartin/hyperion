@@ -116,6 +116,7 @@ class DefaultDict(dict):
     """
 
     def __init__(self, main_dict, default_dict={}):
+        self.logger = logging.getLogger(__name__)
         combined = copy.deepcopy(default_dict)
         combined.update(main_dict)
         super().__init__(combined)
@@ -129,6 +130,7 @@ class DefaultDict(dict):
         elif key in self.default_dict:
             return self.default_dict[key]
         else:
+            self.logger.error('DefaultDict: key not found: {}'.format(key))
             raise KeyError(key)
 
     def __setitem__(self, key, value):
@@ -160,7 +162,7 @@ class ActionDict(DefaultDict):
         :param exp: object of type BaseExperiment (which should contain .properties['ActionTypes']) (optional, defaults to None)
 
         """
-
+        self.logger = logging.getLogger(__name__)
         if types == {} and exp is not None:
             types = exp.properties['ActionTypes']
 
