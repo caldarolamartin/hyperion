@@ -387,25 +387,28 @@ class BaseExperiment():
         action_name = actiondict['Name']
 
         # Test if valid method specified
-        invalid_method = 0
+        # Intended behaviour:
+        # - if method specified: us it if it exists, raise invalid_method flag if not
+        # - if method not specified: try to find one in action type, raise invalid_method flag if anything goes wrong
+        invalid_method = 1
         if '_method' in actiondict:
             method_name = actiondict['_method']
-            if not hasattr(self, method_name):
-                invalid_method = 1
-                self.logger.warning("[Action: '{}'] _method '{}' doesn't exist, (trying _method from ActionType)".format(action_name, method_name))
-        if invalid_method:
+            if hasattr(self, method_name):
+                invalid_method = 0
+            else:
+                self.logger.error("[Action: '{}'] _method '{}' doesn't exist".format(action_name,method_name))
+        else:
+            self.logger.info(
+                "[Action: '{}'] No _method specified , (looking for _method in ActionType)".format(action_name))
             if 'Type' not in actiondict:
-                self.logger.error("[in Action: '{}'] No Type specified".format(action_name))
+                self.logger.error("[Action: '{}'] No Type specified".format(action_name))
             elif "_method" not in self.actiontypes[actiondict['Type']]:
-                self.logger.error("[Action: '{}'] No _method specified in Type {}".format(action_name, actiondict['Type']))
+                self.logger.error("[Action: '{}']>[ActionType: {}] No _method specified".format(action_name, actiondict['Type']))
             elif not hasattr(self, self.actiontypes[actiondict['Type']]['_method']):
                 self.logger.error("[ActionType: '{}'] _method '{}' also doesn't exist".format(actiondict['Type'], self.actiontypes[actiondict['Type']]['_method']))
             else:
-                self.logger.info("[ActionType: '{}'] has valid _method {}: removing _method from Action {}".format(actiondict['Type'], self.actiontypes[actiondict['Type']]['_method'], action_name))
-                del actiondict['_method']
-                valid_method = True
-        # if invalid_method:
-        #     raise NameError('No valid _method found')
+                invalid_method = 0
+                self.logger.info("[Action '{}'] Using _method '{}' from [ActionType: '{}']".format(action_name, self.actiontypes[actiondict['Type']]['_method'], actiondict['Type']))
         return actiondict, invalid_method, invalid_name
 
 
