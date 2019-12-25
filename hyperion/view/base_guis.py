@@ -388,10 +388,23 @@ class BaseMeasurement(BaseGui):
         # action_layout = self.build_action_gui_list(self.actionlist)
 
         self.actions_layout = QVBoxLayout()
-        self.actions_layout.addWidget(QLabel('incorrect config file'))
+        label_incorrect = QLabel('incorrect config file')
+        label_incorrect.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        self.actions_layout.addWidget(label_incorrect)
 
         self.create_actionlist_guis()
+
+        # This line controls the size of the whole layout.
+        # SetDefaultConstraint causes it to adjust to the content size, but keeps it adjustable
+        # SetFixedSize adjust to the content and prevents manual resizing
+        self.outer_layout.setSizeConstraint(QLayout.SetFixedSize)
+
         self.setLayout(self.outer_layout)
+
+        # print(self.outer_layout.sizeHint())
+        # self.outer_layout.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+
         self.show()
         # self.update()
 
@@ -438,6 +451,7 @@ class BaseMeasurement(BaseGui):
         else:
             self.actions_layout = QVBoxLayout()
             self.actions_layout.addWidget(QLabel('incorrect config file'))
+        # self.actions_layout.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         self.outer_layout.addLayout(self.actions_layout, 1, 0)
         self.update()
 
@@ -457,6 +471,7 @@ class BaseMeasurement(BaseGui):
         for act in actionlist:
             actiondict = ActionDict(act, self.types)
             box = QGroupBox(actiondict['Name'])
+            box.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
             # box.setObjectName("ColoredGroupBox")  # Changed here...
             # box.setStyleSheet("QGroupBox#ColoredGroupBox { border: 1px inset black; margin-top: 2ex} QGroupBox#ColoredGroupBox::title {subcontrol-origin: margin; subcontrol-position: top left; padding: 0 3px; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #FFOECE, stop: 1 #FFFFFF);}")
             # box.setStyleSheet("QGroupBox#ColoredGroupBox { border: 1px inset black; margin-top: 2ex} QGroupBox#ColoredGroupBox::title {subcontrol-origin: margin; subcontrol-position: top left; padding: 3 3px;}")
@@ -475,6 +490,7 @@ class BaseMeasurement(BaseGui):
                 action_gui_class = get_class(actiondict['_view'])
                 action_gui_widget = action_gui_class(actiondict, self.experiment)
                 action_gui_widget.layout.setContentsMargins(7,0,20-self.__shift(nesting_level)[1],10)
+                action_gui_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
                 # action_gui_widget.layout.setContentsMargins(0, 0, 0, 0)
                 box_layout.addWidget(action_gui_widget)
             if '~nested' in actiondict:
