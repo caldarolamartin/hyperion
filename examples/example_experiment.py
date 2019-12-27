@@ -94,53 +94,8 @@ if __name__ == '__main__':
     # ### To change the logging file:
     # logman.set_file('example_experiment.log')
 
-<<<<<<< HEAD
-        for instrument in self.properties['Instruments']:
-            try:
-                self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-                self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
-            except Exception:
-                self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
-                self.instruments_instances[instrument] = None
-        # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
-        # self.logger.debug('Class vwp: {}'.format(self.vwp))
-        # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
-        # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
-    def image(self, actiondict, perform_nested_actions):
-        print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
-        perform_nested_actions()
-        data = np.array([[0,1],[2,3]])
-        return data
-
-    def image_modified(self, actiondict, perform_nested_actions):
-        print('image: ',actiondict['Name'])
-        perform_nested_actions()
-
-    def spectrum(self, actiondict, perform_nested_actions):
-        print('spectrum: ',actiondict['Name'])
-        perform_nested_actions()
-
-    def spectrum_modified(self, actiondict, perform_nested_actions):
-        print('spectrum: ',actiondict['Name'])
-        perform_nested_actions()
-
-    def histogram(self, actiondict, perform_nested_actions):
-        print('histogram: ',actiondict['Name'])
-        perform_nested_actions()
-
-    def sweep_atto(self, actiondict, perform_nested_actions):
-        print('sweep_atto: ',actiondict['Name'])
-        arr, unit = array_from_settings_dict(actiondict)
-        for s in arr:
-            print(actiondict['axis'],' : ', s)
-            perform_nested_actions(s)
-=======
     with ExampleExperiment() as e:
->>>>>>> 565ffe25330348fcd10c9a59c951d7aca193bcbd
 
         name = 'second_example_experiment_config_'
         config_folder = os.path.dirname(os.path.abspath(__file__))
