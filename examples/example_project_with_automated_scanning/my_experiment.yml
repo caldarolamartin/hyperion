@@ -208,19 +208,19 @@ Measurements:       # dictionary of Measurement s
                 Type: histogram
                 _ui: None   # You can specify a different _ui or set it to None to prevent it from showing
                 exposuretime: 4
-                ~nested:
-                  - Name: super nested
-                    _view: gui.gui_elements/ExampleActionGui
-                    ~nested:
-                      - Name: super duper nested
-                        _view: gui.gui_elements/ExampleActionGui
-                        ~nested:
-                          - Name: whaaaaaat
-                            _view: gui.gui_elements/ExampleActionGui
-              - Name: dummy2
-                _view: gui.gui_elements/ExampleActionGui
-          - Name: dummy1
-            _view: gui.gui_elements/ExampleActionGui
+#                ~nested:
+#                  - Name: super nested
+#                    _view: gui.gui_elements/ExampleActionGui
+#                    ~nested:
+#                      - Name: super duper nested
+#                        _view: gui.gui_elements/ExampleActionGui
+#                        ~nested:
+#                          - Name: whaaaaaat
+#                            _view: gui.gui_elements/ExampleActionGui
+#              - Name: dummy2
+#                _view: gui.gui_elements/ExampleActionGui
+#          - Name: dummy1
+#            _view: gui.gui_elements/ExampleActionGui
       - Name: insideXafterY
         _view: gui.gui_elements/ExampleActionGui
         _method: insideXafterY

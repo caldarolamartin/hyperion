@@ -246,6 +246,7 @@ if __name__ == '__main__':
 
     ## Introduce corruption in actionlist for testing:
     # del(e.properties['Measurements']['Measurement A'][0]['Name'])
+    del (e.properties['Measurements']['Measurement A'][0])
 
     q = BaseMeasurementGui(e, 'Measurement A')
     app.exec_()
