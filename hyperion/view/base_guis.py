@@ -184,26 +184,16 @@ class ModifyMeasurement(QDialog):
         self._invalid_methods = True
         self.font = QFont("Courier New", 11)
 
-        max_width = min(QDesktopWidget().availableGeometry(self).width(), QDesktopWidget().screenGeometry(self).width())
-        max_height = min(QDesktopWidget().availableGeometry(self).height(), QDesktopWidget().screenGeometry(self).height())
-
-
         self.initUI()
-        self.reset()    # initialize to original
+        self.reset()        # initialize to original
+        self.set_size()     # Make window fix text when openning (if possible)
 
-        font_metrics = QFontMetrics(self.font)
-        textSize = font_metrics.size(0, self._doc)
-
-        self.txt.resize(textSize)
-        # print(self.txt.sizeHint())
-        # self.resize(1000, 1000)
-        print(self.height())
 
     def initUI(self):
-        # self.resize(1000, 1000)
+        # Allow window to be shrunk and expanded:
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
         grid = QGridLayout()
+        # create buttons, lables and the textedit:
         self.button_reset = QPushButton('Reset Original', clicked = self.reset)
         self.button_validate = QPushButton('Validate', clicked = self.validate)
         self.button_suggestion = QPushButton('Show suggestion', clicked = self.suggestion)
@@ -215,8 +205,8 @@ class ModifyMeasurement(QDialog):
         self.txt = QTextEdit()
         self.txt.setLineWrapMode(QTextEdit.NoWrap)
         self.txt.setFont(self.font)
-        self.txt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.txt.textChanged.connect(self.changed)
+        # add all widgets to the layout:
         grid.addWidget(self.button_reset, 0, 0)
         grid.addWidget(self.button_validate, 0, 1)
         grid.addWidget(self.button_suggestion, 0, 2)
@@ -228,25 +218,33 @@ class ModifyMeasurement(QDialog):
         grid.addWidget(self.button_save_to_original_file, 4, 2)
         self.setLayout(grid)
 
-        screen_of_cursor = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
-        size_of_screen_of_cursor = QApplication.desktop().screenGeometry(screen_of_cursor)
-        QDesktopWidget().availableGeometry()
-        # print(QDesktopWidget().availableGeometry().height())
-        # print(size_of_screen_of_cursor.height())
-        # print(QDesktopWidget().availableGeometry())
+    def reset(self):
+        # Update text, validate, and update buttons accordingly
+        self._doc = yaml.dump(self._original_list, indent=self._indent)
+        self.txt.setPlainText(self._doc)
+        self.clear_labels()
+        self.validate()
+        self._current_doc = 1
+        self.update_buttons()
 
-
-        # print(self.sizePolicy().Fixed)
-
-        # self.resize(500, 1300)
-        # self.center()
+    def set_size(self):
+        # Adjust window size to text (if possible)
+        # These values were chosen in Windows 7
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        print(QDesktopWidget().availableGeometry())
+        font_metrics = QFontMetrics(self.font)
+        textSize = font_metrics.size(0, self._doc)
+        max_width = min(QDesktopWidget().availableGeometry(self).width(), QDesktopWidget().screenGeometry(self).width())
+        max_height = min(QDesktopWidget().availableGeometry(self).height(), QDesktopWidget().screenGeometry(self).height())
+        width = max(400, min(max_width-16, self.txt.document().idealWidth() + 42+10))
+        height = max(400, min(max_height-38, font_metrics.size(0, self._doc).height() + 145))
+        self.resize(width, height)
 
     def update_buttons(self):
         self.button_reset.setEnabled(self._current_doc<1)
         self.button_validate.setEnabled(not self._valid and self._current_doc and self._modified)
         self.button_suggestion.setEnabled(self._have_suggestion and self._current_doc)
         self.button_use.setEnabled(self._valid == True)
-
 
     def use(self):
         self.logger.debug('"Use" pressed')
@@ -260,7 +258,6 @@ class ModifyMeasurement(QDialog):
             self.parent.update_buttons()
         self.close()
 
-
     def clear_labels(self):
         self.label_valid_1.setText('')
         self.label_valid_2.setText('')
@@ -272,14 +269,6 @@ class ModifyMeasurement(QDialog):
         self._modified = True
         self._have_suggestion = False
         self._valid = False
-        self.update_buttons()
-
-    def reset(self):
-        self._doc = yaml.dump(self._original_list, indent=self._indent)
-        self.txt.setPlainText(self._doc)
-        self.clear_labels()
-        self.validate()
-        self._current_doc = 1
         self.update_buttons()
 
     def convert_text_to_list(self):
@@ -312,7 +301,6 @@ class ModifyMeasurement(QDialog):
         self._modified = False
         self.update_buttons()
 
-
     def set_label_invalid(self):
         self.label_valid_1.setText('{} invalid _method{}'.format(self._invalid_methods, self.plural(self._invalid_methods)))
         if self._invalid_methods:
@@ -326,26 +314,6 @@ class ModifyMeasurement(QDialog):
         self._current_doc = 0
         self._valid = True
         self.update_buttons()
-
-    # def center(self):
-    #     """
-    #     Center the window on screen.
-    #     !!! Note: Not tested for multiple screens.
-    #               https://doc.qt.io/archives/qt-4.8/qdesktopwidget.html
-    #     """
-    #     frameGm = self.frameGeometry()
-    #     centerPoint = QDesktopWidget().availableGeometry().center()
-    #     frameGm.moveCenter(centerPoint)
-    #     self.move(frameGm.topLeft())
-
-    def center(self):
-        pass
-        # frameGm = self.frameGeometry()
-        # screen = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
-        # centerPoint = QApplication.desktop().screenGeometry(screen).center()
-        # frameGm.moveCenter(centerPoint)
-        # self.move(frameGm.topLeft())
-
 
 class BaseMeasurement(BaseGui):
     def __init__(self, experiment, measurement, parent=None):

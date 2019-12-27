@@ -177,8 +177,10 @@ Measurements:       # dictionary of Measurement s
 #        folder: None
 #        filename: None
     - Name: before      # an Action is a dictionary
-      Type: image
-      exposuretime: 5
+#      Type: image
+#      exposuretime: 5
+#      bla: bla
+#      bla2: bla2
       _view: gui.gui_elements/ExampleActionGui
     - Name: atto X
       Type: atto_scanner
