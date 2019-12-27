@@ -17,7 +17,7 @@ import sys
 from hyperion import package_path
 import pyqtgraph as pg
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon, QFont, QFontMetrics
 from PyQt5.QtCore import QTimer
 from os import path
 import yaml
@@ -85,6 +85,10 @@ class BaseGui(QWidget):
             self.close() # to close the Qwidget
 
     def deleteItemsOfLayout(self, layout):
+        """
+        Removes items of a layout recursively .
+        :param layout: a QLayout
+        """
         if layout is not None:
             while layout.count():
                 item = layout.takeAt(0)
@@ -93,6 +97,9 @@ class BaseGui(QWidget):
                     widget.setParent(None)
                 else:
                     self.deleteItemsOfLayout(item.layout())
+
+    def close_children_guis(self):
+        pass
 
 class BaseGraph(BaseGui):
     """
@@ -152,6 +159,14 @@ class TimeAxisItem(pg.AxisItem):
 
 
 class ModifyMeasurement(QDialog):
+    """
+    Pop-up dialog window to modify (correct) the action-list of a measurement.
+    QDialog steals focus and must be closed before main program can continue.
+
+    :param experiment: hyperion experiment object
+    :param measurement: (str) name of a measurement (specified in the config of the experiment)
+    :param parent: parent QWidget
+    """
     def __init__(self, experiment, measurement, parent=None):
         self.logger = logging.getLogger(__name__)
         self.experiment = experiment
@@ -162,18 +177,32 @@ class ModifyMeasurement(QDialog):
         self.setWindowTitle('Modify Measurement: {}'.format(measurement))
         self._indent = 2
         self.plural = lambda num: 's' if num > 1 else ''
-        self._current_doc = 1 # 1 for original, -1 for modified, 0 for suggestion
+        self._current_doc = 1           # 1 for original, -1 for modified, 0 for suggestion
         self._modified = False
-        self._valid = False   # None for unknown, True, False
-        self._have_suggestion = False  # True, False
+        self._valid = False             # None for unknown, True, False
+        self._have_suggestion = False   # True, False
         self._invalid_methods = True
+        self.font = QFont("Courier New", 11)
+
+        max_width = min(QDesktopWidget().availableGeometry(self).width(), QDesktopWidget().screenGeometry(self).width())
+        max_height = min(QDesktopWidget().availableGeometry(self).height(), QDesktopWidget().screenGeometry(self).height())
+
+
         self.initUI()
         self.reset()    # initialize to original
 
+        font_metrics = QFontMetrics(self.font)
+        textSize = font_metrics.size(0, self._doc)
 
-        # self.show()
+        self.txt.resize(textSize)
+        # print(self.txt.sizeHint())
+        # self.resize(1000, 1000)
+        print(self.height())
 
     def initUI(self):
+        # self.resize(1000, 1000)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         grid = QGridLayout()
         self.button_reset = QPushButton('Reset Original', clicked = self.reset)
         self.button_validate = QPushButton('Validate', clicked = self.validate)
@@ -181,19 +210,13 @@ class ModifyMeasurement(QDialog):
         self.button_use = QPushButton('Use', clicked = self.use)
         self.button_cancel = QPushButton('Cancel', clicked = self.close)
         self.button_save_to_original_file = QPushButton('Save to original file', enabled = False)
-
-        self.label_valid_1 = QLabel()
-        self.label_valid_2 = QLabel()
-        # self.button = QPushButton('original')
-        # self.button_suggestion = QPushButton('suggestion')
-
-
+        self.label_valid_1 = QLabel()  # empty
+        self.label_valid_2 = QLabel()  # empty
         self.txt = QTextEdit()
         self.txt.setLineWrapMode(QTextEdit.NoWrap)
-        self.txt.setFont(QFont("Courier New", 11))
+        self.txt.setFont(self.font)
+        self.txt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.txt.textChanged.connect(self.changed)
-        # self.txt.setPlainText(self._doc)
-
         grid.addWidget(self.button_reset, 0, 0)
         grid.addWidget(self.button_validate, 0, 1)
         grid.addWidget(self.button_suggestion, 0, 2)
@@ -205,8 +228,18 @@ class ModifyMeasurement(QDialog):
         grid.addWidget(self.button_save_to_original_file, 4, 2)
         self.setLayout(grid)
 
-        self.resize(500, 900)
-        self.center()
+        screen_of_cursor = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
+        size_of_screen_of_cursor = QApplication.desktop().screenGeometry(screen_of_cursor)
+        QDesktopWidget().availableGeometry()
+        # print(QDesktopWidget().availableGeometry().height())
+        # print(size_of_screen_of_cursor.height())
+        # print(QDesktopWidget().availableGeometry())
+
+
+        # print(self.sizePolicy().Fixed)
+
+        # self.resize(500, 1300)
+        # self.center()
 
     def update_buttons(self):
         self.button_reset.setEnabled(self._current_doc<1)
@@ -294,66 +327,24 @@ class ModifyMeasurement(QDialog):
         self._valid = True
         self.update_buttons()
 
+    # def center(self):
+    #     """
+    #     Center the window on screen.
+    #     !!! Note: Not tested for multiple screens.
+    #               https://doc.qt.io/archives/qt-4.8/qdesktopwidget.html
+    #     """
+    #     frameGm = self.frameGeometry()
+    #     centerPoint = QDesktopWidget().availableGeometry().center()
+    #     frameGm.moveCenter(centerPoint)
+    #     self.move(frameGm.topLeft())
+
     def center(self):
-        frameGm = self.frameGeometry()
-        centerPoint = QDesktopWidget().availableGeometry().center()
-        frameGm.moveCenter(centerPoint)
-        self.move(frameGm.topLeft())
-
-# class TestActionWidget(QGroupBox):
-#     def __init__(self, experiment, actiondict):
-#         self.logger = logging.getLogger(__name__)
-#         super().__init__()
-#         action_widget = QWidget()
-#         self.layout = QVBoxLayout()
-#         self.setLayout()
-#
-#
-#     def init(self):
-#
-#         return
-
-# class BaseActionGui(QGroupBox):
-#     def __init__(self, experiment, actiondict, parent=None):
-#         self.logger = logging.getLogger(__name__)
-#         self.experiment = experiment
-#         self.actiondict = actiondict
-#         title = actiondict['Name']
-#         super().__init__(title, parent)
-#         self.layout = QVBoxLayout()
-#         self.setContentsMargins(0, 9, 0, 0)
-#         # self.layout.setContentsMargins(0,0,0,0)
-#         # self.layout.setSpacing(5)
-#         action_layout_or_widget = self.action_layout()
-#
-#         if '_ui' in actiondict
-#
-#         if action_layout is not None:
-#             self.layout.addLayout(action_layout)
-#         self.setLayout(self.layout)
-#
-#     def loadUI(self):
-#
-#
-#     def action_layout_or_widget(self):
-#         layout = QHBoxLayout()
-#         layout.addWidget(QPushButton('button'))
-#         layout.addWidget(QDoubleSpinBox())
-#         placeholder = QWidget()
-#         placeholder.setLayout(layout)
-#         return placeholder
-
-    # def init(self):
-    #     self.logger.debug('This method should be overridden by child class')
-    #
-    # def initUI(self):
-    #     self.logger.debug('This method should be overridden by child class')
-
-# class EmptyActionGui(BaseActionGui):
-#     def init()
-
-# class ExampleActionGui(BaseActionGui):
-#     def action_layout(self):
+        pass
+        # frameGm = self.frameGeometry()
+        # screen = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
+        # centerPoint = QApplication.desktop().screenGeometry(screen).center()
+        # frameGm.moveCenter(centerPoint)
+        # self.move(frameGm.topLeft())
 
 
 class BaseMeasurement(BaseGui):
@@ -378,15 +369,8 @@ class BaseMeasurement(BaseGui):
         self._valid = self.validate()
         self.outer_layout = QGridLayout()
         self.outer_layout.setSpacing(20)
-        # self.outer_layout.setContentsMargins(0,0,0,0)
-
         self.button_layout = self.create_buttons()
-        # buttons_placeholder = QWidget()
-        # buttons_placeholder.setLayout(self.button_layout)
-        # self.outer_layout.addWidget(buttons_placeholder, 0, 0)
         self.outer_layout.addLayout(self.button_layout, 0, 0)
-        # action_layout = self.build_action_gui_list(self.actionlist)
-
         self.actions_layout = QVBoxLayout()
         label_incorrect = QLabel('incorrect config file')
         label_incorrect.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
@@ -406,26 +390,20 @@ class BaseMeasurement(BaseGui):
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
 
         self.show()
-        # self.update()
 
-        # self.setLayout(self.outer_layout)
-
-
-        # if 'Defaults' in actionlist:
-        #     if 'folder' in self.actionlist['Defaults']:
-        #         self.folder = self.actionlist['Defaults']['folder']
-        #     else:
-        #         self.folder = os.path.join(package_path, 'data')
-
+        # Prepare window to modify config:
         self.dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
+        # Set up QTimer to periodically update button states (based on
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_buttons)
         self.timer.start(50) # in ms
 
 
-
-
     def create_buttons(self):
+        """
+
+        :return: layout containing start stop buttons
+        """
         self.logger.debug('Creating start stop buttons')
         layout_buttons = QHBoxLayout()
         self.button_start_pause = QPushButton('Start', clicked = self.start_pause)
@@ -456,6 +434,10 @@ class BaseMeasurement(BaseGui):
         self.update()
 
     def __shift(self, level, maxlev=5):
+        """
+        Helper function to calculating border widths for aligning nested layout in add_actions_recursively().
+        Returns tuple
+        """
         inverted = max(0, maxlev - level)
         shift = 0
         for s in range(inverted, maxlev):
@@ -463,26 +445,21 @@ class BaseMeasurement(BaseGui):
         return inverted, shift
 
     def add_actions_recursively(self, actionlist, nesting_level=0):
+        """
+        Recursive function to build nested layout of action GUIs.
+
+        :param actionlist:
+        :param nesting_level: (int) Used for recursion
+        :return: layout containing the nested GUIs
+        """
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
-        # layout.setContentsMargins(18,3,0,3)
-        # layout.setSpacing(15-min(nesting_level,3)*3)
         layout.setSpacing(5+self.__shift(nesting_level)[0])
         for act in actionlist:
             actiondict = ActionDict(act, self.types)
             box = QGroupBox(actiondict['Name'])
             box.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-            # box.setObjectName("ColoredGroupBox")  # Changed here...
-            # box.setStyleSheet("QGroupBox#ColoredGroupBox { border: 1px inset black; margin-top: 2ex} QGroupBox#ColoredGroupBox::title {subcontrol-origin: margin; subcontrol-position: top left; padding: 0 3px; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #FFOECE, stop: 1 #FFFFFF);}")
-            # box.setStyleSheet("QGroupBox#ColoredGroupBox { border: 1px inset black; margin-top: 2ex} QGroupBox#ColoredGroupBox::title {subcontrol-origin: margin; subcontrol-position: top left; padding: 3 3px;}")
-            # QGroupBox::title {subcontrol-origin: margin; subcontrol-position: top left; padding: 0 3px; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #FFOECE, stop: 1 #FFFFFF);}
-
-            # box.setStyleSheet(
-            #     "QGroupBox#ColoredGroupBox {border-style: solid; border-width: 1px; border-color: black; text-align: left;} QGroupBox#ColoredGroupBox::title {left:10px; bottom : 0px;margin-top:8px;}")
-
-
-            # box.setContentsMargins(0, 25, 0, 0)
-            box.setCheckable(True)
+            box.setCheckable(True)   # This adds the checkbox in the top-left corner
             box_layout = QVBoxLayout()
             box_layout.setContentsMargins(0,5,0,0)
             box_layout.setSpacing(0)                    # distance between action widget and its nested items
@@ -491,62 +468,15 @@ class BaseMeasurement(BaseGui):
                 action_gui_widget = action_gui_class(actiondict, self.experiment)
                 action_gui_widget.layout.setContentsMargins(7,0,20-self.__shift(nesting_level)[1],10)
                 action_gui_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-                # action_gui_widget.layout.setContentsMargins(0, 0, 0, 0)
                 box_layout.addWidget(action_gui_widget)
             if '~nested' in actiondict:
                 nested_layout = self.add_actions_recursively(actiondict['~nested'], nesting_level+1)
-                # right = 5 if nesting_level<2 else 0
                 nested_layout.setContentsMargins(max(3,12-nesting_level), 0, self.__shift(nesting_level)[0],5+max(0,5-nesting_level))
                 box_layout.addLayout(nested_layout)
             if box_layout.count():
                 box.setLayout(box_layout)
                 layout.addWidget(box)
         return layout
-
-    # def build_action_gui_list(self, actionlist):
-    #     action_layout = QVBoxLayout()
-    #     action_layout.setContentsMargins(5, 5, 5, 5)
-    #     action_layout.setSpacing(5)
-    #     action_layout.addLayout(self.button_layout)
-    #     self.logger.debug('Creating action list')
-    #     if self._valid:
-    #         for act in self.actionlist:
-    #             actiondict = ActionDict(act, self.types)
-    #             action_widget = BaseActionGui(self.experiment, actiondict)
-    #             if '_view' in actiondict:
-    #                 action_widget = get_class(actiondict['_view'])(self.experiment, actiondict)
-    #             elif 'Type' in actiondict:
-    #                 tp = actiondict['Type']
-    #                 if tp in self.experiment.properties['ActionTypes']:
-    #                     type_dict = self.experiment.properties['ActionTypes'][tp]
-    #                     if '_view' in type_dict:
-    #                         action_widget = get_class(type_dict['_view'])(self.experiment, actiondict)
-    #                 else:
-    #                     self.logger.debug('ActionType {} not found for {}'.format(tp, actiondict['Name']))
-    #
-    #             # else:
-    #             #     self.logger.debug('No gui found for action: {}'.format(actiondict['Name']))
-    #             #     action_widget = QVBoxLayout
-    #             # if '~nested' in actiondict:
-    #             #     pass
-    #             #     nested_layout = self.build_ui(actiondict['~nested'])
-    #             #     if action_layout is None:
-    #             #         action_layout = QGroupBox(actiondict['Name'])
-    #             #         action_layout = setContentsMargins(0, 9, 0, 0)
-    #             #         outer_layout.addLayout(action_layout)
-    #             #
-    #             #
-    #             #         action_layout = QVBoxLayout()
-    #             #         action_layout.setContentsMargins(0, 0, 0, 0)
-    #             #         action_layout.setSpacing(0)
-    #             #
-    #             #     outer_layout.addWidget(action_widget)
-    #             # else:
-    #             if action_widget is not None:
-    #                 action_layout.addWidget(action_widget)
-    #
-    #
-    #     return action_layout
 
     def _add_actionbox(self, actiondict):
         pass
@@ -569,12 +499,8 @@ class BaseMeasurement(BaseGui):
         self.update_buttons()
 
     def config(self):
-        # self.dialog_config.show()
-        answ = self.dialog_config.exec_()
-        print(answ)
-        print('self._valid = ', self._valid)
-        # self.actionlist = self.experiment.properties['Measurements'][self.measurement]
-        # print(self.actionlist[0])
+        self.dialog_config.exec_()
+        print(self.dialog_config.height())
         self.update_buttons()
         self.create_actionlist_guis()
         self.update()

@@ -141,7 +141,7 @@ class ExampleExperiment(BaseExperiment):
 
     def sweep_atto(self, actiondict, nesting):
         # print('sweep_atto: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
         self.save(0)
         arr, unit = array_from_settings_dict(actiondict)
         for s in arr:
@@ -235,7 +235,6 @@ if __name__ == '__main__':
     #
     #
     # print('--------------------- DONE with the experiment')
-
 
 
     from PyQt5.QtWidgets import QApplication

@@ -660,7 +660,7 @@ class BaseExperiment():
 
     def save(self, data, auto=True, **kwargs):
         indx = self._nesting_indices[:len(self._nesting_parents)]
-        print(indx)
+        # print(indx)
 
 
     def create_saver(self, actiondict, nesting):
