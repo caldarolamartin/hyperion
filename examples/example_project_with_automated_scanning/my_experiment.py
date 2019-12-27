@@ -238,7 +238,7 @@ if __name__ == '__main__':
 
 
     from PyQt5.QtWidgets import QApplication
-    from hyperion.view.base_guis import BaseMeasurement, ModifyMeasurement
+    from hyperion.view.base_guis import BaseMeasurementGui, ModifyMeasurement
 
     app = QApplication(sys.argv)
     # q = ModifyMeasurement(e,'Measurement A')
@@ -247,7 +247,7 @@ if __name__ == '__main__':
     ## Introduce corruption in actionlist for testing:
     # del(e.properties['Measurements']['Measurement A'][0]['Name'])
 
-    q = BaseMeasurement(e, 'Measurement A')
+    q = BaseMeasurementGui(e, 'Measurement A')
     app.exec_()
 
 

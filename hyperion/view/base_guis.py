@@ -338,7 +338,18 @@ class ModifyMeasurement(QDialog):
         self.update_buttons()
 
 
-class BaseMeasurement(BaseGui):
+class BaseMeasurementGui(BaseGui):
+    """
+    Builds a Meaasurement GUI based on the Measurement actionlist in experiment.properties (which is read from the
+    config file). The GUI will follow the nested structure in the actionlist.
+    Note that the Actions in the actionlist need to refer to an appropriate GUI file and Widget and to an appropriate
+    method in the experiment (which should contain nested() if nesting is to be possible).
+    I also builds the Start/Pause, Break and Stop buttons that
+
+    :param experiment: hyperion experiment object
+    :param measurement: (str) name of a measurement (specified in the config of the experiment)
+    :param parent: parent QWidget
+    """
     def __init__(self, experiment, measurement, parent=None):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Creating BaseMeasurement object')
@@ -366,22 +377,14 @@ class BaseMeasurement(BaseGui):
         label_incorrect = QLabel('incorrect config file')
         label_incorrect.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.actions_layout.addWidget(label_incorrect)
-
         self.create_actionlist_guis()
-
         # This line controls the size of the whole layout.
-        # SetDefaultConstraint causes it to adjust to the content size, but keeps it adjustable
-        # SetFixedSize adjust to the content and prevents manual resizing
+        # .SetDefaultConstraint causes it to adjust to the content size, but keeps it adjustable
+        # .SetFixedSize adjust to the content and prevents manual resizing
         self.outer_layout.setSizeConstraint(QLayout.SetFixedSize)
-
         self.setLayout(self.outer_layout)
-
-        # print(self.outer_layout.sizeHint())
-        # self.outer_layout.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-
         self.show()
-
         # Prepare window to modify config:
         self.dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
         # Set up QTimer to periodically update button states (based on
@@ -389,11 +392,10 @@ class BaseMeasurement(BaseGui):
         self.timer.timeout.connect(self.update_buttons)
         self.timer.start(50) # in ms
 
-
     def create_buttons(self):
         """
-
-        :return: layout containing start stop buttons
+        Create Start/Pause, Break, Stop and Config Button. And link to appropriate methods.
+        :return: layout containing buttons
         """
         self.logger.debug('Creating start stop buttons')
         layout_buttons = QHBoxLayout()
@@ -408,39 +410,24 @@ class BaseMeasurement(BaseGui):
         return layout_buttons
 
     def create_actionlist_guis(self):
-
+        """
+        Creates and updates the the (nested) measurement GUI.
+        """
         self.deleteItemsOfLayout(self.actions_layout)
-
-        # if tmp is not None:
-        #     if tmp.widget() is not None:
-        #         tmp.widget().setParent(None)
-        #     tmp.setParent(None)
         if self._valid:
             self.actions_layout = self.add_actions_recursively(self.experiment.properties['Measurements'][self.measurement])
         else:
             self.actions_layout = QVBoxLayout()
             self.actions_layout.addWidget(QLabel('incorrect config file'))
-        # self.actions_layout.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         self.outer_layout.addLayout(self.actions_layout, 1, 0)
         self.update()
-
-    def __shift(self, level, maxlev=5):
-        """
-        Helper function to calculating border widths for aligning nested layout in add_actions_recursively().
-        Returns tuple
-        """
-        inverted = max(0, maxlev - level)
-        shift = 0
-        for s in range(inverted, maxlev):
-            shift += s+2
-        return inverted, shift
 
     def add_actions_recursively(self, actionlist, nesting_level=0):
         """
         Recursive function to build nested layout of action GUIs.
 
-        :param actionlist:
-        :param nesting_level: (int) Used for recursion
+        :param actionlist: (list)
+        :param nesting_level: (int) Used for recursion (use default when calling method)
         :return: layout containing the nested GUIs
         """
         layout = QVBoxLayout()
@@ -469,10 +456,21 @@ class BaseMeasurement(BaseGui):
                 layout.addWidget(box)
         return layout
 
-    def _add_actionbox(self, actiondict):
-        pass
+    def __shift(self, level, maxlev=5):
+        # Helper function to calculating border widths for aligning nested layout in add_actions_recursively().
+        # Returns tuple
+        inverted = max(0, maxlev - level)
+        shift = 0
+        for s in range(inverted, maxlev):
+            shift += s+2
+        return inverted, shift
 
     def start_pause(self):
+        """
+        Called when Start/Pause/Continue button is pressed.
+        Starts a measurement thread or communicates to experiment through the Measurement status flags that a
+        measurement should be paused or continued.
+        """
         self.logger.debug('start/pause pressed')
         self.experiment.apply_pause = not self.experiment.apply_pause
         if self.experiment.running_status == self.experiment._not_running:
@@ -480,27 +478,38 @@ class BaseMeasurement(BaseGui):
         self.update_buttons()
 
     def apply_break(self):
+        """
+        Called when Break button is pressed.
+        Communicates to experiment through the Measurement status flags that a measurement break ("soft stop") should be
+        applied.
+        """
         self.logger.debug('break pressed')
         self.experiment.apply_break = True
         self.update_buttons()
 
     def apply_stop(self):
+        """
+        Called when Stop button is pressed.
+        Communicates to experiment through the Measurement status flags that a measurement should be stopped (immediately).
+        """
         self.logger.debug('stop pressed')
         self.experiment.apply_stop = True
         self.update_buttons()
 
     def config(self):
+        """
+        Called when Config button is pressed.
+        Opens the ModifyMeasurement Dialog to modify/correct the config text directly.
+        """
         self.dialog_config.exec_()
-        print(self.dialog_config.height())
         self.update_buttons()
         self.create_actionlist_guis()
         self.update()
 
-
-
-
     def update_buttons(self):
-
+        """
+        Updates the status of the start/pause/continue, break, stop buttons.
+        """
         # note that:
         # experiment._not_running = 0
         # experiment._running =     1
@@ -525,14 +534,17 @@ class BaseMeasurement(BaseGui):
             self.button_stop.setEnabled(self.experiment._not_running < self.experiment.running_status < self.experiment._stopping)
             self.button_config.setEnabled(self.experiment.running_status == self.experiment._not_running)
 
-
     def validate(self):
+        """
+        Uses self.experiment._validate_actionlist() to determine if the current actionlist in experiment.properties is
+        valid.
+        :return: (boolean) True if valid
+        """
         new_action_list, invalid_methods, invalid_names = self.experiment._validate_actionlist(self.experiment.properties['Measurements'][self.measurement])
         return (invalid_methods==0 and invalid_names==0)
 
 
-
-
+# This saver widget is a rudimentary start and is not used at the moment:
 class SaverWidget(BaseGui):
     def __init__(self):
         super().__init__()
