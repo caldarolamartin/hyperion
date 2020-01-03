@@ -147,7 +147,7 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     :type axes: list of vectors of pint quantity
     :param axes_name: the name of each of the axes
     :type axes_name: list of strings
-    :param errors: measured errors for each of the detectors. t has to have the same dimensions as data.
+    :param errors: measured errors for each of the detectors. It has to have the same dimensions as data.
     :type errors: list of numpy ndarrays of pint quantities
     :param extra_dims: A dict containing extra values fixed and all the same for the set.
     :type extra_dims: dict
@@ -174,7 +174,6 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     # add an attribute to indicate the presence of errors
     rootgrp.setncatts({'_error_present': str(_error_status)})
 
-
     dims = {}
     dim_vars = {}
 
@@ -189,27 +188,7 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
         dims[name] = dim
         dim_vars[name] = dim_var
 
-    # logger.debug('Creating extra dimensions.')
-    # # create extra variables and dimensions for other parameters,
-    # # fixed in the dataset
-    # ex_dims = {}
-    # ex_dim_vars = {}
-    # if extra_dim is not None:
-    #     for name, value in extra_dim:
-    #         logger.debug('Adding coordinate: {}, with value: {}'.format(name, value))
-    #         dim = rootgrp.createDimension(name, 1)
-    #         dim_var = rootgrp.createVariable(name, 'f8', (name,))
-    #         if isinstance(value, Q_):
-    #             dim_var[:] = value.m
-    #             dim_var.units = '{}'.format(value.u)
-    #         else:
-    #             dim_var[:] = value
-    #
-    #         ex_dims[name] = dim
-    #         ex_dim_vars[name] = dim_var
-
     # fill the data
-
     logger.debug('Saving the data.')
 
     if errors is not None:
@@ -261,13 +240,19 @@ def read_netcdf4_and_plot_all(filename):
 
     # handle errors to plot with errors
     _error = False
-
+    # read the dataset
     ds = xr.open_dataset(filename)
     logger.info('The dataset contains: {}'.format(ds))
 
     if '_error_present' in ds.attrs.keys():
-        _error =  ds.attrs['_error_present']
+        if ds.attrs['_error_present'] in ('True', 'true','yes'):
+            _error = True
+        else:
+            _error = False
 
+    logger.debug('The error state is: {}'.format(_error))
+
+    # plot according to the presence of errors or not.
     if _error:
         logger.info('The dataset contains errors.')
         for index, name in enumerate(ds.data_vars):
@@ -284,23 +269,10 @@ def read_netcdf4_and_plot_all(filename):
     else:
         logger.info('The dataset does not contain errors.')
         for index, name in enumerate(ds.data_vars):
-            plt.figure(figsize=((12, 6)))
+            plt.figure(figsize=((10, 6)))
             ds[name].plot()
             plt.axes.set_axis = 'equal'
             plt.tight_layout()
-
-    return ds
-
-def read_netcdf4_and_plot(filename):
-    """Reads the file in filename and plots all the detectors """
-    ds = xr.open_dataset(filename)
-    logger.info('The dataset contains: {}'.format(ds))
-
-    for index, name in enumerate(ds.data_vars):
-        plt.figure(figsize=((12, 6)))
-        ds[name].plot()
-        plt.axes.set_axis = 'equal'
-        plt.tight_layout()
 
     return ds
 
@@ -319,13 +291,14 @@ if __name__ == '__main__':
         filename = os.path.join(folder, 'test_netcdf4_output.nc')
         logger.info(f'Now reading the data in file: {filename} ')
         # %% read the data
-        ds = read_netcdf4_and_plot(filename)
+        ds = read_netcdf4_and_plot_all(filename)
 
     elif m == 'write and read':
         # write
         folder = hyperion.log_path
-        filename = os.path.join(folder, 'test_netcdf4_output_with_error.nc')
-        logger.info('Filename to save and read: {}'.format(filename))
+        filename = 'test_netcdf4_output'
+
+        logger.info('Filename to save and read: {}'.format(os.path.join(folder,filename+'.nc')))
 
         # fake dataset
         logger.info('Create a fake dataset to test the saving functions.')
@@ -354,13 +327,21 @@ if __name__ == '__main__':
         logger.debug('The data description is: {}'.format(data_description))
 
         # save
-        logger.info('Now saving the data...')
-        save_netCDF4(filename, detectors, data, axes, axes_name, errors = error,
+        logger.info('Now saving the data without errors...')
+        save_netCDF4(os.path.join(folder,filename+'.nc'), detectors, data, axes, axes_name, errors = None,
+                     extra_dims = extra_dim,
+                     description='This is fake data to test the saving process')
+
+        logger.info('Now saving the data with errors...')
+        save_netCDF4(os.path.join(folder,filename+'with_errors.nc'), detectors, data, axes, axes_name, errors = error,
                      extra_dims = extra_dim,
                      description='This is fake data to test the saving process')
 
         # read the data
-        logger.info('Now reading the data... ')
-        ds = read_netcdf4_and_plot(filename)
+        logger.info('Now reading the data and ploting withOUT errors... ')
+        ds = read_netcdf4_and_plot_all(os.path.join(folder, filename+'.nc'))
+
+        logger.info('Now reading the data and ploting with errors... ')
+        ds = read_netcdf4_and_plot_all(os.path.join(folder,filename+'with_errors.nc'))
 
 
