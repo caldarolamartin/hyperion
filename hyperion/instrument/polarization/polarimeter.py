@@ -42,11 +42,11 @@ class Polarimeter(BaseInstrument):
                        'LINV','ELLIP','POWER_SPLIT',
                        'RETARDATION']
 
-    DATA_TYPES_UNITS = ['norm','norm','norm',
+    DATA_TYPES_UNITS = [' ',' ',' ',
                         'dB','dB','deg',
-                        '%', '%', 'norm',
-                        'norm', 'deg', 'norm',
-                        'norm']
+                        'percent', 'percent', ' ',
+                        ' ', 'deg', ' ',
+                        ' ']
 
     def __init__(self, settings):
         """
@@ -253,8 +253,6 @@ class Polarimeter(BaseInstrument):
         the unit. For example: [np.array([1,2,3]),'time','second','elapsed time'].
         :type extra: list
         """
-
-
         self.logger.info('Saving data to {}'.format(file_path))
         self.logger.debug('The data is of shape: {}'.format(np.shape(data)))
 
