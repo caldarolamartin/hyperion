@@ -232,8 +232,17 @@ class Polarimeter(BaseInstrument):
     def get_average_data(self, N):
         """ Takes N data points and gives back the average and the error (std)
 
-        :return: array with dim 13 containing the average of the N measurements for each property in DATA_TYPES, and the std
+        :return: av, array with dim 13 containing the average of the N measurements for each property in DATA_TYPES, and the std
         :rtype: numpy array
+        :return: st, array with dim 13 containing the std of the N measurements for each property in DATA_TYPES, and the std
+        :rtype: numpy array
+
+        Example:
+            >>> av, st = get_average_data(10)
+            >>> print('Values: {} +/- {}'.format(av, st))
+            Values
+
+
         """
         self.logger.debug('Getting average data: {} points.'.format(N))
         data = self.get_multiple_data(N)
@@ -241,7 +250,7 @@ class Polarimeter(BaseInstrument):
         st = np.std(data, axis=0)
 
         if np.isinf(av).any():
-            self.looger.info('We got an inf!!!!')
+            self.looger.warning('We got an inf!!!!')
         return av, st
 
     def save_data(self, data, extra=[None, None, None, None], file_path = 'polarimeter_test.txt'):
