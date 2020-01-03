@@ -163,6 +163,7 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
         assert len(errors)==len(data)
         for index, e in enumerate(errors):
             assert np.shape(e)==np.shape(data[index])
+        logger.info('Checked the errors dimensions: OK')
 
     rootgrp = netCDF4.Dataset(filename, "w", format="NETCDF4")
     dims = {}
@@ -205,16 +206,12 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     if errors is not None:
         logger.info('Data with errors. ')
         # append to detectors the errors
-        logger.debug('Appending to detectors: {} the errors.'.format(detectors))
-        for d in detectors:
-            detectors.append(f'error {d}')
-        logger.debug('Detectors after appending: {}'.format(detectors))
-
-        # appending the data with the errors
-        logger.debug('Appending to data: {} the errors'.format(data))
-        for e in errors:
+        #logger.debug('Appending to detectors: {} the errors.'.format(detectors))
+        for index, e in enumerate(errors):
+            detectors.append('error {}'.format(detectors[index]))
             data.append(e)
-        logger.debug('Data after adding errors: {}'.format(data))
+        #logger.debug('Detectors after appending: {}'.format(detectors))
+
 
     for detector, data in zip(detectors, data):
         u = data.u
@@ -223,7 +220,7 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
         var.units = '{}'.format(u)
 
     # metadata
-    logger.debug('Creating metadata.')
+    logger.debug('Creating metadata in the netCDF4.')
 
     for k, v in extra_dims.items():
         logger.debug('Adding extra dimension: {} with value {}'.format(k, v))
@@ -272,23 +269,23 @@ if __name__ == '__main__':
     # if to decide which mode to test
     if m == 'read':
         ## read
-        folder = hyperion.parent_path
-        filename = os.path.join(folder, 'test_netcfd4_output.nc')
+        folder = hyperion.log_path
+        filename = os.path.join(folder, 'test_netcdf4_output.nc')
         logger.info(f'Now reading the data in file: {filename} ')
         # %% read the data
         ds = read_netcdf4_and_plot(filename)
 
     elif m == 'write and read':
         # write
-        folder = hyperion.parent_path
-        filename = os.path.join(folder, 'test_netcfd4_output_with_error.nc')
+        folder = hyperion.log_path
+        filename = os.path.join(folder, 'test_netcdf4_output_with_error.nc')
         logger.info('Filename to save and read: {}'.format(filename))
 
         # fake dataset
         logger.info('Create a fake dataset to test the saving functions.')
         wavelength = 551 * ur('nm')
         extra_dim = {'wavelength': wavelength, 'temp': 300*ur('K'), 'points to average': 10, 'percent': ur('75 percent')}
-        size = (332, 150)
+        size = (300, 212)
         axes = []
         axes_name = []
 
