@@ -13,6 +13,7 @@ used along hyperion.
 import os
 import netCDF4
 import time
+import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 from hyperion.core import logman
@@ -159,13 +160,21 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     assert len(data) == len(detectors)
     assert len(axes) == len(axes_name)
 
+    _error_status = False
+
     if errors is not None:
+        _error_status = True
         assert len(errors)==len(data)
         for index, e in enumerate(errors):
             assert np.shape(e)==np.shape(data[index])
         logger.info('Checked the errors dimensions: OK')
 
     rootgrp = netCDF4.Dataset(filename, "w", format="NETCDF4")
+
+    # add an attribute to indicate the presence of errors
+    rootgrp.setncatts({'_error_present': str(_error_status)})
+
+
     dims = {}
     dim_vars = {}
 
@@ -212,7 +221,7 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
             data.append(e)
         #logger.debug('Detectors after appending: {}'.format(detectors))
 
-
+    # save data and errors (if present)
     for detector, data in zip(detectors, data):
         u = data.u
         var = rootgrp.createVariable(detector, data.m.dtype, tuple(dims.keys())[::1])
@@ -223,15 +232,18 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     logger.debug('Creating metadata in the netCDF4.')
 
     for k, v in extra_dims.items():
-        logger.debug('Adding extra dimension: {} with value {}'.format(k, v))
-        s = '{!s}'.format(v)
-        #logger.debug('The value as a type = {} is {}'.format(type(s), s))
+        # if to avoid writing the data and the errors as atributes too.
+        if k=='data' or k=='error' or k=='errors':
+            logger.debug('Ignoring extra dimension: {}'.format(k))
+        else:
+            logger.debug('Adding extra dimension: {} with value {}'.format(k, v))
+            s = '{!s}'.format(v)
 
-        if not isinstance(s, (str, float, int)):
-            logger.warning("not saving extra dimension {} = {}".format(k, repr(s)))
-            continue
+            if not isinstance(s, (str, float, int)):
+                logger.warning("not saving extra dimension {} = {}".format(k, repr(s)))
+                continue
 
-        setattr(rootgrp, k, s)
+            setattr(rootgrp, k, s)
 
     if description is None:
         rootgrp.description = 'No description given'
@@ -243,6 +255,41 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     # save
     rootgrp.sync()
     rootgrp.close()
+
+def read_netcdf4_and_plot_all(filename):
+    """Reads the file in filename and plots all the detectors """
+
+    # handle errors to plot with errors
+    _error = False
+
+    ds = xr.open_dataset(filename)
+    logger.info('The dataset contains: {}'.format(ds))
+
+    if '_error_present' in ds.attrs.keys():
+        _error =  ds.attrs['_error_present']
+
+    if _error:
+        logger.info('The dataset contains errors.')
+        for index, name in enumerate(ds.data_vars):
+            if index == len(ds.data_vars.items()) / 2:
+                break
+            plt.figure(figsize=((9, 7)))
+            plt.subplot(2, 1, 1)
+            ds[name].plot()
+            plt.axes.set_axis = 'equal'
+            plt.subplot(2, 1, 2)
+            ds['error {}'.format(name)].plot()
+            plt.axes.set_axis = 'equal'
+            plt.tight_layout()
+    else:
+        logger.info('The dataset does not contain errors.')
+        for index, name in enumerate(ds.data_vars):
+            plt.figure(figsize=((12, 6)))
+            ds[name].plot()
+            plt.axes.set_axis = 'equal'
+            plt.tight_layout()
+
+    return ds
 
 def read_netcdf4_and_plot(filename):
     """Reads the file in filename and plots all the detectors """
@@ -258,7 +305,6 @@ def read_netcdf4_and_plot(filename):
     return ds
 
 if __name__ == '__main__':
-    import numpy as np
     import os
     import hyperion
 
