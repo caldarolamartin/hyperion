@@ -166,7 +166,7 @@ class Polarimeter(BaseInstrument):
             ans = self.controller.start_measurement()
 
             if ans == 0:
-                self.logger.debug('No error found, device {} started measurement')
+                self.logger.debug('No error found, device {} started measurement'.format(self._id))
                 self._measuring = True
             elif ans == -1:
                 raise Warning('The device {} is not yet initialized.'.format(self._id))
