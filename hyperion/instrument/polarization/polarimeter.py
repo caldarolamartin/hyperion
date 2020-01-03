@@ -12,8 +12,10 @@ and error descriptions
 from hyperion import logging
 from time import time, sleep
 import numpy as np
-from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
+from hyperion.tools.saving_tools import save_netCDF4
+from hyperion.instrument.base_instrument import BaseInstrument
+
 
 
 class Polarimeter(BaseInstrument):
@@ -25,8 +27,8 @@ class Polarimeter(BaseInstrument):
     DATA_TYPES = ['First Stokes component (norm)',
                   'Second Stokes component (norm)',
                   'Third Stokes component (norm)',
-                  'PER in units of dB',
-                  'Lin. PER in units of dB as described in manual page 13',
+                  'PER in logaritmic units: log(I_V/I_H)',
+                  'Linear PER in logaritmic units: log(I_total/I_H) (see manual page 13)',
                   'The angle of the main polarization axis. 0deg for vertical polarization',
                   'The degree of polarization in %',
                   'The intensity of the entrance bean in units of %',
@@ -42,11 +44,11 @@ class Polarimeter(BaseInstrument):
                        'LINV','ELLIP','POWER_SPLIT',
                        'RETARDATION']
 
-    DATA_TYPES_UNITS = [' ',' ',' ',
-                        'dB','dB','deg',
-                        'percent', 'percent', ' ',
-                        ' ', 'deg', ' ',
-                        ' ']
+    DATA_TYPES_UNITS = ['','','',
+                        '','','deg',
+                        'percent', 'percent', '',
+                        '', 'deg', '',
+                        '']
 
     def __init__(self, settings):
         """
@@ -327,6 +329,34 @@ class Polarimeter(BaseInstrument):
 
         return header
 
+    def save_as_netCDF4(self, filename, data):
+        """ Saves the data from the polarimeter measurement into a netCDF4 file. """
+        self.logger.info(f'Saving into netCDF4 file: {filename}')
+        detectors = self.DATA_TYPES_NAME
+        self.logger.debug(f'The detectors are {detectors}')
+
+        DATA = []
+        for index, unit_name in enumerate(self.DATA_TYPES_UNITS):
+            unit = ur(unit_name)
+            self.logger.debug(f'The unit for the detector {detectors[index]} is: {unit}')
+            DATA.append( data[:,index] * unit )
+
+        self.logger.debug(f'The data to save is: {DATA}')
+
+        # create axes
+        axis = np.array(range(np.shape(data)[0]))*ur('')
+        extra = {'wavelength':self._wavelength}
+
+        description = 'This is a description of the variables: \n'
+
+        for index, s in enumerate(self.DATA_TYPES):
+
+            to_add = f'{self.DATA_TYPES_NAME[index]} : {s} \n'
+            description += to_add
+
+        save_netCDF4(filename, detectors, DATA, axes=(axis, ) , axes_name=('Measurement index',), extra_dims=extra,
+                     description = description)
+
     def get_wavelength(self):
         """ asks the device the current wavelength.
 
@@ -338,8 +368,12 @@ class Polarimeter(BaseInstrument):
         return w
 
 if __name__ == "__main__":
+    import hyperion
+    import os
+    from hyperion.tools.saving_tools import read_netcdf4_and_plot
 
-
+    path = hyperion.parent_path
+    filename = 'polarimeter_output'
 
     with Polarimeter(settings = {'dummy' : False,
                                  'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
@@ -358,7 +392,14 @@ if __name__ == "__main__":
             s.stop_measurement()
             T = np.array([t]*Npts)
             print('T vector: {}'.format(T))
+
+            # save txt
             s.save_data(data)
-            s.save_data(data, extra=[np.zeros(Npts),'Time','second','Elapsed time'],file_path='with_extra.txt')
+            # save txt with extra info
+            s.save_data(data, extra = [np.zeros(Npts),'Time','second','Elapsed time'],
+                        file_path = os.path.join(path, filename + '_with_extra.txt') )
+            # save netCDF4
+            s.save_as_netCDF4(os.path.join(path, filename + '.nc'), data)
+            read_netcdf4_and_plot(os.path.join(path,filename+'.nc'))
 
         print('DONE')

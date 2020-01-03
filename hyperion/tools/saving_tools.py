@@ -145,13 +145,14 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, extra_dims=None, de
     in the list has to match the dimension of the i-th dimension of data.
     :type axes: list of vectors of pint quantity
     :param axes_name: the name of each of the axes
-    :type axes_name: string
+    :type axes_name: list of strings
     :param extra_dims: A dict containing extra values fixed and all the same for the set.
     :type extra_dims: dict
     :param description: an extra descriptive message can be put here.
     :type description: string
 
     """
+    logger.info(f'Saving data with netCDF4 into file: {filename}')
     logger.debug('Checking the input')
     assert len(data) == len(detectors)
     assert len(axes) == len(axes_name)
@@ -218,7 +219,7 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, extra_dims=None, de
         rootgrp.description = description
 
     rootgrp.history = "Saved on {}".format(time.ctime(time.time()))
-    rootgrp.creator = f'NanoCD package {__version__}'
+    rootgrp.creator = f'Hyperion package, version: {__version__}'
     # save
     rootgrp.sync()
     rootgrp.close()
@@ -238,28 +239,32 @@ def read_netcdf4_and_plot(filename):
 
 if __name__ == '__main__':
     import numpy as np
+    import os
+    import hyperion
 
     # uncomment the next line according to the test you would like to run.
-    # m = 'write and read'
-    m = 'read'
+    m = 'write and read'
+    # m = 'read'
 
     # if to decide which mode to test
     if m == 'read':
         ## read
-        filename = 'c:/Users/Martin/Desktop/test_netcfd4_output_from_experiment.nc'
+        folder = hyperion.parent_path
+        filename = os.path.join(folder, 'test_netcfd4_output.nc')
         logger.info(f'Now reading the data in file: {filename} ')
         # %% read the data
         ds = read_netcdf4_and_plot(filename)
 
     elif m == 'write and read':
         # write
-        filename = 'test_netcfd4_output.nc'
+        folder = hyperion.parent_path
+        filename = os.path.join(folder, 'test_netcfd4_output.nc')
         logger.info('Filename to save and read: {}'.format(filename))
 
         # fake dataset
         logger.info('Create a fake dataset to test the saving functions.')
         wavelength = 551 * ur('nm')
-        extra_dim = {'wavelength': wavelength, 'temp': 300*ur('K'), 'points to average': 1}
+        extra_dim = {'wavelength': wavelength, 'temp': 300*ur('K'), 'points to average': 1, 'percent': ur('75 percent')}
         size = (332, 150)
         axes = []
         axes_name = []
