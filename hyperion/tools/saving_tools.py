@@ -130,7 +130,7 @@ def save_metadata(self):
 def save(self, data):
     pass
 
-def save_netCDF4(filename, detectors, data, axes, axes_name, extra_dims=None, description=None):
+def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_dims=None, description=None):
     """ This function saves the data in a netCDF4 format, including units and
     the axes corresponding to the data. For more info about the package used,
     please see http://unidata.github.io/netcdf4-python/netCDF4/index.html.
@@ -146,6 +146,8 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, extra_dims=None, de
     :type axes: list of vectors of pint quantity
     :param axes_name: the name of each of the axes
     :type axes_name: list of strings
+    :param errors: measured errors for each of the detectors. t has to have the same dimensions as data.
+    :type errors: list of numpy ndarrays of pint quantities
     :param extra_dims: A dict containing extra values fixed and all the same for the set.
     :type extra_dims: dict
     :param description: an extra descriptive message can be put here.
@@ -156,6 +158,11 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, extra_dims=None, de
     logger.debug('Checking the input')
     assert len(data) == len(detectors)
     assert len(axes) == len(axes_name)
+
+    if errors is not None:
+        assert len(errors)==len(data)
+        for index, e in enumerate(errors):
+            assert np.shape(e)==np.shape(data[index])
 
     rootgrp = netCDF4.Dataset(filename, "w", format="NETCDF4")
     dims = {}
@@ -192,7 +199,23 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, extra_dims=None, de
     #         ex_dim_vars[name] = dim_var
 
     # fill the data
+
     logger.debug('Saving the data.')
+
+    if errors is not None:
+        logger.info('Data with errors. ')
+        # append to detectors the errors
+        logger.debug('Appending to detectors: {} the errors.'.format(detectors))
+        for d in detectors:
+            detectors.append(f'error {d}')
+        logger.debug('Detectors after appending: {}'.format(detectors))
+
+        # appending the data with the errors
+        logger.debug('Appending to data: {} the errors'.format(data))
+        for e in errors:
+            data.append(e)
+        logger.debug('Data after adding errors: {}'.format(data))
+
     for detector, data in zip(detectors, data):
         u = data.u
         var = rootgrp.createVariable(detector, data.m.dtype, tuple(dims.keys())[::1])
@@ -258,13 +281,13 @@ if __name__ == '__main__':
     elif m == 'write and read':
         # write
         folder = hyperion.parent_path
-        filename = os.path.join(folder, 'test_netcfd4_output.nc')
+        filename = os.path.join(folder, 'test_netcfd4_output_with_error.nc')
         logger.info('Filename to save and read: {}'.format(filename))
 
         # fake dataset
         logger.info('Create a fake dataset to test the saving functions.')
         wavelength = 551 * ur('nm')
-        extra_dim = {'wavelength': wavelength, 'temp': 300*ur('K'), 'points to average': 1, 'percent': ur('75 percent')}
+        extra_dim = {'wavelength': wavelength, 'temp': 300*ur('K'), 'points to average': 10, 'percent': ur('75 percent')}
         size = (332, 150)
         axes = []
         axes_name = []
@@ -279,6 +302,7 @@ if __name__ == '__main__':
         data_matrix = np.random.random(size)
         data = [data_matrix * ur(units[0]), data_matrix * 1e3 * ur(units[1])]
         logger.debug('The data is: {}'.format(data))
+        error = [data_matrix * 0.01 * ur(units[0]), data_matrix * 0.01 * 1e3 * ur(units[1])]
 
             # data description
         data_description = []
@@ -288,7 +312,7 @@ if __name__ == '__main__':
 
         # save
         logger.info('Now saving the data...')
-        save_netCDF4(filename, detectors, data, axes, axes_name,
+        save_netCDF4(filename, detectors, data, axes, axes_name, errors = error,
                      extra_dims = extra_dim,
                      description='This is fake data to test the saving process')
 
