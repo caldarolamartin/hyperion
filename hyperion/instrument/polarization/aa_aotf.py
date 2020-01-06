@@ -31,7 +31,7 @@ class AaAotf(BaseInstrument):
 
     """
     DEFAULT_SETTINGS = {'frequency': [85, 95, 105, 115, 125, 145, 70, 80],
-                        'power': [20, 20, 20, 20, 20, 20, 20, 20],
+                        'power': [21, 21, 21, 21, 21, 21, 21, 21],
                         'state': False,
                         'mode': 'internal',
                         }
@@ -42,13 +42,9 @@ class AaAotf(BaseInstrument):
 
         It needs a settings dictionary that contains the following fields (mandatory)
 
-            * port: COM port name where the LCC25 is connected
-            * enable: logical to say if the initialize enables the output
-            * dummy: logical to say if the connection is real or dummy (True means dummy)
+            * port: COM port name where the AaAotf is connected
             * controller: this should point to the controller to use and with / add the name of the class to use
-
-        Note: When you set the setting 'dummy' = True, the controller to be loaded is the dummy one by default,
-        i.e. the class will overwrite the 'controller' with 'hyperion.controller.aa.aa_modd18012/AaModd18012Dummy'
+            * apply_defaults: logical to indicate if the default settings should be applied at the init
 
         """
         super().__init__(settings)
@@ -66,6 +62,15 @@ class AaAotf(BaseInstrument):
         cal_file = os.path.join(os.path.dirname(__file__), 'lookup_table_cal_aotf_2019-02-05.txt')
         self.logger.info('Using freq to wavelength calibration for aotf from file {}'.format(cal_file))
         self.load_calibration(cal_file)
+
+        # turn off all channels:
+        if 'apply_defaults' in settings.keys():
+            if settings['apply_defaults']:
+                self.logger.info('Applying defaults to AaAOTF')
+                # apply defaults to all values
+                for i in range(8):
+                    self.set_defaults(i+1)
+                self.blanking(True, 'internal')
 
     def load_calibration(self, cal_file):
         """ This method loads the calibration file cal_file
@@ -189,7 +194,9 @@ class AaAotf(BaseInstrument):
         """
         # select the channel to turn on based on the frequency.
         ch = self.choose_channel(freq)
-        if self.channel_in_use == ch:
+        if self.channel_in_use is None:
+            self.logger.info('Just initialized. Setting channel {}.'.format(ch))
+        elif self.channel_in_use == ch:
             self.logger.debug('Continue with the same channel.')
         else:
             self.logger.info('Changed from channel {} to channel {}.'.format(self.channel_in_use, ch))
@@ -222,8 +229,7 @@ class AaAotf(BaseInstrument):
         F = self.wavelength_to_frequency(wl)
         self.logger.debug('Frequency for {} is = {}'.format(wl, F))
         self.logger.info(
-            'Setting all parameters to get the wavelength={}, power={}, state={}, mode={}'.format(wl, power, state,
-                                                                                                  mode))
+            'Setting wavelength={} with power={}, state={}, mode={}'.format(wl, power, state, mode))
         ans = self.set_frequency_all_range(F, power, state, mode)
         return ans
 
@@ -257,7 +263,8 @@ class AaAotf(BaseInstrument):
 if __name__ == '__main__':
 
     example_settings =  {'port':'COM10', 'dummy':False,
-                           'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012'}
+                           'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012',
+                         'apply defaults': True}
 
     with  AaAotf(settings=example_settings) as d:
 

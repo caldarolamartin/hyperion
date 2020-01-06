@@ -160,10 +160,20 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     assert len(data) == len(detectors)
     assert len(axes) == len(axes_name)
 
+    # I create a dummy variable to avoid changing the detectors structure with the addition of errors
+    detectors_to_save = []
+    for d in detectors:
+        detectors_to_save.append(d)
+
+    data_to_save = []
+    for d in data:
+        data_to_save.append(d)
+
     _error_status = False
 
     if errors is not None:
         _error_status = True
+        logger.info('Data with erros.')
         assert len(errors)==len(data)
         for index, e in enumerate(errors):
             assert np.shape(e)==np.shape(data[index])
@@ -196,12 +206,12 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
         # append to detectors the errors
         #logger.debug('Appending to detectors: {} the errors.'.format(detectors))
         for index, e in enumerate(errors):
-            detectors.append('error {}'.format(detectors[index]))
-            data.append(e)
+            detectors_to_save.append('error {}'.format(detectors[index]))
+            data_to_save.append(e)
         #logger.debug('Detectors after appending: {}'.format(detectors))
 
     # save data and errors (if present)
-    for detector, data in zip(detectors, data):
+    for detector, data in zip(detectors_to_save, data_to_save):
         u = data.u
         var = rootgrp.createVariable(detector, data.m.dtype, tuple(dims.keys())[::1])
         var[:] = data.m
