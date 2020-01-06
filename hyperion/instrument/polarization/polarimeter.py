@@ -211,7 +211,7 @@ class Polarimeter(BaseInstrument):
         data = np.zeros((1, len(d)))
         data[0, :] = d
 
-        if data[7] > 99:
+        if data[0, 7] > 99:
             self.logger.warning('The intensity is too high! Please reduce intensity!')
 
         return data
