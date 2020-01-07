@@ -439,7 +439,7 @@ if __name__ == "__main__":
     ampl = 30*ur('V')   #30V
     freq = 100*ur('Hz')    #Hz
 
-    #q.configure_stepper(axis, ampl, freq)
+    q.configure_stepper(axis, ampl, freq)
 
     #q.move_to(axis,2.1*ur('mm'))
 
@@ -449,7 +449,7 @@ if __name__ == "__main__":
     #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
     # q.stop_moving(axis)
 
-    #q.move_relative(axis, -100 * ur('um'))
+    q.move_relative(axis, -100 * ur('um'))
 
     # direct = 0  #forward
     # steps = 1  #amount of steps
@@ -460,6 +460,6 @@ if __name__ == "__main__":
 
     q.configure_scanner(axis)
 
-    #volts = 1*ur('V')
-    #q.move_scanner(axis,volts)
+    volts = 0*ur('V')
+    q.move_scanner(axis,volts)
 
