@@ -10,9 +10,8 @@ used along hyperion.
 
 
 """
-import os
 import netCDF4
-import time
+import datetime as dt
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
@@ -239,7 +238,7 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     else:
         rootgrp.description = description
 
-    rootgrp.history = "Saved on {}".format(time.ctime(time.time()))
+    rootgrp.history = "Saved on {}".format(dt.datetime.now().strftime("%Y/%m/%d, %H:%M:%S"))
     rootgrp.creator = f'Hyperion package, version: {__version__}'
     # save
     rootgrp.sync()
