@@ -17,7 +17,6 @@ from hyperion.tools.saving_tools import save_netCDF4
 from hyperion.instrument.base_instrument import BaseInstrument
 
 
-
 class Polarimeter(BaseInstrument):
     """ This class is the model for the SK polarization.
 

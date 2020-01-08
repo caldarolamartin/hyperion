@@ -213,7 +213,7 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
     for detector, data in zip(detectors_to_save, data_to_save):
         u = data.u
         var = rootgrp.createVariable(detector, data.m.dtype, tuple(dims.keys())[::1])
-        var[:] = data.m
+        var[:] = data.m_as(u)
         var.units = '{}'.format(u)
 
     # metadata
@@ -313,7 +313,7 @@ if __name__ == '__main__':
         logger.info('Create a fake dataset to test the saving functions.')
         wavelength = 551 * ur('nm')
         extra_dim = {'wavelength': wavelength, 'temp': 300*ur('K'), 'points to average': 10, 'percent': ur('75 percent')}
-        size = (300, 212)
+        size = (3, 2,4)
         axes = []
         axes_name = []
 
