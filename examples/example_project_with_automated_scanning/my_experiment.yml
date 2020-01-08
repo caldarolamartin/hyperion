@@ -6,139 +6,149 @@ Saving:
   directory:
 
 Instruments:
-  HydraHarp:
-    port: COM0
-    mode: Histogram
-    clock: Internal
-    devidx: 0
-    instrument: hyperion.instrument.correlator.hydraharp_instrument/HydraInstrument
-    controller: hyperion.controller.picoquant.correlator/Hydraharp
-    view: hyperion.view.correlator.hydraharp_gui/App
-    graphView: hyperion.view.correlator.hydraharp_gui/DrawHistogram
-  VariableWaveplate:
-    port: COM8
-    instrument: hyperion.instrument.variable_waveplate.variable_waveplate/VariableWaveplate
-    controller: hyperion.controller.thorlabs.lcc25/Lcc
-    dummy: True
-    enable: True
-    settings: # not implemented yet
-      output: True
-      voltage1: 1V
-      voltage2: 1V
   ExampleInstrument:
-    port: COM0
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    dummy: True
-    settings:
-      output: True
-  xMotor:
-    serial_number: 83841160 #83817644
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  yMotor:
-    serial_number: 83850123 #83815760
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  zMotor:
-    serial_number: 83850111 #83815758
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  testMotor:
-    serial_number: 83817677
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  piezoMotor:
-    serial_number: 81818266
-    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
-    controller: hyperion.controller.thorlabs.TDC001/TDC001
-  XPiezoStepper:
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
-    axis_number: 0
-  YPiezoStepper:
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
-    axis_number: 2
-  ZPiezoStepper:
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
-    axis_number: 1
-  XPiezoScanner:
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
-    axis_number: 3
-  YPiezoScanner:
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
-    axis_number: 5
-  ZPiezoScanner:
-    controller: hyperion.controller.attocube.anc350/Anc350
-    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
-    axis_number: 4
-  ExampleInstrument_2:
-    port: COM0
+  Camera:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
-    dummy: True
-    settings:
-      output: True
-  ExampleInstrument_3:
-    port: COM0
+  PowerMeter:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
-    dummy: True
-    settings:
-      output: True
-  ExampleInstrument_4:
-    port: COM0
+  Spectrometer:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
-    dummy: True
-    settings:
-      output: True
-  ExampleInstrument_5:
-    port: COM0
+  Laser:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
-    dummy: True
-    settings:
-      output: True
-  OsaInstrument:
-    port: AUTO
-    instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
-    controller: hyperion.controller.osa.osa_controller/OsaController
-    view: hyperion.view.osa.osa_gui/OsaGui
-    graphView: hyperion.view.osa.osa_gui/DrawSpectrum
-    dummy: False
-  Gui_with_graph:
-    port: COM0
+  LED:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
-    dummy: True
-    settings:
-      output: True
-  ExampleInstrument_7:
-    port: COM0
+  Filters:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    dummy: True
-    settings:
-      output: True
-  ExampleInstrument_8:
-    port: COM0
+  HydraHarp:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    graphView: hyperion.view.osa.osa_view/DrawSpectrum
-    dummy: True
-    settings:
-      output: True
+  AttoScanner:
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+  MotorObjectiveX:
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+  MotorObjectiveY:
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+  MotorObjectiveZ:
+    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+    controller: hyperion.controller.example_controller/ExampleController
+#  xMotor:
+#    serial_number: 83841160 #83817644
+#    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+#    controller: hyperion.controller.thorlabs.TDC001/TDC001
+#  yMotor:
+#    serial_number: 83850123 #83815760
+#    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+#    controller: hyperion.controller.thorlabs.TDC001/TDC001
+#  zMotor:
+#    serial_number: 83850111 #83815758
+#    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+#    controller: hyperion.controller.thorlabs.TDC001/TDC001
+#  testMotor:
+#    serial_number: 83817677
+#    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+#    controller: hyperion.controller.thorlabs.TDC001/TDC001
+#  piezoMotor:
+#    serial_number: 81818266
+#    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+#    controller: hyperion.controller.thorlabs.TDC001/TDC001
+#  XPiezoStepper:
+#    controller: hyperion.controller.attocube.anc350/Anc350
+#    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+#    axis_number: 0
+#  YPiezoStepper:
+#    controller: hyperion.controller.attocube.anc350/Anc350
+#    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+#    axis_number: 2
+#  ZPiezoStepper:
+#    controller: hyperion.controller.attocube.anc350/Anc350
+#    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+#    axis_number: 1
+#  XPiezoScanner:
+#    controller: hyperion.controller.attocube.anc350/Anc350
+#    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+#    axis_number: 3
+#  YPiezoScanner:
+#    controller: hyperion.controller.attocube.anc350/Anc350
+#    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+#    axis_number: 5
+#  ZPiezoScanner:
+#    controller: hyperion.controller.attocube.anc350/Anc350
+#    instrument: hyperion.instrument.position.anc_instrument/Anc350Instrument
+#    axis_number: 4
+#  ExampleInstrument_2:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+#    dummy: True
+#    settings:
+#      output: True
+#  ExampleInstrument_3:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+#    dummy: True
+#    settings:
+#      output: True
+#  ExampleInstrument_4:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+#    dummy: True
+#    settings:
+#      output: True
+#  ExampleInstrument_5:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    view: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+#    dummy: True
+#    settings:
+#      output: True
+#  OsaInstrument:
+#    port: AUTO
+#    instrument: hyperion.instrument.osa.osa_instrument/OsaInstrument
+#    controller: hyperion.controller.osa.osa_controller/OsaController
+#    view: hyperion.view.osa.osa_gui/OsaGui
+#    graphView: hyperion.view.osa.osa_gui/DrawSpectrum
+#    dummy: False
+#  Gui_with_graph:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    graphView:  hyperion.view.simple_gui_examples.example_graph_gui/App
+#    dummy: True
+#    settings:
+#      output: True
+#  ExampleInstrument_7:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+#    dummy: True
+#    settings:
+#      output: True
+#  ExampleInstrument_8:
+#    port: COM0
+#    instrument: hyperion.instrument.example_instrument/ExampleInstrument
+#    controller: hyperion.controller.example_controller/ExampleController
+#    graphView: hyperion.view.osa.osa_view/DrawSpectrum
+#    dummy: True
+#    settings:
+#      output: True
 
 MetaInstruments:
   SampleXyzStageMotor:
@@ -171,14 +181,60 @@ MetaInstruments:
 # These nested actions are placed in a list with key ~nested
 # Name should
 Measurements:       # dictionary of Measurement s
+  Example Measurement A:
+    - Name: Initialize
+      _method: initialize_example_measurement_A
+    - Name: Image Before
+      Type: image                               # Used to get some default values
+      _method: image_with_filter                # Override the _method of Type with a custom one
+      _view: gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
+      filter_a: True
+      filter_b: False
+    - Name: Scan Atto X
+      Type: atto_scanner
+      axis: x
+      start: 10 um
+      stop: 22 um
+      step: 4 um
+#    - Name: atto X
+#      Type: atto_scanner
+#      axis: x
+#      start: 2mm    # if you use 'start', 'step' and 'stop' array_from_settings_dict() can interpret it automatically
+#      step: 100um
+#      stop: 3mm
+#      ~nested:
+#        - Name: Power
+#          Type: powermeter
+#        - Name: atto X
+#          Type: atto_scanner
+#          axis: x
+#          start: 2mm    # if you use 'start', 'step' and 'stop' array_from_settings_dict() can interpret it automatically
+#          step: 100um
+#          stop: 3mm
+#          ~nested:
+#            - Name: spectrum
+#              Type: spectrum
+#              _method: spectrum_modified   # when specifying the _method it will overrule the one in ActionType
+#              exposuretime: 5
+#            - Name: fit peak
+#              _method: fit_peak
+#            - Name: histogram
+#              Type: histogram
+#              exposuretime: 4
+#            - Name: image
+#              Type: image
+#              exposuretime: 4
+
+
+
   Measurement A:      # a Measurement is a list of Actions
 #    - Name: DataFile     # special element in the actionlist
 #      Type: saver
 #        folder: None
 #        filename: None
     - Name: before      # an Action is a dictionary
-#      Type: image
-#      exposuretime: 5
+      Type: image
+      exposuretime: 5
 #      bla: bla
 #      bla2: bla2
       _view: gui.gui_elements/ExampleActionGui
@@ -255,6 +311,7 @@ ActionTypes:        # dictionary
       - z
     _method: sweep_atto # key inside the ActionType-dictionary atto_scanner
     _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
+#    _view: gui.gui_elements/ScanMicroPositioner
     _view: gui.gui_elements/ExampleActionGui
   histogram:
     _method: histogram
@@ -264,13 +321,16 @@ ActionTypes:        # dictionary
     _method: image
     _view: gui.gui_elements/ExampleActionGui
     _ui: image.ui
-    exposuretime: 1
+    exposuretime: 0.1 s
+    exposuretime_min: 1 us
+    exposuretime_max: 2 hr
   spectrum:
     exposuretime: 2
     _view: gui.gui_elements/ExampleActionGui
     _method: spectrum
     _ui: spectrum.ui
-
+  powermeter:
+    exposuretime: 1 s
 
 #Measurements:
 #  #specific for this experiment

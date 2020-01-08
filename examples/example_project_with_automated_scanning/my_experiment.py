@@ -24,9 +24,9 @@ class ExampleExperiment(BaseExperiment):
 
     def __init__(self):
         """ initialize the class"""
+        super().__init__()                      # Mandatory line
         self.logger = logman.getLogger(__name__)
         self.logger.info('Initializing the ExampleExperiment object.')
-        super().__init__()                      # Mandatory line
         self.logger.critical('test critical')
         self.logger.error('test error')
         self.logger.warning('test warning')
@@ -154,6 +154,34 @@ class ExampleExperiment(BaseExperiment):
         print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
         self.save(0)
 
+    def initialize_example_measurement_A(self, actiondict, nesting):
+        self.logger.info('Measurement specific initialization. Could be without GUI')
+        nesting()
+
+    def image_with_filter(self, actiondict, nesting):
+        self.logger.info('Initialize filters')
+        # self.instruments_instances['Filters'].filter_a(action_dict['filter_a'])
+        # self.instruments_instances['Filters'].filter_b(action_dict['filter_b'])
+        self.logger.info('LED on')
+        # self.instruments_instances['LED'].enable = True
+
+        self.logger.info('Set camera exposure')
+        # self.instruments_instances['Camera'].set_exposure(actiondict['exposure'])
+        self.logger.info('Acquire image')
+        # camera_image = self.instruments_instances['Camera'].acquire_image()
+
+        self.logger.info('LED off')
+        # self.instruments_instances['LED'].enable = False
+        self.logger.info('Clear filters')
+        # self.instruments_instances['Filters'].filter_a(False)
+        # self.instruments_instances['Filters'].filter_b(False)
+
+
+    # def set_filters
+    #
+    # def led
+
+
 if __name__ == '__main__':
     # ### To change the logging level:
     # logman.stream_level(logman.WARNING)
@@ -221,7 +249,7 @@ if __name__ == '__main__':
     #
     # # # Initialize devices
     # print('\n-------------- LOADING DEVICES ----------------\n')
-    # e.load_instruments()
+    e.load_instruments()
     # print(e.instruments_instances.keys())
     # print('-------------- DONE LOADING DEVICES ----------------')
     # #
@@ -229,26 +257,29 @@ if __name__ == '__main__':
     # #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
     # e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
     #
-    # e.perform_measurement('Measurement A')
-    # # save metadata
-    # # print(yaml.dump(e.properties['Measurements']['Measurement A']))
+    e.perform_measurement('Measurement A')
+    # save metadata
+    # print(yaml.dump(e.properties['Measurements']['Measurement A']))
+
+
+    print('--------------------- DONE with the experiment')
+
+
+######### testing gui stuff
+
+    # from PyQt5.QtWidgets import QApplication
+    # from hyperion.view.base_guis import BaseMeasurementGui, ModifyMeasurement
     #
+    # app = QApplication(sys.argv)
+    # # q = ModifyMeasurement(e,'Measurement A')
+    # # q.show()
     #
-    # print('--------------------- DONE with the experiment')
-
-
-    from PyQt5.QtWidgets import QApplication
-    from hyperion.view.base_guis import BaseMeasurementGui, ModifyMeasurement
-
-    app = QApplication(sys.argv)
-    # q = ModifyMeasurement(e,'Measurement A')
-    # q.show()
-
-    ## Introduce corruption in actionlist for testing:
-    # del(e.properties['Measurements']['Measurement A'][0]['Name'])
-    del (e.properties['Measurements']['Measurement A'][0])
-
-    q = BaseMeasurementGui(e, 'Measurement A')
-    app.exec_()
+    # ## Introduce corruption in actionlist for testing:
+    # # del(e.properties['Measurements']['Measurement A'][0]['Name'])
+    # # del (e.properties['Measurements']['Measurement A'][0])
+    #
+    # # q = BaseMeasurementGui(e, 'Example Measurement A')
+    # q = BaseMeasurementGui(e, 'Example Measurement A')
+    # app.exec_()
 
 

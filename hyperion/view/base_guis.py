@@ -245,7 +245,6 @@ class ModifyMeasurement(QDialog):
         # Adjust window size to text (if possible)
         # These values were chosen in Windows 7
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        print(QDesktopWidget().availableGeometry())
         font_metrics = QFontMetrics(self.font)
         max_width = min(QDesktopWidget().availableGeometry(self).width(), QDesktopWidget().screenGeometry(self).width())
         max_height = min(QDesktopWidget().availableGeometry(self).height(), QDesktopWidget().screenGeometry(self).height())
@@ -366,7 +365,8 @@ class BaseMeasurementGui(BaseGui):
         else:
             self.types = {}
 
-        self.measurement_thread = WorkThread(experiment.dummy_measurement_for_testing_gui_buttons)
+        # self.measurement_thread = WorkThread(experiment.dummy_measurement_for_testing_gui_buttons)
+        self.measurement_thread = WorkThread(lambda: experiment.perform_measurement(self.measurement))
 
         self._valid = self.validate()
         self.outer_layout = QGridLayout()

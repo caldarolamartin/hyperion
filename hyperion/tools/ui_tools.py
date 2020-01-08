@@ -16,6 +16,7 @@ def add_pint_to_combo(comboBox_units, manual_list=None):
     When GUI has a QComboBox with units, this function can convert the display texts of the units to pint units and
     stores them inside the combobox object. (Run this function once).
     It is possible to manually specify the list to store, but it's safer to try automatic conversion.
+
     :param comboBox_units:
     :type comboBox_units: QComboBox
     :param manual_list: OPTIONAL list of pint units corresponding to the display units

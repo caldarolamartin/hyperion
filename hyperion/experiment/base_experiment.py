@@ -20,6 +20,7 @@ import importlib
 import hyperion
 import time
 from hyperion.tools.saving_tools import name_incrementer
+from hyperion.tools.loading import get_class
 # from hyperion.tools.saver import Saver
 import copy
 # import h5py
@@ -105,6 +106,8 @@ import numpy as np
 
 class DefaultDict(dict):
     """
+    REQUIRES UPDATE FOR ReturnNoneForMissingKey <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     Special dictionary that returns obj.default_dict[key] if obj.main_dict[key] doesn't exist.
     Writing and deleting always act on main_dict.
     Methods like keys(), values(), items() act on the combined list.
@@ -116,7 +119,7 @@ class DefaultDict(dict):
     :param default_dict: dict (defaults to {})
     """
 
-    def __init__(self, main_dict, default_dict={}):
+    def __init__(self, main_dict, default_dict={}, ReturnNoneForMissingKey = False):
         self.logger = logging.getLogger(__name__)
         combined = copy.deepcopy(default_dict)
         combined.update(main_dict)
@@ -124,12 +127,16 @@ class DefaultDict(dict):
 
         self.main_dict = main_dict
         self.default_dict = copy.deepcopy(default_dict)
+        self.ReturnNoneForMissingKey = ReturnNoneForMissingKey
 
     def __getitem__(self, key):
         if key in self.main_dict:
             return self.main_dict[key]
         elif key in self.default_dict:
             return self.default_dict[key]
+        elif self.ReturnNoneForMissingKey:
+            self.logger.debug('Key not in main and not in default: returning None because ReturnNoneForMissingKey=True')
+            return None
         else:
             self.logger.error('DefaultDict: key not found: {}'.format(key))
             raise KeyError(key)
@@ -171,12 +178,14 @@ class ActionDict(DefaultDict):
             actiontype = types[actiondict['Type']]
         else:
             actiontype = {}
-        super().__init__(actiondict, actiontype)
+        super().__init__(actiondict, actiontype, ReturnNoneForMissingKey=True)
 
 
 class BaseExperiment:
-    """ Example class with basic functions """
-
+    """
+    Base experiment class for experiment classes to inherit from.
+    Takes care of some built-in functionality like loading instruments and automated scanning.
+    """
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the BaseExperiment class.')
@@ -216,26 +225,29 @@ class BaseExperiment:
 
 
     def reset_measurement_flags(self):
+        """ Reset measurement flags (at the end of a measurement or when it's stopped)."""
         self.apply_pause = False   # used for temporarily interrupting a measurement
         self.apply_break = False   # used for a soft stop (e.g. stop after current loop iteration)
         self.apply_stop =  False   # used for a hard stop
         self.running_status = 0  # 0 for not running, 1 for paused, 2 for breaking, 3 for stopping
 
     # Decorator for stopping function:
-    # If optional keyword argument force is set to True it will set self.apply_stop to True
+    # If optional keyword argument force is set to True it will set self.apply_stop to True.
+    # Calls the stop method it applied to and then reset_measurement_flags()
     def check_stop(function):
         def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
             if force: self.apply_stop = True
             if (self.apply_stop or force) and self.running_status < self._stopping:
                 self.running_status = self._stopping
                 function(self, *args, **kwargs)
-                self.reset_measurement_flags()
+                self.reset_measurement_flags()  # make sure all flags are reset
                 return True
             return False
         return wrapper_accepting_arguments
 
     # Decorator for breaking function:
-    # First checks for "Stop", then calls the break function if self.apply_break is True
+    # First checks for "Stop", then calls the break function it is applied to, if self.apply_break is True
+    # In that case also sets self.running_status to self._breaking
     def check_break(function):
         def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
             # First check for "Stop" and return True if True
@@ -245,24 +257,14 @@ class BaseExperiment:
             if self.apply_break and self.running_status < self._stopping:
                 self.running_status = self._breaking
                 function(self, *args, **kwargs)
-                # self.reset_measurement_flags()      # maybe this line should go out
                 return True
             return False
         return wrapper_accepting_arguments
 
-    # def check_stop(self, stop_method=None, *args, **kwargs):
-    #     if self.apply_stop:
-    #         self.running_status = self._stopping        # the first line
-    #         if stop_method is None:
-    #             self.logger.info('Stopping measurement. Optional: input alternative method to call when Stopping.')
-    #         else:
-    #             stop_method( *args, **kwargs)
-    #         self.reset_measurement_flags()              # the last line
-    #         return True
-    #     return False
-
     # Decorator for pausing function
-    # First checks for "Stop", then calls the pause function if self.apply_pause is True
+    # First checks for "Stop", then calls the pause function it is applied to, if self.apply_pause is True
+    # In that case also sets self.running_status to self._pausing. Afterward, srestores self.running_status to state it
+    # was before (unless modified externally)
     def check_pause(function):
         def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
             # First check for "Stop" and return True if True
@@ -276,23 +278,10 @@ class BaseExperiment:
                 # If running_status is not overwritten externally, restore whatever the state was before:
                 if self.running_status == self._pausing:
                     self.running_status = store_state
-                self.apply_pause = False
+                self.apply_pause = False  # reset flag
                 return ret
             return False
         return wrapper_accepting_arguments
-
-
-    # def check_pause(self, pause_method=None, stop_method=None, *args, **kwargs):
-    #     if self.apply_pause:
-    #         store_state = self.running_status
-    #         self.running_status = self._pausing
-    #         self.logger.info('Pausing Measurement. Optional: input alternative method to call when pausing (or override default pause_measurment).')
-    #         if pause_method is None:
-    #             self.pause_measurement(*args, **kwargs)
-    #         else:
-    #             pause_method(*args, **kwargs)
-    #         self.running_status = store_state
-    #         self.apply_pause = False
 
     def dummy_measurement_for_testing_gui_buttons(self):
         self.logger.info('Starting test measurement')
@@ -317,7 +306,7 @@ class BaseExperiment:
         self.reset_measurement_flags()
         self.logger.info('Measurement stopped')
 
-    @check_break  # This decorator makes sure the method is only executed if self.apply_break is True
+    @check_break  # This decorator makes sure that the break method it is applied to, is only executed if self.apply_break is True
     def break_measurement(self):
         self.logger.info('Custom break method: Override if you like. Just use @check_break decorator')
         # Do stuff
@@ -728,21 +717,36 @@ class BaseExperiment:
         """
         self.logger.debug('Loading instrument: {}'.format(name))
 
-        try:
-            di = self.properties['Instruments'][name]
-            module_name, class_name = di['instrument'].split('/')
-            self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
-            MyClass = getattr(importlib.import_module(module_name), class_name)
-            self.logger.debug('class: {}'.format(MyClass))
-            self.logger.debug('settings used to create instrument: {}'.format(di))
-            instance = MyClass(di)
-            self.logger.debug('instance: {}'.format(instance))
-            #self.instruments.append(name)
-            self.instruments_instances[name] = instance
+        # try:
+        #     di = self.properties['Instruments'][name]
+        #     module_name, class_name = di['instrument'].split('/')
+        #     self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+        #     MyClass = getattr(importlib.import_module(module_name), class_name)
+        #     self.logger.debug('class: {}'.format(MyClass))
+        #     self.logger.debug('settings used to create instrument: {}'.format(di))
+        #     instance = MyClass(di)
+        #     self.logger.debug('instance: {}'.format(instance))
+        #     #self.instruments.append(name)
+        #     self.instruments_instances[name] = instance
+        #     return instance
+        # except KeyError:
+        #     self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+        #     return None
+        # # NEW CODE:::::::::::::::::
+        if name not in self.properties['Instruments']:
+            self.logger.warning('Instrument not specified in config: {}'.format(name))
+        elif 'instrument' not in self.properties['Instruments'][name]:
+            self.logger.error('Missing instrument in config of Instrument: {}'.format(name))
+        else:
+            instr_class = get_class(self.properties['Instruments'][name]['instrument'])
+            if instr_class is None:
+                self.warning("Couldn't load instrument class: {}".format(self.properties['Instruments'][name]['instrument']))
+                return None
+            instance = instr_class(self.properties['Instruments'][name])
+            # self.instruments_instances[name] = instance
             return instance
-        except KeyError:
-            self.logger.warning('The name "{}" does not exist in the config file'.format(name))
-            return None
+        return None
+
 
         # for inst in self.properties['Instruments']:
         #     self.logger.debug('Current instrument information: {}'.format(self.properties['Instruments'][inst]))
