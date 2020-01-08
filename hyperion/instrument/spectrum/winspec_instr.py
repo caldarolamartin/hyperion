@@ -884,7 +884,7 @@ class WinspecInstr(BaseInstrument):
 
 
 if __name__ == "__main__":
-
+    #logging.stream_level = logging.INFO
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
