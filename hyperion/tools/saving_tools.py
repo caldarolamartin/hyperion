@@ -292,6 +292,7 @@ if __name__ == '__main__':
     # uncomment the next line according to the test you would like to run.
     m = 'write and read'
     # m = 'read'
+    m = 'write'
 
     # if to decide which mode to test
     if m == 'read':
@@ -352,5 +353,6 @@ if __name__ == '__main__':
 
         logger.info('Now reading the data and ploting with errors... ')
         ds = read_netcdf4_and_plot_all(os.path.join(folder,filename+'with_errors.nc'))
+
 
 
