@@ -286,13 +286,14 @@ def read_netcdf4_and_plot_all(filename):
     return ds
 
 if __name__ == '__main__':
+    # this are examples of reading and writing dummy data. it saves in the log path!
+    
     import os
     import hyperion
 
     # uncomment the next line according to the test you would like to run.
     m = 'write and read'
     # m = 'read'
-    m = 'write'
 
     # if to decide which mode to test
     if m == 'read':
@@ -314,7 +315,7 @@ if __name__ == '__main__':
         logger.info('Create a fake dataset to test the saving functions.')
         wavelength = 551 * ur('nm')
         extra_dim = {'wavelength': wavelength, 'temp': 300*ur('K'), 'points to average': 10, 'percent': ur('75 percent')}
-        size = (3, 2,4)
+        size = (3, 2, 4)
         axes = []
         axes_name = []
 
