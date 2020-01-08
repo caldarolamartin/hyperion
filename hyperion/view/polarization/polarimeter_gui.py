@@ -8,6 +8,7 @@
     :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
+import hyperion
 from hyperion import logging
 import sys, os
 import numpy as np
