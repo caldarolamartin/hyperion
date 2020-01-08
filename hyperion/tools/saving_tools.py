@@ -178,71 +178,71 @@ def save_netCDF4(filename, detectors, data, axes, axes_name, errors=None, extra_
             assert np.shape(e)==np.shape(data[index])
         logger.info('Checked the errors dimensions: OK')
 
-    rootgrp = netCDF4.Dataset(filename, "w", format="NETCDF4")
+    with netCDF4.Dataset(filename, "w", format="NETCDF4") as rootgrp:
 
-    # add an attribute to indicate the presence of errors
-    rootgrp.setncatts({'_error_present': str(_error_status)})
+        # add an attribute to indicate the presence of errors
+        rootgrp.setncatts({'_error_present': str(_error_status)})
 
-    dims = {}
-    dim_vars = {}
+        dims = {}
+        dim_vars = {}
 
-    logger.debug('Creating dimensions.')
-    # create the dimensions
-    for i, (ax, name) in enumerate(zip(axes, axes_name)):
-        dim = rootgrp.createDimension(name, len(ax))
-        dim_var = rootgrp.createVariable(name, 'f8', (name,))
-        dim_var[:] = ax.m
-        dim_var.units = '{}'.format(ax.u)
+        logger.debug('Creating dimensions.')
+        # create the dimensions
+        for i, (ax, name) in enumerate(zip(axes, axes_name)):
+            dim = rootgrp.createDimension(name, len(ax))
+            dim_var = rootgrp.createVariable(name, 'f8', (name,))
+            dim_var[:] = ax.m
+            dim_var.units = '{}'.format(ax.u)
 
-        dims[name] = dim
-        dim_vars[name] = dim_var
+            dims[name] = dim
+            dim_vars[name] = dim_var
 
-    # fill the data
-    logger.debug('Saving the data.')
+        # fill the data
+        logger.debug('Saving the data.')
 
-    if errors is not None:
-        logger.info('Data with errors. ')
-        # append to detectors the errors
-        #logger.debug('Appending to detectors: {} the errors.'.format(detectors))
-        for index, e in enumerate(errors):
-            detectors_to_save.append('error {}'.format(detectors[index]))
-            data_to_save.append(e)
-        #logger.debug('Detectors after appending: {}'.format(detectors))
+        if errors is not None:
+            logger.info('Data with errors. ')
+            # append to detectors the errors
+            #logger.debug('Appending to detectors: {} the errors.'.format(detectors))
+            for index, e in enumerate(errors):
+                detectors_to_save.append('error {}'.format(detectors[index]))
+                data_to_save.append(e)
+            #logger.debug('Detectors after appending: {}'.format(detectors))
 
-    # save data and errors (if present)
-    for detector, data in zip(detectors_to_save, data_to_save):
-        u = data.u
-        var = rootgrp.createVariable(detector, data.m.dtype, tuple(dims.keys())[::1])
-        var[:] = data.m_as(u)
-        var.units = '{}'.format(u)
+        # save data and errors (if present)
+        for detector, data in zip(detectors_to_save, data_to_save):
+            u = data.u
+            var = rootgrp.createVariable(detector, data.m.dtype, tuple(dims.keys())[::1])
+            var[:] = data.m_as(u)
+            var.units = '{}'.format(u)
 
-    # metadata
-    logger.debug('Creating metadata in the netCDF4.')
+        # metadata
+        logger.debug('Creating metadata in the netCDF4.')
 
-    for k, v in extra_dims.items():
-        # if to avoid writing the data and the errors as atributes too.
-        if k=='data' or k=='error' or k=='errors':
-            logger.debug('Ignoring extra dimension: {}'.format(k))
+        for k, v in extra_dims.items():
+            # if to avoid writing the data and the errors as atributes too.
+            if k=='data' or k=='error' or k=='errors':
+                logger.debug('Ignoring extra dimension: {}'.format(k))
+            else:
+                logger.debug('Adding extra dimension: {} with value {}'.format(k, v))
+                s = '{!s}'.format(v)
+
+                if not isinstance(s, (str, float, int)):
+                    logger.warning("not saving extra dimension {} = {}".format(k, repr(s)))
+                    continue
+
+                setattr(rootgrp, k, s)
+
+        if description is None:
+            rootgrp.description = 'No description given'
         else:
-            logger.debug('Adding extra dimension: {} with value {}'.format(k, v))
-            s = '{!s}'.format(v)
+            rootgrp.description = description
 
-            if not isinstance(s, (str, float, int)):
-                logger.warning("not saving extra dimension {} = {}".format(k, repr(s)))
-                continue
-
-            setattr(rootgrp, k, s)
-
-    if description is None:
-        rootgrp.description = 'No description given'
-    else:
-        rootgrp.description = description
-
-    rootgrp.history = "Saved on {}".format(dt.datetime.now().strftime("%Y/%m/%d, %H:%M:%S"))
-    rootgrp.creator = f'Hyperion package, version: {__version__}'
-    # save
-    rootgrp.sync()
-    rootgrp.close()
+        rootgrp.history = "Saved on {}".format(dt.datetime.now().strftime("%Y/%m/%d, %H:%M:%S"))
+        rootgrp.creator = f'Hyperion package, version: {__version__}'
+        # save
+        rootgrp.sync()
+    # rootgrp.close()
 
 def read_netcdf4_and_plot_all(filename):
     """Reads the file in filename and plots all the detectors """
