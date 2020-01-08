@@ -197,7 +197,7 @@ class Anc350Instrument(BaseInstrument):
             self.stop_moving(axis)      #you have to do this, otherwise it keeps trying forever
             end = current_pos
             return (end, ismoved)
-        elif self.Amplitude[ax] < 1.0*ur('V'):    #if you forgot, it might be 0 V
+        elif self.Amplitude[ax] < 1.0:    #if you forgot, it might be 0 V
             self.stop_moving(axis)      #you have to do this, otherwise it keeps trying forever
             end = current_pos
             self.logger.warning('Maybe you should configurate this Stepper axis and set a voltage')
@@ -449,7 +449,7 @@ if __name__ == "__main__":
     #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
     # q.stop_moving(axis)
 
-    q.move_relative(axis, -100 * ur('um'))
+    q.move_relative(axis, 100 * ur('um'))
 
     # direct = 0  #forward
     # steps = 1  #amount of steps
