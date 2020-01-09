@@ -186,14 +186,21 @@ class ActionDict(DefaultDict):
         super().__init__(actiondict, actiontype, ReturnNoneForMissingKey=True)
 
 
+def valid_python(name):
+    """ Converts all illegal characters for python object names to underscore. """
+    __illegal = str.maketrans(' `~!@#$%^&*()-+=[]\{\}|\\;:\'",.<>/?', '_' * 34)
+    return name.translate(__illegal)
+
+
 class DataManager:
     def __init__(self, experiment):
         self.logger = logging.getLogger(__name__)
         self.experiment = experiment
 
-        self.__illegal = str.maketrans(' `~!@#$%^&*()-+=[]\{\}|\\;:\'",.<>/?', '_'*34)
         # self.dims = {}
         # self.last = {}
+        self.vars = {}
+
 
         self._is_open = False
 
@@ -211,15 +218,28 @@ class DataManager:
             return True
 
 
+    def __name_or_dict(self, name_or_dict):
+        """
+        If name_or_dict is an actiondict, it returns _store_name if available, otherwise Name.
+        If name_or_dict is a string it uses that.
+        IN ALL CASES it applies valid_python() before returning (replace all illegal varname characters with _)
+        """
+        if type(name_or_dict) is str:
+            return valid_python(name_or_dict)
+        elif '_store_name' in name_or_dict:
+            return valid_python(name_or_dict['_store_name'])
+        else:
+            return valid_python(name_or_dict['Name'])
 
-    def dim(self, name, length=None):
+    def dim(self, name_or_dict, length=None):
         """ Create dimension without coordinates. """
         if self.__check_not_open(): return
-        name = name.translate(self.__illegal)
+        name = self.__name_or_dict(name_or_dict)
         if name not in self.root.dimensions:
+            self.logger.info('DataManager: Creating Dimension: {}'.format(name))
             self.root.createDimension(name, length)
 
-    def dim_coord(self, name, array_or_value=None, meta=None):
+    def dim_coord(self, name_or_dict, array_or_value=None, meta=None):
         """
         Create or append coordinates.
 
@@ -233,8 +253,9 @@ class DataManager:
         """
 
         if self.__check_not_open(): return
-        name = name.translate(self.__illegal)
+        name = self.__name_or_dict(name_or_dict)
         if name not in self.root.dimensions:
+            self.logger.info('DataManager: Creating Dimension and Coordinate: {}'.format(name))
             length = None if type(array_or_value) is not np.ndarray else len(array_or_value)
             self.root.createDimension(name, length)
             self.root.createVariable(name, 'f8', name)
@@ -246,63 +267,78 @@ class DataManager:
             # if the parent loop is at its first index: append the value to the coordinate
             self.root.variables[name][self.root.variables[name].size] = array_or_value
 
-    def meta(self, attach_to=None, dic=None, **kwargs):
+    def meta(self, attach_to=None, dic=None, only_once=False, **kwargs):
         # either keyword arguments: exposuretime = '9s', gain=2
         # or one dictionary: {'exposuretime':'9s', 'gain':2}
         # Note that only limited types of variables can be added
         if self.__check_not_open(): return
-        attach_to = attach_to.translate(self.__illegal)
+        # Skip if only_once is True and parent loops are not in first iteration
+        if only_once and not sum(self.experiment._nesting_indices): return
+        # attach_to = valid_python(attach_to)
+        # attach_to = self.__name_or_dict(attach_to)
+        self.logger.debug('attach meta to: {}'.format(attach_to))
         # add attributes to set of variable
         attach = self.root
         if attach_to in self.root.variables:
+            print(type(self.root.variables[attach_to]))
             attach = self.root.variables[attach_to]
-
+        self.logger.debug('type of attach is: {}'.format(type(attach)))
         if type(dic) is dict or type(dic) is ActionDict or type(dic) is DefaultDict:
             for key, value in dic.items():
+                # attach.setncattr(key, value)
                 try:
                     attach.setncattr(key, value)
                 except:
-                    self.logger.warning('unsupported type: {}'.format(type(value)))
+                    self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
 
         for key, value in kwargs.items():
+            # attach.setncattr(key, value)
             try:
                 attach.setncattr(key, value)
             except:
-                pass
+                self.logger.warning('unsupported {} in kwargs: {}: {}'.format(type(value), key, value))
 
-
-
-    def var(self, name, data, indices=None, dims=None, extra_dims=None, attrs={}):
+    def var(self, name, data, indices=None, dims=None, extra_dims=None, meta=None):
         # if coords and indices are not given it will get those from experiment
         # if you want to store extra dimensions (e.g. an image):
         # Make sure you create them first and then add them: extra_dims=('im_x', 'im_y')
 
         #        all_dims = dims
         if self.__check_not_open(): return
-        name = name.translate(self.__illegal)
+        name = self.__name_or_dict(name)
         if indices is None:
             indices = self.experiment._nesting_indices
 
         if name not in self.root.variables:
+            self.logger.info('DataManager: Creating Variable: {}'.format(name))
             if dims is None:
-                dims = self.experiment._nesting_parents
+                dims = tuple(self.experiment._nesting_parents)
             if extra_dims is not None:
                 # for key, value, in extra_dims:
                 #     self.root.createDimension(key, value)
                 #     self.root.createVariable(key, 'f8', key)
                 #     dims += key
-                dims += extra_dims
+                dims = dims + extra_dims
+            print(dims)
             self.root.createVariable(name, 'f8', dims)
-        if extra_dims is None:
-            if len(indices):
-                self.root.variables[name][indices] = data
-            else:
-                self.root.variables[name] = data
+            if meta is not None:
+                self.meta(name, meta)
+
+        # if extra_dims is None:
+        if len(indices):
+            # print('self.root.variables[name][indices][:] = data')
+            # print('type(data) =  ', type(data))
+            self.root.variables[name][indices][:] = data
+            # print(type(self.root.variables[name][indices]))
         else:
-            if len(indices):
-                self.root.variables[name][indices] = np.reshape(data, [1]*len(indices) + list(extra_dims.values()))
-            else:
-                self.root.variables[name] = data
+            # print('self.root.variables[name][:] = data')
+            # print('type(data) =  ', type(data))
+            self.root.variables[name][:] = data
+        # else:
+        #     if len(indices):
+        #         self.root.variables[name][indices] = np.reshape(data, [1]*len(indices) + list(extra_dims.values()))
+        #     else:
+        #         self.root.variables[name] =  data
 
     def sync_hdd(self):
         if self.__check_not_open(): return
@@ -734,6 +770,7 @@ class BaseExperiment:
             actiondict = ActionDict(actiondictionary, exp=self)
             actionname = actiondict['Name']
 
+
             # if 'Type' in actiondictionary:
             #     if actiondictionary['Type'] in self.actiontypes:
             #         actiondict = copy.deepcopy(self.actiontypes[actiondictionary['Type']])
@@ -800,7 +837,11 @@ class BaseExperiment:
                 # without error checking for now:
                 # else:
                 #     indices += [0]  # append 0 to list  current_values
-                nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[actionname])
+                if '_store_name' in actiondict:
+                    new_parent = valid_python(actiondict)
+                else:
+                    new_parent = valid_python(actionname)
+                nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
                 # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
             else:
                 nesting = lambda *args, **kwargs: None        # a "do nothing" function

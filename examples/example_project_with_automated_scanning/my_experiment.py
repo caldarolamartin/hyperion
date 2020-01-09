@@ -185,15 +185,16 @@ class ExampleExperiment(BaseExperiment):
         fake_data = np.random.random((20,60))
         # Because this is higher dimensional data, create dimensions:
         self.datman.dim('im_y', fake_data.shape[0])     # add extra axes if they don't exist yet
-        self.datman.dim('im_x', fake_data.shape[0])
-        self.datman.var(actiondict['Name'], fake_data, extra_dims=('im_x', 'im_y'))
+        self.datman.dim('im_x', fake_data.shape[1])
+        self.datman.var(actiondict['Name'], fake_data, extra_dims=('im_y', 'im_x') )
         self.datman.meta(actiondict['Name'], {'exposuretime': actiondict['exposuretime']})
 
     def sweep_atto(self, actiondict, nesting):
         # print('sweep_atto: ',actiondict['Name'])
         # print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
         arr, unit = array_from_settings_dict(actiondict)
-        self.datman.dim_coord(actiondict['Name'], arr, meta={'units': str(unit)})
+        self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
+        # self.datman.meta(actiondict, actiondict)
         # self.datman.meta(actiondict['Name'], units=str(unit))
         for s in arr:
             print(actiondict['axis'],' : ', s)
@@ -203,7 +204,7 @@ class ExampleExperiment(BaseExperiment):
 
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
-        self.datman.vat(actiondict['Name'], fake_data)
+        self.datman.var(actiondict['Name'], fake_data, meta=actiondict)
 
 
 if __name__ == '__main__':
