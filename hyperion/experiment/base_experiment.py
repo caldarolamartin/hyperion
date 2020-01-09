@@ -191,6 +191,7 @@ class DataManager:
         self.logger = logging.getLogger(__name__)
         self.experiment = experiment
 
+        self.__illegal = str.maketrans(' `~!@#$%^&*()-+=[]\{\}|\\;:\'",.<>/?', '_'*34)
         # self.dims = {}
         # self.last = {}
 
@@ -204,18 +205,21 @@ class DataManager:
         else:
             self.logger.warning('A file is already open')
 
-    def check_not_open(self):
+    def __check_not_open(self):
         if not self._is_open:
             self.logger.warning('File not open')
             return True
 
+
+
     def dim(self, name, length=None):
         """ Create dimension without coordinates. """
-        if self.check_not_open(): return
+        if self.__check_not_open(): return
+        name = name.translate(self.__illegal)
         if name not in self.root.dimensions:
             self.root.createDimension(name, length)
 
-    def dim_coord(self, name, array_or_value=None):
+    def dim_coord(self, name, array_or_value=None, meta=None):
         """
         Create or append coordinates.
 
@@ -225,16 +229,20 @@ class DataManager:
         If a value is passed the Dimension is of unlimited size and the value is appended to the Coordinates.
         (Note that it uses experiment._nesting_indices to only append if the parent loops are in the first iteration)
 
+        optional dictionary meta, immediately adds metadata from dict
         """
 
-        if self.check_not_open(): return
+        if self.__check_not_open(): return
+        name = name.translate(self.__illegal)
         if name not in self.root.dimensions:
             length = None if type(array_or_value) is not np.ndarray else len(array_or_value)
             self.root.createDimension(name, length)
             self.root.createVariable(name, 'f8', name)
             if length is not None:
                 self.root.variables[name][:] = array_or_value
-        if not sum(self.experiment._indices) and ((type(array_or_value) is float) or (type(array_or_value) is int)):
+            if meta is not None:
+                self.meta(name, meta)
+        if not sum(self.experiment._nesting_indices) and ((type(array_or_value) is float) or (type(array_or_value) is int)):
             # if the parent loop is at its first index: append the value to the coordinate
             self.root.variables[name][self.root.variables[name].size] = array_or_value
 
@@ -242,33 +250,26 @@ class DataManager:
         # either keyword arguments: exposuretime = '9s', gain=2
         # or one dictionary: {'exposuretime':'9s', 'gain':2}
         # Note that only limited types of variables can be added
-        if self.check_not_open(): return
+        if self.__check_not_open(): return
+        attach_to = attach_to.translate(self.__illegal)
         # add attributes to set of variable
         attach = self.root
         if attach_to in self.root.variables:
             attach = self.root.variables[attach_to]
 
-        if type(dic) is dict or type(dic) is ActionDict:
+        if type(dic) is dict or type(dic) is ActionDict or type(dic) is DefaultDict:
             for key, value in dic.items():
                 try:
                     attach.setncattr(key, value)
                 except:
                     self.logger.warning('unsupported type: {}'.format(type(value)))
 
+        for key, value in kwargs.items():
+            try:
+                attach.setncattr(key, value)
+            except:
+                pass
 
-
-        for arg_key, arg_value in kwargs.items():
-            if type(arg_value) is dict:
-                for key, value in arg_value.items():
-                    try:
-                        attach.setncattr(key, value)
-                    except:
-                        pass
-            else:
-                try:
-                    attach.setncattr(arg_key, arg_value)
-                except:
-                    self.logger.warning('unsupported type: {}'.format(type(value)))
 
 
     def var(self, name, data, indices=None, dims=None, extra_dims=None, attrs={}):
@@ -277,7 +278,8 @@ class DataManager:
         # Make sure you create them first and then add them: extra_dims=('im_x', 'im_y')
 
         #        all_dims = dims
-        if self.check_not_open(): return
+        if self.__check_not_open(): return
+        name = name.translate(self.__illegal)
         if indices is None:
             indices = self.experiment._nesting_indices
 
@@ -303,7 +305,7 @@ class DataManager:
                 self.root.variables[name] = data
 
     def sync_hdd(self):
-        if self.check_not_open(): return
+        if self.__check_not_open(): return
         self.root.sync()
 
     def close(self):
@@ -799,14 +801,14 @@ class BaseExperiment:
                 # else:
                 #     indices += [0]  # append 0 to list  current_values
                 nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[actionname])
-                # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._indices)
+                # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
             else:
                 nesting = lambda *args, **kwargs: None        # a "do nothing" function
-                # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._indices)
+                # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
             # method = getattr(self, actiondict['_method'])
             # print('                                       ', actionname, '   parents: ', parents, '   indices: ',self._nesting_indices)
 
-            store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._indices)
+            # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
             # method(actiondict, nesting, store)
             method(actiondict, nesting)
 

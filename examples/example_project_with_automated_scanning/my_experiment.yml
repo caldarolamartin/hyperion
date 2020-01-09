@@ -314,7 +314,7 @@ ActionTypes:        # dictionary
     _method: sweep_atto # key inside the ActionType-dictionary atto_scanner
     _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
 #    _view: gui.gui_elements/ScanMicroPositioner
-    _view: gui.gui_elements/ExampleActionGui
+    _view: gui.gui_elements/ScanMicroPositioner
   histogram:
     _method: histogram
     _view: gui.gui_elements/ExampleActionGui

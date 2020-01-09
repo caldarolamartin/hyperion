@@ -141,17 +141,7 @@ class ExampleExperiment(BaseExperiment):
         #store_data
         nesting()
 
-    def sweep_atto(self, actiondict, nesting):
-        # print('sweep_atto: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        arr, unit = array_from_settings_dict(actiondict)
-        # datastore.coord(arr, unit, actiondict)
-        for s in arr:
-            print(actiondict['axis'],' : ', s)
-            #store_coord()
 
-            nesting()
 
     def insideXafterY(self, actiondict, nesting):
         print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
@@ -199,9 +189,21 @@ class ExampleExperiment(BaseExperiment):
         self.datman.var(actiondict['Name'], fake_data, extra_dims=('im_x', 'im_y'))
         self.datman.meta(actiondict['Name'], {'exposuretime': actiondict['exposuretime']})
 
-    # def set_filters
-    #
-    # def led
+    def sweep_atto(self, actiondict, nesting):
+        # print('sweep_atto: ',actiondict['Name'])
+        # print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
+        arr, unit = array_from_settings_dict(actiondict)
+        self.datman.dim_coord(actiondict['Name'], arr, meta={'units': str(unit)})
+        # self.datman.meta(actiondict['Name'], units=str(unit))
+        for s in arr:
+            print(actiondict['axis'],' : ', s)
+            #store_coord()
+
+            nesting()
+
+    def measure_power(self, actiondict, nesting):
+        fake_data = np.random.random()
+        self.datman.vat(actiondict['Name'], fake_data)
 
 
 if __name__ == '__main__':
