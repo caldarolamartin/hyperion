@@ -196,6 +196,8 @@ Measurements:       # dictionary of Measurement s
       start: 10 um
       stop: 22 um
       step: 4 um
+    - Name: Finalize
+      _method: finalize_example_measurement_A
 #    - Name: atto X
 #      Type: atto_scanner
 #      axis: x

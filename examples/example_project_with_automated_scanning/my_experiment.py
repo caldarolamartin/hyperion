@@ -159,6 +159,15 @@ class ExampleExperiment(BaseExperiment):
 
     def initialize_example_measurement_A(self, actiondict, nesting):
         self.logger.info('Measurement specific initialization. Could be without GUI')
+        self.datman.open_file('test.nc')
+        # By assigning the finalize method to self._finalize_measurement_method, that method will also be executed when
+        # the Stop button is pressed:
+        self._finalize_measurement_method = self.finalize_example_measurement_A
+        nesting()
+
+    def finalize_example_measurement_A(self, actiondict, nesting):
+        self.logger.info('Measurement specific finalization. Probably be without GUI')
+        self.datman.close()
         nesting()
 
     def image_with_filter(self, actiondict, nesting):

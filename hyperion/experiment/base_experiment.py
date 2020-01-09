@@ -183,13 +183,46 @@ class ActionDict(DefaultDict):
 
 
 class DataManager:
-    def __init__(self, filename, experiment, write_mode='w', **kwargs):
+    def __init__(self, experiment):
+        self.logger = logging.getLogger(__name__)
         self.experiment = experiment
-        self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
-        self.dims = {}
-        self.last = {}
 
-    def coord(self, name, array_or_value=None):
+        # self.dims = {}
+        # self.last = {}
+
+        self._is_open = False
+
+    def open_file(self, filename, write_mode='w', **kwargs):
+        if not self._is_open:
+            self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
+            self._is_open = True
+        else:
+            self.logger.warning('A file is already open')
+
+    def check_not_open(self):
+        if not self._is_open:
+            self.logger.warning('File not open')
+            return True
+
+    def dim(self, name, length=None):
+        """ Create dimension without coordinates. """
+        if self.check_not_open(): return
+        if name not in self.root.dimensions:
+            self.root.createDimension(name, length)
+
+    def dim_coord(self, name, array_or_value=None):
+        """
+        Create or append coordinates.
+
+        If Dimension does not exist it is created.
+        If Coordinate does not exist it is created.
+        If an array is passed, those values are put in the Coordinates. The Dimension is of fixed size.
+        If a value is passed the Dimension is of unlimited size and the value is appended to the Coordinates.
+        (Note that it uses experiment._nesting_indices to only append if the parent loops are in the first iteration)
+
+        """
+
+        if self.check_not_open(): return
         if name not in self.root.dimensions:
             length = None if type(array_or_value) is not np.ndarray else len(array_or_value)
             self.root.createDimension(name, length)
@@ -201,6 +234,7 @@ class DataManager:
             self.root.variables[name][self.root.variables[name].size] = array_or_value
 
     def meta(self, attach_to=None, **kwargs):
+        if self.check_not_open(): return
         # add attributes to set of variable
         attach = self.root
         if attach_to in self.root.variables:
@@ -222,9 +256,11 @@ class DataManager:
 
     def add(self, data, name, indices=None, dims=None, extra_dims=None, attrs={}):
         # if coords and indices are not given it will get those from experiment
-        # if you want to store extra dimensions (e.g. an image) use: extra_dims={'im_y':100, 'im_x:':160}
+        # if you want to store extra dimensions (e.g. an image):
+        # Make sure you create them first and then add them: extra_dims=('im_x', 'im_y')
 
         #        all_dims = dims
+        if self.check_not_open(): return
         if indices is None:
             indices = self.experiment._nesting_indices
 
@@ -232,10 +268,11 @@ class DataManager:
             if dims is None:
                 dims = self.experiment._nesting_parents
             if extra_dims is not None:
-                for key, value, in extra_dims:
-                    self.root.createDimension(key, value)
-                    self.root.createVariable(key, 'f8', key)
-                    dims += key
+                # for key, value, in extra_dims:
+                #     self.root.createDimension(key, value)
+                #     self.root.createVariable(key, 'f8', key)
+                #     dims += key
+                dims += extra_dims
             self.root.createVariable(name, 'f8', dims)
         if extra_dims is None:
             self.root.variables[name][indices] = data
@@ -243,10 +280,14 @@ class DataManager:
             self.root.variables[name][indices] = np.reshape(data, [1]*len(indices) + list(extra_dims.values()))
 
     def sync_hdd(self):
+        if self.check_not_open(): return
         self.root.sync()
 
     def close(self):
-        self.root.close()
+        if self.root.isopen():
+            self.root.sync()        # Don't know if this is necessary
+            self.root.close()
+        self._is_open = False
 
 
 class BaseExperiment:
@@ -289,9 +330,8 @@ class BaseExperiment:
         self._nesting_indices = []
         self._nesting_parents = []
         self._measurement_name = ''
-        self._data = None
-
-        self._auto_save_store = None
+        self.datman = DataManager(self)
+        self._finalize_measurement_method = lambda *args, **kwargs: None
 
         # self._data = DataManager('test.nc', self)
         # self.te
@@ -377,6 +417,9 @@ class BaseExperiment:
         """ The decorator also gives it one extra keyword argument 'force' which will set the apply_stop flag for you. """
         self.logger.info('Custom stop method: Override if you like. Just use @check_stop decorator')
         # Do stuff
+        self._finalize_measurement_method()
+
+        self._finalize_measurement_method = lambda *args, **kwargs: None
         self.reset_measurement_flags()
         self.logger.info('Measurement stopped')
 
