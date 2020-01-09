@@ -159,6 +159,7 @@ class ExampleExperiment(BaseExperiment):
 
     def initialize_example_measurement_A(self, actiondict, nesting):
         self.logger.info('Measurement specific initialization. Could be without GUI')
+        # Open datafile with data manager (datman):
         self.datman.open_file('test.nc')
         # By assigning the finalize method to self._finalize_measurement_method, that method will also be executed when
         # the Stop button is pressed:
@@ -167,6 +168,9 @@ class ExampleExperiment(BaseExperiment):
 
     def finalize_example_measurement_A(self, actiondict, nesting):
         self.logger.info('Measurement specific finalization. Probably be without GUI')
+        # Do stuff to finalize your measurement (e.g. switch off laser)
+
+        # Close datafile
         self.datman.close()
         nesting()
 
@@ -188,6 +192,12 @@ class ExampleExperiment(BaseExperiment):
         # self.instruments_instances['Filters'].filter_a(False)
         # self.instruments_instances['Filters'].filter_b(False)
 
+        fake_data = np.random.random((20,60))
+        # Because this is higher dimensional data, create dimensions:
+        self.datman.dim('im_y', fake_data.shape[0])     # add extra axes if they don't exist yet
+        self.datman.dim('im_x', fake_data.shape[0])
+        self.datman.var(actiondict['Name'], fake_data, extra_dims=('im_x', 'im_y'))
+        self.datman.meta(actiondict['Name'], {'exposuretime': actiondict['exposuretime']})
 
     # def set_filters
     #
@@ -269,7 +279,7 @@ if __name__ == '__main__':
     # #print(e._validate_actionlist(e.properties['Measurements']['Measurement A']))
     # e.swap_actions(e.properties['Measurements']['Measurement A'], 'atto X','atto Y')
     #
-    e.perform_measurement('Measurement A')
+    e.perform_measurement('Example Measurement A')
     # save metadata
     # print(yaml.dump(e.properties['Measurements']['Measurement A']))
 

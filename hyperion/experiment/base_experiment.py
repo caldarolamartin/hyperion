@@ -121,25 +121,27 @@ class DefaultDict(dict):
     """
 
     def __init__(self, main_dict, default_dict={}, ReturnNoneForMissingKey = False):
-        self.logger = logging.getLogger(__name__)
+        # self.logger = logging.getLogger(__name__)
+        self.__ReturnNoneForMissingKey = ReturnNoneForMissingKey
+        self.__logger = logging.getLogger(__name__)
         combined = copy.deepcopy(default_dict)
         combined.update(main_dict)
         super().__init__(combined)
 
         self.main_dict = main_dict
         self.default_dict = copy.deepcopy(default_dict)
-        self.ReturnNoneForMissingKey = ReturnNoneForMissingKey
+
 
     def __getitem__(self, key):
         if key in self.main_dict:
             return self.main_dict[key]
         elif key in self.default_dict:
             return self.default_dict[key]
-        elif self.ReturnNoneForMissingKey:
-            self.logger.debug('Key not in main and not in default: returning None because ReturnNoneForMissingKey=True')
+        elif self.__ReturnNoneForMissingKey:
+            self.__logger.debug('Key not in main and not in default: returning None because ReturnNoneForMissingKey=True')
             return None
         else:
-            self.logger.error('DefaultDict: key not found: {}'.format(key))
+            self.__logger.error('DefaultDict: key not found: {}'.format(key))
             raise KeyError(key)
 
     def __setitem__(self, key, value):
@@ -152,10 +154,12 @@ class DefaultDict(dict):
         super().__delitem__(key)
 
     def __repr__(self):
-        return self.__dict__.__repr__()
+        # return self.__dict__.__repr__()
+        return {'main_dict':self.main_dict, 'default_dict':self.default_dict}.__repr__()
 
     def __str__(self):
-        return self.__dict__.__str__()
+        return self.__repr__().__str__()
+
 
 
 class ActionDict(DefaultDict):
@@ -171,7 +175,7 @@ class ActionDict(DefaultDict):
         :param exp: object of type BaseExperiment (which should contain .properties['ActionTypes']) (optional, defaults to None)
 
         """
-        self.logger = logging.getLogger(__name__)
+        # self.logger = logging.getLogger(__name__)
         if types == {} and exp is not None:
             types = exp.properties['ActionTypes']
 
@@ -194,6 +198,7 @@ class DataManager:
 
     def open_file(self, filename, write_mode='w', **kwargs):
         if not self._is_open:
+            self.logger.info('Opening datafile: {}'.format(filename))
             self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
             self._is_open = True
         else:
@@ -233,12 +238,24 @@ class DataManager:
             # if the parent loop is at its first index: append the value to the coordinate
             self.root.variables[name][self.root.variables[name].size] = array_or_value
 
-    def meta(self, attach_to=None, **kwargs):
+    def meta(self, attach_to=None, dic=None, **kwargs):
+        # either keyword arguments: exposuretime = '9s', gain=2
+        # or one dictionary: {'exposuretime':'9s', 'gain':2}
+        # Note that only limited types of variables can be added
         if self.check_not_open(): return
         # add attributes to set of variable
         attach = self.root
         if attach_to in self.root.variables:
             attach = self.root.variables[attach_to]
+
+        if type(dic) is dict or type(dic) is ActionDict:
+            for key, value in dic.items():
+                try:
+                    attach.setncattr(key, value)
+                except:
+                    self.logger.warning('unsupported type: {}'.format(type(value)))
+
+
 
         for arg_key, arg_value in kwargs.items():
             if type(arg_value) is dict:
@@ -251,10 +268,10 @@ class DataManager:
                 try:
                     attach.setncattr(arg_key, arg_value)
                 except:
-                    pass
+                    self.logger.warning('unsupported type: {}'.format(type(value)))
 
 
-    def add(self, data, name, indices=None, dims=None, extra_dims=None, attrs={}):
+    def var(self, name, data, indices=None, dims=None, extra_dims=None, attrs={}):
         # if coords and indices are not given it will get those from experiment
         # if you want to store extra dimensions (e.g. an image):
         # Make sure you create them first and then add them: extra_dims=('im_x', 'im_y')
@@ -275,9 +292,15 @@ class DataManager:
                 dims += extra_dims
             self.root.createVariable(name, 'f8', dims)
         if extra_dims is None:
-            self.root.variables[name][indices] = data
+            if len(indices):
+                self.root.variables[name][indices] = data
+            else:
+                self.root.variables[name] = data
         else:
-            self.root.variables[name][indices] = np.reshape(data, [1]*len(indices) + list(extra_dims.values()))
+            if len(indices):
+                self.root.variables[name][indices] = np.reshape(data, [1]*len(indices) + list(extra_dims.values()))
+            else:
+                self.root.variables[name] = data
 
     def sync_hdd(self):
         if self.check_not_open(): return
