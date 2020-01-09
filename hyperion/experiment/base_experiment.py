@@ -25,6 +25,7 @@ from hyperion.tools.loading import get_class
 import copy
 # import h5py
 import numpy as np
+from netCDF4 import Dataset
 
 # class autosaver:
 #     """
@@ -181,6 +182,73 @@ class ActionDict(DefaultDict):
         super().__init__(actiondict, actiontype, ReturnNoneForMissingKey=True)
 
 
+class DataManager:
+    def __init__(self, filename, experiment, write_mode='w', **kwargs):
+        self.experiment = experiment
+        self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
+        self.dims = {}
+        self.last = {}
+
+    def coord(self, name, array_or_value=None):
+        if name not in self.root.dimensions:
+            length = None if type(array_or_value) is not np.ndarray else len(array_or_value)
+            self.root.createDimension(name, length)
+            self.root.createVariable(name, 'f8', name)
+            if length is not None:
+                self.root.variables[name][:] = array_or_value
+        if not sum(self.experiment._indices) and ((type(array_or_value) is float) or (type(array_or_value) is int)):
+            # if the parent loop is at its first index: append the value to the coordinate
+            self.root.variables[name][self.root.variables[name].size] = array_or_value
+
+    def meta(self, attach_to=None, **kwargs):
+        # add attributes to set of variable
+        attach = self.root
+        if attach_to in self.root.variables:
+            attach = self.root.variables[attach_to]
+
+        for arg_key, arg_value in kwargs.items():
+            if type(arg_value) is dict:
+                for key, value in arg_value.items():
+                    try:
+                        attach.setncattr(key, value)
+                    except:
+                        pass
+            else:
+                try:
+                    attach.setncattr(arg_key, arg_value)
+                except:
+                    pass
+
+
+    def add(self, data, name, indices=None, dims=None, extra_dims=None, attrs={}):
+        # if coords and indices are not given it will get those from experiment
+        # if you want to store extra dimensions (e.g. an image) use: extra_dims={'im_y':100, 'im_x:':160}
+
+        #        all_dims = dims
+        if indices is None:
+            indices = self.experiment._nesting_indices
+
+        if name not in self.root.variables:
+            if dims is None:
+                dims = self.experiment._nesting_parents
+            if extra_dims is not None:
+                for key, value, in extra_dims:
+                    self.root.createDimension(key, value)
+                    self.root.createVariable(key, 'f8', key)
+                    dims += key
+            self.root.createVariable(name, 'f8', dims)
+        if extra_dims is None:
+            self.root.variables[name][indices] = data
+        else:
+            self.root.variables[name][indices] = np.reshape(data, [1]*len(indices) + list(extra_dims.values()))
+
+    def sync_hdd(self):
+        self.root.sync()
+
+    def close(self):
+        self.root.close()
+
+
 class BaseExperiment:
     """
     Base experiment class for experiment classes to inherit from.
@@ -217,11 +285,17 @@ class BaseExperiment:
         self._breaking = 3
         self._stopping = 4
 
+        # These are parameters that will be updated and used by automated scanning and saving
         self._nesting_indices = []
         self._nesting_parents = []
-        self._measurement_name = 'data'
+        self._measurement_name = ''
+        self._data = None
 
         self._auto_save_store = None
+
+        # self._data = DataManager('test.nc', self)
+        # self.te
+
 
 
     def reset_measurement_flags(self):
@@ -330,11 +404,23 @@ class BaseExperiment:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-       self.finalize()
+        self.finalize()
 
 
     # SMARTSCAN METHODS: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+    def temporary_test_for_data_manager(self):
+        pass
+
+
+    def init_datastore(self):
+        pass
+
+    def add_coord(self, array):
+        pass
+
+    def add_data(self, name, data):
+        pass
 
     def _validate_actionlist(self, actionlist, _complete=None, invalid_methods=0, invalid_names=0):
         """
@@ -577,25 +663,35 @@ class BaseExperiment:
         # typically used on the whole list
         # In a an action that has nested Actions
         for actiondictionary in actionlist:
-            actionname = actiondictionary['Name']
-            if 'Type' in actiondictionary:
-                if actiondictionary['Type'] in self.actiontypes:
-                    actiondict = copy.deepcopy(self.actiontypes[actiondictionary['Type']])
-                else:
-                    actiondict = {}
-                    self.logger.warning('Ignoring unknown actiontype {}'.format(actiondictionary['Type']))
-            else:
-                actiondict = {}
+            actiondict = ActionDict(actiondictionary, exp=self)
+            actionname = actiondict['Name']
 
-            # merge dictionaries (actiondictionary overrides actiontype)
-            actiondict.update(actiondictionary)
+            # if 'Type' in actiondictionary:
+            #     if actiondictionary['Type'] in self.actiontypes:
+            #         actiondict = copy.deepcopy(self.actiontypes[actiondictionary['Type']])
+            #     else:
+            #         actiondict = {}
+            #         self.logger.warning('Ignoring unknown actiontype {}'.format(actiondictionary['Type']))
+            # else:
+            #     actiondict = {}
+            #
+            # # merge dictionaries (actiondictionary overrides actiontype)
+            # actiondict.update(actiondictionary)
 
-            try:
-                method = getattr(self, actiondict['_method'])
-            except KeyError:
+            # try:
+            #     method = getattr(self, actiondict['_method'])
+            # except KeyError:
+            #     raise KeyError('No _method found in actiondict or actiontype')
+            # except AttributeError:
+            #     raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
+
+            if '_method' not in actiondict:
                 raise KeyError('No _method found in actiondict or actiontype')
-            except AttributeError:
-                raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
+            else:
+                try:
+                    method = getattr(self, actiondict['_method'])
+                except AttributeError:
+                    raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
 
 
             # # if a method is specified it overrules the default from actiontype
@@ -636,11 +732,16 @@ class BaseExperiment:
                 # without error checking for now:
                 # else:
                 #     indices += [0]  # append 0 to list  current_values
-                nesting = lambda  : self.perform_actionlist(actiondict['~nested'], parents+[actionname])
+                nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[actionname])
+                # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._indices)
             else:
-                nesting = lambda *args: None        # a "do nothing" function
+                nesting = lambda *args, **kwargs: None        # a "do nothing" function
+                # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._indices)
             # method = getattr(self, actiondict['_method'])
             # print('                                       ', actionname, '   parents: ', parents, '   indices: ',self._nesting_indices)
+
+            store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._indices)
+            # method(actiondict, nesting, store)
             method(actiondict, nesting)
 
 
@@ -706,6 +807,9 @@ class BaseExperiment:
         for name in self.instruments_instances:
             self.logger.info('Finalizing connection with device: {}'.format(name))
             self.instruments_instances[name].finalize()
+        self.logger.debug('Closing open datafiles if there are any.')
+        if self._data is not None and self._data.isopen:
+            self._data.close()
         self.logger.debug('Experiment object finalized.')
 
     def load_instrument(self, name):

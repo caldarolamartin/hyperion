@@ -110,6 +110,7 @@ class ExampleExperiment(BaseExperiment):
         # print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
         print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
         self.save(0)
+        # self._data.auto(data, actiondict)
         nesting()
         # data = np.array([[0,1],[2,3]])
         # return data
@@ -129,6 +130,7 @@ class ExampleExperiment(BaseExperiment):
     def spectrum_modified(self, actiondict, nesting):
         # print('spectrum: ',actiondict['Name'])
         print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
+
         self.save(0)
         nesting()
 
@@ -144,6 +146,7 @@ class ExampleExperiment(BaseExperiment):
         print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
         self.save(0)
         arr, unit = array_from_settings_dict(actiondict)
+        # datastore.coord(arr, unit, actiondict)
         for s in arr:
             print(actiondict['axis'],' : ', s)
             #store_coord()
