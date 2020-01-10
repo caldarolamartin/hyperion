@@ -267,6 +267,22 @@ class DataManager:
             # if the parent loop is at its first index: append the value to the coordinate
             self.root.variables[name][self.root.variables[name].size] = array_or_value
 
+    def __attach_meta(self, attach, dic):
+        """
+        Private method. Tries to attach all keys in dic to element of netcdf4 dataset. Invalid datatypes only result in
+        a logger warning.
+        Converts bool to int and converts bool elements in lists to int.
+        """
+        for key, value in dic.items():
+            # attach.setncattr(key, value)
+            try:
+                if type(value) is list and any(type(k) is bool for k in value):
+                    attach.setncattr(key, [int(k) if type(k) is bool else k for k in value])
+                else:
+                    attach.setncattr(key, value)
+            except:
+                self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
+
     def meta(self, attach_to=None, dic=None, only_once=False, **kwargs):
         # either keyword arguments: exposuretime = '9s', gain=2
         # or one dictionary: {'exposuretime':'9s', 'gain':2}
@@ -284,19 +300,21 @@ class DataManager:
             attach = self.root.variables[attach_to]
         self.logger.debug('type of attach is: {}'.format(type(attach)))
         if type(dic) is dict or type(dic) is ActionDict or type(dic) is DefaultDict:
-            for key, value in dic.items():
-                # attach.setncattr(key, value)
-                try:
-                    attach.setncattr(key, value)
-                except:
-                    self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
+            self.__attach_meta(attach, dic)
+            # for key, value in dic.items():
+            #     # attach.setncattr(key, value)
+            #     try:
+            #         attach.setncattr(key, value)
+            #     except:
+            #         self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
 
         for key, value in kwargs.items():
-            # attach.setncattr(key, value)
-            try:
-                attach.setncattr(key, value)
-            except:
-                self.logger.warning('unsupported {} in kwargs: {}: {}'.format(type(value), key, value))
+            self.__attach_meta(attach, dic)
+            # # attach.setncattr(key, value)
+            # try:
+            #     attach.setncattr(key, value)
+            # except:
+            #     self.logger.warning('unsupported {} in kwargs: {}: {}'.format(type(value), key, value))
 
     def var(self, name, data, indices=None, dims=None, extra_dims=None, meta=None):
         # if coords and indices are not given it will get those from experiment

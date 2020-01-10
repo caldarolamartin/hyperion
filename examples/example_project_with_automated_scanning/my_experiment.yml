@@ -187,19 +187,26 @@ Measurements:       # dictionary of Measurement s
     - Name: Image Before
       Type: image                               # Used to get some default values
       _method: image_with_filter                # Override the _method of Type with a custom one
-      _store_name: im_before
       _view: gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
       filter_a: True
       filter_b: False
     - Name: Scan Atto X
       Type: atto_scanner
+      _store_name: sample_x
       axis: x
       start: 10 um
-      stop: 22 um
+      stop: 18 um
       step: 4 um
       ~nested:
         - Name: power
           _method: measure_power
+        - Name: Scan Atto Y
+          Type: atto_scanner
+          _store_name: sample_y
+          axis: y
+          start: 2 um
+          stop: 5 um
+          num: 4
     - Name: Finalize
       _method: finalize_example_measurement_A
 #    - Name: atto X

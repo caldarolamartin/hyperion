@@ -187,7 +187,7 @@ class ExampleExperiment(BaseExperiment):
         self.datman.dim('im_y', fake_data.shape[0])     # add extra axes if they don't exist yet
         self.datman.dim('im_x', fake_data.shape[1])
         self.datman.var(actiondict['Name'], fake_data, extra_dims=('im_y', 'im_x') )
-        self.datman.meta(actiondict['Name'], {'exposuretime': actiondict['exposuretime']})
+        self.datman.meta(actiondict['Name'], {'exposuretime': actiondict['exposuretime'], 'filter_a': actiondict['filter_a'], 'filter_b': actiondict['filter_b'] })
 
     def sweep_atto(self, actiondict, nesting):
         # print('sweep_atto: ',actiondict['Name'])
@@ -205,6 +205,8 @@ class ExampleExperiment(BaseExperiment):
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
         self.datman.var(actiondict['Name'], fake_data, meta=actiondict)
+
+
 
 
 if __name__ == '__main__':

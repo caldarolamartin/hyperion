@@ -161,8 +161,8 @@ class ScanMicroPositioner(BaseGui):
         self.stop_units.currentIndexChanged.connect(self.stop_changed)
         self.stop_units.addItems(positioner_units)
         add_pint_to_combo(self.stop_units)
-        if 'start' in self.actiondict:
-            self.logger.debug('Applying config value to start in gui')
+        if 'stop' in self.actiondict:
+            self.logger.debug('Applying config value to stop in gui')
             pint_to_spin_combo(Q_(self.actiondict['start']), self.start_value, self.start_units)
 
         self.step_value = QDoubleSpinBox()
@@ -171,9 +171,12 @@ class ScanMicroPositioner(BaseGui):
         self.step_units.currentIndexChanged.connect(self.step_changed)
         self.step_units.addItems(positioner_units)
         add_pint_to_combo(self.step_units)
-        if 'start' in self.actiondict:
-            self.logger.debug('Applying config value to start in gui')
+        if 'step' in self.actiondict:
+            self.logger.debug('Applying config value to step in gui')
             pint_to_spin_combo(Q_(self.actiondict['start']), self.start_value, self.start_units)
+        elif 'num' in in self.actiondict:
+            self.logger.debug('Calculating step from num in config value and apply it to step in gui')
+            pint_to_spin_combo((spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units) - spin_combo_to_pint_apply_limits(self.start_value, self.start_units)) / (self.actiondict['num']-1), self.start_value, self.start_units)
 
         self.stop_um = QDoubleSpinBox()
         self.step_um = QDoubleSpinBox()
