@@ -111,7 +111,7 @@ class ExampleExperiment(BaseExperiment):
         print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
         self.save(0)
         # self._data.auto(data, actiondict)
-        nesting()
+        nesting()       # either takes care of nested actions or checks for pause state
         # data = np.array([[0,1],[2,3]])
         # return data
 
@@ -151,10 +151,11 @@ class ExampleExperiment(BaseExperiment):
         self.logger.info('Measurement specific initialization. Could be without GUI')
         # Open datafile with data manager (datman):
         self.datman.open_file('test.nc')
+        # self.datman.meta(measurement_name = 'initialize_example_measurement_A')
         # By assigning the finalize method to self._finalize_measurement_method, that method will also be executed when
         # the Stop button is pressed:
         self._finalize_measurement_method = self.finalize_example_measurement_A
-        nesting()
+        # nesting()
 
     def finalize_example_measurement_A(self, actiondict, nesting):
         self.logger.info('Measurement specific finalization. Probably be without GUI')
@@ -186,8 +187,8 @@ class ExampleExperiment(BaseExperiment):
         # Because this is higher dimensional data, create dimensions:
         self.datman.dim('im_y', fake_data.shape[0])     # add extra axes if they don't exist yet
         self.datman.dim('im_x', fake_data.shape[1])
-        self.datman.var(actiondict['Name'], fake_data, extra_dims=('im_y', 'im_x') )
-        self.datman.meta(actiondict['Name'], {'exposuretime': actiondict['exposuretime'], 'filter_a': actiondict['filter_a'], 'filter_b': actiondict['filter_b'] })
+        self.datman.var(actiondict, fake_data, extra_dims=('im_y', 'im_x') )
+        self.datman.meta(actiondict, {'exposuretime': actiondict['exposuretime'], 'filter_a': actiondict['filter_a'], 'filter_b': actiondict['filter_b'] })
 
     def sweep_atto(self, actiondict, nesting):
         # print('sweep_atto: ',actiondict['Name'])
@@ -201,11 +202,18 @@ class ExampleExperiment(BaseExperiment):
             #store_coord()
 
             nesting()
+            self.check_pause()
 
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
-        self.datman.var(actiondict['Name'], fake_data, meta=actiondict)
+        self.datman.var(actiondict, fake_data, meta=actiondict)
+        nesting()
 
+    def fake_spectrum(self, actiondict, nesting):
+        fake_wav_nm = np.arange(500, 601, 10)
+        fake_data = np.random.random(11)
+        self.datman.dim_coord('wav', fake_wav_nm, meta={'unit': 'nm'})
+        self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict)
 
 
 

@@ -208,6 +208,10 @@ class DataManager:
         if not self._is_open:
             self.logger.info('Opening datafile: {}'.format(filename))
             self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
+            # self.__attach_meta(self.root, self.experiment._saving_meta)     # <- works
+            self.meta(dic=self.experiment._saving_meta)                     # <- doesn't work for some reason
+            self.sync_hdd()
+            print('completed adding meta after opening')
             self._is_open = True
         else:
             self.logger.warning('A file is already open')
@@ -224,7 +228,9 @@ class DataManager:
         If name_or_dict is a string it uses that.
         IN ALL CASES it applies valid_python() before returning (replace all illegal varname characters with _)
         """
-        if type(name_or_dict) is str:
+        if name_or_dict is None:
+            return None
+        elif type(name_or_dict) is str:
             return valid_python(name_or_dict)
         elif '_store_name' in name_or_dict:
             return valid_python(name_or_dict['_store_name'])
@@ -275,15 +281,23 @@ class DataManager:
         """
         for key, value in dic.items():
             # attach.setncattr(key, value)
+            if key[0] == '~': continue                      # Always skip if key starts with '~'  (i.e. ~nested)
+            if key[0] == '_' and key !='_method': continue  # Always skip if key starts with '_' unless it's _method
             try:
                 if type(value) is list and any(type(k) is bool for k in value):
                     attach.setncattr(key, [int(k) if type(k) is bool else k for k in value])
+                elif type(value) is bool:
+                    attach.setncattr(key, int(value))
                 else:
                     attach.setncattr(key, value)
             except:
                 self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
 
     def meta(self, attach_to=None, dic=None, only_once=False, **kwargs):
+        print('attach_to     ',attach_to)
+        print('dic           ',dic)
+        print('only_once     ',only_once)
+        print('kwargs        ',kwargs)
         # either keyword arguments: exposuretime = '9s', gain=2
         # or one dictionary: {'exposuretime':'9s', 'gain':2}
         # Note that only limited types of variables can be added
@@ -291,14 +305,14 @@ class DataManager:
         # Skip if only_once is True and parent loops are not in first iteration
         if only_once and not sum(self.experiment._nesting_indices): return
         # attach_to = valid_python(attach_to)
-        # attach_to = self.__name_or_dict(attach_to)
-        self.logger.debug('attach meta to: {}'.format(attach_to))
+        attach_to = self.__name_or_dict(attach_to)
+        # self.logger.debug('attach meta to: {}'.format(attach_to))
         # add attributes to set of variable
         attach = self.root
         if attach_to in self.root.variables:
-            print(type(self.root.variables[attach_to]))
+            # print(type(self.root.variables[attach_to]))
             attach = self.root.variables[attach_to]
-        self.logger.debug('type of attach is: {}'.format(type(attach)))
+        # self.logger.debug('type of attach is: {}'.format(type(attach)))
         if type(dic) is dict or type(dic) is ActionDict or type(dic) is DefaultDict:
             self.__attach_meta(attach, dic)
             # for key, value in dic.items():
@@ -307,7 +321,9 @@ class DataManager:
             #         attach.setncattr(key, value)
             #     except:
             #         self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
-
+        print('attach_to: ', attach_to)
+        print('dic:       ', dic)
+        print('kwargs:    ', kwargs)
         for key, value in kwargs.items():
             self.__attach_meta(attach, dic)
             # # attach.setncattr(key, value)
@@ -336,7 +352,10 @@ class DataManager:
                 #     self.root.createDimension(key, value)
                 #     self.root.createVariable(key, 'f8', key)
                 #     dims += key
-                dims = dims + extra_dims
+                if type(extra_dims) is str:
+                    dims = dims + (extra_dims,)
+                else:
+                    dims = dims + tuple(extra_dims)
             self.root.createVariable(name, 'f8', dims)
             if meta is not None:
                 self.meta(name, meta)
@@ -345,7 +364,11 @@ class DataManager:
         if len(indices):
             # print('self.root.variables[name][indices][:] = data')
             # print('type(data) =  ', type(data))
-            self.root.variables[name][indices][:] = data
+            npdata = np.array(data)
+            npdata = npdata.reshape(tuple([1] * len(indices)) + npdata.shape)
+            self.root.variables[name][tuple(indices)] = npdata
+            # g3 = g.reshape(tuple([1] * 2) + g.shape)
+            # self.root.variables[name][indices][:] = data
             # print(type(self.root.variables[name][indices]))
         else:
             # print('self.root.variables[name][:] = data')
@@ -353,7 +376,7 @@ class DataManager:
             self.root.variables[name][:] = data
         # else:
         #     if len(indices):
-        #         self.root.variables[name][indices] = np.reshape(data, [1]*len(indices) + list(extra_dims.values()))
+        #         self.root.variables[name][indices] = np.reshape(data, tuple([1]*len(indices) + list(extra_dims.values()))
         #     else:
         #         self.root.variables[name] =  data
 
@@ -410,6 +433,8 @@ class BaseExperiment:
         self._measurement_name = ''
         self.datman = DataManager(self)
         self._finalize_measurement_method = lambda *args, **kwargs: None
+
+        self._saving_meta = {}
 
         # self._data = DataManager('test.nc', self)
         # self.te
@@ -750,6 +775,8 @@ class BaseExperiment:
 
         if measurement_name in self.properties['Measurements']:
             self.logger.debug('Starting measurement: {}'.format(measurement_name))
+            self._saving_meta = {'Hyperion': hyperion.__version__,
+                                  'Experiment': self.__class__.__name__}
             self.perform_actionlist(self.properties['Measurements'][measurement_name])
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
@@ -861,7 +888,8 @@ class BaseExperiment:
                 nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
                 # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
             else:
-                nesting = lambda *args, **kwargs: None        # a "do nothing" function
+                # nesting = lambda *args, **kwargs: None        # a "do nothing" function
+                nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
                 # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
             # method = getattr(self, actiondict['_method'])
             # print('                                       ', actionname, '   parents: ', parents, '   indices: ',self._nesting_indices)

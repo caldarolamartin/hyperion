@@ -207,6 +207,9 @@ Measurements:       # dictionary of Measurement s
           start: 2 um
           stop: 5 um
           num: 4
+          ~nested:
+            - Name: Spectrum
+              _method: fake_spectrum
     - Name: Finalize
       _method: finalize_example_measurement_A
 #    - Name: atto X
