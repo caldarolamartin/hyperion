@@ -17,6 +17,7 @@ from time import sleep
 # from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
 from hyperion.tools.array_tools import *
+from datetime import datetime
 import sys
 
 class ExampleExperiment(BaseExperiment):
@@ -151,6 +152,10 @@ class ExampleExperiment(BaseExperiment):
         self.logger.info('Measurement specific initialization. Could be without GUI')
         # Open datafile with data manager (datman):
         self.datman.open_file('test.nc')
+        self.datman.meta(dic={'start_time':str(datetime.now())})
+        # # test
+        # self.datman.meta(dic=self._saving_meta)
+
         # self.datman.meta(measurement_name = 'initialize_example_measurement_A')
         # By assigning the finalize method to self._finalize_measurement_method, that method will also be executed when
         # the Stop button is pressed:
@@ -162,6 +167,7 @@ class ExampleExperiment(BaseExperiment):
         # Do stuff to finalize your measurement (e.g. switch off laser)
 
         # Close datafile
+        self.datman.meta(dic={'finish_time':str(datetime.now())})
         self.datman.close()
         nesting()
 

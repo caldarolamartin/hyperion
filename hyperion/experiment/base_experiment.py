@@ -27,6 +27,7 @@ import copy
 import numpy as np
 from netCDF4 import Dataset
 
+
 # class autosaver:
 #     """
 #     :param filepath:
@@ -209,10 +210,12 @@ class DataManager:
             self.logger.info('Opening datafile: {}'.format(filename))
             self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
             # self.__attach_meta(self.root, self.experiment._saving_meta)     # <- works
-            self.meta(dic=self.experiment._saving_meta)                     # <- doesn't work for some reason
+            # self.meta(dic=self.experiment._saving_meta)                     # <- doesn't work for some reason
+            self._is_open = True
+            self.meta(dic=self.experiment._saving_meta)
             self.sync_hdd()
             print('completed adding meta after opening')
-            self._is_open = True
+
         else:
             self.logger.warning('A file is already open')
 
@@ -294,10 +297,6 @@ class DataManager:
                 self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
 
     def meta(self, attach_to=None, dic=None, only_once=False, **kwargs):
-        print('attach_to     ',attach_to)
-        print('dic           ',dic)
-        print('only_once     ',only_once)
-        print('kwargs        ',kwargs)
         # either keyword arguments: exposuretime = '9s', gain=2
         # or one dictionary: {'exposuretime':'9s', 'gain':2}
         # Note that only limited types of variables can be added
@@ -321,9 +320,6 @@ class DataManager:
             #         attach.setncattr(key, value)
             #     except:
             #         self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
-        print('attach_to: ', attach_to)
-        print('dic:       ', dic)
-        print('kwargs:    ', kwargs)
         for key, value in kwargs.items():
             self.__attach_meta(attach, dic)
             # # attach.setncattr(key, value)
@@ -775,8 +771,12 @@ class BaseExperiment:
 
         if measurement_name in self.properties['Measurements']:
             self.logger.debug('Starting measurement: {}'.format(measurement_name))
+            # Make dict with basic info
             self._saving_meta = {'Hyperion': hyperion.__version__,
-                                  'Experiment': self.__class__.__name__}
+                                 'Experiment': self.__class__.__name__}
+            if hasattr(self, 'version'):
+                self._saving_meta['version'] = self.version
+            self._saving_meta['Measurement'] = measurement_name
             self.perform_actionlist(self.properties['Measurements'][measurement_name])
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
