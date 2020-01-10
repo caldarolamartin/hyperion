@@ -337,7 +337,6 @@ class DataManager:
                 #     self.root.createVariable(key, 'f8', key)
                 #     dims += key
                 dims = dims + extra_dims
-            print(dims)
             self.root.createVariable(name, 'f8', dims)
             if meta is not None:
                 self.meta(name, meta)
@@ -856,7 +855,7 @@ class BaseExperiment:
                 # else:
                 #     indices += [0]  # append 0 to list  current_values
                 if '_store_name' in actiondict:
-                    new_parent = valid_python(actiondict)
+                    new_parent = valid_python(actiondict['_store_name'])
                 else:
                     new_parent = valid_python(actionname)
                 nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
