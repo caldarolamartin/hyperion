@@ -846,7 +846,10 @@ class BaseExperiment:
             self.actiontypes = {}
 
     def finalize(self):
-        """ Finalizing the experiment class """
+        """
+        Finalizes the experiment class.
+        Closes all instruments in instrument_instances
+        """
         self.logger.info('Finalizing the experiment base class. Closing all the devices connected')
         for name in self.instruments_instances:
             self.logger.info('Finalizing connection with device: {}'.format(name))
@@ -856,7 +859,7 @@ class BaseExperiment:
         self.logger.debug('Experiment object finalized.')
 
     def load_instrument(self, name):
-        """ Loads a single instrument given by name
+        """ Loads a single instrument given by name.
 
         :param name: name of the instrument to load. It has to be specified in the config file under Instruments
         :type name: string
@@ -864,6 +867,7 @@ class BaseExperiment:
         """
         self.logger.debug('Loading instrument: {}'.format(name))
 
+        ### This is OLD CODE. I leave it here for some time while testing the NEW CODE below:
         # try:
         #     di = self.properties['Instruments'][name]
         #     module_name, class_name = di['instrument'].split('/')
@@ -879,7 +883,7 @@ class BaseExperiment:
         # except KeyError:
         #     self.logger.warning('The name "{}" does not exist in the config file'.format(name))
         #     return None
-        # # NEW CODE:::::::::::::::::
+        ### NEW CODE:::::::::::::::::
         if name not in self.properties['Instruments']:
             self.logger.warning('Instrument not specified in config: {}'.format(name))
         elif 'instrument' not in self.properties['Instruments'][name]:
@@ -889,32 +893,40 @@ class BaseExperiment:
             if instr_class is None:
                 self.warning("Couldn't load instrument class: {}".format(self.properties['Instruments'][name]['instrument']))
                 return None
-            instance = instr_class(self.properties['Instruments'][name])
-            # self.instruments_instances[name] = instance
+            instance = instr_class(self.properties['Instruments'][name])  # added this line
+            self.instruments_instances[name] = instance
+            self.logger.debug('Instrument: {} has been loaded and added to instrument_instances'.format(name))
             return instance
         return None
 
     def load_instruments(self):
         """"
+        SOME MODIFICATION:
+        I've moved the bit of adding an instrument to instrument_instances to load_instrument.
+        That way also manually loaded instruments will be closed by finalize()
+
         This method creates the instance of every instrument in the config file (under the key Instruments)
         and sets this instance in the self.instruments_instances (this is a dictionary).
         This way they are approachable via self.instruments_instances.items(),
         The option to set the instruments by hand is still possible, but not necessary because the pointer
-        to the instrument 'lives' in the instruments_instances.
+        to the instrument is in the instruments_instances.
 
         The instruments in the self.instruments_instances are going to be finalized when  the exit happens,
-        so if you load an instrument manualy and do not add it to this dictionary, you need to take care of
+        so if you load an instrument manually and do not add it to this dictionary, you need to take care of
         the closing.
-
         """
+
         for instrument in self.properties['Instruments']:
-            inst = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-            if inst is None:
-                self.logger.warning(" The instrument: {} is not connected to your computer".format(instrument))
-            else:
-                self.instruments_instances[instrument] = inst
-                self.logger.debug('Object: {} has been loaded in '
-                              'instrument_instances {}'.format(instrument, self.instruments_instances[instrument]))
+            self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+
+        # for instrument in self.properties['Instruments']:
+        #     inst = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+        #     if inst is None:
+        #         self.logger.warning(" The instrument: {} is not connected to your computer".format(instrument))
+        #     else:
+        #         self.instruments_instances[instrument] = inst
+        #         self.logger.debug('Object: {} has been loaded in '
+        #                       'instrument_instances {}'.format(instrument, self.instruments_instances[instrument]))
 
 
 if __name__ == '__main__':

@@ -152,11 +152,12 @@ class MyExperiment(BaseExperiment):
         # print('sweep_atto: ',actiondict['Name'])
         # print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
         arr, unit = array_from_settings_dict(actiondict)
-        self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
+        # self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
         # self.datman.meta(actiondict, actiondict)
         # self.datman.meta(actiondict['Name'], units=str(unit))
         for s in arr:
             print(actiondict['axis'],' : ', s)
+            self.datman.dim_coord(actiondict, s, meta={'units': str(unit), **actiondict})
             #store_coord()
 
             nesting()
@@ -165,6 +166,7 @@ class MyExperiment(BaseExperiment):
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
         self.datman.var(actiondict, fake_data, meta=actiondict, unit='mW')
+
         nesting()
 
     def fake_spectrum(self, actiondict, nesting):
