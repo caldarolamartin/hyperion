@@ -292,7 +292,7 @@ def read_netcdf4_and_plot_all(filename):
     return ds
 
 if __name__ == '__main__':
-    # this are examples of reading and writing dummy data. it saves in the log path!
+    # this are examples of reading and writing dummy data. NOTE: it saves in the log path!
     
     import os
     import hyperion
