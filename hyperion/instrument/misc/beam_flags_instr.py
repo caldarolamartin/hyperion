@@ -246,7 +246,7 @@ class BeamFlagsInstr(BaseInstrument):
 
 if __name__ == "__main__":
 
-    example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+    example_settings = {'port': 'COM22', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
     with BeamFlagsInstr(settings = example_settings) as bf:
@@ -256,12 +256,12 @@ if __name__ == "__main__":
 
         print( bf.idn() )
 
-        bf.set_specific_flag_state('1','r')
-        print( bf.get_specific_flag_state('1') )
+        bf.set_specific_flag_state('2','r')
+        print( bf.get_specific_flag_state('2') )
         time.sleep( bf.settings['actuator_timeout'] )
 
-        bf.set_flag(1, True)
-        print( bf.get_flag(1))
+        bf.set_flag(2, True)
+        print( bf.get_flag(2))
         time.sleep(bf.settings['actuator_timeout'])
 
         bf.f1 = False
