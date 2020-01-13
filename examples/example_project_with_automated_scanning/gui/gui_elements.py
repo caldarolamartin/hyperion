@@ -1,7 +1,7 @@
 from hyperion.core import logman
 from hyperion.view.base_guis import BaseGui
 from hyperion.tools.ui_tools import *
-from hyperion import Q_
+from hyperion import Quan as Q_
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon, QFont
@@ -84,7 +84,7 @@ class ImageWithFilters(BaseGui):
         display_units = ['us', 'ms', 's', 'min', 'hr']
         self.expo_units.addItems(display_units)
         add_pint_to_combo(self.expo_units)
-        if 'exposuretime' in self.actiondict:
+        if 'exposuretime' in self.actiondict and self.actiondict['exposuretime'] is not None:
             self.logger.debug('Applying config value to exposuretime in gui')
             pint_to_spin_combo(Q_(self.actiondict['exposuretime']), self.expo_value, self.expo_units)
 
@@ -174,7 +174,7 @@ class ScanMicroPositioner(BaseGui):
         if 'step' in self.actiondict:
             self.logger.debug('Applying config value to step in gui')
             pint_to_spin_combo(Q_(self.actiondict['start']), self.start_value, self.start_units)
-        elif 'num' in in self.actiondict:
+        elif 'num' in self.actiondict:
             self.logger.debug('Calculating step from num in config value and apply it to step in gui')
             pint_to_spin_combo((spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units) - spin_combo_to_pint_apply_limits(self.start_value, self.start_units)) / (self.actiondict['num']-1), self.start_value, self.start_units)
 
@@ -191,7 +191,6 @@ class ScanMicroPositioner(BaseGui):
         self.layout.addWidget(self.step_units)
 
     def start_changed(self):
-        print(type(self.actiondict))
         self.actiondict['start'] = str(
             spin_combo_to_pint_apply_limits(self.start_value, self.start_units, Q_(self.actiondict['start_min']),
                                             Q_(self.actiondict['start_max'])))

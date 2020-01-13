@@ -231,16 +231,16 @@ ActionTypes:        # dictionary
     _method: image
     _view: gui.gui_elements/ExampleActionGui
     _ui: image.ui
-    exposuretime: 0.1 s
-    exposuretime_min: 1 us
-    exposuretime_max: 2 hr
+    exposuretime: 0.1s
+    exposuretime_min: 1us
+    exposuretime_max: 2hr
   spectrum:
     exposuretime: 2
     _view: gui.gui_elements/ExampleActionGui
     _method: spectrum
     _ui: spectrum.ui
   powermeter:
-    exposuretime: 1 s
+    exposuretime: 1s
 
 Data:
   save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/

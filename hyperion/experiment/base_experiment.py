@@ -62,10 +62,10 @@ class DefaultDict(dict):
         elif key in self.default_dict:
             return self.default_dict[key]
         elif self.__ReturnNoneForMissingKey:
-            self.__logger.debug('Key not in main and not in default: returning None because ReturnNoneForMissingKey=True')
+            # self.__logger.debug('Key {} not in main and not in default: returning None because ReturnNoneForMissingKey=True'.format(key))
             return None
         else:
-            self.__logger.error('DefaultDict: key not found: {}'.format(key))
+            # self.__logger.error('DefaultDict: key not found: {}'.format(key))
             raise KeyError(key)
 
     def __setitem__(self, key, value):
@@ -407,7 +407,7 @@ class DataManager:
         """
         Closes the file. ( First applies sync_hdd() )
         """
-        if self.root.isopen():
+        if self._is_open and self.root.isopen():
             self.root.sync()        # Don't know if this is necessary
             self.root.close()
         self._is_open = False
