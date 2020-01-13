@@ -8,9 +8,10 @@
 
 """
 import os
-from hyperion.core import logman as logging
 import yaml
 import importlib
+from hyperion.core import logman as logging
+from hyperion.tools.saving_tools import save_metadata as save_meta
 
 
 class BaseExperiment():
@@ -53,6 +54,7 @@ class BaseExperiment():
 
         self.properties = d
         self.properties['config file'] = filename  # add to the class the name of the Config file used.
+        self.filename = filename
 
     def finalize(self):
         """ Finalizing the experiment class """
@@ -124,69 +126,27 @@ class BaseExperiment():
                 self.logger.debug('Object: {} has been loaded in '
                               'instrument_instances {}'.format(instrument, self.instruments_instances[instrument]))
 
-    # this next two methods should be moved to tools
-    def create_filename(self, file_path):
-        """ creates the filename property in the class, so all the methods point to the same folder
-        and save with the same name. The output does not include the extension but the input does.
-
-        :param filename: config filename complete path
-        :type filename: string (path)
-
-        :return: filename
-        :rtype: string
-
-        """
-        self.logger.debug('Input filename: {}'.format(file_path))
-        i = 0
-        ext = file_path[-4:]  # Get the file extension (it assumes is a dot and three letters)
-        filename = file_path[:-4]
-        self.root_path = os.path.split(filename)[0]
-
-        while os.path.exists(file_path):
-            file_path = '{}_{:03}{}'.format(filename, i, ext)
-            i += 1
-
-        self.filename = file_path[:-4]
-
-        self.logger.debug('New filename: {}'.format(self.filename))
-        return file_path
-
     def save_metadata(self):
-        """ Saves the config file information with the same name as the data and extension .yml
+        """To save metadata in a yml file. It saves the input configuration file. """
+        self.logger.info('Saving metadata into file: {}'.format(self.filename))
+        save_meta(self.filename, self.properties)
 
-
-        """
-        self.create_filename(self.properties['config file'])
-
-        self.logger.debug('Filename: {}'.format(self.filename))
-        file_path = self.filename + '.yml'
-        self.logger.debug('Complete file path: {}'.format(file_path))
-
-        with open(file_path, 'w') as f:
-            yaml.dump(self.properties, f, default_flow_style=False)
-
-        self.logger.info('Metadata saved to {}'.format(file_path))
 
 if __name__ == '__main__':
     import hyperion
-
-    # hyperion.set_logfile(__file__)                    # not required, but recommended
-    # hyperion.file_logger.setLevel(logging.DEBUG)      # change logging level for the file (DEBUG, INFO, WARNING, ERROR)
-    # hyperion.stream_logger.setLevel(logging.DEBUG)    # change logging level for the screen
-
+    logger = logging.getLogger(__name__)
+    
 
     with BaseExperiment() as e:
 
-        config_folder = 'D:/mcaldarola/Data/2019-04-17_hyperion/'  # this should be your path for the config file you use
+        config_folder = os.path.join(hyperion.repository_path,'examples')
         name = 'example_experiment_config'
         config_file = os.path.join(config_folder, name)
 
-        logging.info('Using the config file: {}.yml'.format(config_file))
+        logger.info('Using the config file: {}.yml'.format(config_file))
         e.load_config(config_file + '.yml')
-
         # read properties just loaded
-        print('\n {} \n'.format(e.properties))
+        logger.info('The config file has the dict: {}'.format(e.properties))
 
-        e.properties['Scan']['start'] = '0.5V'
+        e.save_metadata()
 
-        print('\n {} \n'.format(e.properties))

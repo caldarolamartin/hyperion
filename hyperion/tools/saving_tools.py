@@ -11,6 +11,7 @@ used along hyperion.
 
 """
 import os
+import yaml
 import netCDF4
 import datetime as dt
 import numpy as np
@@ -102,7 +103,6 @@ def create_filename(file_path):
     i = 0
     ext = file_path[-4:]  # Get the file extension (it assumes is a dot and three letters)
     filename = file_path[:-4]
-    root_path = os.path.split(filename)[0]
 
     while os.path.exists(file_path):
         file_path = '{}_{:03}{}'.format(filename, i, ext)
@@ -112,21 +112,26 @@ def create_filename(file_path):
 
     return filename
 
-def save_metadata(self):
-    """ Saves the config file information with the same name as the data and extension .yml
+def save_metadata(file_path, properties):
+    """ Saves the the properties in a yml file at the file file_path
+
+    :type file_path: str
+    :param properties: dictionary containing the me    :param file_path: complete filepath to the location to be saved.
+tadata
+    :type properties: dict
 
 
     """
-    self.create_filename(self.properties['config file'])
+    filename = create_filename(file_path)
 
-    self.logger.debug('Filename: {}'.format(self.filename))
-    file_path = self.filename + '.yml'
-    self.logger.debug('Complete file path: {}'.format(file_path))
+    logger.debug('Filename: {}'.format(filename))
+    file_path = filename + '.yml'
+    logger.debug('Complete file path: {}'.format(file_path))
 
     with open(file_path, 'w') as f:
-        yaml.dump(self.properties, f, default_flow_style=False)
+        yaml.dump(properties, f, default_flow_style=False)
 
-    self.logger.info('Metadata saved to {}'.format(file_path))
+    logger.info('Metadata saved to {}'.format(file_path))
 
 def save(self, data):
     pass
