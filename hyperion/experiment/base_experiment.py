@@ -108,17 +108,24 @@ from netCDF4 import Dataset
 
 class DefaultDict(dict):
     """
-    REQUIRES UPDATE FOR ReturnNoneForMissingKey <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    Special dictionary that returns obj.default_dict[key] if obj.main_dict[key] doesn't exist.
+    Special dictionary (inherits from dict).
+    When accessing key of this dict it will return obj.default_dict[key] if obj.main_dict[key] doesn't exist.
     Writing and deleting always act on main_dict.
-    Methods like keys(), values(), items() act on the combined list.
-    Original default_dict is never changed. Also changes to default_dict after creation of obj are ignored.
+    Methods like keys(), values(), items() act on the combined list (where main_dict supersedes default_dict in case of duplicate values).
+    Original default_dict is never changed. Also attempted changes to default_dict after creation of obj are ignored.
 
-    obj = DefaultDict(main_dict, default_dict)
+    :param main_dict: primary dictionary
+    :type main_dict: dict
+    :param default_dict: dictionary with default values that will be returned if key is not present in main_dict (defaults to {})
+    :type default_dict: dict
+    :param ReturnNoneForMissingKey: flag indicating if None should be returned if an unknown key is requested (defaults to False)
+    :type ReturnNoneForMissingKey: bool
+    :returns: DefaultDict object which can mostly be used and accessed as a regular dict
+    :rtype: DefaultDict object
 
-    :param main_dict: dict
-    :param default_dict: dict (defaults to {})
+    :Example:
+
+    obj = DefaultDict(main_dict, [default_dict, , ReturnNoneForMissingKey] )
     """
 
     def __init__(self, main_dict, default_dict={}, ReturnNoneForMissingKey = False):
@@ -162,19 +169,26 @@ class DefaultDict(dict):
         return self.__repr__().__str__()
 
 
-
 class ActionDict(DefaultDict):
     def __init__(self, actiondict, types={}, exp=None):
         """
-        Special dictionary similar to DefaultDict except it used actiondict['Type'] to extracts the default_dict either
-        from types, a dictionary of ActionTypes, or from exp, an Experiment.
-        See DefaultDict for more information.
-        Note: if both types and experiment are specified, types is used.
+        Creates a DefaultDict from actiondict and actiontype (which can be passed through types or exp).
+        When accessing a key of the ActionDict onbject returned it returns the value from actiondict if key is present.
+        Otherwise value from actiontype if actiontype can be found and key is present. Otherwise returns None.
+        Actiontypes can be passed in types or extracted from exp.
+        Note: the actiondict must contain a key 'Type' that points to the name of the actiontype.
+        Note: if both types and exp are specified, types is used.
 
-        :param actiondict: dict (following the Action dictionary format)
-        :param types: dict of ActionTypes (which are dicts following the Action dictionary format) (optional, defaults to {})
-        :param exp: object of type BaseExperiment (which should contain .properties['ActionTypes']) (optional, defaults to None)
+        :param actiondict: dict following the Action dictionary format (typically retrieved from a Measurement in a config file)
+        :type actiondict: dict
+        :param types: dict of action type dicts containing default values. (typically retrieved from an ActionType in a config file) (optional, defaults to {})
+        :type types: dict of dicts
+        :param exp: experiment object containing .properties['ActionTypes']) (optional, defaults to None)
+        :type types: BaseExperiment
+        :returns: DefaultDict object which can mostly be used and accessed as a regular dict
+        :rtype: DefaultDict object
 
+        seealso:: DefaultDict
         """
         # self.logger = logging.getLogger(__name__)
         if types == {} and exp is not None:
@@ -188,13 +202,38 @@ class ActionDict(DefaultDict):
 
 
 def valid_python(name):
-    """ Converts all illegal characters for python object names to underscore. """
+    """
+    Converts all illegal characters for python object names to underscore.
+    Also adds underscore prefix if the name starts with a number.
+
+    :param name: input string
+    :type name: str
+    :return: corrected string
+    :rtype: str
+    """
     __illegal = str.maketrans(' `~!@#$%^&*()-+=[]\{\}|\\;:\'",.<>/?', '_' * 34)
+    if name[0].isdigit():
+        name = '_'+name
     return name.translate(__illegal)
 
 
 class DataManager:
     def __init__(self, experiment):
+        """
+        DataManager takes care of writing to file.
+
+        :param experiment: experiment
+        :type experiment: BaseExperiment
+
+
+        :Example:
+
+        # When used inside an experiment:
+        datman = DataManager(self)
+        datman.open_file('filename.nc')
+        datman.open_file('filename.nc')
+
+        """
         self.logger = logging.getLogger(__name__)
         self.experiment = experiment
         # self.dims = {}
@@ -204,6 +243,13 @@ class DataManager:
         self._is_open = False
 
     def open_file(self, filename, write_mode='w', **kwargs):
+        """
+
+        :param filename:
+        :param write_mode:
+        :param kwargs:
+        :return:
+        """
         self.filename = filename
         if not self._is_open:
             self.logger.info('Opening datafile: {}'.format(filename))
