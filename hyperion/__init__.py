@@ -16,7 +16,7 @@ from lantz.core import UnitRegistry, Q_
 # units
 ur = UnitRegistry()
 # Define alternative to Q_ that doesn't throw error when input is None, but returns None
-Quan = lambda input: None if input is None else ur.Quantity(input)
+Quan = lambda inp: None if inp is None else Q_(inp)
 
 
 

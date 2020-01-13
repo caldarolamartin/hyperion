@@ -175,6 +175,7 @@ class MyExperiment(BaseExperiment):
 
 
 
+
 if __name__ == '__main__':
     # ### To change the logging level:
     # logman.stream_level(logman.WARNING)
@@ -184,7 +185,7 @@ if __name__ == '__main__':
     # ### To change the logging file:
     # logman.set_file('example_experiment.log')
 
-    test_with_gui = True
+    test_with_gui = False
 
     # prepare folders and files:
     this_folder = os.path.dirname(os.path.abspath(__file__))
