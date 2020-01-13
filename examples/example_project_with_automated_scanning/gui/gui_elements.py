@@ -206,6 +206,41 @@ class ScanMicroPositioner(BaseGui):
             spin_combo_to_pint_apply_limits(self.start_value, self.start_units, Q_(self.actiondict['start_min']),
                                             Q_(self.actiondict['start_max'])))
 
+####    WORK IN PROGRESS  #################################
+class SaverGui(BaseGui):
+    def __init__(self, actiondict, experiment = None, parent = None):
+        self.logger = logman.getLogger(__name__)
+        self.logger.debug('Creating saver gui')
+        super().__init__(parent)
+        self.actiondict = actiondict
+        self.experiment = experiment
+
+        # # To load a ui file:
+        # uic.loadUi(path_to_file, self)
+
+        # # or maybe like this:
+        # gui = QWidget()
+        # uic.loadUi(path_to_file, gui)
+
+        self.initUI()
+        self.setLayout(self.layout)
+
+    def initUI(self):
+        # Create layout of your choice, but call it layout:
+        self.layout = QHBoxLayout()
+
+        # folder
+        # basename
+        # checkbox: auto-increment
+        # checkbox: copy config
+
+
+        # Create your gui elements and add them to the layout
+        dsp = QDoubleSpinBox()
+        cb = QComboBox()
+        self.layout.addWidget(dsp)
+        self.layout.addWidget(cb)
+
 
 if __name__=='__main__':
     app = QApplication([])

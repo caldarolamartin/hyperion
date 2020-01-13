@@ -332,7 +332,7 @@ class DataManager:
             # except:
             #     self.logger.warning('unsupported {} in kwargs: {}: {}'.format(type(value), key, value))
 
-    def var(self, name, data, indices=None, dims=None, extra_dims=None, meta=None):
+    def var(self, name, data, indices=None, dims=None, extra_dims=None, meta=None, **kwargs):
         # if coords and indices are not given it will get those from experiment
         # if you want to store extra dimensions (e.g. an image):
         # Make sure you create them first and then add them: extra_dims=('im_x', 'im_y')
@@ -357,8 +357,8 @@ class DataManager:
                 else:
                     dims = dims + tuple(extra_dims)
             self.root.createVariable(name, 'f8', dims)
-            if meta is not None:
-                self.meta(name, meta)
+            if meta is not None or len(kwargs):
+                self.meta(name, meta, **kwargs)
 
         # if extra_dims is None:
         if len(indices):
@@ -925,6 +925,11 @@ class BaseExperiment:
     def save(self, data, auto=True, **kwargs):
         indx = self._nesting_indices[:len(self._nesting_parents)]
         # print(indx)
+
+    def default_saver(self, actiondict, nesting):
+        # talks to the gui and sets values like filename
+        pass
+
 
 
     def create_saver(self, actiondict, nesting):

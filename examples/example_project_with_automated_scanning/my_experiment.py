@@ -216,14 +216,14 @@ class ExampleExperiment(BaseExperiment):
 
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
-        self.datman.var(actiondict, fake_data, meta=actiondict)
+        self.datman.var(actiondict, fake_data, meta=actiondict, unit='mW')
         nesting()
 
     def fake_spectrum(self, actiondict, nesting):
         fake_wav_nm = np.arange(500, 601, 10)
         fake_data = np.random.random(11)
         self.datman.dim_coord('wav', fake_wav_nm, meta={'unit': 'nm'})
-        self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict)
+        self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict, unit='counts')
 
 
 
