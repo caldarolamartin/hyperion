@@ -3,13 +3,7 @@
     Base Experiment
     ===============
 
-    TO DO:
-
-    - stop copying everything when verifying list
-    - grab type info while executing
-
-
-    This is a base experiment class. The propose is put all the common methods needed for the experiment
+    This is a base experiment class. The proposal is put all the common methods needed for the experiment
     classes so they are shared and easily modified.
 
 """
@@ -26,84 +20,6 @@ import copy
 # import h5py
 import numpy as np
 from netCDF4 import Dataset
-
-
-# class autosaver:
-#     """
-#     :param filepath:
-#     :param experiment:
-#     :param version:
-#     :param append:
-#     """
-#
-#     file_version_compatability = {0.10:[0.1, 0.02, 0.01],
-#                                   0.02:[0.1, 0.02, 0.01],
-#                                   0.01:[0.01]}
-#     def __init__(self, filepath, experiment, version=0.1, append=False, dialogs=None):
-#         self.logger = logging.getLogger(__name__)
-#         self.version = version
-#         if version not in file_version_compatability.keys():
-#             self.version = sorted(self.file_version_compatability.keys)[-1]
-#             self.logger.warning("Invalid version {}, using version {} instead".format(version, self.version))
-#         self.filepath = filepath
-#         valid = False
-#         while not valid:
-#             if os.path.isfile(self.filepath):
-#                 self.logger.warning('File exists: {}'.format(self.filepath))
-#                 if not append:
-#                     inp = input('File exists. choose [D]ifferent filename, try to [M]odify/append, or [Overwrite]: ')
-#                     if inp[0].lower()=='d':
-#                         self.filepath = input('New file name: ')
-#                         continue
-#                     if inp[0].lower()=='m': append=True
-#                 else:
-#                     try:
-#                         self.h5 = h5py.File(filepath, 'a')
-#                     except OSError as e:
-#                         self.logger.warning("Can't open file. Exception: {}".format(e))
-#                         continue
-#                     if 'hyperion_file_version' not in self.h5.attrs:
-#                         print("Can't try to append/modify file because not a hyperion file type.")
-#                         self.h5.close()
-#                         continue
-#                     else:
-#                         file_version = self.h5.attrs['hyperion_file_version']
-#                         if file_version not in self.file_version_compatability{self.version}:
-#                             print("Can't modify version {} file with version {} settings.".format(file_version, self.version))
-#                             self.h5.close()
-#                             continue
-#                     print('Modifying existing file')
-#                     self.h5.attrs['hyperion_file_modified'] = self.version
-#                     valid = True
-#             else:
-#                 try:
-#                     self.h5 = h5py.File(filepath, 'w')
-#                 except OSError as e:
-#                     self.logger.warning("Can't create file. Exception: {}".format(e))
-#                     continue
-#                 self.h5.attrs['hyperion_file_version'] = self.version
-#                 valid = True
-#
-#     def __enter__(self):
-#         return self
-#
-#     def __exit__(self, exc_type, exc_val, exc_tb):
-#        self.h5.close()
-#
-#     def coord(self):
-#         pass
-#
-#     def data(self, name, data, flush=True):
-#         """
-#
-#
-#         :param name: Unique name (suggested to use actiondict['Name'])
-#         :return:
-#         """
-#         pass
-#         # self.exp._nesting_parents
-#         # self.exp._nesting_indices
-
 
 
 class DefaultDict(dict):
@@ -218,44 +134,54 @@ def valid_python(name):
 
 
 class DataManager:
-    def __init__(self, experiment):
-        """
-        DataManager takes care of writing to file.
+    """
+    DataManager takes care of writing to file. Uses netCDF4 Dataset.
+    Typically used inside an experiment class.
 
-        :param experiment: experiment
-        :type experiment: BaseExperiment
+    :param experiment: experiment
+    :type experiment: BaseExperiment
+    :param lowercase: if True, all names in Dataset will be lowercase (optional, defaults to False)
+    :type lowercase: bool
 
+    :Example:
 
-        :Example:
+    # When used inside an experiment:
+    datman = DataManager(self)
+    datman.open_file('filename.nc')
+    datman.meta(hello='world')
+    dataman.dim_coord('wav', np.array([500, 600, 700]), unit='nm')
+    dataman.var('spectrum', np.array(), extra_dims=('wav'), meta={'unit':'counts', 'exposuretime':'0.1s'}):
+    dataman.dim_coord('x_pos', np.array([1,2,3,4]), unit='mm')
+    for indx in range(4):
+        fake_datapoint = indx**2
+        datman.var('pow', fake_datapoint, indices=indx, dims=('x_pos'), unit='mW'):
 
-        # When used inside an experiment:
-        datman = DataManager(self)
-        datman.open_file('filename.nc')
-        datman.open_file('filename.nc')
+    datman.meta('spectrum', dic={'model': 'aaa'})
+    datman.meta('spectrum', dic={'model': 'aaa'})
+    """
+    def __init__(self, experiment, lowercase=False):
 
-        """
         self.logger = logging.getLogger(__name__)
         self.experiment = experiment
-        # self.dims = {}
-        # self.last = {}
-        # self.vars = {}
         self.filename = None
         self._is_open = False
+        self.lowercase = lowercase
 
     def open_file(self, filename, write_mode='w', **kwargs):
         """
+        Opens a file and creates a netCDF4 Dataset.
+        Already adds any meta arguments present in experiment._saving_meta dictionary.
 
-        :param filename:
-        :param write_mode:
-        :param kwargs:
-        :return:
+        :param filename: The filename to write to.
+        :type filename: str
+        :param write_mode: file access mode ('w', 'a', 'r+') (defaults to 'w')
+        :type write_mode: str
+        :param **kwargs: any additional keyword arguments are passed along to netCDF4.Dataset()
         """
         self.filename = filename
         if not self._is_open:
             self.logger.info('Opening datafile: {}'.format(filename))
             self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
-            # self.__attach_meta(self.root, self.experiment._saving_meta)     # <- works
-            # self.meta(dic=self.experiment._saving_meta)                     # <- doesn't work for some reason
             self._is_open = True
             self.meta(dic=self.experiment._saving_meta)
             self.sync_hdd()
@@ -265,13 +191,14 @@ class DataManager:
             self.logger.warning('A file is already open')
 
     def __check_not_open(self):
+        # Private helper function
         if not self._is_open:
             self.logger.warning('File not open')
             return True
 
-
     def __name_or_dict(self, name_or_dict):
         """
+        Private helper function.
         If name_or_dict is an actiondict, it returns _store_name if available, otherwise Name.
         If name_or_dict is a string it uses that.
         IN ALL CASES it applies valid_python() before returning (replace all illegal varname characters with _)
@@ -279,31 +206,52 @@ class DataManager:
         if name_or_dict is None:
             return None
         elif type(name_or_dict) is str:
-            return valid_python(name_or_dict)
+            name = valid_python(name_or_dict)
         elif '_store_name' in name_or_dict:
-            return valid_python(name_or_dict['_store_name'])
+            name = valid_python(name_or_dict['_store_name'])
         else:
-            return valid_python(name_or_dict['Name'])
+            name = valid_python(name_or_dict['Name'])
+        if self.lowercase:
+            return name.lower()
+        else:
+            return name
 
     def dim(self, name_or_dict, length=None):
-        """ Create dimension without coordinates. """
+        """
+        Create a dimension without coordinates.
+        Note that the name is converted to a valid python object name by replacing illegal characters to '_'.
+
+        :param name_or_dict: name (as string) or ActionDict (uses ['_store_name'] of otherwise ['Name'])
+        :type name_or_dict: str or ActionDict
+        :param length: length of the dimension, if None dimension is unlimited (Defaults to None)
+        :type length: int or None
+        """
         if self.__check_not_open(): return
         name = self.__name_or_dict(name_or_dict)
         if name not in self.root.dimensions:
             self.logger.info('DataManager: Creating Dimension: {}'.format(name))
             self.root.createDimension(name, length)
 
-    def dim_coord(self, name_or_dict, array_or_value=None, meta=None):
+    def dim_coord(self, name_or_dict, array_or_value=None, meta=None, **kwargs):
         """
         Create or append coordinates.
+        Also creates dimension to hold the coordinates.
 
         If Dimension does not exist it is created.
         If Coordinate does not exist it is created.
         If an array is passed, those values are put in the Coordinates. The Dimension is of fixed size.
-        If a value is passed the Dimension is of unlimited size and the value is appended to the Coordinates.
-        (Note that it uses experiment._nesting_indices to only append if the parent loops are in the first iteration)
+        If an value (int or float) is passed, Dimension is of unlimited size and the value is appended to the Coordinates.
+        Note that values are only appended during the first iteration of a parent loops ( if sum(experiment._nesting_indices)==0 ).
+        Optionally meta parameters can passed as meta={} or as keyword arguments.
+        Note that the name is converted to a valid python object name by replacing illegal characters to '_'.
 
-        optional dictionary meta, immediately adds metadata from dict
+        :param name_or_dict: name (as string) or ActionDict (uses ['_store_name'] of otherwise ['Name'])
+        :type name_or_dict: str or ActionDict
+        :param array_or_value: numpy array to completely initialize the Coordinates, or just a value for unlimited (extendable) coordinates.
+        :type array_or_value: np.ndarray or int or float
+        :param meta: dictionary holding meta arguments(Optional)
+        :type meta: dict
+        :param **kwargs: additional unknown keyword arguments are added as meta attributes
         """
 
         if self.__check_not_open(): return
@@ -323,9 +271,13 @@ class DataManager:
 
     def __attach_meta(self, attach, dic):
         """
-        Private method. Tries to attach all keys in dic to element of netcdf4 dataset. Invalid datatypes only result in
-        a logger warning.
-        Converts bool to int and converts bool elements in lists to int.
+        Private method. Used by meta()
+        Tries to attach all keys in dic to element of netcdf4 dataset. Invalid datatypes only result in a logger warning.
+        If attach is None, attributes are added to root of Dataset.
+        Only netCDF4 allowed variable types are allowed: 'S1', 'i1', 'u1', 'i2', 'u2', 'i4', 'u4', 'i8', 'u8', 'f4', 'f8'.
+        Lists that are completely of a single allowed type are also allowed.
+        One addition: bools and bools as elements of lists will be converted to int.
+        Note that keys starting with '~' or '_' are ignored (except for '_method'). This allowes for passing a whole actiondict at once.
         """
         for key, value in dic.items():
             # attach.setncattr(key, value)
@@ -342,62 +294,95 @@ class DataManager:
                 self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
 
     def meta(self, attach_to=None, dic=None, only_once=False, *args, **kwargs):
-        # either keyword arguments: exposuretime = '9s', gain=2
-        # or one dictionary: {'exposuretime':'9s', 'gain':2}
-        # Note that only limited types of variables can be added
+        """
+        Attach meta data as attributes to netCDF4 Dataset.
+        Attaches them to attach_to which can be a Variable or a Coordinate. Or if None is used, attributes are placed in the root.
+        Note that attach_to can be a string or an ActionDict.
+        Attributes can be passed as a dict through dic or as keyword arguments.
+        Invalid datatypes are not attached and result in a logger warning.
+        NetCDF4 allowed variable types: 'S1', 'i1', 'u1', 'i2', 'u2', 'i4', 'u4', 'i8', 'u8', 'f4', 'f8'.
+        Lists that are completely of a single allowed type are also allowed.
+        One addition: bools and bools as elements of lists will be converted to int.
+        Note that keys starting with '~' or '_' are ignored (except for '_method'). This allowes for passing a whole actiondict at once.
+        Note that attach_to is converted to a valid python object name by replacing illegal characters to '_'.
+
+        :param attach_to: name (as string) or ActionDict (uses ['_store_name'] of otherwise ['Name']).
+        :type attach_to: str or ActionDict
+
+        :param dic: dictionary holding meta attributes (optional)
+        :type dic: dict (or ActionDict)
+        :param only_once: If True it will not overwrite existing meta attribute of the same name (defaults to False)
+        :type only_once: bool
+        :param *args: if a single argument of type dict is passed it will be interpreted as being dic
+        :param **kwargs: additional unknown keyword arguments are added as meta attributes.
+
+        :Examples:
+
+        # These 3 examples are the same and add 'a' and 'b' to the root of the Dataset
+        datman.meta(a=1, b=2)
+        datman.meta({'a': 1, 'b':2})
+        datman.meta(dic={'a': 1, 'b':2})
+        # These 3 examples are the same and add 'c' and 'd' to the Coordinate 'sample_x'
+        datman.meta('sample_x', c=3, d=4)
+        datman.meta('sample_x', {'c': 3, 'd':4})
+        datman.meta('sample_x', dic={'c': 3, 'd':4})
+        # Example of using an actiondict for name:
+        ad = ActionDict({'Name': 'spectrum', 'exposuretime': '0.2s'})
+        datman.meta(ad, exposuretime = '0.1s')
+        # Example of using an actiondict for meta
+        datman.meta(ad, ad)
+        """
         if self.__check_not_open(): return
-        # Skip if only_once is True and parent loops are not in first iteration
+        # Skip if only_once is True and parent loops are not in first iteration:
         if only_once and not sum(self.experiment._nesting_indices): return
-        # attach_to = valid_python(attach_to)
         attach_to = self.__name_or_dict(attach_to)
-        # self.logger.debug('attach meta to: {}'.format(attach_to))
         # add attributes to set of variable
         attach = self.root
         if attach_to in self.root.variables:
-            # print(type(self.root.variables[attach_to]))
             attach = self.root.variables[attach_to]
-        # self.logger.debug('type of attach is: {}'.format(type(attach)))
         if type(dic) is dict or type(dic) is ActionDict or type(dic) is DefaultDict:
             self.__attach_meta(attach, dic)
-            # for key, value in dic.items():
-            #     # attach.setncattr(key, value)
-            #     try:
-            #         attach.setncattr(key, value)
-            #     except:
-            #         self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
         # If a single unknown argument is given assume it's dict of meta info to attach:
         if len(args) == 1 and type(args[0]) is dict:
             self.__attach_meta(attach, args[0])
         # Unknown keyword arguments will be stored as meta info
         self.__attach_meta(attach, kwargs)
-        # for key, value in kwargs.items():
-        #     self.__attach_meta(attach, dic)
-            # # attach.setncattr(key, value)
-            # try:
-            #     attach.setncattr(key, value)
-            # except:
-            #     self.logger.warning('unsupported {} in kwargs: {}: {}'.format(type(value), key, value))
 
-    def var(self, name, data, indices=None, dims=None, extra_dims=None, meta=None, **kwargs):
-        # if coords and indices are not given it will get those from experiment
-        # if you want to store extra dimensions (e.g. an image):
-        # Make sure you create them first and then add them: extra_dims=('im_x', 'im_y')
+    def var(self, name_or_dict, data, indices=None, dims=None, extra_dims=None, meta=None, **kwargs):
+        """
+        Add or update a Variable.
+        Can automatically deduce dimensions and indices if used in automated scanning (i.e. perform_actionlist() of BaseExperiment.)
+        If higher dimensional data is to be stored, those extra dimensions should be passed under extra_dims. Note that
+        in automated scanning you have to create those extra dimensions yourself.
+        Optionally meta parameters can passed as meta={} or as keyword arguments.
+        Note that the name is converted to a valid python object name by replacing illegal characters to '_'.
+        Note: will store data as float (f8).
 
-        #        all_dims = dims
+        :param name_or_dict: name (as string) or ActionDict (uses ['_store_name'] of otherwise ['Name'])
+        :type name_or_dict: str or ActionDict
+        :param data: single number or array for higher dimensional data
+        :type data: float (or int) or np.ndarray for higher dimensional data
+        :param indices: indices in "parent" dimensions, OMIT when using in automated scanning.
+        :type indices: list of integers
+        :param dims: "parent" dimensions, OMIT when using in automated scanning.
+        :type dims: tuple or list of strings
+        :param extra_dims: extra dimensions for higher dimensional data.
+        :type extra_dims: tuple or list of strings
+        :param meta: dictionary holding meta arguments(Optional)
+        :type meta: dict
+        :param **kwargs: additional unknown keyword arguments are added as meta attributes
+        """
         if self.__check_not_open(): return
-        name = self.__name_or_dict(name)
+        name = self.__name_or_dict(name_or_dict)
         if indices is None:
             indices = self.experiment._nesting_indices
 
         if name not in self.root.variables:
             self.logger.info('DataManager: Creating Variable: {}'.format(name))
             if dims is None:
-                dims = tuple(self.experiment._nesting_parents)
+                dims = tuple(self.experiment._nesting_parents)  # automatically get dims
+            # For higher dimensional data:
             if extra_dims is not None:
-                # for key, value, in extra_dims:
-                #     self.root.createDimension(key, value)
-                #     self.root.createVariable(key, 'f8', key)
-                #     dims += key
                 if type(extra_dims) is str:
                     dims = dims + (extra_dims,)
                 else:
@@ -405,32 +390,23 @@ class DataManager:
             self.root.createVariable(name, 'f8', dims)
             if meta is not None or len(kwargs):
                 self.meta(name, meta, **kwargs)
-
         # if extra_dims is None:
         if len(indices):
-            # print('self.root.variables[name][indices][:] = data')
-            # print('type(data) =  ', type(data))
             npdata = np.array(data)
             npdata = npdata.reshape(tuple([1] * len(indices)) + npdata.shape)
             self.root.variables[name][tuple(indices)] = npdata
-            # g3 = g.reshape(tuple([1] * 2) + g.shape)
-            # self.root.variables[name][indices][:] = data
-            # print(type(self.root.variables[name][indices]))
         else:
-            # print('self.root.variables[name][:] = data')
-            # print('type(data) =  ', type(data))
             self.root.variables[name][:] = data
-        # else:
-        #     if len(indices):
-        #         self.root.variables[name][indices] = np.reshape(data, tuple([1]*len(indices) + list(extra_dims.values()))
-        #     else:
-        #         self.root.variables[name] =  data
 
     def sync_hdd(self):
+        """ Update file on hdd with data in memory. """
         if self.__check_not_open(): return
         self.root.sync()
 
     def close(self):
+        """
+        Closes the file. ( First applies sync_hdd() )
+        """
         if self.root.isopen():
             self.root.sync()        # Don't know if this is necessary
             self.root.close()
