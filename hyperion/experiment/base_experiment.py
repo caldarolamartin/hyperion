@@ -197,15 +197,14 @@ class DataManager:
     def __init__(self, experiment):
         self.logger = logging.getLogger(__name__)
         self.experiment = experiment
-
         # self.dims = {}
         # self.last = {}
-        self.vars = {}
-
-
+        # self.vars = {}
+        self.filename = None
         self._is_open = False
 
     def open_file(self, filename, write_mode='w', **kwargs):
+        self.filename = filename
         if not self._is_open:
             self.logger.info('Opening datafile: {}'.format(filename))
             self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
@@ -296,7 +295,7 @@ class DataManager:
             except:
                 self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
 
-    def meta(self, attach_to=None, dic=None, only_once=False, **kwargs):
+    def meta(self, attach_to=None, dic=None, only_once=False, *args, **kwargs):
         # either keyword arguments: exposuretime = '9s', gain=2
         # or one dictionary: {'exposuretime':'9s', 'gain':2}
         # Note that only limited types of variables can be added
@@ -320,8 +319,13 @@ class DataManager:
             #         attach.setncattr(key, value)
             #     except:
             #         self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
-        for key, value in kwargs.items():
-            self.__attach_meta(attach, dic)
+        # If a single unknown argument is given assume it's dict of meta info to attach:
+        if len(args) == 1 and type(args[0]) is dict:
+            self.__attach_meta(attach, args[0])
+        # Unknown keyword arguments will be stored as meta info
+        self.__attach_meta(attach, kwargs)
+        # for key, value in kwargs.items():
+        #     self.__attach_meta(attach, dic)
             # # attach.setncattr(key, value)
             # try:
             #     attach.setncattr(key, value)
@@ -385,6 +389,7 @@ class DataManager:
             self.root.sync()        # Don't know if this is necessary
             self.root.close()
         self._is_open = False
+        self.filename = None
 
 
 class BaseExperiment:
@@ -407,6 +412,7 @@ class BaseExperiment:
         self.graph_view_instance = {}
 
         self.filename = ''
+        self.config_filename = None  # load_config(filename) stores the config filename here
 
         # Measurement status flags:
         # They can be set externally to control the flow of a measurement:
@@ -782,6 +788,7 @@ class BaseExperiment:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
 
 
+
     # def perform_measurement(self, actionlist, parent_values = [], parents=[]):
     def perform_actionlist(self, actionlist, parents=[], save=True):
         """
@@ -941,6 +948,7 @@ class BaseExperiment:
         :type filename: string
         """
         self.logger.debug('Loading configuration file: {}'.format(filename))
+        self.config_filename = filename
 
         with open(filename, 'r') as f:
             d = yaml.load(f, Loader=yaml.FullLoader)

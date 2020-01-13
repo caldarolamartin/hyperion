@@ -167,6 +167,10 @@ class ExampleExperiment(BaseExperiment):
         # Do stuff to finalize your measurement (e.g. switch off laser)
 
         # Close datafile
+        # self.datman.meta(dic={'finish_time': str(datetime.now())})
+        self.datman.meta(None, None, False, finish_time=str(datetime.now()))
+        self.datman.meta(None, None, False, finish_time=str(datetime.now()))
+        # self.datman.meta(dic={'finish_time': str(datetime.now())})
         self.datman.meta(dic={'finish_time':str(datetime.now())})
         self.datman.close()
         nesting()
