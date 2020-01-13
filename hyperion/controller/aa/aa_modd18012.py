@@ -124,7 +124,7 @@ class AaModd18012(BaseController):
         if self.rsc is None:
             raise Warning('Trying to read from device before initializing')
 
-        self.logger.info('Reading from device')
+        self.logger.debug('Reading from device AA AOTF')
 
         if self.dummy:
             self.logger.debug('reading from dummy device')
