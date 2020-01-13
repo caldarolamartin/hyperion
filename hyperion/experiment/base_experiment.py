@@ -852,8 +852,7 @@ class BaseExperiment:
             self.logger.info('Finalizing connection with device: {}'.format(name))
             self.instruments_instances[name].finalize()
         self.logger.debug('Closing open datafiles if there are any.')
-        if self._data is not None and self._data.isopen:
-            self._data.close()
+        self.datman.close()
         self.logger.debug('Experiment object finalized.')
 
     def load_instrument(self, name):
