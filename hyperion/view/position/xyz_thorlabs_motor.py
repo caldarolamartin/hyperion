@@ -35,8 +35,9 @@ class Thorlabs_motor_GUI(BaseGui):
         self.grid_layout = QGridLayout()
         self.setLayout(self.grid_layout)
 
-        self.enable_homebutton = False
-        self.enable_zstage = False
+        self.enable_homebutton = True
+
+        self.enable_zstage = thorlabs_meta_instrument.zstage
 
         self.motorx = thorlabs_meta_instrument.motorx
         self.logger.debug('You are connected to a {}'.format(self.motorx.kind_of_device))
@@ -45,7 +46,6 @@ class Thorlabs_motor_GUI(BaseGui):
         self.logger.debug('You are connected to a {}'.format(self.motory.kind_of_device))
 
         if self.enable_zstage == True:
-            print(test)
             self.motorz = thorlabs_meta_instrument.motorz
             self.logger.debug('You are connected to a {}'.format(self.motorz.kind_of_device))
 
@@ -129,6 +129,10 @@ class Thorlabs_motor_GUI(BaseGui):
         self.go_home_button = QPushButton("Go home", self)
         self.go_home_button.setToolTip('Go to home position')
         self.go_home_button.clicked.connect(self.go_home_motor)
+        if self.enable_homebutton:
+            self.go_home_button.setEnabled(True)
+        else:
+            self.go_home_button.setEnabled(False)
         self.grid_layout.addWidget(self.go_home_button, 3, 2)
 
     def make_move_left_button(self):
@@ -199,18 +203,18 @@ class Thorlabs_motor_GUI(BaseGui):
 
     def make_current_posx_label(self):
         self.current_motorx_position_label = QLabel(self)
-        try:
-            self.current_motorx_position_label.setText(self.motorx.position())
-        except Exception:
-            self.current_motorx_position_label.setText("currently/unavailable")
+        # try:
+        #     self.current_motorx_position_label.setText(self.motorx.position())
+        # except Exception:
+        #     self.current_motorx_position_label.setText("currently/unavailable")
         self.grid_layout.addWidget(self.current_motorx_position_label, 0, 0)
 
     def make_current_posy_label(self):
         self.current_motory_position_label = QLabel(self)
-        try:
-            self.current_motory_position_label.setText(self.motory.position())
-        except Exception:
-            self.current_motory_position_label.setText("currently/unavailable")
+        # try:
+        #     self.current_motory_position_label.setText(self.motory.position())
+        # except Exception:
+        #     self.current_motory_position_label.setText("currently/unavailable")
         self.grid_layout.addWidget(self.current_motory_position_label, 1, 0)
 
     def make_current_posz_label(self):
@@ -299,13 +303,14 @@ class Thorlabs_motor_GUI(BaseGui):
         This method read this out (continuously, through the timer in the init) and displays the value.
         """
 
-        self.current_positionx = self.motorx.current_position
+        self.current_positionx = self.motorx.position()
         self.current_motorx_position_label.setText("pos x:"+ str(round(self.current_positionx, 2)))
 
-        self.current_positiony = self.motory.current_position
+        self.current_positiony = self.motory.position()
         self.current_motory_position_label.setText("pos y:" + str(round(self.current_positiony, 2)))
+
         if self.enable_zstage == True:
-            self.current_positionz = self.motorz.current_position
+            self.current_positionz = self.motorz.position()
             self.current_motorz_position_label.setText("pos z:"+ str(round(self.current_positionz, 2)))
 
 
@@ -374,7 +379,8 @@ class Thorlabs_motor_GUI(BaseGui):
                 self.movingz_thread.start()
 
         else:
-            self.logger.log("Homing disabled")
+
+            self.logger.warning("Homing disabled")
 
     def move_rel_left(self):
         self.movingx_thread = WorkThread(self.motorx.move_relative, self.toggledistance_x, True)
@@ -644,9 +650,10 @@ class Thorlabs_motor_GUI(BaseGui):
             self.logger.debug('Moving thread motory was running.')
             self.movingy_thread.quit()
 
-        if self.movingz_thread.isRunning:
-            self.logger.debug('Moving thread motorz was running.')
-            self.movingz_thread.quit()
+        if self.enable_zstage:
+            if self.movingz_thread.isRunning:
+                self.logger.debug('Moving thread motorz was running.')
+                self.movingz_thread.quit()
 
         self.motorx.stop = False
         self.motory.stop = False
@@ -667,7 +674,7 @@ if __name__ == '__main__':
              'z':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850111, 'name': 'zMotor'}
              }
 
-    with Thorlabsmotor_xyz(settings = xyz_motorsettings) as thorlabs_meta_instrument:
+    with Thorlabsmotor_xyz(settings = xyz_motorsettings,zstage=False) as thorlabs_meta_instrument:
 
         app = QApplication(sys.argv)
         ex = Thorlabs_motor_GUI(thorlabs_meta_instrument)
