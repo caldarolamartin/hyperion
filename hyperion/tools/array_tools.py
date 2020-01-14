@@ -45,8 +45,8 @@ def array_from_pint_quantities(start, stop, step=None, num=None):
 
         # Tiny floating point errors sometimes cause the end-point not to be included. To mitigate this add a tiny
         # fraction times the step to the endpoint:
-        sto += ste/1e9
-        arr = np.arange(sta, sto, ste, float)
+        beyond_stop = sto= ste/1e9
+        arr = np.arange(sta, beyond_stop, ste, float)
 
         # If the endpoint is almost equal to stop, just replace it with stop:
         if abs(sto - arr[-1]) < abs(ste*1e-9):
