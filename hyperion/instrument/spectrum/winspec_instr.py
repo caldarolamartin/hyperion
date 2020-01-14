@@ -625,10 +625,35 @@ class WinspecInstr(BaseInstrument):
         exp_pint_unit = winspec_exposure_units[ self.controller.exp_get('EXPOSURETIME_UNITS')[0] -1 ]
         exp_value = self.controller.exp_get('EXPOSURETIME')[0]
         self._exposure_time = exp_value * exp_pint_unit
+
         return self._exposure_time
 
+    @property
+    def exposure_time_alt(self):
+        exp_value=self.controller.exp_get('EXPOSURE')[0]
+        self._exposure_time = exp_value * ur('s')
+
+        return self._exposure_time
+
+    @exposure_time_alt.setter
+    def exposure_time_alt(self, value):
+        if type(value) is not type(Q_('s')):
+            self.logger.error('exposure_time should be Pint quantity')
+        if value.dimensionality != Q_('s').dimensionality:
+            self.logger.error('exposure_time should be Pint quantity with unit of time')
+
+        else:
+            if value.units == 'millisecond':
+                exp_value = value.m / 1000
+            elif value.units == 'second':
+                exp_value = value.m
+            elif value.units == 'minute':
+                exp_value = value.m * 60
+
+        self.controller.exp_set('EXPOSURE', exp_value)
+
     @exposure_time.setter
-    def exposure_time(self, value):
+    def exposure_time(self, value,alt=False):
         if type(value) is not type(Q_('s')):
             self.logger.error('exposure_time should be Pint quantity')
         if value.dimensionality != Q_('s').dimensionality:
@@ -893,7 +918,7 @@ if __name__ == "__main__":
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',
                 'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
-    ws = WinspecInstr(settings_irina)
+    ws = WinspecInstr(settings)
 
     ws.configure_settings()
 
@@ -963,6 +988,6 @@ if __name__ == "__main__":
 
     ws.shutter_control = 'Closed'
 
-    ws.central_wav = 300
+    # ws.central_wav = 300
     
 
