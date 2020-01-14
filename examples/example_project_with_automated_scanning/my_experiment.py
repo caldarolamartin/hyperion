@@ -160,7 +160,7 @@ class MyExperiment(BaseExperiment):
             #store_coord()
 
             nesting()
-            self.check_pause()
+        if self.break_measurement(): return  # Use this line to check for stop
 
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
@@ -172,9 +172,23 @@ class MyExperiment(BaseExperiment):
         fake_data = np.random.random(11)
         self.datman.dim_coord('wav', fake_wav_nm, meta={'unit': 'nm'})
         self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict, unit='counts')
+        sleep(0.1)  # slow down this dummy measurement
+        # nesting()
 
-
-
+    def dummy_measurement_for_testing_gui_buttons(self):
+        self.logger.info('Starting test measurement')
+        self.reset_measurement_flags()
+        self.running_status = self._running
+        for outer in range(4):
+            print('outer', outer)
+            for inner in range(4):
+                print('    inner', inner)
+                sleep(1)
+                # if self.stop_measurement(): return      # Use this line to check for stop
+                if self.pause_measurement(): return  #: return     # Use this line to check for pause
+            if self.break_measurement(): return      # Use this line to check for stop
+        self.reset_measurement_flags()
+        self.logger.info('Measurement finished')
 
 if __name__ == '__main__':
     # ### To change the logging level:
@@ -185,7 +199,7 @@ if __name__ == '__main__':
     # ### To change the logging file:
     # logman.set_file('example_experiment.log')
 
-    test_with_gui = False
+    test_with_gui = True
 
     # prepare folders and files:
     this_folder = os.path.dirname(os.path.abspath(__file__))

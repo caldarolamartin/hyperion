@@ -160,12 +160,12 @@ class DataManager:
     datman.meta('spectrum', dic={'model': 'aaa'})
     """
     def __init__(self, experiment, lowercase=False):
-
         self.logger = logging.getLogger(__name__)
         self.experiment = experiment
         self.filename = None
         self._is_open = False
         self.lowercase = lowercase
+        self._version = 0.1
 
     def open_file(self, filename, write_mode='w', **kwargs):
         """
@@ -184,6 +184,7 @@ class DataManager:
             self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
             self._is_open = True
             self.meta(dic=self.experiment._saving_meta)
+            self.meta(DataManager=self._version)
             self.sync_hdd()
             print('completed adding meta after opening')
 
@@ -484,7 +485,7 @@ class BaseExperiment:
             if (self.apply_stop or force) and self.running_status < self._stopping:
                 self.running_status = self._stopping
                 function(self, *args, **kwargs)
-                self.reset_measurement_flags()  # make sure all flags are reset
+                self.reset_measurement_flags()  # make sure all flags are reset    ##  THIS LINE PREVENTS NESTED FUNCTION FROM ESCAPING ALL LAYERS, HAVE TO LOOK INTO THIS HOW TO SOLVE
                 return True
             return False
         return wrapper_accepting_arguments
@@ -551,8 +552,9 @@ class BaseExperiment:
         """ The decorator also gives it one extra keyword argument 'force' which will set the apply_stop flag for you. """
         self.logger.info('Custom stop method: Override if you like. Just use @check_stop decorator')
         # Do stuff
-        self._finalize_measurement_method()
-
+        # Automatically call method set in self._finalize_measurement_method
+        self._finalize_measurement_method({'Name': self._measurement_name}, lambda *args, **kwargs: None)
+        # Reset self._finalize_measurement_method to a do nothing function:
         self._finalize_measurement_method = lambda *args, **kwargs: None
         self.reset_measurement_flags()
         self.logger.info('Measurement stopped')
@@ -734,7 +736,14 @@ class BaseExperiment:
             if hasattr(self, 'version'):
                 self._saving_meta['version'] = self.version
             self._saving_meta['Measurement'] = measurement_name
+
+            self.reset_measurement_flags()
+            self.running_status = self._running
+
             self.perform_actionlist(self.properties['Measurements'][measurement_name])
+
+            self.reset_measurement_flags()
+            self.logger.info('Measurement finished')
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
 
@@ -766,6 +775,9 @@ class BaseExperiment:
         # typically used on the whole list
         # In a an action that has nested Actions
         for actiondictionary in actionlist:
+            # check for stop and pause
+            if self.pause_measurement(): return  #: return     # Use this line to check for pause
+
             actiondict = ActionDict(actiondictionary, exp=self)
             actionname = actiondict['Name']
 
@@ -790,11 +802,19 @@ class BaseExperiment:
                 nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
                 # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
             else:
-                # nesting = lambda *args, **kwargs: None        # a "do nothing" function
-                nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
+                nesting = lambda *args, **kwargs: None        # a "do nothing" function
+                # nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
+
+
                 # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
 
             method(actiondict, nesting)
+
+
+            # check for break
+            if self.break_measurement(): return  #: return     # Use this line to check for pause
+
+
 
         if len(parents) < len(self._nesting_indices):
             del self._nesting_indices[-1]

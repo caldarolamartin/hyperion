@@ -76,6 +76,11 @@ MetaInstruments:
 # Name should
 Measurements:       # dictionary of Measurement s
   Example Measurement A:
+    - Name: Filename NOT COMPLETED YET!!
+      Type: saver
+      folder: 'd:\data'
+      basename: measurement_a
+
     - Name: Initialize
       _method: initialize_example_measurement_A
     - Name: Image Before
@@ -211,8 +216,9 @@ Measurements:       # dictionary of Measurement s
 # specified in the Action and if a gui is required _ui has to be specified as well
 ActionTypes:        # dictionary
   saver:
-    _method: create_saver
-    _ui: view.base_guis/SaverWidget
+    _method: default_saver
+    _view: gui.gui_elements/SaverGui
+    auto_increment: True
     version: newest
   atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
     _axes:              # key inside the ActionType-dictionary atto_scanner

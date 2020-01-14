@@ -226,20 +226,50 @@ class SaverGui(BaseGui):
 
     def initUI(self):
         # Create layout of your choice, but call it layout:
-        self.layout = QHBoxLayout()
+        self.layout = QGridLayout()
+        # sublayout_grid = QGridLayout()
+        # sublayout_vbox = QVBoxLayout()
 
+        self.folder_line = QLineEdit()
+        self.file_line = QLineEdit()
+        self.browse_butn = QPushButton('Browse')
+        self.browse_butn.clicked.connect(self.browse)
+
+        # self.check_copy_conf = QCheckBox('copy config')
+        self.check_store_prop = QCheckBox('store properties')
+        self.check_auto_incr = QCheckBox('auto-increment')
+
+        self.layout.addWidget(QLabel('folder'), 0, 0)
+        self.layout.addWidget(self.folder_line, 0, 1, 1, 2)
+
+        self.layout.addWidget(QLabel('file'), 1, 0)
+        self.layout.addWidget(self.file_line, 1, 1)
+        self.layout.addWidget(self.browse_butn, 1, 2)
+
+        self.layout.addWidget(QLabel(''), 0, 3)
+        self.layout.addWidget(self.check_store_prop, 0, 4)
+        self.layout.addWidget(self.check_auto_incr, 1, 4)
+        # sublayout_vbox.addWidget(self.check_copy_conf)
+
+
+        # self.layout.addLayout(sublayout_grid, 0, 4)
+        # self.layout.addLayout(sublayout_vbox, 0, 4)
         # folder
         # basename
         # checkbox: auto-increment
         # checkbox: copy config
-
+        # checkbox: store properties config
+        # version ?
+        # button open
 
         # Create your gui elements and add them to the layout
-        dsp = QDoubleSpinBox()
-        cb = QComboBox()
-        self.layout.addWidget(dsp)
-        self.layout.addWidget(cb)
+        # dsp = QDoubleSpinBox()
+        # cb = QComboBox()
+        # self.layout.addWidget(dsp)
+        # self.layout.addWidget(cb)
 
+    def browse(self):
+        fname = QFileDialog.getOpenFileName(self, 'Open file', 'c:\\', "Image files (*.jpg *.gif)")
 
 if __name__=='__main__':
     app = QApplication([])

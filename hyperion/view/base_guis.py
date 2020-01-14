@@ -37,7 +37,7 @@ class BaseGui(QWidget):
         self.logger = logging.getLogger(__name__)
 
         # To avoid the crash when there is an error
-        # sys.excepthook = self.excepthook  # This is very handy in case there are exceptions that force the program to quit.
+        sys.excepthook = self.excepthook  # This is very handy in case there are exceptions that force the program to quit.
 
     def excepthook(self, etype, value, tb):
         """This is what it gets executed when there is an error. Here we build an
