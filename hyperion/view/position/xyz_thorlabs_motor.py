@@ -53,7 +53,7 @@ class Thorlabs_motor_GUI(BaseGui):
             self.logger.info("Z-stage disabled")
 
 
-        self.title = 'Thorlabs {} GUI xyz Motor'
+        self.title = 'Thorlabs GUI xyz Motor'
 
         self.saved_positionx = None
         self.saved_positiony = None
@@ -100,6 +100,7 @@ class Thorlabs_motor_GUI(BaseGui):
         self.make_move_in_button()
         self.make_move_out_button()
         self.make_keyboard_move_button()
+        # self.make_switchZon_button()
 
     def make_labels(self):
         self.make_current_posx_label()
@@ -163,12 +164,20 @@ class Thorlabs_motor_GUI(BaseGui):
         self.move_in_button = QPushButton("In", self)
         self.move_in_button.setToolTip('Go In')
         self.move_in_button.clicked.connect(self.move_rel_in)
+        if self.enable_zstage:
+            self.move_in_button.setEnabled(True)
+        else:
+            self.move_in_button.setEnabled(False)
         self.grid_layout.addWidget(self.move_in_button, 2, 1)
 
     def make_move_out_button(self):
         self.move_out_button = QPushButton("Out", self)
         self.move_out_button.setToolTip('Go Down')
         self.move_out_button.clicked.connect(self.move_rel_out)
+        if self.enable_zstage:
+            self.move_out_button.setEnabled(True)
+        else:
+            self.move_out_button.setEnabled(False)
         self.grid_layout.addWidget(self.move_out_button, 2, 2)
 
     def make_save_pos_button(self):
@@ -200,6 +209,13 @@ class Thorlabs_motor_GUI(BaseGui):
         self.stop_button.clicked.connect(self.stop_moving)
         self.grid_layout.addWidget(self.stop_button, 3, 3)
         self.stop_button.setStyleSheet("background-color: red")
+
+    # def make_switchZon_button(self):
+    #     self.switchZ_button = QPushButton("enable Z", self)
+    #     self.switchZ_button.setToolTip("enable moving Z")
+    #     self.switchZ_button.clicked.connect(self.switchZonoff)
+    #     self.grid_layout.addWidget(self.switchZ_button,3,4)
+
 
     def make_current_posx_label(self):
         self.current_motorx_position_label = QLabel(self)
@@ -242,6 +258,7 @@ class Thorlabs_motor_GUI(BaseGui):
         self.toggle_distancex_spinbox.setValue(100)
         self.toggle_distancex_spinbox.setMinimum(-999999999)        #otherwise you cannot reach higher than 99
         self.toggle_distancex_spinbox.setMaximum(999999999)
+
         self.toggle_distancex_spinbox.valueChanged.connect(self.set_toggle_distancex)
 
     def make_toggle_distancey_spinbox(self):
@@ -258,6 +275,10 @@ class Thorlabs_motor_GUI(BaseGui):
         self.toggle_distancez_spinbox.setValue(100)
         self.toggle_distancez_spinbox.setMinimum(-999999999)        #otherwise you cannot reach higher than 99
         self.toggle_distancez_spinbox.setMaximum(999999999)
+        if self.enable_zstage:
+            self.toggle_distancez_spinbox.setEnabled(True)
+        else:
+            self.toggle_distancez_spinbox.setEnabled(False)
         self.toggle_distancez_spinbox.valueChanged.connect(self.set_toggle_distancez)
 
 
@@ -294,8 +315,16 @@ class Thorlabs_motor_GUI(BaseGui):
         self.unit_combobox_z.addItems(["nm", "um", "mm"])
         self.unit_combobox_z.setCurrentText("um")
         self.unit_combobox_z.currentTextChanged.connect(self.set_toggle_distancez)
+        if self.enable_zstage:
+            self.unit_combobox_z.setEnabled(True)
+        else:
+            self.unit_combobox_z.setEnabled(False)
         self.grid_layout.addWidget(self.unit_combobox_z, 2, 4)
 
+    def switchZonoff(self):
+        self.logger.debug('switching Z on or off')
+        #self.enable_zstage = True
+        #self.unit_combobox_z.setEnabled(True)
 
     def set_current_motor_position_label(self):
         """ In the instrument level, the current position is remembered and updated through self.position,
