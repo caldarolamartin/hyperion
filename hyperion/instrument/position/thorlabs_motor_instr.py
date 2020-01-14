@@ -5,7 +5,7 @@ Thorlabs thorlabs_motor Instrument
 
 Connects to the tdc001_cube controller, which is just a wrapper for the core underneath that we installed.
 You can find the core here https://github.com/qpit/thorlabs_apt/tree/master/thorlabs_apt,
-or installed in C:/Users/NAME/AppData/Local/Continuum/anaconda3/envs/hyperion/Lib/site-packages/thorlabs_apt.
+or need to copy it into C:/Users/NAME/AppData/Local/Continuum/anaconda3/envs/hyperion/Lib/site-packages/thorlabs_apt.
 
 I implemented and documented those functions that I am actually going to use. If you want to use others, they might exist in the core.
 """

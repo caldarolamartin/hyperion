@@ -657,10 +657,15 @@ class Thorlabs_motor_GUI(BaseGui):
 if __name__ == '__main__':
     import hyperion
 
-    xyz_motorsettings = {'x':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83817748, 'name': 'xMotor'},
-              'y':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83817747, 'name': 'yMotor'},
-              'z':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83817716, 'name': 'zMotor'}
-              }
+#    xyz_motorsettings = {'x':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83817748, 'name': 'xMotor'},
+#              'y':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83817747, 'name': 'yMotor'},
+#              'z':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83817716, 'name': 'zMotor'}
+#              }
+
+    xyz_motorsettings = {'x':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850129, 'name': 'xMotor'},
+             'y':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850123, 'name': 'yMotor'},
+             'z':{'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850111, 'name': 'zMotor'}
+             }
 
     with Thorlabsmotor_xyz(settings = xyz_motorsettings) as thorlabs_meta_instrument:
 

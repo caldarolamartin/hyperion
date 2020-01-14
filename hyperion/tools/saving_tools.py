@@ -10,6 +10,7 @@ used along hyperion.
 
 
 """
+import os
 import netCDF4
 import datetime as dt
 import numpy as np
