@@ -472,8 +472,8 @@ class BaseExperiment:
         # self._exit_status = 'running'
         self._saving_meta = {}
 
-        # self._data = DataManager('test.nc', self)
-        # self.te
+        # placeholder do-nothing function that can be overwritten by saver gui
+        self._saver_gui_incremeter = lambda : None  # empty function
 
 
 
@@ -796,6 +796,11 @@ class BaseExperiment:
                 with open(self.__store_properties, 'w') as f:
                     yaml.dump(self.properties, f)
                 self.__store_properties = None
+
+            # If the gui has overwritten this function, this will update the incrementer-number in the gui
+            # (it's not strictly necessary to do this, but it's nice if the gui updates)
+            # Note that if the gui hasn't overwritten this function, it is an empty do-nothing function.
+            self._saver_gui_incremeter()
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
 

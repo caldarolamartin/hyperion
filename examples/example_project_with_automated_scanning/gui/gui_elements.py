@@ -224,6 +224,11 @@ class SaverGui(BaseGui):
         self.actiondict = actiondict
         self.experiment = experiment
 
+        # Add incrementer method to experiment so that it can call the incrementer after a measurement finished.
+        # This is not strictly necessary (the experiment class will increment by itself if auto_increment is set),
+        # but it's nices for the user if the name updates.
+        self.experiment._saver_gui_incremeter = self.apply_incrementer
+
         # # To load a ui file:
         # uic.loadUi(path_to_file, self)
 
@@ -280,12 +285,12 @@ class SaverGui(BaseGui):
 
     def line_updated(self, obj, key):
         self.actiondict[key] = obj.text()
-        if self.actiondict['auto_increment'] and (key=='basename' or key=='folder'):
+        if key=='basename' or key=='folder':
             self.apply_incrementer()
 
     def apply_incrementer(self):
-        """ Ipdates both actiondict and the QLineEdit"""
-        if os.path.isdir(self.actiondict['folder']):
+        """ Updates both actiondict and the QLineEdit"""
+        if self.actiondict['auto_increment'] and os.path.isdir(self.actiondict['folder']):
             existing_files = os.listdir(self.actiondict['folder'])
             basename = name_incrementer(self.actiondict['basename'], existing_files)
             self.actiondict['basename'] = basename
@@ -300,8 +305,7 @@ class SaverGui(BaseGui):
         self.actiondict['basename'] = basename
         self.folder_line.setText(folder)
         self.file_line.setText(basename)
-        if self.actiondict['auto_increment']:
-            self.apply_incrementer()
+        self.apply_incrementer()
 
 
 if __name__=='__main__':

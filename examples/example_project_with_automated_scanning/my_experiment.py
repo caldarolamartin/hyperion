@@ -148,12 +148,15 @@ class MyExperiment(BaseExperiment):
         # print('sweep_atto: ',actiondict['Name'])
         # print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
         arr, unit = array_from_settings_dict(actiondict)
-        # if actiondict['axis'] == 'y':
-        #     self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
+        if actiondict['axis'] == 'y':
+            # It is possible to define coordinates in one go, with an array
+            self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
         # self.datman.meta(actiondict, actiondict)
         # self.datman.meta(actiondict['Name'], units=str(unit))
         for s in arr:
-            self.datman.dim_coord(actiondict, s, unit=unit)
+            if actiondict['axis'] == 'x':
+                # It is possible to add values to a coordinate on the fly (and let it grow as the measurement progresses:
+                self.datman.dim_coord(actiondict, s, unit=unit)
             # In this example, add a line when x value changes (outer loop)
             if actiondict['axis']=='x':
                 print('---------------------')
