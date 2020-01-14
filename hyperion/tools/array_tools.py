@@ -86,6 +86,7 @@ def array_from_settings_dict(sweep_dict):
     :param sweep_dict: Dictionary containing start, stop and step or num keys
     :return: (numpy.array, pint.unit)
     """
+    logger = logging.getLogger(__name__)
     if 'start' not in sweep_dict:
         logger.error('sweep dictionary should contain key start')
     if 'stop' not in sweep_dict:

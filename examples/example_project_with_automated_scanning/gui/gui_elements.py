@@ -1,7 +1,7 @@
 from hyperion.core import logman
 from hyperion.view.base_guis import BaseGui
 from hyperion.tools.ui_tools import *
-from hyperion import Quan as Q_
+from hyperion import Quan as Q_             # Note this is not the regular Q_
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon, QFont
@@ -145,38 +145,42 @@ class ScanMicroPositioner(BaseGui):
         positioner_units = ['nm', 'um', 'mm']
 
         self.start_value = QDoubleSpinBox()
-        self.start_value.valueChanged.connect(self.start_changed)
         self.start_units = QComboBox()
-        self.start_units.currentIndexChanged.connect(self.start_changed)
         self.start_units.addItems(positioner_units)
         add_pint_to_combo(self.start_units)
         if 'start' in self.actiondict:
             self.logger.debug('Applying config value to start in gui')
             pint_to_spin_combo(Q_(self.actiondict['start']), self.start_value, self.start_units)
-
+        self.start_value.valueChanged.connect(self.start_changed)
+        self.start_units.currentIndexChanged.connect(self.start_changed)
 
         self.stop_value = QDoubleSpinBox()
-        self.stop_value.valueChanged.connect(self.stop_changed)
         self.stop_units = QComboBox()
-        self.stop_units.currentIndexChanged.connect(self.stop_changed)
         self.stop_units.addItems(positioner_units)
         add_pint_to_combo(self.stop_units)
         if 'stop' in self.actiondict:
             self.logger.debug('Applying config value to stop in gui')
-            pint_to_spin_combo(Q_(self.actiondict['start']), self.start_value, self.start_units)
+            pint_to_spin_combo(Q_(self.actiondict['stop']), self.stop_value, self.stop_units)
+        self.stop_value.valueChanged.connect(self.stop_changed)
+        self.stop_units.currentIndexChanged.connect(self.stop_changed)
 
         self.step_value = QDoubleSpinBox()
-        self.step_value.valueChanged.connect(self.step_changed)
         self.step_units = QComboBox()
-        self.step_units.currentIndexChanged.connect(self.step_changed)
         self.step_units.addItems(positioner_units)
         add_pint_to_combo(self.step_units)
         if 'step' in self.actiondict:
             self.logger.debug('Applying config value to step in gui')
-            pint_to_spin_combo(Q_(self.actiondict['start']), self.start_value, self.start_units)
+            pint_to_spin_combo(Q_(self.actiondict['step']), self.step_value, self.step_units)
         elif 'num' in self.actiondict:
             self.logger.debug('Calculating step from num in config value and apply it to step in gui')
-            pint_to_spin_combo((spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units) - spin_combo_to_pint_apply_limits(self.start_value, self.start_units)) / (self.actiondict['num']-1), self.start_value, self.start_units)
+
+            pint_to_spin_combo( ( spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units) -
+                                  spin_combo_to_pint_apply_limits(self.start_value, self.start_units)  ) /
+                                (self.actiondict['num']-1),
+                                self.step_value, self.step_units)
+        self.step_value.valueChanged.connect(self.step_changed)
+        self.step_units.currentIndexChanged.connect(self.step_changed)
+
 
         self.stop_um = QDoubleSpinBox()
         self.step_um = QDoubleSpinBox()
