@@ -1,6 +1,12 @@
 User:
   name: Aron
 
+
+
+
+
+
+
 Saving:
   auto: True
   directory:
@@ -78,9 +84,7 @@ Measurements:       # dictionary of Measurement s
   Example Measurement A:
     - Name: Filename NOT COMPLETED YET!!
       Type: saver
-      folder: 'd:\data'
       basename: measurement_a
-
     - Name: Initialize
       _method: initialize_example_measurement_A
     - Name: Image Before
@@ -218,6 +222,7 @@ ActionTypes:        # dictionary
   saver:
     _method: default_saver
     _view: gui.gui_elements/SaverGui
+    folder: c:/Temp
     auto_increment: True
     version: newest
   atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
@@ -249,5 +254,5 @@ ActionTypes:        # dictionary
     exposuretime: 1s
 
 Data:
-  save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
+  save_folder: C:/Temp/Data
   data_type: txt

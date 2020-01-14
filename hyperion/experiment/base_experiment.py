@@ -826,9 +826,58 @@ class BaseExperiment:
         indx = self._nesting_indices[:len(self._nesting_parents)]
 
     def default_saver(self, actiondict, nesting):
+        folder, basename = self._validate_folder_basename(actiondict)
         # talks to the gui and sets values like filename
+
+
         pass
 
+    def _validate_folder_basename(self, actiondict):
+        """
+        Primarily intended to be used with actiondict as input (but also works with string.
+        If actiondict contains folder key, that folder wil be used.
+        If actiondict contains basename key, that basename will be used.
+        Otherwise if folder actually included the filename, that will be used for basename.
+        Otherwise the measurement name will be used as basename.
+
+        If a string is passed instead of an actiondict, that string will be used as folder.
+        If that string also includes the filename, that will be used for basename.
+        Otherwise the measurement name will be used as basename.
+
+        If the folder (ans its parent folders) don't exist they will be created.
+
+        :param actiondict:
+        :return: folder, basename
+        """
+        basename = None
+        if type(actiondict) is str:
+            folder = actiondict
+        else:
+            if 'folder' in actiondict:
+                folder = actiondict['folder']
+            else:
+                folder = os.path.join(hyperion.parent_path , 'data')
+            if 'basename' in actiondict:
+                basename = actiondict['basename']
+        # convert potential relative path to absolute path:
+        folder = os.path.abspath(folder)
+        # if it ends with an extension, remove filename
+        if os.path.splitext(folder)[1]:
+            folder = os.path.dirname()
+            if not basename:
+                basename = os.path.split(folder)[1]
+        if not basename:
+            basename = self._measurement_name
+        # create the folder (and parent folders if necessary):
+        if not os.path.isdir(folder):
+            self.logger.info('Creating path: {}'.format(folder))
+            os.makedirs(folder)
+        # # if input was actiondict: update the values:
+        # if type(actiondict) is not str:
+        #     actiondict['folder'] =
+        #     actiondict['basename']
+        #
+        return folder, basename
 
 
     def create_saver(self, actiondict, nesting):
