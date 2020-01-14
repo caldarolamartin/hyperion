@@ -180,11 +180,10 @@ class ScanMicroPositioner(BaseGui):
             pint_to_spin_combo(Q_(self.actiondict['step']), self.step_value, self.step_units)
         elif 'num' in self.actiondict:
             self.logger.debug('Calculating step from num in config value and apply it to step in gui')
-
-            pint_to_spin_combo( ( spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units) -
-                                  spin_combo_to_pint_apply_limits(self.start_value, self.start_units)  ) /
-                                (self.actiondict['num']-1),
-                                self.step_value, self.step_units)
+            step = ( spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units) -
+                                  spin_combo_to_pint_apply_limits(self.start_value, self.start_units)  ) / (self.actiondict['num']-1)
+            self.actiondict['step'] = step
+            pint_to_spin_combo( step, self.step_value, self.step_units)
         self.step_value.valueChanged.connect(self.step_changed)
         self.step_units.currentIndexChanged.connect(self.step_changed)
 
@@ -207,14 +206,14 @@ class ScanMicroPositioner(BaseGui):
                                             Q_(self.actiondict['start_max'])))
 
     def stop_changed(self):
-        self.actiondict['start'] = str(
-            spin_combo_to_pint_apply_limits(self.start_value, self.start_units, Q_(self.actiondict['start_min']),
-                                            Q_(self.actiondict['start_max'])))
+        self.actiondict['stop'] = str(
+            spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units, Q_(self.actiondict['stop_min']),
+                                            Q_(self.actiondict['stop_max'])))
 
     def step_changed(self):
-        self.actiondict['start'] = str(
-            spin_combo_to_pint_apply_limits(self.start_value, self.start_units, Q_(self.actiondict['start_min']),
-                                            Q_(self.actiondict['start_max'])))
+        self.actiondict['step'] = str(
+            spin_combo_to_pint_apply_limits(self.step_value, self.step_units, Q_(self.actiondict['step_min']),
+                                            Q_(self.actiondict['step_max'])))
 
 ####    WORK IN PROGRESS  #################################
 class SaverGui(BaseGui):
@@ -239,17 +238,18 @@ class SaverGui(BaseGui):
         # Create layout of your choice, but call it layout:
         self.layout = QGridLayout()
 
+        # gui elements
         folder, basename = self.experiment._validate_folder_basename(self.actiondict)
-
-        # The visible (active) gui elements:
         self.folder_line = QLineEdit(folder)
         self.file_line = QLineEdit(basename)
         self.browse_butn = QPushButton('Browse')
         self.check_store_prop = QCheckBox('store properties', checked=bool(self.actiondict['store_properties']))
         self.check_auto_incr = QCheckBox('auto-increment', checked=bool(self.actiondict['auto_increment']))
-        self.descr_line = QLineEdit()
+        self.comment_line = QLineEdit()
+        if self.actiondict['auto_increment']:
+            self.apply_incrementer()
 
-        # Positioning them in the gui:
+        # Positioning them in the widget:
         right = Qt.AlignRight + Qt.AlignVCenter  # create shorthand for right Label alignment
         self.layout.addWidget(QLabel('folder', alignment=right), 0, 0)
         self.layout.addWidget(self.folder_line, 0, 1, 1, 2)
@@ -262,17 +262,14 @@ class SaverGui(BaseGui):
         self.layout.addWidget(self.check_store_prop, 0, 4)
         self.layout.addWidget(self.check_auto_incr, 1, 4)
 
-        self.layout.addWidget(QLabel('descr.', alignment=right), 2, 0)
-        self.layout.addWidget(self.descr_line, 2, 1, 1, 4)
+        self.layout.addWidget(QLabel('comment', alignment=right), 2, 0)
+        self.layout.addWidget(self.comment_line, 2, 1, 1, 4)
 
-        # connecting methods to active elements:
+        # connecting active elements to methods (or directly to dictionary):
         self.browse_butn.clicked.connect(self.browse)
         self.folder_line.editingFinished.connect(lambda: self.line_updated(self.folder_line, 'folder'))
         self.file_line.editingFinished.connect(lambda: self.line_updated(self.file_line, 'basename'))
-
-
-
-        # self.check_auto_incr.stateChanged.connect(lambda state: self.actiondict.__setitem__('auto_increment', state))
+        self.comment_line.editingFinished.connect(lambda: self.line_updated(self.comment_line, 'comment'))
         self.check_auto_incr.stateChanged.connect(self.incr_checked)
         self.check_store_prop.stateChanged.connect(lambda state: self.actiondict.__setitem__('store_properties', state))
 
@@ -283,25 +280,28 @@ class SaverGui(BaseGui):
 
     def line_updated(self, obj, key):
         self.actiondict[key] = obj.text()
-
-    # def check_updated(self, key, state):
-    #     self.actiondict[key] = state
+        if self.actiondict['auto_increment'] and (key=='basename' or key=='folder'):
+            self.apply_incrementer()
 
     def apply_incrementer(self):
-        if self.actiondict['auto_increment'] and os.path.isdir(self.actiondict['folder']):
+        """ Ipdates both actiondict and the QLineEdit"""
+        if os.path.isdir(self.actiondict['folder']):
             existing_files = os.listdir(self.actiondict['folder'])
             basename = name_incrementer(self.actiondict['basename'], existing_files)
-
+            self.actiondict['basename'] = basename
+            self.file_line.setText(basename)
 
     def browse(self):
         folder, basename = self.experiment._validate_folder_basename(self.actiondict)
         fname = QFileDialog.getSaveFileName(self, 'Save data as', os.path.join(folder, basename), filter="netCDF4 (*.nc);;All Files (*.*)")
+        print(fname)
         folder, basename = os.path.split(fname[0])
-
         self.actiondict['folder'] = folder
         self.actiondict['basename'] = basename
         self.folder_line.setText(folder)
         self.file_line.setText(basename)
+        if self.actiondict['auto_increment']:
+            self.apply_incrementer()
 
 
 if __name__=='__main__':

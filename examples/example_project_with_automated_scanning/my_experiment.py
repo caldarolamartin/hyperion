@@ -99,7 +99,6 @@ class MyExperiment(BaseExperiment):
     def initialize_example_measurement_A(self, actiondict, nesting):
         self.logger.info('Measurement specific initialization. Could be without GUI')
         # Open datafile with data manager (datman):
-        self.datman.open_file('test.nc')
         self.datman.meta(dic={'start_time':str(datetime.now())})
         # # test
         # self.datman.meta(dic=self._saving_meta)
@@ -114,14 +113,11 @@ class MyExperiment(BaseExperiment):
         self.logger.info('Measurement specific finalization. Probably be without GUI')
         # Do stuff to finalize your measurement (e.g. switch off laser)
 
+        # Add finish time and exit status to meta attributes
+        self.datman.meta(dic={'finish_time':str(datetime.now()), 'exit_status':self.exit_status})
         # Close datafile
-        # self.datman.meta(dic={'finish_time': str(datetime.now())})
-        self.datman.meta(None, None, False, finish_time=str(datetime.now()))
-        self.datman.meta(None, None, False, finish_time=str(datetime.now()))
-        # self.datman.meta(dic={'finish_time': str(datetime.now())})
-        self.datman.meta(dic={'finish_time':str(datetime.now())})
         self.datman.close()
-        nesting()
+
 
     def image_with_filter(self, actiondict, nesting):
         self.logger.info('Initialize filters')
@@ -152,18 +148,19 @@ class MyExperiment(BaseExperiment):
         # print('sweep_atto: ',actiondict['Name'])
         # print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
         arr, unit = array_from_settings_dict(actiondict)
-        self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
+        # if actiondict['axis'] == 'y':
+        #     self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
         # self.datman.meta(actiondict, actiondict)
         # self.datman.meta(actiondict['Name'], units=str(unit))
         for s in arr:
+            self.datman.dim_coord(actiondict, s, unit=unit)
             # In this example, add a line when x value changes (outer loop)
             if actiondict['axis']=='x':
                 print('---------------------')
-            print(actiondict['axis'],' : ', s, unit, '            ', self.running_status)
-            #store_coord()
-
+            print(actiondict['axis'],' : ', s, unit)
             nesting()
-        if self.break_measurement(): return  # Use this line to check for stop
+            if self.pause_measurement(): return  # Use this line to check for stop and pause
+        if self.break_measurement(): return  # Use this line to check for break
 
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()

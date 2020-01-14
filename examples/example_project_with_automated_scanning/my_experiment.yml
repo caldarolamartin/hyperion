@@ -82,9 +82,10 @@ MetaInstruments:
 # Name should
 Measurements:       # dictionary of Measurement s
   Example Measurement A:
-    - Name: Filename NOT COMPLETED YET!!
+    - Name: Saving
       Type: saver
-      basename: measurement_a
+      basename: bestaat.nc
+      folder: C:\Temp\test2
     - Name: Initialize
       _method: initialize_example_measurement_A
     - Name: Image Before
@@ -224,7 +225,6 @@ ActionTypes:        # dictionary
     _view: gui.gui_elements/SaverGui
     folder: c:/Temp
     auto_increment: True
-    version: newest
   atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
     _axes:              # key inside the ActionType-dictionary atto_scanner
       - x
@@ -234,6 +234,7 @@ ActionTypes:        # dictionary
     _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
 #    _view: gui.gui_elements/ScanMicroPositioner
     _view: gui.gui_elements/ScanMicroPositioner
+    step_min: 1nm
   histogram:
     _method: histogram
     _view: gui.gui_elements/ExampleActionGui

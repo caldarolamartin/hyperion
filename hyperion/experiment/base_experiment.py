@@ -241,8 +241,8 @@ class DataManager:
         If Dimension does not exist it is created.
         If Coordinate does not exist it is created.
         If an array is passed, those values are put in the Coordinates. The Dimension is of fixed size.
-        If an value (int or float) is passed, Dimension is of unlimited size and the value is appended to the Coordinates.
-        Note that values are only appended during the first iteration of a parent loops ( if sum(experiment._nesting_indices)==0 ).
+        If a value (int or float) is passed, Dimension is of unlimited size and the value is appended to the Coordinates.
+        Note that values are only appended during the first iteration of a parent loops
         Optionally meta parameters can passed as meta={} or as keyword arguments.
         Note that the name is converted to a valid python object name by replacing illegal characters to '_'.
 
@@ -266,9 +266,19 @@ class DataManager:
                 self.root.variables[name][:] = array_or_value
             if meta is not None:
                 self.meta(name, meta)
-        if not sum(self.experiment._nesting_indices) and ((type(array_or_value) is float) or (type(array_or_value) is int)):
-            # if the parent loop is at its first index: append the value to the coordinate
-            self.root.variables[name][self.root.variables[name].size] = array_or_value
+
+        if type(array_or_value) is not np.ndarray:
+            if name in self.experiment._nesting_parents:
+                indx = 1+ self.experiment._nesting_indices[self.experiment._nesting_parents.index(name)]
+            else:
+                indx = 0
+            if indx >= self.root.variables[name].size:
+                self.root.variables[name][indx] = array_or_value
+        ### old alternative to the 7 lines above
+        # if type(array_or_value) is not np.ndarray:
+        #     if (len(self.experiment._nesting_indices) == 0 or len(self.experiment._nesting_indices)<len(self.experiment._nesting_parents)):
+        #         self.root.variables[name][self.root.variables[name].size] = array_or_value
+
 
     def __attach_meta(self, attach, dic):
         """
@@ -458,7 +468,8 @@ class BaseExperiment:
         self._measurement_name = ''
         self.datman = DataManager(self)
         self._finalize_measurement_method = lambda *args, **kwargs: None
-
+        self.__store_properties = None
+        # self._exit_status = 'running'
         self._saving_meta = {}
 
         # self._data = DataManager('test.nc', self)
@@ -481,13 +492,34 @@ class BaseExperiment:
         Calls the stop method it applied to and then reset_measurement_flags()
         """
         def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
-            if force: self.apply_stop = True
-            if (self.apply_stop or force):# and self.running_status < self._stopping:
+            if self.running_status == self._stopping:
+                return True
+            if self.apply_stop or force:
                 self.running_status = self._stopping
                 function(self, *args, **kwargs)
-                # self.reset_measurement_flags()  # make sure all flags are reset    ##  THIS LINE PREVENTS NESTED FUNCTION FROM ESCAPING ALL LAYERS, HAVE TO LOOK INTO THIS HOW TO SOLVE
                 return True
-            return False
+            else:
+                return False
+            #
+            # if force: self.apply_stop = True
+            # if (self.apply_stop or force):# and self.running_status < self._stopping:
+            #     # Only run the function the first time
+            #     if self.running_status != self._stopping:
+            #         function(self, *args, **kwargs)
+            #     self.running_status = self._stopping
+            #     # self.reset_measurement_flags()  # make sure all flags are reset    ##  THIS LINE PREVENTS NESTED FUNCTION FROM ESCAPING ALL LAYERS, HAVE TO LOOK INTO THIS HOW TO SOLVE
+            #     return True
+            # return False
+
+            # if force: self.apply_stop = True
+            # if (self.apply_stop or force):# and self.running_status < self._stopping:
+            #     # Only run the function the first time
+            #     if self.running_status != self._stopping:
+            #         function(self, *args, **kwargs)
+            #     self.running_status = self._stopping
+            #     # self.reset_measurement_flags()  # make sure all flags are reset    ##  THIS LINE PREVENTS NESTED FUNCTION FROM ESCAPING ALL LAYERS, HAVE TO LOOK INTO THIS HOW TO SOLVE
+            #     return True
+            # return False
         return wrapper_accepting_arguments
 
     def check_break(function):
@@ -502,17 +534,19 @@ class BaseExperiment:
                 return True
             # if force: self.apply_break = True
             if self.apply_break and self.running_status < self._stopping:
+                # if not self.__exitself._exit_status = self._breaking
                 self.running_status = self._breaking
                 function(self, *args, **kwargs)
                 return True
-            return False
+            else:
+                return False
         return wrapper_accepting_arguments
 
     def check_pause(function):
         """
         Decorator for pausing function:
         First checks for "Stop", then calls the pause function it is applied to, if self.apply_pause is True
-        In that case also sets self.running_status to self._pausing. Afterward, srestores self.running_status to state it
+        In that case also sets self.running_status to self._pausing. Afterward, restores self.running_status to state it
         was before (unless modified externally)
         """
         def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
@@ -551,7 +585,8 @@ class BaseExperiment:
     def stop_measurement(self):
         """ The decorator also gives it one extra keyword argument 'force' which will set the apply_stop flag for you. """
         self.logger.info('Custom stop method: Override if you like. Just use @check_stop decorator')
-        # Do stuff
+        # Set the self._exit_status string:
+
         # Automatically call method set in self._finalize_measurement_method
         self._finalize_measurement_method({'Name': self._measurement_name}, lambda *args, **kwargs: None)
         # Reset self._finalize_measurement_method to a do nothing function:
@@ -578,6 +613,16 @@ class BaseExperiment:
             if self.stop_measurement():
                 return True        # in that case return True
 
+    @property
+    def exit_status(self):
+        if self.apply_stop:
+            return 'stopped'
+        elif self.apply_break:
+            return 'break'
+        elif self.running_status == 1:
+            return 'completed'
+        else:
+            return 'unknown'
 
     def __enter__(self):
         return self
@@ -739,11 +784,18 @@ class BaseExperiment:
 
             self.reset_measurement_flags()
             self.running_status = self._running
+            # self._exit_status = 'running'
 
             self.perform_actionlist(self.properties['Measurements'][measurement_name])
 
             self.reset_measurement_flags()
             self.logger.info('Measurement finished')
+
+            if self.__store_properties:
+                self.logger.info('Storing experiment properties in {}'.format(self.__store_properties))
+                with open(self.__store_properties, 'w') as f:
+                    yaml.dump(self.properties, f)
+                self.__store_properties = None
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
 
@@ -760,13 +812,8 @@ class BaseExperiment:
         :return:
         """
 
-        # if self.stop_measurement():
-        #     return
-        if self.pause_measurement():
-            return
-
-        # if self.running_status == self._stopping:
-        #     return
+        # if self.stop_measurement(): return
+        if self.pause_measurement(): return  #: return     # Use this line to check for pause
 
         if parents == []:
             self._nesting_indices = []
@@ -784,7 +831,6 @@ class BaseExperiment:
         # In a an action that has nested Actions
         for actiondictionary in actionlist:
             # check for stop and pause
-            if self.pause_measurement(): return  #: return     # Use this line to check for pause
 
             actiondict = ActionDict(actiondictionary, exp=self)
             actionname = actiondict['Name']
@@ -817,6 +863,8 @@ class BaseExperiment:
                 # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
 
             method(actiondict, nesting)
+            # if self.stop_measurement(): return
+            if self.pause_measurement(): return  #: return     # Use this line to check for pause
 
         if len(parents) < len(self._nesting_indices):
             del self._nesting_indices[-1]
@@ -827,10 +875,16 @@ class BaseExperiment:
 
     def default_saver(self, actiondict, nesting):
         folder, basename = self._validate_folder_basename(actiondict)
-        # talks to the gui and sets values like filename
+        if actiondict['auto_increment']:
+            existing_files = os.listdir(actiondict['folder'])
+            basename = name_incrementer(actiondict['basename'], existing_files)
+        filename_complete = os.path.join(folder, basename)
+        self.datman.open_file(filename_complete, lowercase=True)
+        if actiondict['comment']:  # This will not add comment if it's empty or non-existing
+            self.datman.meta(dic={'comment':actiondict['comment']})
+        if actiondict['store_properties']:
+            self.__store_properties = os.path.splitext(filename_complete)[0]+'.yml'
 
-
-        pass
 
     def _validate_folder_basename(self, actiondict):
         """
