@@ -40,7 +40,7 @@ def array_from_pint_quantities(start, stop, step=None, num=None):
     if step != None:
         ste = step.m_as(unit)   # if step doesn't have the same units as start it will result in an error
         # fixing sign:
-        if sto<ste and ste>0:
+        if sto<sta and ste>0:
             ste = -ste
 
         # Tiny floating point errors sometimes cause the end-point not to be included. To mitigate this add a tiny

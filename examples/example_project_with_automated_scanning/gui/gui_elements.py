@@ -78,15 +78,16 @@ class ImageWithFilters(BaseGui):
     def initUI(self):
         self.layout = QHBoxLayout()
         self.expo_value = QDoubleSpinBox()
-        self.expo_value.valueChanged.connect(self.expo_changed)
         self.expo_units = QComboBox()
-        self.expo_units.currentIndexChanged.connect(self.expo_changed)
         display_units = ['us', 'ms', 's', 'min', 'hr']
         self.expo_units.addItems(display_units)
         add_pint_to_combo(self.expo_units)
         if 'exposuretime' in self.actiondict and self.actiondict['exposuretime'] is not None:
             self.logger.debug('Applying config value to exposuretime in gui')
             pint_to_spin_combo(Q_(self.actiondict['exposuretime']), self.expo_value, self.expo_units)
+        # After setting initial values, connect changes to the function that tries to apply them:
+        self.expo_value.valueChanged.connect(self.expo_changed)
+        self.expo_units.currentIndexChanged.connect(self.expo_changed)
 
         filter_a = QCheckBox('Filter A')
         filter_b = QCheckBox('Filter B')
@@ -95,7 +96,7 @@ class ImageWithFilters(BaseGui):
         if 'filter_b' in self.actiondict:
             filter_b.setChecked(self.actiondict['filter_b'])
         # Two ways of updating the dictionary when the checkbox is modified.
-        # One readable way using a function. And one direct way without a function.
+        # One readable way using a function. And one direct way without a function. Here are both:
         filter_a.stateChanged.connect(self.set_filter_a)
         filter_b.stateChanged.connect(lambda state: self.actiondict.__setitem__('filter_b', state))
 

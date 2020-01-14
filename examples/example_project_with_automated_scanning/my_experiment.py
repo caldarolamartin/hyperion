@@ -156,7 +156,10 @@ class MyExperiment(BaseExperiment):
         # self.datman.meta(actiondict, actiondict)
         # self.datman.meta(actiondict['Name'], units=str(unit))
         for s in arr:
-            print(actiondict['axis'],' : ', s)
+            # In this example, add a line when x value changes (outer loop)
+            if actiondict['axis']=='x':
+                print('---------------------')
+            print(actiondict['axis'],' : ', s, unit, '            ', self.running_status)
             #store_coord()
 
             nesting()
