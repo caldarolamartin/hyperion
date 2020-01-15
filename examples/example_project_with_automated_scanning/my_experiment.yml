@@ -1,17 +1,150 @@
-User:
-  name: Aron
+# Hyperion Config File
+#
+# Dictionaries:
+#
+# Measurements  Required for automated scanning
+# ActionTypes   Required for automated scanning
+# Instruments   Required to load instruments
+#
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Measurements:
+# ----------------------------------------------------------------------------------------------------------------------
+#
+# A dictionary of measurements.
+# Each Measurement should consist of a list of Actions.
+# Each Action is a dictionary which has a mandatory unique key Name and several other keys.
+# Actions can be nested by placing a list of Actions under the '~nested key' in an Action. (e.g. for looping)
+#
+# Name         Mandatory and unique.
+#              (Note that capital 'N' causes it to be on top when alphabetized)
+# Type         Optional but recommended. Refers to type in ActionTypes list.
+#              (Note that capital 'T' causes it to be second when alphabetized)
+# _method      Optional. Usually this is set in the ActionType, but if it is specified here it supersedes the one in the
+#              ActionType. _method refers to a method in the experiment class.
+#              (Note that '_' causes it to be after the Captitals)
+# _view        Optional. Usually this is set in the ActionType, but if it is specified here it supersedes the one in the
+#              ActionType. _view refers to gui python class.
+#              (Note that '_' causes it to be after the Captitals)
+# other params Other parameter can be specified as desired. These will mostly be the settings changed by the user.
+#              They should start with a lowercase letter.
+#              They will supersede a default values in the ActionType of the same name.
+# ~nested      If other Actions are to be performed from inside an Action, those can be specified as a list in this key.
+#              Typically used when looping.
+#              (Note that '~' makes this key always appear last when alphabetized)
+#
+Measurements:       # dictionary of Measurements
+  Example Measurement A:
+    - Name: Saving
+      Type: saver
+      basename: bestaat.nc
+      folder: C:\Temp\test2
+    - Name: Initialize
+      _method: initialize_example_measurement_A
+    - Name: Image Before
+      Type: image                               # Used to get some default values
+      _method: image_with_filter                # Override the _method of Type with a custom one
+      _view: gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
+      filter_a: True
+      filter_b: False
+    - Name: Scan Atto X
+      Type: atto_scanner
+      _store_name: sample_x
+      axis: x
+      start: 4 mm
+      stop: 1 mm
+      step: 1 mm
+      ~nested:
+        - Name: power
+          _method: measure_power
+        - Name: Scan Atto Y
+          Type: atto_scanner
+          _store_name: sample_y
+          axis: y
+          start: 2 um
+          stop: 9 um
+          num: 8
+          ~nested:
+            - Name: Spectrum
+              _method: fake_spectrum
+    - Name: break_after_scanning_XY
+      _method: check_break
+    - Name: Finalize
+      _method: finalize_example_measurement_A
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Action Types:
+# ----------------------------------------------------------------------------------------------------------------------
+#
+# ActionTypes are used to specify 'defaults' for an Action.
+# (Multiple Actions could be of the same ActionType)
+# 'ActionTypes' is a dictionary. The keys are the names of each ActionType
+# Each ActionType is a dictionary itself holding in the dictionary of parameters.
+# At the moment of "loading"(?) the Measurement all keys without an underscore (_) are copied to the Action.
+# You can interpret keys without an underscore as default values to be loaded into the Action.
+# Keys with an underscore are not copied
+# Special undercore keys are _method an _ui. _method specifies the name of the method to be called.
+# _ui specifies the gui file to load for building the gui of the Measurement.
+# Note that if the Action contains a _ui or a _method, those will be used instead of the one in the ActionType.
+# Note that an Action does not necessarily have to specify a Type. If no ActionType is specified, the _method has to be
+# specified in the Action and if a gui is required _ui has to be specified as well
+#
+ActionTypes:       # dictionary of ActionTypes
+  saver:
+    _method: default_saver
+    _view: gui.gui_elements/SaverGui
+    folder: c:/Temp
+    auto_increment: True
+  atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
+    _axes:              # key inside the ActionType-dictionary atto_scanner
+      - x
+      - y
+      - z
+    _method: sweep_atto # key inside the ActionType-dictionary atto_scanner
+    _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
+#    _view: gui.gui_elements/ScanMicroPositioner
+    _view: gui.gui_elements/ScanMicroPositioner
+    step_min: 1nm
+  histogram:
+    _method: histogram
+    _view: gui.gui_elements/ExampleActionGui
+    exposuretime: 3
+  image:
+    _method: image
+    _view: gui.gui_elements/ExampleActionGui
+    _ui: image.ui
+    exposuretime: 0.1s
+    exposuretime_min: 1us
+    exposuretime_max: 2hr
+  spectrum:
+    exposuretime: 2
+    _view: gui.gui_elements/ExampleActionGui
+    _method: spectrum
+    _ui: spectrum.ui
+  powermeter:
+    exposuretime: 1s
 
 
-
-Saving:
-  auto: True
-  directory:
-
-Instruments:
+# ----------------------------------------------------------------------------------------------------------------------
+# Instruments:
+# ----------------------------------------------------------------------------------------------------------------------
+#
+# Dictionary of Instruments
+# Each instrument is a dictionary with the the following keys:
+#
+# instrument   Pointer to the instrument file and class to be used.
+#              For example: hyperion.instrument.example_instrument/ExampleInstrument
+# controller   Pointer to the controller file and class to be used.
+#              For example: hyperion.controller.example_controller/ExampleController
+# view:        Optional pointer to the view file and class to be used for creating the Instrument GUI.
+#              For example: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+# graphView    Optional pointer to the view file and class to be used for displaying graphs while measuring.
+#              For example: hyperion.view.simple_gui_examples.example_graph_gui/Example_graph
+# other params Other parameter and settings for the instrument.
+#
+Instruments:       # dictionary of Instruments
   ExampleInstrument:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
@@ -50,210 +183,29 @@ Instruments:
     controller: hyperion.controller.example_controller/ExampleController
 
 
+
+# I'm not sure if this is implemented (yet)
+#
 MetaInstruments:
   SampleXyzStageMotor:
     x: xMotor
     y: yMotor
     z: testMotor
 
-
-# Choice of capitals, underscores and tilde:
-# Because of the
-# Name      Mandatory and unique. 'N' causes it to be on top when alphabetized
-# Type      Optional but recommended. Refers to type in ActionTypes list. 'T' causes it to be second when alphabetized.
-# _method   Optional. Usually this is set in the ActionType, but if it is specified here it supercedes the one in the
-#           ActionType. _method refers to a method in the experiment class. '_' causes it to be after the Captitals.
-# _ui       Optional. Usually this is set in the ActionType, but if it is specified here it supercedes the one in the
-#           ActionType. _ui refers to gui python class. '_' causes it to be after the Captitals.
-# other     Other parameter can be specified as desired. These will mostly be the settings changed by the user.
-#   params  They should start with a lowercase letter. They will supercede a default values in the ActionType of the same name.
-# ~nested   If other Actions are to be performed from inside an Action those can be specified as a list in this key.
-#           Typically used when looping. The '~' makes this key always appear last when alphabetized.
-
-
-# A Measurement should consist of a list of Actions.
-# Each Action is a dictionary of the following structure:
-# It has a mandatory Name, which has to be unique for that measurement. Note that Name is with a capital N.
-# It has an optional Type which has to refer to an exisiting ActionType in the list of ActionTypes. The ActionType is
-# used to hold default values and hide away values that are not
+# This might be obsolete or unused:
 #
-# An Action can have nested Action inside (for example inside an action that loops over )
-# These nested actions are placed in a list with key ~nested
-# Name should
-Measurements:       # dictionary of Measurement s
-  Example Measurement A:
-    - Name: Saving
-      Type: saver
-      basename: bestaat.nc
-      folder: C:\Temp\test2
-    - Name: Initialize
-      _method: initialize_example_measurement_A
-    - Name: Image Before
-      Type: image                               # Used to get some default values
-      _method: image_with_filter                # Override the _method of Type with a custom one
-      _view: gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
-      filter_a: True
-      filter_b: False
-    - Name: Scan Atto X
-      Type: atto_scanner
-      _store_name: sample_x
-      axis: x
-      start: 4 mm
-      stop: 1 mm
-      step: 1 mm
-      ~nested:
-        - Name: power
-          _method: measure_power
-        - Name: Scan Atto Y
-          Type: atto_scanner
-          _store_name: sample_y
-          axis: y
-          start: 2 um
-          stop: 9 um
-          num: 8
-          ~nested:
-            - Name: Spectrum
-              _method: fake_spectrum
-    - Name: Finalize
-      _method: finalize_example_measurement_A
-#    - Name: atto X
-#      Type: atto_scanner
-#      axis: x
-#      start: 2mm    # if you use 'start', 'step' and 'stop' array_from_settings_dict() can interpret it automatically
-#      step: 100um
-#      stop: 3mm
-#      ~nested:
-#        - Name: Power
-#          Type: powermeter
-#        - Name: atto X
-#          Type: atto_scanner
-#          axis: x
-#          start: 2mm    # if you use 'start', 'step' and 'stop' array_from_settings_dict() can interpret it automatically
-#          step: 100um
-#          stop: 3mm
-#          ~nested:
-#            - Name: spectrum
-#              Type: spectrum
-#              _method: spectrum_modified   # when specifying the _method it will overrule the one in ActionType
-#              exposuretime: 5
-#            - Name: fit peak
-#              _method: fit_peak
-#            - Name: histogram
-#              Type: histogram
-#              exposuretime: 4
-#            - Name: image
-#              Type: image
-#              exposuretime: 4
-
-
-
-  Measurement A:      # a Measurement is a list of Actions
-#    - Name: DataFile     # special element in the actionlist
-#      Type: saver
-#        folder: None
-#        filename: None
-    - Name: before      # an Action is a dictionary
-      Type: image
-      exposuretime: 5
-#      bla: bla
-#      bla2: bla2
-      _view: gui.gui_elements/ExampleActionGui
-    - Name: atto X
-      Type: atto_scanner
-      axis: x
-      start: 2mm    # if you use 'start', 'step' and 'stop' array_from_settings_dict() can interpret it automatically
-      step: 100um
-      stop: 3mm
-      ~nested:
-      - Name: spec long
-        Type: spectrum
-        _method: spectrum_modified   # when specifying the _method it will overrule the one in ActionType
-        exposuretime: 5
-      - Name: atto Y
-        Type: atto_scanner
-        axis: y
-        start: 4mm
-        stop: 5mm
-        num: 6      # instead of using 'step', array_from_settings_dict() also understands 'num' as the number of points
-        ~nested:
-          - Name: Wavelength sweep
-            _view: gui.gui_elements/ExampleActionGui
-            _method: histogram
-            ~nested:
-              - Name: histogram
-                Type: histogram
-                _ui: None   # You can specify a different _ui or set it to None to prevent it from showing
-                exposuretime: 4
-#                ~nested:
-#                  - Name: super nested
-#                    _view: gui.gui_elements/ExampleActionGui
-#                    ~nested:
-#                      - Name: super duper nested
-#                        _view: gui.gui_elements/ExampleActionGui
-#                        ~nested:
-#                          - Name: whaaaaaat
-#                            _view: gui.gui_elements/ExampleActionGui
-#              - Name: dummy2
-#                _view: gui.gui_elements/ExampleActionGui
-#          - Name: dummy1
-#            _view: gui.gui_elements/ExampleActionGui
-      - Name: insideXafterY
-        _view: gui.gui_elements/ExampleActionGui
-        _method: insideXafterY
-    - Name: after
-      exposuretime: 3
-      _view: gui.gui_elements/ExampleActionGui
-      _method: image_modified                     # It's possible to not use Type. In that case _method HAS TO BE SPECIFIED
-      _ui: examples.view.spectrum_gui/ImageGui    # You can also include the _ui if you want to show a gui.
-
-
-# ActionTypes are used to specify 'defaults' for an Action.
-# (Multiple Actions could be of the same ActionType)
-# 'ActionTypes' is a dictionary. The keys are the names of each ActionType
-# Each ActionType is a dictionary itself holding in the dictionary of parameters.
-# At the moment of "loading"(?) the Measurement all keys without an underscore (_) are copied to the Action.
-# You can interpret keys without an underscore as default values to be loaded into the Action.
-# Keys with an underscore are not copied
-# Special undercore keys are _method an _ui. _method specifies the name of the method to be called.
-# _ui specifies the gui file to load for building the gui of the Measurement.
-# Note that if the Action contains a _ui or a _method, those will be used instead of the one in the ActionType.
-# Note that an Action does not necessarily have to specify a Type. If no ActionType is specified, the _method has to be
-# specified in the Action and if a gui is required _ui has to be specified as well
-ActionTypes:        # dictionary
-  saver:
-    _method: default_saver
-    _view: gui.gui_elements/SaverGui
-    folder: c:/Temp
-    auto_increment: True
-  atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
-    _axes:              # key inside the ActionType-dictionary atto_scanner
-      - x
-      - y
-      - z
-    _method: sweep_atto # key inside the ActionType-dictionary atto_scanner
-    _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
-#    _view: gui.gui_elements/ScanMicroPositioner
-    _view: gui.gui_elements/ScanMicroPositioner
-    step_min: 1nm
-  histogram:
-    _method: histogram
-    _view: gui.gui_elements/ExampleActionGui
-    exposuretime: 3
-  image:
-    _method: image
-    _view: gui.gui_elements/ExampleActionGui
-    _ui: image.ui
-    exposuretime: 0.1s
-    exposuretime_min: 1us
-    exposuretime_max: 2hr
-  spectrum:
-    exposuretime: 2
-    _view: gui.gui_elements/ExampleActionGui
-    _method: spectrum
-    _ui: spectrum.ui
-  powermeter:
-    exposuretime: 1s
-
 Data:
   save_folder: C:/Temp/Data
   data_type: txt
+
+# This might be obsolete or unused:
+#
+User:
+  name: Aron
+
+# This might be obsolete or unused:
+#
+Saving:
+  auto: True
+  directory:
+

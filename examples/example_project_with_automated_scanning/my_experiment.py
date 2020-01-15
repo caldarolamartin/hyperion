@@ -3,111 +3,71 @@
     Example Experiment
     ==================
 
+    Example Experiment that uses automated scanning and saving
 
-
-    This is an example of an experiment class.
 """
 import os
 from hyperion.core import logman
 # You could also import the logging manager as logging if you don't want to change your line: logger = logging.getLogger(__name_)
 # from hyperion.core import logman as logging
-# from hyperion import logging    # equivalent to line aboveimport numpy as np
-import winsound
+# from hyperion import logging    # equivalent to line above
 from time import sleep
-# from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
 from hyperion.tools.array_tools import *
 from datetime import datetime
 import sys
 
 class MyExperiment(BaseExperiment):
-    """ Example class with basic functions """
+    """ Example class that performs automated scanning and saving """
 
     def __init__(self):
-        """ initialize the class"""
         super().__init__()                      # Mandatory line
         self.logger = logman.getLogger(__name__)
-        self.logger.info('Initializing the ExampleExperiment object.')
-        self.logger.critical('test critical')
-        self.logger.error('test error')
-        self.logger.warning('test warning')
-        self.logger.info('test info')
-        self.logger.debug('test debug')
 
-        #initialize dictionaries where instances of instruments and gui's can be found
-        self.devices = {}
-        self.properties = {}
-        self.instruments_instances = {}
-        self.view_instances = {}
-        self.graph_view_instance = {}
+        # # Test logging messages:
+        # self.logger.info('Initializing the ExampleExperiment object.')
+        # self.logger.critical('test critical')
+        # self.logger.error('test error')
+        # self.logger.warning('test warning')
+        # self.logger.info('test info')
+        # self.logger.debug('test debug')
 
+    def example_action_method(self, actiondict, nesting=lambda:None):
+        """
+        In automated measuring, a measurement is broken up into small independent methods.
+        The order of execution is determined in the config file
 
-    # def __enter__(self):
-    #     return self
-    #
-    # def __exit__(self, exc_type, exc_val, exc_tb):
-    #    self.finalize()
+        An action method always needs to have the inputs actiondict and nesting.
+        The actiondict will contain all the information necessary to perform the action.
+        And nesting is a method that is passed by the automated scanning procedure of BaseExperiment.
 
-    def measurement(self):
-        for i in range(1, 10):
-            print(i)
+        If your action might might given nested action (defined in the config), place nesting() at the place where you
+        would want those actions to occur. If there are no nested actions this method does nothing.
 
+        If you also want to use an action method directly (not through automated scanning), you could pass
+        'lambda: None' as the nesting function, or you could specify the method as:
+        'example_action_method(self, actiondict, nesting=lambda:None):'
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    def image(self, actiondict, nesting):
-        # print('performing action of Name {} with exposuretime {}'.format(actiondict['Name'],actiondict['exposuretime']))
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        # self._data.auto(data, actiondict)
-        nesting()       # either takes care of nested actions or checks for pause state
-        # data = np.array([[0,1],[2,3]])
-        # return data
-
-    def image_modified(self, actiondict, nesting):
-        #print('image: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        nesting()
-
-    def spectrum(self, actiondict, nesting):
-        # print('spectrum: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        nesting()
-
-    def spectrum_modified(self, actiondict, nesting):
-        # print('spectrum: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-
-        self.save(0)
-        nesting()
-
-    def histogram(self, actiondict, nesting):
-        # print('histogram: ',actiondict['Name'])
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
-        #store_data
-        nesting()
-
-
-
-    def insideXafterY(self, actiondict, nesting):
-        print(actiondict['Name'], '   indices: ',self._nesting_indices, '  nest parents: ', self._nesting_parents)
-        self.save(0)
+        :param actiondict: Holds all the information need to perform the action
+        :type actiondict: ActionDictionary
+        :param nesting: method automatically passed by automated scanning procedure
+        """
+        pass
 
     def initialize_example_measurement_A(self, actiondict, nesting):
         self.logger.info('Measurement specific initialization. Could be without GUI')
-        # Open datafile with data manager (datman):
-        self.datman.meta(dic={'start_time':str(datetime.now())})
-        # # test
-        # self.datman.meta(dic=self._saving_meta)
+        # Do stuff to prepare your measurement
 
-        # self.datman.meta(measurement_name = 'initialize_example_measurement_A')
+        # You could add some meta data if you like.
+        # Here I add the start time:
+        self.datman.meta(dic={'start_time':str(datetime.now())})
+        # Note that you need to open a datafile before you can add stuff to it. In automatic approach this is done by
+        # adding the saver type action at the beginning of your measurement
+
         # By assigning the finalize method to self._finalize_measurement_method, that method will also be executed when
-        # the Stop button is pressed:
+        # the measurement is interrupted (by Stop or Break button):
         self._finalize_measurement_method = self.finalize_example_measurement_A
-        # nesting()
+        # nesting()  # initialize will probably not have nested actions, but it wouldn't hurt to add the function anyway.
 
     def finalize_example_measurement_A(self, actiondict, nesting):
         self.logger.info('Measurement specific finalization. Probably be without GUI')
@@ -117,7 +77,6 @@ class MyExperiment(BaseExperiment):
         self.datman.meta(dic={'finish_time':str(datetime.now()), 'exit_status':self.exit_status})
         # Close datafile
         self.datman.close()
-
 
     def image_with_filter(self, actiondict, nesting):
         self.logger.info('Initialize filters')
@@ -161,14 +120,30 @@ class MyExperiment(BaseExperiment):
             if actiondict['axis']=='x':
                 print('---------------------')
             print(actiondict['axis'],' : ', s, unit)
-            nesting()
+
+            nesting()  # NOTICE THE nesting() FUNCTION HERE INSIDE THE LOOP
+
+            # Inside loops (or in slow actions you could place this line.
+            # It will check for apply_stop (stop button) and for apply_pause (pause button)
+            # For short action_methods this is not necessary because those things are also automatically checked between
+            #
             if self.pause_measurement(): return  # Use this line to check for stop and pause
-        if self.break_measurement(): return  # Use this line to check for break
+
+        # # After a loop you could choose to check for 'break':
+        # if self.break_measurement(): return  # Use this line to check for break
+        # # However, if you're nesting this method in itself and you would only like to apply it after the outer loop
+        # # you may want use a separate action method to check for the break. And specify it in the config.
+
+    def check_break(self, actiondict, nesting):
+        # You could place 'if self.break_measurement(): return' anywhere you like, but if you want to have more control
+        # over when a break would be applied you could point to it in the config file:
+        # - Name: break_after_scanning_sample_XY
+        #   _method: check_break
+        if self.break_measurement(): return
 
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
         self.datman.var(actiondict, fake_data, meta=actiondict, unit='mW')
-
         nesting()
 
     def fake_spectrum(self, actiondict, nesting):
@@ -177,22 +152,8 @@ class MyExperiment(BaseExperiment):
         self.datman.dim_coord('wav', fake_wav_nm, meta={'unit': 'nm'})
         self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict, unit='counts')
         sleep(0.1)  # slow down this dummy measurement
-        # nesting()
+        nesting()
 
-    def dummy_measurement_for_testing_gui_buttons(self):
-        self.logger.info('Starting test measurement')
-        self.reset_measurement_flags()
-        self.running_status = self._running
-        for outer in range(4):
-            print('outer', outer)
-            for inner in range(4):
-                print('    inner', inner)
-                sleep(1)
-                # if self.stop_measurement(): return      # Use this line to check for stop
-                if self.pause_measurement(): return  #: return     # Use this line to check for pause
-            if self.break_measurement(): return      # Use this line to check for stop
-        self.reset_measurement_flags()
-        self.logger.info('Measurement finished')
 
 if __name__ == '__main__':
     # ### To change the logging level:
@@ -205,37 +166,34 @@ if __name__ == '__main__':
 
     test_with_gui = True
 
-    # prepare folders and files:
+    # prepare folders and configfile:
     this_folder = os.path.dirname(os.path.abspath(__file__))
     config_file = os.path.join(this_folder, 'my_experiment.yml')
-    from hyperion import parent_path
-    # data_folder = os.path.join(parent_path, 'data')
-    # if not os.path.isdir(data_folder):
-    #     os.mkdir(data_folder)
 
     with MyExperiment() as e:
+        # Load config and instruments
         e.load_config(config_file)
         e.load_instruments()
 
         if not test_with_gui:
+            ### Test without gui:
             e.perform_measurement('Example Measurement A')
 
         else:
-            ######### testing gui stuff
+            ### Test with gui:
 
             from PyQt5.QtWidgets import QApplication
             from hyperion.view.base_guis import BaseMeasurementGui, ModifyMeasurement
 
-            app = QApplication(sys.argv)
+            app = QApplication(sys.argv)  # required "placeholder" for gui
+
+            # Open the BaseMeasurementGui with 'Example Measurement A' as input:
             q = BaseMeasurementGui(e, 'Example Measurement A')
-            # q = ModifyMeasurement(e,'Measurement A')
-            # q.show()
+            # Note that this approach can be used to run an experiment with a small gui but without the master gui.
+            # (although plotting graphs would need to be tested)
 
-            ## Introduce corruption in actionlist for testing:
-            # del(e.properties['Measurements']['Measurement A'][0]['Name'])
-            # del (e.properties['Measurements']['Measurement A'][0])
-
-            # q = BaseMeasurementGui(e, 'Example Measurement A')
+            # # Introduce corruption in actionlist for testing:
+            # del(e.properties['Measurements']['Example Measurement A'][0]['Name'])
 
             app.exec_()
 
