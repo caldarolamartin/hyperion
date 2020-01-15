@@ -475,15 +475,12 @@ class BaseExperiment:
         # placeholder do-nothing function that can be overwritten by saver gui
         self._saver_gui_incremeter = lambda : None  # empty function
 
-
-
     def reset_measurement_flags(self):
         """ Reset measurement flags (at the end of a measurement or when it's stopped). """
         self.apply_pause = False   # used for temporarily interrupting a measurement
         self.apply_break = False   # used for a soft stop (e.g. stop after current loop iteration)
         self.apply_stop =  False   # used for a hard stop
         self.running_status = 0  # 0 for not running, 1 for paused, 2 for breaking, 3 for stopping
-
 
     def check_stop(function):
         """
@@ -630,9 +627,6 @@ class BaseExperiment:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.finalize()
 
-
-    # SMARTSCAN METHODS: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
     def _validate_actionlist(self, actionlist, _complete=None, invalid_methods=0, invalid_names=0):
         """
         Returns a 'corrected' copy (does not modify input) and
@@ -775,7 +769,9 @@ class BaseExperiment:
 
         if measurement_name in self.properties['Measurements']:
             self.logger.debug('Starting measurement: {}'.format(measurement_name))
-            # Make dict with basic info
+
+            # Make dict with basic meta info to be added to the datafile.
+            # default_saver will add this _saving_meta dict
             self._saving_meta = {'Hyperion': hyperion.__version__,
                                  'Experiment': self.__class__.__name__}
             if hasattr(self, 'version'):
@@ -803,8 +799,6 @@ class BaseExperiment:
             self._saver_gui_incremeter()
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
-
-
 
     # def perform_measurement(self, actionlist, parent_values = [], parents=[]):
     def perform_actionlist(self, actionlist, parents=[], save=True):
@@ -874,7 +868,6 @@ class BaseExperiment:
         if len(parents) < len(self._nesting_indices):
             del self._nesting_indices[-1]
 
-
     def save(self, data, auto=True, **kwargs):
         indx = self._nesting_indices[:len(self._nesting_parents)]
 
@@ -889,7 +882,6 @@ class BaseExperiment:
             self.datman.meta(dic={'comment':actiondict['comment']})
         if actiondict['store_properties']:
             self.__store_properties = os.path.splitext(filename_complete)[0]+'.yml'
-
 
     def _validate_folder_basename(self, actiondict):
         """
@@ -938,20 +930,13 @@ class BaseExperiment:
         #
         return folder, basename
 
-
-    def create_saver(self, actiondict, nesting):
-        version = actiondict['version'] if 'version' in actiondict else None
-        folder = actiondict['folder'] if 'folder' in actiondict else os.path.join(hyperion.parent_path, 'data')
-        filename = actiondict['filename'] if 'filename' in actiondict else self._measurement_name + '.h5'
-        write_mode = actiondict['write_mode'] if 'write_mode' in actiondict else ['increment']
-        self.saver = Saver(verion=version, default_folder=folder, default_filename=filename, write_mode=write_mode)
-        self.saver.open_file()
-
-       # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SMARTSCAN METHODS
-
-
-
-
+    # def create_saver(self, actiondict, nesting):
+    #     version = actiondict['version'] if 'version' in actiondict else None
+    #     folder = actiondict['folder'] if 'folder' in actiondict else os.path.join(hyperion.parent_path, 'data')
+    #     filename = actiondict['filename'] if 'filename' in actiondict else self._measurement_name + '.h5'
+    #     write_mode = actiondict['write_mode'] if 'write_mode' in actiondict else ['increment']
+    #     self.saver = Saver(verion=version, default_folder=folder, default_filename=filename, write_mode=write_mode)
+    #     self.saver.open_file()
 
     def load_config(self, filename):
         """Loads the configuration file to generate the properties of the Scan and Monitor.
@@ -1045,7 +1030,6 @@ class BaseExperiment:
         so if you load an instrument manually and do not add it to this dictionary, you need to take care of
         the closing.
         """
-
         for instrument in self.properties['Instruments']:
             self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
 
