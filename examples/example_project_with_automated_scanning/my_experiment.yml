@@ -1,6 +1,12 @@
 User:
   name: Aron
 
+
+
+
+
+
+
 Saving:
   auto: True
   directory:
@@ -76,6 +82,10 @@ MetaInstruments:
 # Name should
 Measurements:       # dictionary of Measurement s
   Example Measurement A:
+    - Name: Saving
+      Type: saver
+      basename: bestaat.nc
+      folder: C:\Temp\test2
     - Name: Initialize
       _method: initialize_example_measurement_A
     - Name: Image Before
@@ -88,9 +98,9 @@ Measurements:       # dictionary of Measurement s
       Type: atto_scanner
       _store_name: sample_x
       axis: x
-      start: 10 um
-      stop: 18 um
-      step: 4 um
+      start: 4 mm
+      stop: 1 mm
+      step: 1 mm
       ~nested:
         - Name: power
           _method: measure_power
@@ -99,8 +109,8 @@ Measurements:       # dictionary of Measurement s
           _store_name: sample_y
           axis: y
           start: 2 um
-          stop: 5 um
-          num: 4
+          stop: 9 um
+          num: 8
           ~nested:
             - Name: Spectrum
               _method: fake_spectrum
@@ -211,9 +221,10 @@ Measurements:       # dictionary of Measurement s
 # specified in the Action and if a gui is required _ui has to be specified as well
 ActionTypes:        # dictionary
   saver:
-    _method: create_saver
-    _ui: view.base_guis/SaverWidget
-    version: newest
+    _method: default_saver
+    _view: gui.gui_elements/SaverGui
+    folder: c:/Temp
+    auto_increment: True
   atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
     _axes:              # key inside the ActionType-dictionary atto_scanner
       - x
@@ -223,6 +234,7 @@ ActionTypes:        # dictionary
     _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
 #    _view: gui.gui_elements/ScanMicroPositioner
     _view: gui.gui_elements/ScanMicroPositioner
+    step_min: 1nm
   histogram:
     _method: histogram
     _view: gui.gui_elements/ExampleActionGui
@@ -231,17 +243,17 @@ ActionTypes:        # dictionary
     _method: image
     _view: gui.gui_elements/ExampleActionGui
     _ui: image.ui
-    exposuretime: 0.1 s
-    exposuretime_min: 1 us
-    exposuretime_max: 2 hr
+    exposuretime: 0.1s
+    exposuretime_min: 1us
+    exposuretime_max: 2hr
   spectrum:
     exposuretime: 2
     _view: gui.gui_elements/ExampleActionGui
     _method: spectrum
     _ui: spectrum.ui
   powermeter:
-    exposuretime: 1 s
+    exposuretime: 1s
 
 Data:
-  save_folder: D:/mcaldarola/Data/2019-04-17_hyperion/
+  save_folder: C:/Temp/Data
   data_type: txt

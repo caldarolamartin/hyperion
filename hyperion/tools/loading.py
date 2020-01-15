@@ -23,5 +23,7 @@ def get_class(string):
     except AttributeError:
         logger.error("Class not found: {}".format(class_name))
     except:
-        logger.error("Unexpected error")
+        logger.error("Unexpected error while loading {}".format(string))
+        raise
+
     return temp_class

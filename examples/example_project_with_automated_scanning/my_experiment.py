@@ -99,7 +99,6 @@ class MyExperiment(BaseExperiment):
     def initialize_example_measurement_A(self, actiondict, nesting):
         self.logger.info('Measurement specific initialization. Could be without GUI')
         # Open datafile with data manager (datman):
-        self.datman.open_file('test.nc')
         self.datman.meta(dic={'start_time':str(datetime.now())})
         # # test
         # self.datman.meta(dic=self._saving_meta)
@@ -114,14 +113,11 @@ class MyExperiment(BaseExperiment):
         self.logger.info('Measurement specific finalization. Probably be without GUI')
         # Do stuff to finalize your measurement (e.g. switch off laser)
 
+        # Add finish time and exit status to meta attributes
+        self.datman.meta(dic={'finish_time':str(datetime.now()), 'exit_status':self.exit_status})
         # Close datafile
-        # self.datman.meta(dic={'finish_time': str(datetime.now())})
-        self.datman.meta(None, None, False, finish_time=str(datetime.now()))
-        self.datman.meta(None, None, False, finish_time=str(datetime.now()))
-        # self.datman.meta(dic={'finish_time': str(datetime.now())})
-        self.datman.meta(dic={'finish_time':str(datetime.now())})
         self.datman.close()
-        nesting()
+
 
     def image_with_filter(self, actiondict, nesting):
         self.logger.info('Initialize filters')
@@ -152,16 +148,22 @@ class MyExperiment(BaseExperiment):
         # print('sweep_atto: ',actiondict['Name'])
         # print(actiondict['Name'], '   indices: ', self._nesting_indices, '  nest parents: ', self._nesting_parents)
         arr, unit = array_from_settings_dict(actiondict)
-        # self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
+        if actiondict['axis'] == 'y':
+            # It is possible to define coordinates in one go, with an array
+            self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
         # self.datman.meta(actiondict, actiondict)
         # self.datman.meta(actiondict['Name'], units=str(unit))
         for s in arr:
-            print(actiondict['axis'],' : ', s)
-            self.datman.dim_coord(actiondict, s, meta={'units': str(unit), **actiondict})
-            #store_coord()
-
+            if actiondict['axis'] == 'x':
+                # It is possible to add values to a coordinate on the fly (and let it grow as the measurement progresses:
+                self.datman.dim_coord(actiondict, s, unit=unit)
+            # In this example, add a line when x value changes (outer loop)
+            if actiondict['axis']=='x':
+                print('---------------------')
+            print(actiondict['axis'],' : ', s, unit)
             nesting()
-            self.check_pause()
+            if self.pause_measurement(): return  # Use this line to check for stop and pause
+        if self.break_measurement(): return  # Use this line to check for break
 
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
@@ -174,8 +176,23 @@ class MyExperiment(BaseExperiment):
         fake_data = np.random.random(11)
         self.datman.dim_coord('wav', fake_wav_nm, meta={'unit': 'nm'})
         self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict, unit='counts')
+        sleep(0.1)  # slow down this dummy measurement
+        # nesting()
 
-
+    def dummy_measurement_for_testing_gui_buttons(self):
+        self.logger.info('Starting test measurement')
+        self.reset_measurement_flags()
+        self.running_status = self._running
+        for outer in range(4):
+            print('outer', outer)
+            for inner in range(4):
+                print('    inner', inner)
+                sleep(1)
+                # if self.stop_measurement(): return      # Use this line to check for stop
+                if self.pause_measurement(): return  #: return     # Use this line to check for pause
+            if self.break_measurement(): return      # Use this line to check for stop
+        self.reset_measurement_flags()
+        self.logger.info('Measurement finished')
 
 if __name__ == '__main__':
     # ### To change the logging level:
@@ -186,7 +203,7 @@ if __name__ == '__main__':
     # ### To change the logging file:
     # logman.set_file('example_experiment.log')
 
-    test_with_gui = False
+    test_with_gui = True
 
     # prepare folders and files:
     this_folder = os.path.dirname(os.path.abspath(__file__))

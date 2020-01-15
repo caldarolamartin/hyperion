@@ -62,10 +62,10 @@ class DefaultDict(dict):
         elif key in self.default_dict:
             return self.default_dict[key]
         elif self.__ReturnNoneForMissingKey:
-            # self.__logger.debug('Key {} not in main and not in default: returning None because ReturnNoneForMissingKey=True'.format(key))
+            self.__logger.debug('Key not in main and not in default: returning None because ReturnNoneForMissingKey=True')
             return None
         else:
-            # self.__logger.error('DefaultDict: key not found: {}'.format(key))
+            self.__logger.error('DefaultDict: key not found: {}'.format(key))
             raise KeyError(key)
 
     def __setitem__(self, key, value):
@@ -160,12 +160,12 @@ class DataManager:
     datman.meta('spectrum', dic={'model': 'aaa'})
     """
     def __init__(self, experiment, lowercase=False):
+
         self.logger = logging.getLogger(__name__)
         self.experiment = experiment
         self.filename = None
         self._is_open = False
         self.lowercase = lowercase
-        self._version = 0.1
 
     def open_file(self, filename, write_mode='w', **kwargs):
         """
@@ -184,7 +184,6 @@ class DataManager:
             self.root = Dataset(filename, write_mode, format='NETCDF4', **kwargs)
             self._is_open = True
             self.meta(dic=self.experiment._saving_meta)
-            self.meta(DataManager=self._version)
             self.sync_hdd()
             print('completed adding meta after opening')
 
@@ -241,8 +240,8 @@ class DataManager:
         If Dimension does not exist it is created.
         If Coordinate does not exist it is created.
         If an array is passed, those values are put in the Coordinates. The Dimension is of fixed size.
-        If a value (int or float) is passed, Dimension is of unlimited size and the value is appended to the Coordinates.
-        Note that values are only appended during the first iteration of a parent loops
+        If an value (int or float) is passed, Dimension is of unlimited size and the value is appended to the Coordinates.
+        Note that values are only appended during the first iteration of a parent loops ( if sum(experiment._nesting_indices)==0 ).
         Optionally meta parameters can passed as meta={} or as keyword arguments.
         Note that the name is converted to a valid python object name by replacing illegal characters to '_'.
 
@@ -266,19 +265,9 @@ class DataManager:
                 self.root.variables[name][:] = array_or_value
             if meta is not None:
                 self.meta(name, meta)
-
-        if type(array_or_value) is not np.ndarray:
-            if name in self.experiment._nesting_parents:
-                indx = 1+ self.experiment._nesting_indices[self.experiment._nesting_parents.index(name)]
-            else:
-                indx = 0
-            if indx >= self.root.variables[name].size:
-                self.root.variables[name][indx] = array_or_value
-        ### old alternative to the 7 lines above
-        # if type(array_or_value) is not np.ndarray:
-        #     if (len(self.experiment._nesting_indices) == 0 or len(self.experiment._nesting_indices)<len(self.experiment._nesting_parents)):
-        #         self.root.variables[name][self.root.variables[name].size] = array_or_value
-
+        if not sum(self.experiment._nesting_indices) and ((type(array_or_value) is float) or (type(array_or_value) is int)):
+            # if the parent loop is at its first index: append the value to the coordinate
+            self.root.variables[name][self.root.variables[name].size] = array_or_value
 
     def __attach_meta(self, attach, dic):
         """
@@ -418,7 +407,7 @@ class DataManager:
         """
         Closes the file. ( First applies sync_hdd() )
         """
-        if self._is_open and self.root.isopen():
+        if self.root.isopen():
             self.root.sync()        # Don't know if this is necessary
             self.root.close()
         self._is_open = False
@@ -468,87 +457,56 @@ class BaseExperiment:
         self._measurement_name = ''
         self.datman = DataManager(self)
         self._finalize_measurement_method = lambda *args, **kwargs: None
-        self.__store_properties = None
-        # self._exit_status = 'running'
+
         self._saving_meta = {}
 
-        # placeholder do-nothing function that can be overwritten by saver gui
-        self._saver_gui_incremeter = lambda : None  # empty function
+        # self._data = DataManager('test.nc', self)
+        # self.te
 
 
 
     def reset_measurement_flags(self):
-        """ Reset measurement flags (at the end of a measurement or when it's stopped). """
+        """ Reset measurement flags (at the end of a measurement or when it's stopped)."""
         self.apply_pause = False   # used for temporarily interrupting a measurement
         self.apply_break = False   # used for a soft stop (e.g. stop after current loop iteration)
         self.apply_stop =  False   # used for a hard stop
         self.running_status = 0  # 0 for not running, 1 for paused, 2 for breaking, 3 for stopping
 
-
+    # Decorator for stopping function:
+    # If optional keyword argument force is set to True it will set self.apply_stop to True.
+    # Calls the stop method it applied to and then reset_measurement_flags()
     def check_stop(function):
-        """
-        Decorator for stopping function:
-        If optional keyword argument force is set to True it will set self.apply_stop to True.
-        Calls the stop method it applied to and then reset_measurement_flags()
-        """
         def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
-            if self.running_status == self._stopping:
-                return True
-            if self.apply_stop or force:
+            if force: self.apply_stop = True
+            if (self.apply_stop or force) and self.running_status < self._stopping:
                 self.running_status = self._stopping
                 function(self, *args, **kwargs)
+                self.reset_measurement_flags()  # make sure all flags are reset
                 return True
-            else:
-                return False
-            #
-            # if force: self.apply_stop = True
-            # if (self.apply_stop or force):# and self.running_status < self._stopping:
-            #     # Only run the function the first time
-            #     if self.running_status != self._stopping:
-            #         function(self, *args, **kwargs)
-            #     self.running_status = self._stopping
-            #     # self.reset_measurement_flags()  # make sure all flags are reset    ##  THIS LINE PREVENTS NESTED FUNCTION FROM ESCAPING ALL LAYERS, HAVE TO LOOK INTO THIS HOW TO SOLVE
-            #     return True
-            # return False
-
-            # if force: self.apply_stop = True
-            # if (self.apply_stop or force):# and self.running_status < self._stopping:
-            #     # Only run the function the first time
-            #     if self.running_status != self._stopping:
-            #         function(self, *args, **kwargs)
-            #     self.running_status = self._stopping
-            #     # self.reset_measurement_flags()  # make sure all flags are reset    ##  THIS LINE PREVENTS NESTED FUNCTION FROM ESCAPING ALL LAYERS, HAVE TO LOOK INTO THIS HOW TO SOLVE
-            #     return True
-            # return False
+            return False
         return wrapper_accepting_arguments
 
+    # Decorator for breaking function:
+    # First checks for "Stop", then calls the break function it is applied to, if self.apply_break is True
+    # In that case also sets self.running_status to self._breaking
     def check_break(function):
-        """
-        Decorator for breaking function:
-        First checks for "Stop", then calls the break function it is applied to, if self.apply_break is True
-        In that case also sets self.running_status to self._breaking
-        """
         def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
             # First check for "Stop" and return True if True
             if self.stop_measurement():
                 return True
             # if force: self.apply_break = True
             if self.apply_break and self.running_status < self._stopping:
-                # if not self.__exitself._exit_status = self._breaking
                 self.running_status = self._breaking
                 function(self, *args, **kwargs)
                 return True
-            else:
-                return False
+            return False
         return wrapper_accepting_arguments
 
+    # Decorator for pausing function
+    # First checks for "Stop", then calls the pause function it is applied to, if self.apply_pause is True
+    # In that case also sets self.running_status to self._pausing. Afterward, srestores self.running_status to state it
+    # was before (unless modified externally)
     def check_pause(function):
-        """
-        Decorator for pausing function:
-        First checks for "Stop", then calls the pause function it is applied to, if self.apply_pause is True
-        In that case also sets self.running_status to self._pausing. Afterward, restores self.running_status to state it
-        was before (unless modified externally)
-        """
         def wrapper_accepting_arguments(self, *args, force=False, **kwargs):
             # First check for "Stop" and return True if True
             if self.stop_measurement():
@@ -585,13 +543,11 @@ class BaseExperiment:
     def stop_measurement(self):
         """ The decorator also gives it one extra keyword argument 'force' which will set the apply_stop flag for you. """
         self.logger.info('Custom stop method: Override if you like. Just use @check_stop decorator')
-        # Set the self._exit_status string:
+        # Do stuff
+        self._finalize_measurement_method()
 
-        # Automatically call method set in self._finalize_measurement_method
-        self._finalize_measurement_method({'Name': self._measurement_name}, lambda *args, **kwargs: None)
-        # Reset self._finalize_measurement_method to a do nothing function:
         self._finalize_measurement_method = lambda *args, **kwargs: None
-        # self.reset_measurement_flags()
+        self.reset_measurement_flags()
         self.logger.info('Measurement stopped')
 
     @check_break  # This decorator makes sure that the break method it is applied to, is only executed if self.apply_break is True
@@ -613,16 +569,6 @@ class BaseExperiment:
             if self.stop_measurement():
                 return True        # in that case return True
 
-    @property
-    def exit_status(self):
-        if self.apply_stop:
-            return 'stopped'
-        elif self.apply_break:
-            return 'break'
-        elif self.running_status == 1:
-            return 'completed'
-        else:
-            return 'unknown'
 
     def __enter__(self):
         return self
@@ -633,9 +579,22 @@ class BaseExperiment:
 
     # SMARTSCAN METHODS: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+    def temporary_test_for_data_manager(self):
+        pass
+
+
+    def init_datastore(self):
+        pass
+
+    def add_coord(self, array):
+        pass
+
+    def add_data(self, name, data):
+        pass
+
     def _validate_actionlist(self, actionlist, _complete=None, invalid_methods=0, invalid_names=0):
         """
-        Returns a 'corrected' copy (does not modify input) and
+        returns a corrected copy (does not modify input) and
 
         _validate_actionlist(complete_actionlist)
         _complete is used for recursion
@@ -710,6 +669,71 @@ class BaseExperiment:
                 self.logger.info("[Action '{}'] Using _method '{}' from [ActionType: '{}']".format(action_name, self.actiontypes[actiondict['Type']]['_method'], actiondict['Type']))
         return actiondict, invalid_method, invalid_name
 
+
+        # # It method is specified in actiondict, test if the method exists.
+        # # If not, set a flag to overwrite it with the one in actiontype
+        # method_name = None
+        # invalid_method = False
+        # if '_method' in actiondict:
+        #     method_name = actiondict['_method']
+        #     if not hasattr(self, method_name):
+        #         self.logger.warning("[in Action: '{}'] _method '{}' doesn't exist, (trying default)".format(action_name, method_name))
+        #         invalid_method = True
+        #
+        # # copy default parameters from action if they don't exist in actiondict
+        # if 'Type' not in actiondict:
+        #     if invalid_method or method_name is None:
+        #         self.logger.warning("error: [in '{}'] if no ActionType is specified, a valid _method is required".format(method_name))
+        #         # NOTE TO SELF: WHY method_name ??????????????
+        # else:
+        #     actiontype = actiondict['Type']
+        #     if actiontype not in self.actiontypes:
+        #         self.logger.warning("[in action: '{}'] unknown ActionType: '{}'".format(action_name, actiontype))
+        #     else:
+        #         # Copy parameters that don't exist in actiondict. Except '_method'
+        #         for key in self.actiontypes[actiontype]:
+        #             if key not in actiondict and key is not '_method':
+        #                 actiondict[key] = self.actiontypes[actiontype][key]
+        #         # Special case for '_method'
+        #         #                type_has_method = '_method' in self.actiontypes[actiontype]
+        #         #                if not type_has_method:
+        #         #                    if invalid_method or method_name is None:
+        #         #                        print('error: [in {}] no method specified'.format(actiontype))
+        #         #                else:
+        #         #                    if
+        #
+        #         if invalid_method or method_name is None:
+        #             if '_method' in self.actiontypes[actiontype]:
+        #                 method_name = self.actiontypes[actiontype]['_method']
+        #                 if hasattr(self, method_name):
+        #                     if invalid_method:
+        #                         self.logger.debug('_method {} in [Action: {}] replaced with default _method {} from [ActionType: {}] overwriting Actiondict method with default from Actiontype: {}'.format(
+        #                                 actiondict['_method'], action_name, method_name, actiontype))
+        #                     actiondict['_method'] = method_name
+        #                     invalid_method = False
+        #                 else:
+        #                     self.logger.warning("error: [in ActionType: {}] default _method {} doesn't exist".format(actiontype,
+        #                                                                                               method_name))
+        #                     method_name = None
+        #             else:
+        #                 self.logger.warning('error: [in ActionType: {}] no _method specified'.format(actiontype))
+        #
+        # #                if invalid_method and '_method' in self.actiontypes[actiontype]:
+        # #                    methodname =  self.actiontypes[actiontype]['_method']
+        # #                    if hasattr(self, methodname):
+        # #                        actiondict['_method'] = methodname
+        # #                        print('debug: overwriting actiondict method with default from actiontype: {}'.format(methodname))
+        # #                        invalid_method = False
+        # #                    else:
+        # #                        methodname = None
+        # #                        print("error: default method from actiontype {} also doesn't exist".format(methodname))
+        # #                        raise Exception('_method doe')
+        #
+        # if method_name is None:
+        #     self.logger.warning('No valid _method specified')
+        #
+        # return actiondict
+
     def all_action_names(self, complete_actionlist):  # , name_list = [], unnamed=0):
         # outputlist = all_action_names(complete_actionlist)
         # recursive function to find all names in a measurement list/dict structure
@@ -781,26 +805,7 @@ class BaseExperiment:
             if hasattr(self, 'version'):
                 self._saving_meta['version'] = self.version
             self._saving_meta['Measurement'] = measurement_name
-
-            self.reset_measurement_flags()
-            self.running_status = self._running
-            # self._exit_status = 'running'
-
             self.perform_actionlist(self.properties['Measurements'][measurement_name])
-
-            self.reset_measurement_flags()
-            self.logger.info('Measurement finished')
-
-            if self.__store_properties:
-                self.logger.info('Storing experiment properties in {}'.format(self.__store_properties))
-                with open(self.__store_properties, 'w') as f:
-                    yaml.dump(self.properties, f)
-                self.__store_properties = None
-
-            # If the gui has overwritten this function, this will update the incrementer-number in the gui
-            # (it's not strictly necessary to do this, but it's nice if the gui updates)
-            # Note that if the gui hasn't overwritten this function, it is an empty do-nothing function.
-            self._saver_gui_incremeter()
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
 
@@ -817,9 +822,6 @@ class BaseExperiment:
         :return:
         """
 
-        # if self.stop_measurement(): return
-        if self.pause_measurement(): return  #: return     # Use this line to check for pause
-
         if parents == []:
             self._nesting_indices = []
 
@@ -832,13 +834,34 @@ class BaseExperiment:
         else:
             print('??????????????')
 
+
+
+        # print('parents: ', parents, 'values: ', parent_values)
         # typically used on the whole list
         # In a an action that has nested Actions
         for actiondictionary in actionlist:
-            # check for stop and pause
-
             actiondict = ActionDict(actiondictionary, exp=self)
             actionname = actiondict['Name']
+
+
+            # if 'Type' in actiondictionary:
+            #     if actiondictionary['Type'] in self.actiontypes:
+            #         actiondict = copy.deepcopy(self.actiontypes[actiondictionary['Type']])
+            #     else:
+            #         actiondict = {}
+            #         self.logger.warning('Ignoring unknown actiontype {}'.format(actiondictionary['Type']))
+            # else:
+            #     actiondict = {}
+            #
+            # # merge dictionaries (actiondictionary overrides actiontype)
+            # actiondict.update(actiondictionary)
+
+            # try:
+            #     method = getattr(self, actiondict['_method'])
+            # except KeyError:
+            #     raise KeyError('No _method found in actiondict or actiontype')
+            # except AttributeError:
+            #     raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
 
             if '_method' not in actiondict:
                 raise KeyError('No _method found in actiondict or actiontype')
@@ -847,6 +870,39 @@ class BaseExperiment:
                     method = getattr(self, actiondict['_method'])
                 except AttributeError:
                     raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
+
+
+            # # if a method is specified it overrules the default from actiontype
+            # if '_method' in actiondict:
+            #     self.logger.debug('Using direct _method {} for {}'.format(actiondict['_method'], actionname))
+            #     method = getattr(self, actiondict['_method'])
+            # # get default values from actiontype, but don't overwrite existing values in actiondict
+            # if 'Type' in actiondict:
+            #     actiontype = actiondict['Type']
+            #     if actiontype in self.actiontypes:
+            #         for key, value in self.actiontypes[actiontype].items():
+            #             if key not in actiondict:
+            #                 actiondict[key] = value
+            #     if '_method' not in actiondict:
+            #         self.logger.warning(
+            #             'error: actiontype {} does not specify method (and actiondict {} also does not specify method)'.format(
+            #                 actiontype))
+
+            # if '_method' in actiondict:
+            #
+            #     # if parents == []:
+            #     #     self._nesting_indices = []  # reset it just to be sure
+            #     # # if it's a new parent, add a zero index to
+            #     # elif len(self._nesting_indices) < len(parents):
+            #     #     self._nesting_indices += [0]
+            #
+            #
+            #     # else:
+            #     #     print("what's going on")
+            #
+            #     # repeat this here so actions outside   NO this only works outside all loops
+            #     # if parents == []:
+            #     #     self._nesting_indices = []
 
             self._nesting_parents = parents  # to make it available outside
 
@@ -861,15 +917,28 @@ class BaseExperiment:
                 nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
                 # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
             else:
-                nesting = lambda *args, **kwargs: None        # a "do nothing" function
-                # nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
-
-
+                # nesting = lambda *args, **kwargs: None        # a "do nothing" function
+                nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
                 # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
+            # method = getattr(self, actiondict['_method'])
+            # print('                                       ', actionname, '   parents: ', parents, '   indices: ',self._nesting_indices)
 
+            # store = lambda *args, **kwargs: self._datman.add(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
+            # method(actiondict, nesting, store)
             method(actiondict, nesting)
-            # if self.stop_measurement(): return
-            if self.pause_measurement(): return  #: return     # Use this line to check for pause
+
+
+
+            # if len(parents) == len(self._nesting_indices) and len(self._nesting_indices):
+            #         self._nesting_indices[-1] += 1
+            #
+            # if len(self._nesting_indices) > len(parents):
+            #     del self._nesting_indices[-1]
+
+            # else:
+            #     self.logger.warning('in {}: actiondict requires either method or an actiontype that contains a method'.format(
+            #         actiondict['Name']))
+
 
         if len(parents) < len(self._nesting_indices):
             del self._nesting_indices[-1]
@@ -877,66 +946,12 @@ class BaseExperiment:
 
     def save(self, data, auto=True, **kwargs):
         indx = self._nesting_indices[:len(self._nesting_parents)]
+        # print(indx)
 
     def default_saver(self, actiondict, nesting):
-        folder, basename = self._validate_folder_basename(actiondict)
-        if actiondict['auto_increment']:
-            existing_files = os.listdir(actiondict['folder'])
-            basename = name_incrementer(actiondict['basename'], existing_files)
-        filename_complete = os.path.join(folder, basename)
-        self.datman.open_file(filename_complete, lowercase=True)
-        if actiondict['comment']:  # This will not add comment if it's empty or non-existing
-            self.datman.meta(dic={'comment':actiondict['comment']})
-        if actiondict['store_properties']:
-            self.__store_properties = os.path.splitext(filename_complete)[0]+'.yml'
+        # talks to the gui and sets values like filename
+        pass
 
-
-    def _validate_folder_basename(self, actiondict):
-        """
-        Primarily intended to be used with actiondict as input (but also works with string.
-        If actiondict contains folder key, that folder wil be used.
-        If actiondict contains basename key, that basename will be used.
-        Otherwise if folder actually included the filename, that will be used for basename.
-        Otherwise the measurement name will be used as basename.
-
-        If a string is passed instead of an actiondict, that string will be used as folder.
-        If that string also includes the filename, that will be used for basename.
-        Otherwise the measurement name will be used as basename.
-
-        If the folder (ans its parent folders) don't exist they will be created.
-
-        :param actiondict:
-        :return: folder, basename
-        """
-        basename = None
-        if type(actiondict) is str:
-            folder = actiondict
-        else:
-            if 'folder' in actiondict:
-                folder = actiondict['folder']
-            else:
-                folder = os.path.join(hyperion.parent_path , 'data')
-            if 'basename' in actiondict:
-                basename = actiondict['basename']
-        # convert potential relative path to absolute path:
-        folder = os.path.abspath(folder)
-        # if it ends with an extension, remove filename
-        if os.path.splitext(folder)[1]:
-            folder = os.path.dirname()
-            if not basename:
-                basename = os.path.split(folder)[1]
-        if not basename:
-            basename = self._measurement_name
-        # create the folder (and parent folders if necessary):
-        if not os.path.isdir(folder):
-            self.logger.info('Creating path: {}'.format(folder))
-            os.makedirs(folder)
-        # # if input was actiondict: update the values:
-        # if type(actiondict) is not str:
-        #     actiondict['folder'] =
-        #     actiondict['basename']
-        #
-        return folder, basename
 
 
     def create_saver(self, actiondict, nesting):
@@ -976,20 +991,18 @@ class BaseExperiment:
             self.actiontypes = {}
 
     def finalize(self):
-        """
-        Finalizes the experiment class.
-        Closes all instruments in instrument_instances
-        """
+        """ Finalizing the experiment class """
         self.logger.info('Finalizing the experiment base class. Closing all the devices connected')
         for name in self.instruments_instances:
             self.logger.info('Finalizing connection with device: {}'.format(name))
             self.instruments_instances[name].finalize()
         self.logger.debug('Closing open datafiles if there are any.')
-        self.datman.close()
+        if self._data is not None and self._data.isopen:
+            self._data.close()
         self.logger.debug('Experiment object finalized.')
 
     def load_instrument(self, name):
-        """ Loads a single instrument given by name.
+        """ Loads an instrument given by name
 
         :param name: name of the instrument to load. It has to be specified in the config file under Instruments
         :type name: string
@@ -997,7 +1010,6 @@ class BaseExperiment:
         """
         self.logger.debug('Loading instrument: {}'.format(name))
 
-        ### This is OLD CODE. I leave it here for some time while testing the NEW CODE below:
         # try:
         #     di = self.properties['Instruments'][name]
         #     module_name, class_name = di['instrument'].split('/')
@@ -1013,7 +1025,7 @@ class BaseExperiment:
         # except KeyError:
         #     self.logger.warning('The name "{}" does not exist in the config file'.format(name))
         #     return None
-        ### NEW CODE:::::::::::::::::
+        # # NEW CODE:::::::::::::::::
         if name not in self.properties['Instruments']:
             self.logger.warning('Instrument not specified in config: {}'.format(name))
         elif 'instrument' not in self.properties['Instruments'][name]:
@@ -1023,40 +1035,48 @@ class BaseExperiment:
             if instr_class is None:
                 self.warning("Couldn't load instrument class: {}".format(self.properties['Instruments'][name]['instrument']))
                 return None
-            instance = instr_class(self.properties['Instruments'][name])  # added this line
-            self.instruments_instances[name] = instance
-            self.logger.debug('Instrument: {} has been loaded and added to instrument_instances'.format(name))
+            instance = instr_class(self.properties['Instruments'][name])
+            # self.instruments_instances[name] = instance
             return instance
         return None
 
+
+        # for inst in self.properties['Instruments']:
+        #     self.logger.debug('Current instrument information: {}'.format(self.properties['Instruments'][inst]))
+        #
+        #     if name == inst:
+        #         module_name, class_name = self.properties['Instruments']['instrument'].split('/')
+        #         self.logger.debug('Module name: {}. Class name: {}'.format(module_name, class_name))
+        #         my_class = getattr(importlib.import_module(module_name), class_name)
+        #         instance = my_class(inst)
+        #         self.instruments.append(inst)
+        #         self.instruments_instances.append(instance)
+        #         return instance
+        #
+        # self.logger.warning('The name "{}" does not exist in the config file'.format(name))
+        # return None
+
     def load_instruments(self):
         """"
-        SOME MODIFICATION:
-        I've moved the bit of adding an instrument to instrument_instances to load_instrument.
-        That way also manually loaded instruments will be closed by finalize()
-
         This method creates the instance of every instrument in the config file (under the key Instruments)
         and sets this instance in the self.instruments_instances (this is a dictionary).
         This way they are approachable via self.instruments_instances.items(),
         The option to set the instruments by hand is still possible, but not necessary because the pointer
-        to the instrument is in the instruments_instances.
+        to the instrument 'lives' in the instruments_instances.
 
         The instruments in the self.instruments_instances are going to be finalized when  the exit happens,
-        so if you load an instrument manually and do not add it to this dictionary, you need to take care of
+        so if you load an instrument manualy and do not add it to this dictionary, you need to take care of
         the closing.
+
         """
-
         for instrument in self.properties['Instruments']:
-            self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-
-        # for instrument in self.properties['Instruments']:
-        #     inst = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-        #     if inst is None:
-        #         self.logger.warning(" The instrument: {} is not connected to your computer".format(instrument))
-        #     else:
-        #         self.instruments_instances[instrument] = inst
-        #         self.logger.debug('Object: {} has been loaded in '
-        #                       'instrument_instances {}'.format(instrument, self.instruments_instances[instrument]))
+            inst = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+            if inst is None:
+                self.logger.warning(" The instrument: {} is not connected to your computer".format(instrument))
+            else:
+                self.instruments_instances[instrument] = inst
+                self.logger.debug('Object: {} has been loaded in '
+                              'instrument_instances {}'.format(instrument, self.instruments_instances[instrument]))
 
 
 if __name__ == '__main__':

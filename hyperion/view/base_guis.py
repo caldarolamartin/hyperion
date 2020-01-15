@@ -529,6 +529,10 @@ class BaseMeasurementGui(BaseGui):
                 self.button_start_pause.setText('Continue')
             else:
                 self.button_start_pause.setText('Pause')
+            if self.experiment.apply_break:
+                self.button_break.setText('Breaking')
+            else:
+                self.button_break.setText('Break')
             self.button_start_pause.setEnabled(self.experiment.running_status < self.experiment._breaking)
             self.button_break.setEnabled(self.experiment._not_running < self.experiment.running_status < self.experiment._breaking)
             self.button_stop.setEnabled(self.experiment._not_running < self.experiment.running_status < self.experiment._stopping)
