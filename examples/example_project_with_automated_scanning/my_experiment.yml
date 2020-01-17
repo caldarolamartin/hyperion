@@ -95,7 +95,7 @@ Measurements:       # dictionary of Measurements
 ActionTypes:       # dictionary of ActionTypes
   saver:
     _method: default_saver
-    _view: gui.gui_elements/SaverGui
+    _view: hyperion.view.action_guis/SaverGui
     folder: c:/Temp
     auto_increment: True
   atto_scanner:       # key (this is the name to refer to in an Action inside a Measurement
@@ -106,7 +106,7 @@ ActionTypes:       # dictionary of ActionTypes
     _method: sweep_atto # key inside the ActionType-dictionary atto_scanner
     _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
 #    _view: gui.gui_elements/ScanMicroPositioner
-    _view: gui.gui_elements/ScanMicroPositioner
+    _view: hyperion.view.action_guis/ScanMicroPositioner
     step_min: 1nm
   histogram:
     _method: histogram
@@ -120,7 +120,7 @@ ActionTypes:       # dictionary of ActionTypes
     exposuretime_min: 1us
     exposuretime_max: 2hr
   spectrum:
-    exposuretime: 2
+    exposuretime: 2s
     _view: gui.gui_elements/ExampleActionGui
     _method: spectrum
     _ui: spectrum.ui

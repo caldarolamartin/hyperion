@@ -339,7 +339,7 @@ class ModifyMeasurement(QDialog):
 
 class BaseMeasurementGui(BaseGui):
     """
-    Builds a Meaasurement GUI based on the Measurement actionlist in experiment.properties (which is read from the
+    Builds a Measurement GUI based on the Measurement actionlist in experiment.properties (which is read from the
     config file). The GUI will follow the nested structure in the actionlist.
     Note that the Actions in the actionlist need to refer to an appropriate GUI file and Widget and to an appropriate
     method in the experiment (which should contain nested() if nesting is to be possible).
@@ -548,52 +548,10 @@ class BaseMeasurementGui(BaseGui):
         return (invalid_methods==0 and invalid_names==0)
 
 
-# This saver widget is a rudimentary start and is not used at the moment:
-class SaverWidget(BaseGui):
-    def __init__(self):
-        super().__init__()
-
-        self.initUI()
-
-    def initUI(self):
-        form_layout = QFormLayout()
-        folder = QLineEdit()
-        filename = QLineEdit()
-        form_layout.addRow(QLabel('folder:'),folder)
-        form_layout.addRow(QLabel('filename:'), filename)
-        input_fields = QWidget()
-        input_fields.setLayout(form_layout)
-
-        grid_layout = QGridLayout()
-        combo_version = QComboBox()
-        # combo_version.addItems()
-        but_open = QPushButton('Browse')
-        but_open.clicked.connect(self.save_file_dialog)
-        grid_layout.addWidget(input_fields, 0, 0)
-        grid_layout.addWidget(but_open, 0, 1)
-
-        self.setLayout(grid_layout)
-        self.show()
-
-    def save_file_dialog(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
-                                                  "HDF5 Files (*.h5);;All Files (*)", options=options)
-        if fileName:
-            print(fileName)
 
 
-
-    # increment
-    # fail
-    # overwrite
-    # append, increment
-    # append, overwrite
-    # append, fail
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    sw = SaverWidget()
-    app.exec_()
-    # sys.exit(app.exec_())
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     pass
+#     app.exec_()
+#     # sys.exit(app.exec_())
