@@ -803,7 +803,7 @@ class BaseExperiment:
     # def perform_measurement(self, actionlist, parent_values = [], parents=[]):
     def perform_actionlist(self, actionlist, parents=[], save=True):
         """
-        Used to perform a measuement based on the actionlist
+        Used to perform a measurement based on the actionlist
 
         :param actionlist:
         :param parents:

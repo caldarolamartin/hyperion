@@ -102,6 +102,9 @@ class MyExperiment(BaseExperiment):
         self.datman.dim('im_x', fake_data.shape[1])
         self.datman.var(actiondict, fake_data, extra_dims=('im_y', 'im_x') )
         self.datman.meta(actiondict, {'exposuretime': actiondict['exposuretime'], 'filter_a': actiondict['filter_a'], 'filter_b': actiondict['filter_b'] })
+        # self.datman.meta(actiondict, expo='5s')
+        # self.datman.meta(actiondict, actiondict)
+
 
     def sweep_atto(self, actiondict, nesting):
         # print('sweep_atto: ',actiondict['Name'])
@@ -115,7 +118,7 @@ class MyExperiment(BaseExperiment):
         for s in arr:
             if actiondict['axis'] == 'x':
                 # It is possible to add values to a coordinate on the fly (and let it grow as the measurement progresses:
-                self.datman.dim_coord(actiondict, s, unit=unit)
+                self.datman.dim_coord(actiondict, s, meta={'units': str(unit)})
             # In this example, add a line when x value changes (outer loop)
             if actiondict['axis']=='x':
                 print('---------------------')
@@ -143,14 +146,14 @@ class MyExperiment(BaseExperiment):
 
     def measure_power(self, actiondict, nesting):
         fake_data = np.random.random()
-        self.datman.var(actiondict, fake_data, meta=actiondict, unit='mW')
+        self.datman.var(actiondict, fake_data, meta=actiondict, units='mW')
         nesting()
 
     def fake_spectrum(self, actiondict, nesting):
         fake_wav_nm = np.arange(500, 601, 10)
         fake_data = np.random.random(11)
-        self.datman.dim_coord('wav', fake_wav_nm, meta={'unit': 'nm'})
-        self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict, unit='counts')
+        self.datman.dim_coord('wav', fake_wav_nm, meta={'units': 'nm'})
+        self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict, units='counts')
         sleep(0.1)  # slow down this dummy measurement
         nesting()
 

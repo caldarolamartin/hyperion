@@ -46,6 +46,7 @@ Measurements:       # dictionary of Measurements
       Type: image                               # Used to get some default values
       _method: image_with_filter                # Override the _method of Type with a custom one
       _view: gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
+      exposuretime: 5min
       filter_a: True
       filter_b: False
     - Name: Scan Atto X
@@ -68,8 +69,8 @@ Measurements:       # dictionary of Measurements
           ~nested:
             - Name: Spectrum
               _method: fake_spectrum
-    - Name: break_after_scanning_XY
-      _method: check_break
+        - Name: break_after_scanning_XY
+          _method: check_break
     - Name: Finalize
       _method: finalize_example_measurement_A
 

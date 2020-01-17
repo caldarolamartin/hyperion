@@ -80,6 +80,7 @@ class ImageWithFilters(BaseGui):
 
     def initUI(self):
         self.layout = QHBoxLayout()
+
         self.expo_value = QDoubleSpinBox()
         self.expo_units = QComboBox()
         display_units = ['us', 'ms', 's', 'min', 'hr']
@@ -119,7 +120,9 @@ class ImageWithFilters(BaseGui):
         # self.layout.addWidget(placeholder)
 
     def expo_changed(self):
-        self.actiondict['exposuretime'] = str(spin_combo_to_pint_apply_limits(self.expo_value, self.expo_units, Q_(self.actiondict['exposuretime_min']), Q_(self.actiondict['exposuretime_max'])))
+        self.actiondict['exposuretime'] = str(spin_combo_to_pint_apply_limits(self.expo_value, self.expo_units,
+                                                                              Q_(self.actiondict['exposuretime_min']),
+                                                                              Q_(self.actiondict['exposuretime_max'])))
 
     def set_filter_a(self, state):
         self.actiondict['filter_a'] = state
