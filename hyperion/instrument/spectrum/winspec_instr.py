@@ -26,7 +26,7 @@ ws.controller.exp_get('EXPOSURETIME')
 ws.controller.exp_get('GRAT_GROOVES')
 
 """
-
+import threading
 from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
@@ -170,6 +170,8 @@ class WinspecInstr(BaseInstrument):
 
         if name==None:
             # name=self.default_name
+            if hasattr(self,'doc'):
+                self.doc.Close()
             self.doc = self.controller.docfile()
         else:
             if hasattr(self,'doc'):
@@ -191,6 +193,32 @@ class WinspecInstr(BaseInstrument):
         for index in range(len(self.frame)):
             wav.append(cal.Lambda(index+1))
         return wav
+
+    def collect_spectrum_alt(self):
+        thread = threading.Thread(self.waitforacquiring())
+        thread.start()
+        thread.join()
+        self.frame = self.doc.GetFrame(1,self.controller._variant_array)
+        # return frame                      # direct tuple of tuples
+        # return np.asarray(frame)          # np approach
+        if len(self.frame[0])==1:
+            return [col[0] for col in self.frame] # convert to 1D list
+        else:
+            return [list(col) for col in self.frame] # convert to nested list
+
+    def start_focus(self):
+
+        if hasattr(self, 'doc'):
+            self.doc.Close()
+        self.doc = self.controller.docfile()
+
+        self.controller.exp.StartFocus(self.doc)
+
+    def stop_focus(self):
+
+        self.controller.exp.Stop()
+
+
 
     def collect_spectrum(self, wait=True, sleeptime=True):
         """
@@ -219,6 +247,10 @@ class WinspecInstr(BaseInstrument):
         else:
             return [list(col) for col in self.frame] # convert to nested list
 
+    def waitforacquiring(self):
+        while self.is_acquiring == True:
+            time.sleep(0.1)
+
     def take_spectrum(self, name=None, sleeptime=True):
         """
         Acquire spectrum, wait for data and collect it.
@@ -228,6 +260,16 @@ class WinspecInstr(BaseInstrument):
 
         self.start_acquiring(name)
         return self.collect_spectrum(True, sleeptime)
+
+    def take_spectrum_alt(self, name=None, sleeptime=True):
+        """
+        Acquire spectrum, wait for data and collect it.
+        Performs start_acquiring(name), followed by collect_spectrum(True).
+        See those methods for more details.
+        """
+
+        self.start_acquiring(name)
+        return self.collect_spectrum_alt()
 
     def saveas(self, filename):
         """
@@ -625,10 +667,35 @@ class WinspecInstr(BaseInstrument):
         exp_pint_unit = winspec_exposure_units[ self.controller.exp_get('EXPOSURETIME_UNITS')[0] -1 ]
         exp_value = self.controller.exp_get('EXPOSURETIME')[0]
         self._exposure_time = exp_value * exp_pint_unit
+
         return self._exposure_time
 
+    @property
+    def exposure_time_alt(self):
+        exp_value=self.controller.exp_get('EXPOSURE')[0]
+        self._exposure_time = exp_value * ur('s')
+
+        return self._exposure_time
+
+    @exposure_time_alt.setter
+    def exposure_time_alt(self, value):
+        if type(value) is not type(Q_('s')):
+            self.logger.error('exposure_time should be Pint quantity')
+        if value.dimensionality != Q_('s').dimensionality:
+            self.logger.error('exposure_time should be Pint quantity with unit of time')
+
+        else:
+            if value.units == 'millisecond':
+                exp_value = value.m / 1000
+            elif value.units == 'second':
+                exp_value = value.m
+            elif value.units == 'minute':
+                exp_value = value.m * 60
+
+        self.controller.exp_set('EXPOSURE', exp_value)
+
     @exposure_time.setter
-    def exposure_time(self, value):
+    def exposure_time(self, value,alt=False):
         if type(value) is not type(Q_('s')):
             self.logger.error('exposure_time should be Pint quantity')
         if value.dimensionality != Q_('s').dimensionality:
@@ -884,7 +951,7 @@ class WinspecInstr(BaseInstrument):
 
 
 if __name__ == "__main__":
-
+    #logging.stream_level = logging.INFO
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
@@ -893,9 +960,9 @@ if __name__ == "__main__":
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',
                 'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
-    ws = WinspecInstr(settings_irina)
+    ws = WinspecInstr(settings)
 
-    ws.configure_settings()
+    # ws.configure_settings()
 
     test_everything = False
 
@@ -963,6 +1030,9 @@ if __name__ == "__main__":
 
     ws.shutter_control = 'Closed'
 
-    ws.central_wav = 300
-    
+    # ws.central_wav = 300
 
+
+
+
+# frame = ws.doc.GetFrame(1,ws.controller._variant_array)

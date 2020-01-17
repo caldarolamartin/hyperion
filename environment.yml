@@ -13,6 +13,7 @@ dependencies:
  - h5py                   # for saving
  - pywin32                # required for winspec
  - pip>=19
+ - xarray
  - pip:
    - pyyaml>=5.1
    - lantzdev

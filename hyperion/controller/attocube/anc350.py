@@ -813,7 +813,7 @@ if __name__ == "__main__":
 
     import time
 
-    with Anc350(setting = {'dummy': False}) as anc:
+    with Anc350(settings = {'dummy': False}) as anc:
         anc.initialize()
 
         #-------------------------------
@@ -826,9 +826,9 @@ if __name__ == "__main__":
         # instantiate position as anc
         print('-------------------------------------------------------------')
         print('capacitances:')
-        for axis in range(2):
-            print(axis, anc.capMeasure(axis))
-        print('-------------------------------------------------------------')
+        # for axis in range(2):
+        #     print(axis, anc.capMeasure(axis))
+        # print('-------------------------------------------------------------')
 
         print('setting Amplitude Control to StepWidth mode, which seems to be the close loop one')
         anc.amplitudeControl(0,2)
@@ -947,7 +947,7 @@ if __name__ == "__main__":
         #this one has only one way to make a step: put a voltage
 
         print('-------------------------------------------------------------')
-        print('moving something by putting 50V')
+        print('moving something by putting 510V')
         anc.dcLevel(3,10)
         print('put a DC level of ',anc.getDcLevel(3),'mV')
         print('no way of knowing when and if we ever arrive')

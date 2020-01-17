@@ -94,7 +94,7 @@ class HydraInstrument(BaseInstrument):
     def count_rate(self,channel):
         """ Asks the controller the rate of counts on the count channels and adds units.
         
-        :param channel: count rate channel 1 or 2 connected to the photon counter
+        :param channel: count rate channel 0 or 1 (1 or 2 on device) connected to the photon counter
         :type channel: int
         
         :return: count rate that is read out in counts per second
