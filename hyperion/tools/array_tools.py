@@ -40,13 +40,13 @@ def array_from_pint_quantities(start, stop, step=None, num=None):
     if step != None:
         ste = step.m_as(unit)   # if step doesn't have the same units as start it will result in an error
         # fixing sign:
-        if sto<ste and ste>0:
+        if sto<sta and ste>0:
             ste = -ste
 
         # Tiny floating point errors sometimes cause the end-point not to be included. To mitigate this add a tiny
         # fraction times the step to the endpoint:
-        sto += ste/1e9
-        arr = np.arange(sta, sto, ste, float)
+        beyond_stop = sto + ste/1e9
+        arr = np.arange(sta, beyond_stop, ste, float)
 
         # If the endpoint is almost equal to stop, just replace it with stop:
         if abs(sto - arr[-1]) < abs(ste*1e-9):
@@ -86,6 +86,7 @@ def array_from_settings_dict(sweep_dict):
     :param sweep_dict: Dictionary containing start, stop and step or num keys
     :return: (numpy.array, pint.unit)
     """
+    logger = logging.getLogger(__name__)
     if 'start' not in sweep_dict:
         logger.error('sweep dictionary should contain key start')
     if 'stop' not in sweep_dict:

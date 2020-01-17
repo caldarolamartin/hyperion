@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="Hyperion",
-    version="0.2",
+    version="0.4",
     author="See Authors",
     license='BSD',
     description="A small package to control devices in the Kuipers lab",
@@ -23,6 +23,7 @@ setuptools.setup(
         'lantz_drivers',
         'lantz_qt',
         'lantz_sims',
+        'h5py'
         'pyvisa-py',
         'pyserial',
         'pynput'],

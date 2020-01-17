@@ -50,6 +50,13 @@ def name_incrementer(basename, list_of_existing, separator='_', fill_zeros=0, us
         ext = ''
         extlen = 0
 
+    # If the name already exists and it looks like has an incrementer number, strip that incrementer number from the name
+    # This avoid the case that if you put in name_1 and name_1 already exists that it will return name_1_1.
+    # Now it would return name_2
+    base_inc = basename.split(separator)
+    if exact_match and len(base_inc) > 1 and str.isdigit(base_inc[-1]):
+        basename = separator.join(base_inc[:-1])
+
     baselen = len(basename)
     seplen = len(separator)
 

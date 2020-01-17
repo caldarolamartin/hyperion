@@ -16,7 +16,8 @@ import winsound
 from time import sleep
 # from hyperion import ur, root_dir
 from hyperion.experiment.base_experiment import BaseExperiment
-
+from hyperion.tools.array_tools import *
+import sys
 
 class ExampleExperiment(BaseExperiment):
     """ Example class with basic functions """
@@ -24,15 +25,13 @@ class ExampleExperiment(BaseExperiment):
     def __init__(self):
         """ initialize the class"""
         self.logger = logman.getLogger(__name__)
-        self.logger.info('Initializing the Base_Experiment class.')
+        self.logger.info('Initializing the ExampleExperiment object.')
+        super().__init__()                      # Mandatory line
         self.logger.critical('test critical')
         self.logger.error('test error')
         self.logger.warning('test warning')
         self.logger.info('test info')
         self.logger.debug('test debug')
-
-
-
 
         #initialize dictionaries where instances of instruments and gui's can be found
         self.devices = {}
@@ -80,31 +79,10 @@ class ExampleExperiment(BaseExperiment):
         winsound.Beep(1500, 200)
         winsound.Beep(3000, 500)
         sleep(0.1)
+
     def measurement(self):
         for i in range(1, 10):
             print(i)
-
-
-    # def load_instruments(self):
-    #     """"
-    #     This method gets the instance of every instrument and sets this instance
-    #     in the self.instruments_instances(this is a dictionary). This way they are approachable via self.instruments_instances.items(),
-    #     The option to set the instruments by hand is still possible, but not necessary because the pointer
-    #     to the instrument 'lives' in the instruments_instances.
-    #     """
-    #
-    #     for instrument in self.properties['Instruments']:
-    #         try:
-    #             self.instruments_instances[instrument] = self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
-    #             self.logger.debug('Class: '+instrument+" has been loaded in instrument_instances {}".format(self.instruments_instances[instrument]))
-    #         except Exception:
-    #             self.logger.warning("The instrument: "+str(instrument)+" is not connected to your computer")
-    #             self.instruments_instances[instrument] = None
-    #     # self.instruments_instances["vwp"] = self.load_instrument('VariableWaveplate')
-    #     # self.logger.debug('Class vwp: {}'.format(self.vwp))
-    #     # self.instruments_instances["example_instrument"] = self.load_instrument('ExampleInstrument')
-    #     # self.logger.debug('Class example_instrument: {}'.format(self.example_instrument))
-
 
 
 if __name__ == '__main__':
@@ -115,6 +93,7 @@ if __name__ == '__main__':
     # logman.set_stream(compact=0.2, color_scheme='dim') # and other parameters
     # ### To change the logging file:
     # logman.set_file('example_experiment.log')
+
 
     with ExampleExperiment() as e:
 
@@ -154,4 +133,3 @@ if __name__ == '__main__':
 
 
     print('--------------------- DONE with the experiment')
-
