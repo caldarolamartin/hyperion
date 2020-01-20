@@ -1,22 +1,20 @@
 """
-===============
-Base instrument
-===============
-
-This is a base class for an instrument (named model in PythonForTheLab book).
-At this level we add more complex functionalities and some not-build in behaviour for the
-device you are controlling.
-The idea is to use this class as the parent class of any other instrument for which
-you wrote the driver by hand (not using other library but the communication).
-
-
+======================
+Base (Meta) Instrument
+======================
+This file contains two base classes to be used as parent classes for Instrument classes and MetaInstrument classes.
 """
-import importlib
 from hyperion import logging
+from hyperion.tools.loading import get_class
 
 
 class BaseInstrument():
-    """ General class for Instrument
+    """
+    Let Instrument classes inherit from this class.
+    An instrument is a layer between the Controller (which takes care of hardware communication) and the user or
+    Experiment. This instrument layer allows to add functionality, pint-units and may be used as an abstraction layer for
+    similar controllers.
+
 
     """
     def __init__(self, settings):    # passing settings is required !
@@ -34,7 +32,6 @@ class BaseInstrument():
 
         self.controller_class = self.load_controller(settings)
         self.logger.debug('Controller class: {}'.format(self.controller_class))
-
         if 'via_serial' in settings:
             port = settings['via_serial'].split('COM')[-1]
             self.controller = self.controller_class.via_serial(port)
@@ -70,7 +67,6 @@ class BaseInstrument():
         If you need to parse arguments to the finalize, make your own finalize method in
         your instrument class.
         """
-        self.logger.warning('Finalization done from the BaseInstrument class.')
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
@@ -96,10 +92,39 @@ class BaseInstrument():
                             'right controller and the name of the class to use. ')
         else:
             self.logger.debug('Loading the controller: {}'.format(settings['controller']))
-            controller_name, class_name = settings['controller'].split('/')
-            self.logger.debug('Controller name: {}. Class name: {}'.format(controller_name, class_name))
-            my_class = getattr(importlib.import_module(controller_name), class_name)
-            return my_class
+            return get_class(settings['controller'])
+            ### Changed old code below for the line above
+            # controller_name, class_name = settings['controller'].split('/')
+            # self.logger.debug('Controller name: {}. Class name: {}'.format(controller_name, class_name))
+            # my_class = getattr(importlib.import_module(controller_name), class_name)
+            # return my_class
+
+class BaseMetaInstrument():
+    """
+    Let MetaInstrument classes inherit from this class.
+    A MetaInstrument takes other instruments as inputs (and does not use a controller)
+
+    The finalize() method of a MetaInstrument will call the finalize() methods of the sub instruments.
+    In the case of an Experiment class, the MetaInstruments don't need to be finalized because the Instruments itself
+    will be finalized.
+    """
+    def __init__(self, settings, sub_instruments):  # passing settings is required !
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Class BaseInstrument created with settings: {}'.format(settings))
+        self.settings = settings
+        self.sub_instruments = sub_instruments
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            # A MetaInstrument should not finalize its sub classes when it exits a with statement
+            pass
+
+        def finalize(self):
+            for sub_instr_key, sub_instr in self.sub_instruments.items():
+                self.logger.warning('Finalizing sub instrument: {}'.format(sub_instr_key))
+                sub_instr.finalize()
 
 
 if __name__ == "__main__":

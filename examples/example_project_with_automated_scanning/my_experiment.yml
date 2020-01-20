@@ -70,7 +70,6 @@ Measurements:       # dictionary of Measurements
     view: hyperion.view.base_guis/BaseMeasurementGui
     visualization_guis:
       - Spectrum
-      - Power
     automated_actionlist:
       - Name: Saving
         Type: saver
@@ -194,6 +193,8 @@ Instruments:       # dictionary of Instruments
     start_visible: True  # ?????
     plotargs:
       title: Hello World
+    visualization_guis:
+      - Spectrum
   Camera:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
@@ -236,11 +237,13 @@ Instruments:       # dictionary of Instruments
 # I'm not sure if this is implemented (yet)
 #
 MetaInstruments:
-  SampleXyzStageMotor:
+  SampleXYZ:
+    meta_instr: hyperion.instrument.example_meta_instrument/ExampleMetaInstrument
     view: hyperion.view.example_instrument_view/ExampleInstrumentGui
-    x: xMotor               # This should be the name of an instrument
-    y: yMotor
-    z: testMotor
+    instruments:
+      x: MotorObjectiveX               # This should be the name of an instrument
+      y: MotorObjectiveY
+      z: MotorObjectiveZ
 
 # This might be obsolete or unused:
 #

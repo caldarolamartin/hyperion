@@ -449,6 +449,7 @@ class BaseExperiment:
         # this variable is to keep track of all the instruments that are connected and
         # properly close connections with them at the end
         self.instruments_instances = {}
+        self.meta_instr_instances = {}
         # these next variables are for the master gui.
         self.view_instances = {}
         self.graph_view_instance = {}  # WHY IS THIS HERE  ?????????????????????????   REMOVE?
@@ -1013,21 +1014,63 @@ class BaseExperiment:
         :type name: string
         :return: instance of instrument class
         """
-        self.logger.debug('Loading instrument: {}'.format(name))
+        self.logger.debug('Loading Instrument: {}'.format(name))
         if name not in self.properties['Instruments']:
             self.logger.warning('Instrument not specified in config: {}'.format(name))
-        elif 'instrument' not in self.properties['Instruments'][name]:
-            self.logger.error('Missing instrument in config of Instrument: {}'.format(name))
-        else:
-            instr_class = get_class(self.properties['Instruments'][name]['instrument'])
-            if instr_class is None:
-                self.warning("Couldn't load instrument class: {}".format(self.properties['Instruments'][name]['instrument']))
-                return None
-            instance = instr_class(self.properties['Instruments'][name])  # added this line
-            self.instruments_instances[name] = instance
-            self.logger.debug('Instrument: {} has been loaded and added to instrument_instances'.format(name))
-            return instance
-        return None
+            return
+        if 'instrument' not in self.properties['Instruments'][name]:
+            self.logger.error('No instrument key specified in config of Instrument: {}'.format(name))
+            return
+        instr_class = get_class(self.properties['Instruments'][name]['instrument'])
+        if instr_class is None:
+            self.warning("Couldn't load instrument class: {}".format(self.properties['Instruments'][name]['instrument']))
+            return None
+        instance = instr_class(self.properties['Instruments'][name])  # added this line
+        self.instruments_instances[name] = instance
+        self.logger.debug('Instrument: {} has been loaded and added to instrument_instances'.format(name))
+        return instance
+
+
+    def load_meta_instrument(self, name):
+        """
+        Loads a single instrument given by name.
+
+        The instance of the instrument is returned and also added to self.instrument_instances dictionary
+
+        :param name: name of the instrument to load. It has to be specified in the config file under Instruments
+        :type name: string
+        :return: instance of instrument class
+        """
+        self.logger.debug('Loading MetaInstrument: {}'.format(name))
+        if name not in self.properties['MetaInstruments']:
+            self.logger.error('MetaInstrument not specified in config: {}'.format(name))
+            return
+        meta_dict = self.properties['MetaInstruments'][name]
+        if 'instruments' not in meta_dict:
+            self.logger.error('No instruments key specified in MetaInstrument: {}'.format(name))
+            return
+        inst_dict = {}  # this dict will be filled with instrument objects
+        missing = 0
+        for inst_key, inst_name in meta_dict['instruments'].items():
+            if inst_name in self.instruments_instances:
+                inst_dict[inst_key] = self.instruments_instances[inst_name]
+            else:
+                self.logger.error('Missing Instrument {}:{} for MetaInstrument: {}'.format(inst_key, inst_name, name))
+                missing += 1
+        if missing:
+            return
+        if 'meta_instr' not in meta_dict:
+            self.logger.error('No meta_instr key specified in MetaInstrument: {}'.format(name))
+            return
+        instr_class = get_class(meta_dict['meta_instr'])
+        if instr_class is None:
+            self.warning(
+                "Couldn't load instrument class: {}".format(self.properties['MetaInstruments'][name]['meta_instr']))
+            return None
+        instance = instr_class(meta_dict, inst_dict)#self.properties['Instruments'][name])  # added this line
+        self.meta_instr_instances[name] = instance
+        self.logger.debug('MetaInstrument: {} has been loaded and added to meta_instrument_instances'.format(name))
+        return instance
 
     def load_instruments(self):
         """
@@ -1035,9 +1078,33 @@ class BaseExperiment:
         """
         # NOTE: In the previous version adding instruments to self.instrument_instances was done here, but that has
         # moved to load_instrument
-        self.logger.info('Loading all instruments')
-        for instrument in self.properties['Instruments']:
-            self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+        if 'Instruments' not in self.properties:
+            self.logger.error('No Instruments in config file')
+            return
+        else:
+            self.logger.info('Loading all regular Instruments')
+            for instrument in self.properties['Instruments']:
+                self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+
+        if 'MetaInstruments' not in self.properties:
+            self.logger.warning('No MetaInstruments in config file')
+        else:
+            self.logger.info('Loading all MetaInstruments')
+            for meta_instr in self.properties['MetaInstruments']:
+                self.load_meta_instrument(meta_instr)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+
+        #     for meta_inst_name, meta_inst_dict in self.properties['MetaInstruments'].items():
+        #         if 'instruments' not in meta_inst_dict:
+        #             self.logger.error('No instruments key in MetaInstrument; {}'.format(meta_inst_name))
+        #             continue
+        #         for
+        # self.instrument_gui_outputs = {}
+        # self.instrument_guis = {}
+        # for name in self.experiment.instruments_instances:
+        #     self.load_instrument_gui(name)
+
+
+
 
 
 if __name__ == '__main__':

@@ -22,7 +22,10 @@ class ExampleInstrumentGui(BaseGui):
     def __init__(self, example_ins, output_gui=None):
         super().__init__()
         self.logger = logman.getLogger(__name__)
-        self.output_gui = output_gui
+        if type(output_gui) is dict:
+            self.output_gui = list(output_gui.values())[0]  # for testing, grab the first item
+        else:
+            self.output_gui = output_gui
         # self.curve = self.output_gui.plot(np.random.normal(size=100))
         self.curve = self.output_gui.plot() # initialize plot
         self.title = 'Example Gui'

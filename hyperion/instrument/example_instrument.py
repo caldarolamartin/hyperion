@@ -21,6 +21,9 @@ class ExampleInstrument(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class ExampleInstrument created.')
+        self.initialize()   # An Instrument should initialize at instantiation
+                            # However it is recommended to place initializaton in a separate method. That way after
+                            # instantiation it can still reconnect to a controller with finalize() and initialize()
 
     def initialize(self):
         """ Starts the connection to the device"
@@ -29,7 +32,10 @@ class ExampleInstrument(BaseInstrument):
         self.controller.initialize()
 
     def finalize(self):
-        """ this is to close connection to the device."""
+        """
+        This is to close connection to the device.
+        Note that the B
+        """
         self.logger.info('Closing connection to device.')
         self.controller.finalize()
 
@@ -68,7 +74,6 @@ if __name__ == "__main__":
     for d in dummy:
         with ExampleInstrument(settings = {'port':'COM8', 'dummy' : d,
                                    'controller': 'hyperion.controller.example_controller/ExampleController'}) as dev:
-            dev.initialize()
             print(dev.amplitude)
             # v = 2 * ur('volts')
             # dev.amplitude = v

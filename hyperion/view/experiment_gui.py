@@ -73,7 +73,9 @@ class ExpGui(QMainWindow):
         # When the measurement starts, the plotmanager "starts" and keeps checking for
 
 
-        self.resize(1000,500)
+        # self.resize(1500,800)
+
+
         self.setWindowTitle(self.experiment.display_name)
 
 
@@ -82,11 +84,13 @@ class ExpGui(QMainWindow):
 
         self.logger.debug('Loading instrument guis (if experiment already has instruments)')
         self.load_all_instrument_guis()
-
+        self.load_all_meta_instrument_guis()
 
         self.logger.debug('Creating Example graphs')
         self.example()
 
+        self.resize(1500,800)
+        self.showMaximized()
 
     def set_menu_bar(self):
         """"
@@ -101,8 +105,9 @@ class ExpGui(QMainWindow):
         self.fileMenu.addAction("&Reconnect Instruments", self.reconnect_instruments)
         self.fileMenu.addAction("&Quit", self.close)
         self.measurement_menu = mainMenu.addMenu('&Measurements')
-
         self.instrument_menu = mainMenu.addMenu('&Instruments')
+        self.visualization_menu = mainMenu.addMenu('&Visualization')
+
         # for inst_name, inst_gui_obj in self.instrument_guis.items():
         #     # add the menu item to the view object:
         #     inst_gui_obj._menu_action = self.instrument_menu.addAction(inst_name)
@@ -111,8 +116,8 @@ class ExpGui(QMainWindow):
         #     inst_gui_obj._menu_action.triggered.connect(lambda state, x=inst_name: self.hide_show_outut_gui(state, x))
 
 
-        self.instrument_graph_menu = mainMenu.addMenu('Graph windows')
-        self.measurement_graph_menu = mainMenu.addMenu('Measurement graph windows')
+        # self.instrument_graph_menu = mainMenu.addMenu('Graph windows')
+        # self.measurement_graph_menu = mainMenu.addMenu('Measurement graph windows')
 
         self.toolsMenu = mainMenu.addMenu('Tools')
         # self.toolsMenu.addAction("Let widget 1 disappear", self.get_status_open_or_closed)
@@ -148,13 +153,20 @@ class ExpGui(QMainWindow):
                 plotargs = vis_dict['plotargs']
             vis_cls = get_class(vis_dict['view'])
             vis_inst = vis_cls(**plotargs)
-            dock = Dock(name=vis_name)
-            dock.addWidget(vis_inst)
-            self.plot_area.addDock(dock)
-            self.visualization_guis[vis_name] = dock
+            # dock.visibilityChanged.connect(act.setChecked)
+            self.add_vis_dock_to_menu(vis_name, vis_inst, self.visualization_menu)
             return vis_inst
         return None
 
+    def add_vis_dock_to_menu(self, name, pg_inst, menu):
+        dock = Dock(name=name)
+        dock.addWidget(pg_inst)
+        self.plot_area.addDock(dock)
+        self.visualization_guis[name] = dock
+        act = self.visualization_menu.addAction(name,
+                                            lambda d=dock: d.setVisible(False) if d.isVisible() else d.setVisible(True))
+        act.setCheckable(True)
+        act.setChecked(True)
 
     def load_instrument_gui(self, inst_name):
         # assumes the instrument exists (intended to be called by load_all_instrument_guis)
@@ -176,10 +188,7 @@ class ExpGui(QMainWindow):
                 out_view_class = get_class(out_view)
                 out_view_instance = out_view_class(**plotargs)
                 new_name = '{} (instr)'.format(inst_name)
-                dock = Dock(name=new_name)
-                dock.addWidget(out_view_instance)
-                self.plot_area.addDock(dock)
-                self.visualization_guis[new_name] = dock
+                self.add_vis_dock_to_menu(new_name, out_view_instance, self.visualization_menu)
         if 'view' in conf_dict:
             inst_view = conf_dict['view']
             if type(inst_view) is str:
@@ -192,24 +201,24 @@ class ExpGui(QMainWindow):
                     inst_view_instance = inst_view_class(instr_inst)
                 self.instrument_guis[inst_name] = inst_view_instance
 
-                # self.logger.debug('Adding Instrument gui: {}'.format(inst_name))
-                # # dock, name = self.setting_standard_dock_settings('test 1')
-                # dock = QDockWidget(inst_name)
-                # dock.setWidget(inst_view_instance)
-                # dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetClosable)
-                # act = self.instrument_menu.addAction(inst_name, lambda d=dock: d.close() if d.isVisible() else d.setVisible(True))
-                # act.setCheckable(True)
-                # dock.visibilityChanged.connect(act.setChecked)
-                # self.addDockWidget(Qt.RightDockWidgetArea, dock)
+                self.logger.debug('Adding Instrument gui: {}'.format(inst_name))
+                # dock, name = self.setting_standard_dock_settings('test 1')
+                dock = QDockWidget(inst_name)
+                dock.setWidget(inst_view_instance)
+                dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetClosable)
+                self.addDockWidget(Qt.RightDockWidgetArea, dock)
+                act = self.instrument_menu.addAction(inst_name, lambda d=dock: d.close() if d.isVisible() else d.setVisible(True))
+                act.setCheckable(True)
+                dock.visibilityChanged.connect(act.setChecked)
 
 
 
-                if out_view_instance is not None:
-                    self.logger.debug('Adding Instrument output gui: {}'.format(inst_name))
-                    dock = Dock(name=inst_name)
-                    dock.addWidget(out_view_instance)
-                    self.plot_area.addDock(dock)
-                    self.instrument_gui_outputs[inst_name] = dock
+                # if out_view_instance is not None:
+                #     self.logger.debug('Adding Instrument output gui: {}'.format(inst_name))
+                #     dock = Dock(name=inst_name)
+                #     dock.addWidget(out_view_instance)
+                #     self.plot_area.addDock(dock)
+                #     self.instrument_gui_outputs[inst_name] = dock
 
 
     def load_all_measurement_guis(self):
