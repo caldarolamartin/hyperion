@@ -8,31 +8,32 @@
 #
 
 
-MeasurementGuis:
-  Automatic Measurement Example:  # For an automated measurement this name needs to match
-    view: __auto__
-    output_guis:
-      spec: pyqtgraph/PlotWidget
-      powr: pyqtgraph/PlotWidget
-    required_instruments:         # required instruments for this measurement
-      Camera:                     # this name should match the name in Instruments
-        stop: True                # call stop() method of this instrument before starting measurement
-        disable: False            # disable this instruments gui while measuring
-      Spectrometer:
-        stop: True
-        disable: True
-
-  Manual Measurement Example:
-    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
-    output_guis:
-      out: pyqtgraph/PlotWidget
+# ----------------------------------------------------------------------------------------------------------------------
+# VisualizationGuis:
+# ----------------------------------------------------------------------------------------------------------------------
+#
+# A dictionary of guis used for visualization. If it is included by name in the list under visualization_guis
+# in a Measurement, these guis will be passed as input when that gui is created.
+# It is possible
+#
+VisualizationGuis:
+  Spectrum:
+    view: pyqtgraph/PlotWidget
+    plotargs:
+      title: Hello World
+  Power:
+    view: pyqtgraph/PlotWidget
+    plotargs:
+      title: Hello World
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Measurements:
 # ----------------------------------------------------------------------------------------------------------------------
 #
 # A dictionary of measurements.
-# Each Measurement should consist of a list of Actions.
+# Can contain both "Manual Measurement Guis" and "Automated Measurements"
+# For a manual measurement, point to the view file. All gui building and measurement control should be done in that file.
+# Each Automated Measurement should contain a key automated_actionlist that holds a list of Actions.
 # Each Action is a dictionary which has a mandatory unique key Name and several other keys.
 # Actions can be nested by placing a list of Actions under the '~nested key' in an Action. (e.g. for looping)
 #
@@ -56,7 +57,7 @@ MeasurementGuis:
 Measurements:       # dictionary of Measurements
   Manual Measurement Example:
     view: hyperion.view.example_instrument_view/ExampleInstrumentGui
-    output_guis:
+    visualization_guis:
       out: pyqtgraph/PlotWidget
   Automatic Measurement Example:
     required_instruments:         # required instruments for this measurement
@@ -67,9 +68,9 @@ Measurements:       # dictionary of Measurements
         stop: True
         disable: True
     view: hyperion.view.base_guis/BaseMeasurementGui
-    output_guis:
-      spec: pyqtgraph/PlotWidget
-      powr: pyqtgraph/PlotWidget
+    visualization_guis:
+      - Spectrum
+      - Power
     automated_actionlist:
       - Name: Saving
         Type: saver
@@ -170,15 +171,18 @@ ActionTypes:       # dictionary of ActionTypes
 # Dictionary of Instruments
 # Each instrument is a dictionary with the the following keys:
 #
-# instrument   Pointer to the instrument file and class to be used.
-#              For example: hyperion.instrument.example_instrument/ExampleInstrument
-# controller   Pointer to the controller file and class to be used.
-#              For example: hyperion.controller.example_controller/ExampleController
-# view:        Optional pointer to the view file and class to be used for creating the Instrument GUI.
-#              For example: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
-# graphView    Optional pointer to the view file and class to be used for displaying graphs while measuring.
-#              For example: hyperion.view.simple_gui_examples.example_graph_gui/Example_graph
-# other params Other parameter and settings for the instrument.
+# instrument          Pointer to the instrument file and class to be used.
+#                     For example: hyperion.instrument.example_instrument/ExampleInstrument
+# controller          Pointer to the controller file and class to be used.
+#                     For example: hyperion.controller.example_controller/ExampleController
+# view:               Optional pointer to the view file and class to be used for creating the Instrument GUI.
+#                     For example: hyperion.view.simple_gui_examples.example_instrument_gui/ExampleGui
+# graphView           Optional pointer to the view file and class to be used for displaying graphs while measuring.
+#                     For example: hyperion.view.simple_gui_examples.example_graph_gui/Example_graph
+# visualization_guis  Optional. Instead of graphView one can use a gui specified in VisualizationGuis. That allows for
+#                     multiple entities (instruments measurements) to plot in the same window.          THIS STILL NEEDS TO BE IMPLEMENTED !!!!!!!!!!!!
+#                     When both graphView and visualization_guis is specified graphView will be ignored.
+# other params        Other parameter and settings for the instrument.
 #
 Instruments:       # dictionary of Instruments
   ExampleInstrument:
@@ -233,7 +237,8 @@ Instruments:       # dictionary of Instruments
 #
 MetaInstruments:
   SampleXyzStageMotor:
-    x: xMotor
+    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+    x: xMotor               # This should be the name of an instrument
     y: yMotor
     z: testMotor
 

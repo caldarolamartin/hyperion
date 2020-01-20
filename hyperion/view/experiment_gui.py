@@ -48,6 +48,7 @@ class ExpGui(QMainWindow):
 
         self.instrument_guis = {}  # dictionary to hold the instrument guis (including meta instruments)
         self.measurement_guis = {}  # dictionary to hold the measurement guis (both manual and automatic)
+        self.visualization_guis = {}
         self.output_guis = {}
 
         # NOTE:
@@ -137,40 +138,69 @@ class ExpGui(QMainWindow):
         for name in self.experiment.instruments_instances:
             self.load_instrument_gui(name)
 
+    def load_visualization_gui(self, vis_name):
+        if vis_name in self.visualization_guis:
+            return self.visualization_guis[vis_name]
+        if vis_name in self.experiment.properties['VisualizationGuis']:
+            vis_dict = self.experiment.properties['VisualizationGuis'][vis_name]
+            plotargs = {}
+            if 'plotargs' in vis_dict:
+                plotargs = vis_dict['plotargs']
+            vis_cls = get_class(vis_dict['view'])
+            vis_inst = vis_cls(**plotargs)
+            dock = Dock(name=vis_name)
+            dock.addWidget(vis_inst)
+            self.plot_area.addDock(dock)
+            self.visualization_guis[vis_name] = dock
+            return vis_inst
+        return None
+
+
     def load_instrument_gui(self, inst_name):
         # assumes the instrument exists (intended to be called by load_all_instrument_guis)
         instr_inst = self.experiment.instruments_instances[inst_name]
         conf_dict = self.experiment.properties['Instruments'][inst_name]
+        vis_gui_instances = {}
         out_view_instance = None
-        if 'graphView' in conf_dict:
+        if 'visualization_guis' in conf_dict and 'VisualizationGuis' in self.experiment.properties:
+            for vis_gui_name in conf_dict['visualization_guis']:
+                vis_inst = self.load_visualization_gui(vis_gui_name)
+                if vis_inst is not None:
+                    vis_gui_instances[vis_gui_name] = vis_inst
+        elif 'graphView' in conf_dict:
             out_view = conf_dict['graphView']
             if type(out_view) is str:
-                out_view_class = get_class(out_view)
                 plotargs = {}
                 if 'plotargs' in conf_dict:
                     plotargs = conf_dict['plotargs']
+                out_view_class = get_class(out_view)
                 out_view_instance = out_view_class(**plotargs)
+                new_name = '{} (instr)'.format(inst_name)
+                dock = Dock(name=new_name)
+                dock.addWidget(out_view_instance)
+                self.plot_area.addDock(dock)
+                self.visualization_guis[new_name] = dock
         if 'view' in conf_dict:
             inst_view = conf_dict['view']
             if type(inst_view) is str:
                 inst_view_class = get_class(inst_view)
-                if out_view_instance is None:
-                    inst_view_instance = inst_view_class(instr_inst)
-                    self.instrument_guis[inst_name] = inst_view_instance
-                else:
+                if vis_gui_instances:
+                    inst_view_instance = inst_view_class(instr_inst, vis_gui_instances)
+                elif out_view_instance:
                     inst_view_instance = inst_view_class(instr_inst, out_view_instance)
-                    self.instrument_guis[inst_name] = inst_view_instance
+                else:
+                    inst_view_instance = inst_view_class(instr_inst)
+                self.instrument_guis[inst_name] = inst_view_instance
 
-
-                self.logger.debug('Adding Instrument gui: {}'.format(inst_name))
-                # dock, name = self.setting_standard_dock_settings('test 1')
-                dock = QDockWidget(inst_name)
-                dock.setWidget(inst_view_instance)
-                dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetClosable)
-                act = self.instrument_menu.addAction(inst_name, lambda d=dock: d.close() if d.isVisible() else d.setVisible(True))
-                act.setCheckable(True)
-                dock.visibilityChanged.connect(act.setChecked)
-                self.addDockWidget(Qt.RightDockWidgetArea, dock)
+                # self.logger.debug('Adding Instrument gui: {}'.format(inst_name))
+                # # dock, name = self.setting_standard_dock_settings('test 1')
+                # dock = QDockWidget(inst_name)
+                # dock.setWidget(inst_view_instance)
+                # dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetClosable)
+                # act = self.instrument_menu.addAction(inst_name, lambda d=dock: d.close() if d.isVisible() else d.setVisible(True))
+                # act.setCheckable(True)
+                # dock.visibilityChanged.connect(act.setChecked)
+                # self.addDockWidget(Qt.RightDockWidgetArea, dock)
 
 
 
@@ -183,10 +213,24 @@ class ExpGui(QMainWindow):
 
 
     def load_all_measurement_guis(self):
-        for measurement in self.experiment.properties['MeasurementGuis']:
-            if
+        for meas_name in self.experiment.properties['Measurements']:
+            self.load_measurement_gui(meas_name)
 
-    def load_measurement_gui(self):
+    def load_measurement_gui(self, meas_name):
+        meas_dict = self.experiment.properties['Measurements'][meas_name]
+        if 'view' in meas_dict:
+            # Check if required instruments are available
+            if 'required_instruments' in meas_dict:
+                missing_instr = [instr_name for instr_name in meas_dict['required_instruments'] if instr_name not in self.experiment.instruments_instances]
+                if missing_instr:
+                    for instr in missing_instr:
+                        self.logger.error('Missing instrument {} for measurement {}'.format(instr, meas_name))
+                    return
+            # First create visualization output guis
+            output_guis = {}
+            if 'visualization_guis' in meas_dict:
+                for output_gui_name, load_srt in meas_dict[output_guis].items():
+                    output_guis[output_gui_name]
 
 
 
