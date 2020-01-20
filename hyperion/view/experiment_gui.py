@@ -31,6 +31,7 @@ class ExpGui(QMainWindow):
     def __init__(self, experiment):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.logger.debug('Creating ExpGui object')
 
         # sys.excepthook = self.excepthook  # This is very handy in case there are exceptions that force the program to quit.
 
@@ -39,6 +40,11 @@ class ExpGui(QMainWindow):
         # Create central pyqtgraph dock area for graphics outputs
         self.plot_area= DockArea()
         self.setCentralWidget(self.plot_area)
+
+        # # Turn the central widget into a QMainWindow which gives more docking possibilities
+        # self.setDockOptions(QMainWindow.AllowTabbedDocks)
+
+
 
         self.instrument_guis = {}  # dictionary to hold the instrument guis (including meta instruments)
         self.measurement_guis = {}  # dictionary to hold the measurement guis (both manual and automatic)
@@ -69,8 +75,17 @@ class ExpGui(QMainWindow):
         self.resize(1000,500)
         self.setWindowTitle(self.experiment.display_name)
 
+
+        self.logger.debug('Creating Menubar')
         self.set_menu_bar()
+
+        self.logger.debug('Loading instrument guis (if experiment already has instruments)')
+        self.load_all_instrument_guis()
+
+
+        self.logger.debug('Creating Example graphs')
         self.example()
+
 
     def set_menu_bar(self):
         """"
@@ -87,6 +102,13 @@ class ExpGui(QMainWindow):
         self.measurement_menu = mainMenu.addMenu('&Measurements')
 
         self.instrument_menu = mainMenu.addMenu('&Instruments')
+        # for inst_name, inst_gui_obj in self.instrument_guis.items():
+        #     # add the menu item to the view object:
+        #     inst_gui_obj._menu_action = self.instrument_menu.addAction(inst_name)
+        #     inst_gui_obj._menu_action.setCheckable(True)
+        #     inst_gui_obj._menu_action.setChecked(True)
+        #     inst_gui_obj._menu_action.triggered.connect(lambda state, x=inst_name: self.hide_show_outut_gui(state, x))
+
 
         self.instrument_graph_menu = mainMenu.addMenu('Graph windows')
         self.measurement_graph_menu = mainMenu.addMenu('Measurement graph windows')
@@ -96,6 +118,17 @@ class ExpGui(QMainWindow):
         # self.toolsMenu.addAction("Make widget", self.create_single_qdockwidget)
 
         self.helpMenu = mainMenu.addMenu('Help')
+
+    # def hide_show_outut_gui(self, state, inst_name, start_hidden=False):
+    #     print(state)
+    #     print(inst_name)
+    #     if self.instrument_guis[inst_name].isVisible():
+    #         self.instrument_guis[inst_name]._menu_action.setChecked(False)
+    #         self.instrument_guis[inst_name].setVisible(False)
+    #     else:
+    #         self.instrument_guis[inst_name]._menu_action.setChecked(True)
+    #         self.instrument_guis[inst_name].setVisible(True)
+    #         # obj=QWidget()
 
     def load_all_instrument_guis(self):
         # clear gui dicts
@@ -113,7 +146,10 @@ class ExpGui(QMainWindow):
             out_view = conf_dict['graphView']
             if type(out_view) is str:
                 out_view_class = get_class(out_view)
-                out_view_instance = out_view_class()
+                plotargs = {}
+                if 'plotargs' in conf_dict:
+                    plotargs = conf_dict['plotargs']
+                out_view_instance = out_view_class(**plotargs)
         if 'view' in conf_dict:
             inst_view = conf_dict['view']
             if type(inst_view) is str:
@@ -124,11 +160,34 @@ class ExpGui(QMainWindow):
                 else:
                     inst_view_instance = inst_view_class(instr_inst, out_view_instance)
                     self.instrument_guis[inst_name] = inst_view_instance
-                    self.instrument_gui_outputs[inst_name] = out_view_instance
 
 
-        dock, name = self.setting_standard_dock_settings('test 1')
-        self.addDockWidget(Qt.LeftDockWidgetArea, dock)
+                self.logger.debug('Adding Instrument gui: {}'.format(inst_name))
+                # dock, name = self.setting_standard_dock_settings('test 1')
+                dock = QDockWidget(inst_name)
+                dock.setWidget(inst_view_instance)
+                dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetClosable)
+                act = self.instrument_menu.addAction(inst_name, lambda d=dock: d.close() if d.isVisible() else d.setVisible(True))
+                act.setCheckable(True)
+                dock.visibilityChanged.connect(act.setChecked)
+                self.addDockWidget(Qt.RightDockWidgetArea, dock)
+
+
+
+                if out_view_instance is not None:
+                    self.logger.debug('Adding Instrument output gui: {}'.format(inst_name))
+                    dock = Dock(name=inst_name)
+                    dock.addWidget(out_view_instance)
+                    self.plot_area.addDock(dock)
+                    self.instrument_gui_outputs[inst_name] = dock
+
+
+    def load_all_measurement_guis(self):
+        for measurement in self.experiment.properties['MeasurementGuis']:
+            if
+
+    def load_measurement_gui(self):
+
 
 
     def load_config(self):
@@ -173,24 +232,11 @@ class ExpGui(QMainWindow):
         for inst in self.experiment.instruments_instances:
             inst_dict = self.experiment.properties['Instruments'][inst]
             # if inst in
+        self.load_all_instrument_guis()
 
     def modify_config(self):
         dlg = ModifyConfigFile(self._config_file, self.experiment, self)
         dlg.exec_()
-
-    def load_instrument_guis(self):
-
-        for inst_name, inst in self.experiment.instruments_instances.items():
-            inst_dict = self.experiment.properties[inst_name]
-
-            # if 'graphView' in inst_dict:
-            #     if
-            # if 'view' in
-            #     get_class()
-        pass
-
-    def load_measurement_guis(self):
-        pass
 
 
     def example(self):
@@ -422,7 +468,7 @@ class ModifyConfigFile(QDialog):
     def valid_yaml(self):
         try:
             self._list = yaml.safe_load(self.txt.toPlainText())
-            print(self.txt.toPlainText())
+            # print(self.txt.toPlainText())
             return True
         except yaml.YAMLError as exc:
             QMessageBox.warning(self, 'Invalid YAML', str(exc), QMessageBox.Ok)
@@ -494,11 +540,15 @@ if __name__ == '__main__':
     import hyperion
     from examples.example_project_with_automated_scanning.my_experiment import MyExperiment
 
+    # logger = logging.getLogger(__name__)
+
     config_file = os.path.join(hyperion.repository_path, 'examples', 'example_project_with_automated_scanning', 'my_experiment.yml')
 
-    experiment =MyExperiment()
-    # experiment.load_config(config_file)
-    # experiment.load_instruments()
+    logging.stream_level = logging.WARNING
+    experiment = MyExperiment()
+    logging.stream_level = logging.DEBUG
+    experiment.load_config(config_file)
+    experiment.load_instruments()
 
     app = QApplication(sys.argv)
     main_gui = ExpGui(experiment)

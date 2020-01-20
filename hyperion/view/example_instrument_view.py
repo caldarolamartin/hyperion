@@ -19,11 +19,12 @@ class ExampleInstrumentGui(BaseGui):
     that is harder than it sounds.
     """
 
-    def __init__(self, example_ins, output_gui):
+    def __init__(self, example_ins, output_gui=None):
         super().__init__()
         self.logger = logman.getLogger(__name__)
         self.output_gui = output_gui
-        self.curve = self.output_gui.plot()
+        # self.curve = self.output_gui.plot(np.random.normal(size=100))
+        self.curve = self.output_gui.plot() # initialize plot
         self.title = 'Example Gui'
         self.left = 40
         self.top = 40
@@ -31,7 +32,25 @@ class ExampleInstrumentGui(BaseGui):
         self.height = 200
         self.example_ins = example_ins
         self.initUI()
-        self.continuous = False
+
+        self.cont_plot_timer = QTimer()
+        self.cont_plot_timer.timeout.connect(self.show_one_plot)
+
+    def stop(self):
+        """
+        Stop the instruments activity. This can be used by a measurement or an ExperimentGui to tell an instrument to stop doing what it's doing (so that it can start taking
+        """
+        if self.cont_plot_timer.isActive():
+            self.cont_plot_timer.stop()
+
+
+    def closeEvent(self, event):
+        if self.output_gui is not None:
+            if self.cont_plot_timer.isActive():
+                self.logger.debug('Stop continuous plotting')
+                self.cont_plot_timer.stop()
+            self.logger.debug('Closing output widget')
+            self.output_gui.close()
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -55,17 +74,16 @@ class ExampleInstrumentGui(BaseGui):
         # Grab data from instrument here (or check if new data is available)
         data = np.random.normal(size=100)
         # update the plot
-        ptr = 0
         self.curve.setData(data)
 
     def show_continuous_plot(self):
-        if not self.continuous:
+        if not self.cont_plot_timer.isActive():
             self.button_once.setDisabled(True)
             self.button_cont.setText('Stop continuous')
-            self.cont_plot_timer = QTimer()
-            self.cont_plot_timer.timeout.connect(self.show_one_plot)
-            self.cont_plot_timer.start(200)  # in ms
+            self.cont_plot_timer.start(100)  # in ms
+            self.continuous = True
         else:
+            self.continuous = False
             self.cont_plot_timer.stop()
             self.button_once.setDisabled(False)
             self.button_cont.setText('Start continuous plot')
@@ -75,9 +93,9 @@ class ExampleInstrumentGui(BaseGui):
 
 class ExampleOutputGui(pg.PlotWidget):
 # class ExampleOutput(pg.GraphicsWindow):
-    def __init__(self, title):
-        super().__init__(title)
-        self.show()
+    def __init__(self, parent=None, **kwargs):
+        super().__init__(parent=parent, **kwargs)
+        # self.show()
 
 
 
@@ -88,7 +106,14 @@ if __name__ == '__main__':
     example_ins = ExampleInstrument(settings = {'port':'COM8', 'dummy':False,
                                                 'controller': 'hyperion.controller.example_controller/ExampleController'})
     app = QApplication(sys.argv)
-    output = ExampleOutputGui('Plotting example')
+    output = ExampleOutputGui()
+
+    # win = pg.GraphicsWindow(title="Basic plotting examples")
+    # output = win.addPlot(title = 'Plot Window Title')
+    # win.show()
+
+    output = pg.PlotWidget(title='Title')
+    output.show()
 
     ex = ExampleInstrumentGui(example_ins, output)
     sys.exit(app.exec_())

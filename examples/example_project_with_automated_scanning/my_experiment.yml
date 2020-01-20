@@ -8,6 +8,25 @@
 #
 
 
+MeasurementGuis:
+  Automatic Measurement Example:  # For an automated measurement this name needs to match
+    view: __auto__
+    output_guis:
+      spec: pyqtgraph/PlotWidget
+      powr: pyqtgraph/PlotWidget
+    required_instruments:         # required instruments for this measurement
+      Camera:                     # this name should match the name in Instruments
+        stop: True                # call stop() method of this instrument before starting measurement
+        disable: False            # disable this instruments gui while measuring
+      Spectrometer:
+        stop: True
+        disable: True
+
+  Manual Measurement Example:
+    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+    output_guis:
+      out: pyqtgraph/PlotWidget
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Measurements:
 # ----------------------------------------------------------------------------------------------------------------------
@@ -35,7 +54,7 @@
 #              (Note that '~' makes this key always appear last when alphabetized)
 #
 Measurements:       # dictionary of Measurements
-  Example Measurement A:
+  Automatic Measurement Example:
     - Name: Saving
       Type: saver
       basename: bestaat.nc
@@ -149,9 +168,18 @@ Instruments:       # dictionary of Instruments
   ExampleInstrument:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+#    graphView: hyperion.view.example_instrument_view/ExampleOutputGui
+    graphView: pyqtgraph/PlotWidget
+    start_visible: True  # ?????
+    plotargs:
+      title: Hello World
   Camera:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+#    graphView: hyperion.view.example_instrument_view/ExampleOutputGui
+    graphView: pyqtgraph/PlotWidget
   PowerMeter:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
