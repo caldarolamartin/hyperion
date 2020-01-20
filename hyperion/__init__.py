@@ -1,6 +1,5 @@
 
-__version__ = 0.3
-
+__version__ = 0.4
 import os
 # useful paths:
 package_path =    os.path.dirname(__file__)          #   ###/###/hyperion/hyperion/
@@ -17,10 +16,12 @@ from hyperion.core import logman as logging
 # units
 from lantz.core import UnitRegistry, Q_
 ur = UnitRegistry()
+# Define alternative to Q_ that doesn't throw error when input is None, but returns None
+Quan = lambda inp: None if inp is None else Q_(inp)
+
 # define new unit: percent
 ur.define('fraction = [] = frac')
 ur.define('percent = 1e-2 frac = pct')
-
 
 # These colors should not be specified here
 # Maybe in plotting_tools, or ui_tools

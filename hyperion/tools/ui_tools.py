@@ -16,6 +16,7 @@ def add_pint_to_combo(comboBox_units, manual_list=None):
     When GUI has a QComboBox with units, this function can convert the display texts of the units to pint units and
     stores them inside the combobox object. (Run this function once).
     It is possible to manually specify the list to store, but it's safer to try automatic conversion.
+
     :param comboBox_units:
     :type comboBox_units: QComboBox
     :param manual_list: OPTIONAL list of pint units corresponding to the display units
@@ -61,6 +62,7 @@ def pint_to_spin_combo(pint_quantity, doubleSpinBox, comboBox_units):
     :param comboBox_units: the QComboBox that holds the units
     :type comboBox_units: QComboBox
     """
+    logger = logging.getLogger(__name__)
 
     if hasattr(comboBox_units, 'pint_units'):
         pint_units = comboBox_units.pint_units
@@ -116,7 +118,6 @@ def spin_combo_to_pint_apply_limits(doubleSpinBox, comboBox_units, pint_lower_li
     :param pint_upper_limit: OPTIONAL pint quantity for the upper limit to apply
     :returns: pint quantity
     """
-
     logger = logging.getLogger(__name__)
 
     value = doubleSpinBox.value()

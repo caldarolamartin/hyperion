@@ -1,6 +1,6 @@
 import struct
 import setuptools
-from hyperion import __version__
+from .hyperion import __version__
 
 # list of required packages
 install_requires = [

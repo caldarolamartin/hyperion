@@ -12,7 +12,7 @@ from hyperion.instrument.position.thorlabs_motor_instr import Thorlabsmotor
 
 class Thorlabsmotor_xyz(BaseInstrument):
 
-    def __init__(self, settings):
+    def __init__(self, settings,zstage=False):
         """ init of the class"""
 
         self.logger = logging.getLogger(__name__)
@@ -24,11 +24,15 @@ class Thorlabsmotor_xyz(BaseInstrument):
 
         motorxsettings = self.settings['x']
         motorysettings = self.settings['y']
-        motorzsettings = self.settings['z']
+        if zstage==True:
+            motorzsettings = self.settings['z']
 
         self.motorx = Thorlabsmotor(settings=motorxsettings)
         self.motory = Thorlabsmotor(settings=motorysettings)
-        # self.motorz = Thorlabsmotor(settings=motorzsettings)
+        self.zstage=False
+        if zstage==True:
+            self.zstage=True
+            self.motorz = Thorlabsmotor(settings=motorzsettings)
 
 
 if __name__ == '__main__':
