@@ -380,7 +380,7 @@ class Polarimeter(BaseInstrument):
 if __name__ == "__main__":
     import hyperion
     import os
-    from hyperion.tools.saving_tools import read_netcdf4_and_plot
+    from hyperion.tools.saving_tools import read_netcdf4_and_plot_all
 
     path = hyperion.parent_path
     filename = 'polarimeter_output'
@@ -410,6 +410,6 @@ if __name__ == "__main__":
                         file_path = os.path.join(path, filename + '_with_extra.txt') )
             # save netCDF4
             s.save_as_netCDF4(os.path.join(path, filename + '.nc'), data)
-            read_netcdf4_and_plot(os.path.join(path,filename+'.nc'))
+            read_netcdf4_and_plot_all(os.path.join(path,filename+'.nc'))
 
         print('DONE')

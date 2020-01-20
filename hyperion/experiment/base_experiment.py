@@ -1036,4 +1036,3 @@ if __name__ == '__main__':
 
         # read properties just loaded
         logger.info('\n {} \n'.format(e.properties))
-
