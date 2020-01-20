@@ -1,6 +1,6 @@
 import struct
 import setuptools
-from .hyperion import __version__
+version = '0.4'
 
 # list of required packages
 install_requires = [
@@ -28,7 +28,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="Hyperion",
-    version="{}".format(__version__),
+    version="{}".format(version),
     author="See Authors",
     license='BSD',
     description="A small python package to control devices in the Kuipers lab @ TU Delft",
