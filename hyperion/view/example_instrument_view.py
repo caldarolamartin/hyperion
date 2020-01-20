@@ -26,8 +26,11 @@ class ExampleInstrumentGui(BaseGui):
             self.output_gui = list(output_gui.values())[0]  # for testing, grab the first item
         else:
             self.output_gui = output_gui
-        # self.curve = self.output_gui.plot(np.random.normal(size=100))
-        self.curve = self.output_gui.plot() # initialize plot
+
+        if output_gui is None:
+            self.curve = lambda *args, **kwargs: None
+        else:
+            self.curve = self.output_gui.plot() # initialize plot
         self.title = 'Example Gui'
         self.left = 40
         self.top = 40

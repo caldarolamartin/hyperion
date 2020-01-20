@@ -84,7 +84,7 @@ class ExpGui(QMainWindow):
 
         self.logger.debug('Loading instrument guis (if experiment already has instruments)')
         self.load_all_instrument_guis()
-        self.load_all_meta_instrument_guis()
+        # self.load_all_meta_instrument_guis()
 
         self.logger.debug('Creating Example graphs')
         self.example()
@@ -140,8 +140,11 @@ class ExpGui(QMainWindow):
         # clear gui dicts
         self.instrument_gui_outputs = {}
         self.instrument_guis = {}
-        for name in self.experiment.instruments_instances:
-            self.load_instrument_gui(name)
+        for inst_name in self.experiment.meta_instr_instances:
+            self.load_meta_instrument_gui(inst_name)
+        self.instrument_menu.addSeparator()
+        for inst_name in self.experiment.instruments_instances:
+            self.load_instrument_gui(inst_name)
 
     def load_visualization_gui(self, vis_name):
         if vis_name in self.visualization_guis:
@@ -154,11 +157,11 @@ class ExpGui(QMainWindow):
             vis_cls = get_class(vis_dict['view'])
             vis_inst = vis_cls(**plotargs)
             # dock.visibilityChanged.connect(act.setChecked)
-            self.add_vis_dock_to_menu(vis_name, vis_inst, self.visualization_menu)
+            self.__add_vis_dock_to_menu(vis_name, vis_inst, self.visualization_menu)
             return vis_inst
         return None
 
-    def add_vis_dock_to_menu(self, name, pg_inst, menu):
+    def __add_vis_dock_to_menu(self, name, pg_inst, menu):
         dock = Dock(name=name)
         dock.addWidget(pg_inst)
         self.plot_area.addDock(dock)
@@ -172,6 +175,15 @@ class ExpGui(QMainWindow):
         # assumes the instrument exists (intended to be called by load_all_instrument_guis)
         instr_inst = self.experiment.instruments_instances[inst_name]
         conf_dict = self.experiment.properties['Instruments'][inst_name]
+        self.__load_instr_gui(inst_name, instr_inst, conf_dict)
+
+    def load_meta_instrument_gui(self, inst_name):
+        # assumes the MetaInstrument exists (intended to be called by load_all_instrument_guis)
+        instr_inst = self.experiment.meta_instr_instances[inst_name]
+        conf_dict = self.experiment.properties['MetaInstruments'][inst_name]
+        self.__load_instr_gui(inst_name, instr_inst, conf_dict)
+
+    def __load_instr_gui(self, inst_name, instr_inst, conf_dict):
         vis_gui_instances = {}
         out_view_instance = None
         if 'visualization_guis' in conf_dict and 'VisualizationGuis' in self.experiment.properties:
@@ -188,7 +200,7 @@ class ExpGui(QMainWindow):
                 out_view_class = get_class(out_view)
                 out_view_instance = out_view_class(**plotargs)
                 new_name = '{} (instr)'.format(inst_name)
-                self.add_vis_dock_to_menu(new_name, out_view_instance, self.visualization_menu)
+                self.__add_vis_dock_to_menu(new_name, out_view_instance, self.visualization_menu)
         if 'view' in conf_dict:
             inst_view = conf_dict['view']
             if type(inst_view) is str:
@@ -210,16 +222,6 @@ class ExpGui(QMainWindow):
                 act = self.instrument_menu.addAction(inst_name, lambda d=dock: d.close() if d.isVisible() else d.setVisible(True))
                 act.setCheckable(True)
                 dock.visibilityChanged.connect(act.setChecked)
-
-
-
-                # if out_view_instance is not None:
-                #     self.logger.debug('Adding Instrument output gui: {}'.format(inst_name))
-                #     dock = Dock(name=inst_name)
-                #     dock.addWidget(out_view_instance)
-                #     self.plot_area.addDock(dock)
-                #     self.instrument_gui_outputs[inst_name] = dock
-
 
     def load_all_measurement_guis(self):
         for meas_name in self.experiment.properties['Measurements']:
