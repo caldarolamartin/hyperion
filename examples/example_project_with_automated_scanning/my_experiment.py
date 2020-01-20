@@ -23,7 +23,7 @@ class MyExperiment(BaseExperiment):
     def __init__(self):
         super().__init__()                      # Mandatory line
         self.logger = logman.getLogger(__name__)
-
+        self.display_name = 'Hyperion Example Experiment'  # Title of the experimental setup
         # # Test logging messages:
         # self.logger.info('Initializing the ExampleExperiment object.')
         # self.logger.critical('test critical')
@@ -197,6 +197,10 @@ if __name__ == '__main__':
 
             # # Introduce corruption in actionlist for testing:
             # del(e.properties['Measurements']['Example Measurement A'][0]['Name'])
+
+            ### new section to test plotting stuff:
+            import pyqtgraph as pg
+
 
             app.exec_()
 

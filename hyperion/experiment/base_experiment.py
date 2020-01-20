@@ -441,6 +441,8 @@ class BaseExperiment:
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the BaseExperiment class.')
 
+        self.display_name = 'Untitled Experiment'  # overwrite this name in your Experiment class
+
         self.properties = {}    # this is to load the config yaml file and store all the
                                 # settings for the experiment. see load config
 
@@ -449,7 +451,7 @@ class BaseExperiment:
         self.instruments_instances = {}
         # these next variables are for the master gui.
         self.view_instances = {}
-        self.graph_view_instance = {}
+        self.graph_view_instance = {}  # WHY IS THIS HERE  ?????????????????????????   REMOVE?
 
         self.filename = ''
         self.config_filename = None  # load_config(filename) stores the config filename here
@@ -797,6 +799,7 @@ class BaseExperiment:
             if hasattr(self, 'version'):
                 self._saving_meta['version'] = self.version
             self._saving_meta['Measurement'] = measurement_name
+            self._saving_meta['Config_file'] = self.config_filename
 
             self.reset_measurement_flags()
             self.running_status = self._running
@@ -947,22 +950,27 @@ class BaseExperiment:
             os.makedirs(folder)
         return folder, basename
 
-    def load_config(self, filename):
+    def load_config(self, filename, use_dict=None):
         """
         Loads the configuration file to generate the properties dictionary.
 
         :param filename: Path to the filename.
         :type filename: str
         """
-        self.logger.debug('Loading configuration file: {}'.format(filename))
+
         self.config_filename = filename
+        if not use_dict:
+            self.logger.debug('Loading configuration file: {}'.format(filename))
 
-        with open(filename, 'r') as f:
-            # d = yaml.load(f, Loader=yaml.FullLoader)   # replacing with safeloader:
-            d = yaml.safe_load(f)
-            self.logger.info('Using configuration file: {}'.format(filename))
+            with open(filename, 'r') as f:
+                # d = yaml.load(f, Loader=yaml.FullLoader)   # replacing with safeloader:
+                d = yaml.safe_load(f)
+                self.logger.info('Using configuration file: {}'.format(filename))
 
-        self.properties = d
+            self.properties = d
+        else:
+            self.properties = use_dict
+
         self.properties['config file'] = filename  # add to the class the name of the Config file used.
 
         if 'ActionTypes' in self.properties:
@@ -978,13 +986,19 @@ class BaseExperiment:
         Closes all instruments in instrument_instances.
         Also calls the datamanager to close file.
         """
-        self.logger.info('Finalizing the experiment base class. Closing all the devices connected')
-        for name in self.instruments_instances:
-            self.logger.info('Finalizing connection with device: {}'.format(name))
-            self.instruments_instances[name].finalize()
+        self.logger.info('Finalizing the experiment base class.')
+        self.close_all_instruments()
         self.logger.debug('Closing open datafiles if there are any.')
         self.datman.close()
         self.logger.debug('Experiment object finalized.')
+
+    def close_all_instruments(self):
+        self.logger.info('Closing all the devices connected')
+        for name in self.instruments_instances:
+            self.logger.info('Finalizing connection with device: {}'.format(name))
+            self.instruments_instances[name].finalize()
+        self.instruments_instances = {}
+
 
     def load_instrument(self, name):
         """

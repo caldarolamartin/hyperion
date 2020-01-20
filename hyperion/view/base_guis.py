@@ -208,12 +208,12 @@ class ModifyMeasurement(QDialog):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         grid = QGridLayout()
         # create buttons, lables and the textedit:
-        self.button_reset = QPushButton('Reset Original', clicked = self.reset)
-        self.button_validate = QPushButton('Validate', clicked = self.validate)
-        self.button_suggestion = QPushButton('Show suggestion', clicked = self.suggestion)
-        self.button_use = QPushButton('Use', clicked = self.use)
-        self.button_cancel = QPushButton('Cancel', clicked = self.close)
-        self.button_save_to_original_file = QPushButton('Save to original file', enabled = False)
+        self.button_reset = QPushButton('&Reset Original', clicked = self.reset)
+        self.button_validate = QPushButton('&Validate', clicked = self.validate)
+        self.button_suggestion = QPushButton('Show su&ggestion', clicked = self.suggestion)
+        self.button_use = QPushButton('&Apply', clicked = self.use)
+        self.button_cancel = QPushButton('&Cancel', clicked = self.close)
+        self.button_save_to_original_file = QPushButton('&Save to original file', enabled = False)
         self.label_valid_1 = QLabel()  # empty
         self.label_valid_2 = QLabel()  # empty
         self.txt = QTextEdit()
