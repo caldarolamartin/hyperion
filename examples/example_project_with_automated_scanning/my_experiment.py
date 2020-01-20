@@ -186,12 +186,12 @@ if __name__ == '__main__':
             ### Test with gui:
 
             from PyQt5.QtWidgets import QApplication
-            from hyperion.view.base_guis import BaseMeasurementGui, ModifyMeasurement
+            from hyperion.view.base_guis import AutoMeasurementGui, ModifyMeasurement
 
             app = QApplication(sys.argv)  # required "placeholder" for gui
 
             # Open the BaseMeasurementGui with 'Example Measurement A' as input:
-            q = BaseMeasurementGui(e, 'Example Measurement A')
+            q = AutoMeasurementGui(e, 'Automatic Measurement Example')
             # Note that this approach can be used to run an experiment with a small gui but without the master gui.
             # (although plotting graphs would need to be tested)
 

@@ -54,44 +54,60 @@ MeasurementGuis:
 #              (Note that '~' makes this key always appear last when alphabetized)
 #
 Measurements:       # dictionary of Measurements
+  Manual Measurement Example:
+    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+    output_guis:
+      out: pyqtgraph/PlotWidget
   Automatic Measurement Example:
-    - Name: Saving
-      Type: saver
-      basename: bestaat.nc
-      folder: C:\Temp\test2
-    - Name: Initialize
-      _method: initialize_example_measurement_A
-    - Name: Image Before
-      Type: image                               # Used to get some default values
-      _method: image_with_filter                # Override the _method of Type with a custom one
-      _view: gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
-      exposuretime: 5min
-      filter_a: True
-      filter_b: False
-    - Name: Scan Atto X
-      Type: atto_scanner
-      _store_name: sample_x
-      axis: x
-      start: 4 mm
-      stop: 1 mm
-      step: 1 mm
-      ~nested:
-        - Name: power
-          _method: measure_power
-        - Name: Scan Atto Y
-          Type: atto_scanner
-          _store_name: sample_y
-          axis: y
-          start: 2 um
-          stop: 9 um
-          num: 8
-          ~nested:
-            - Name: Spectrum
-              _method: fake_spectrum
-        - Name: break_after_scanning_XY
-          _method: check_break
-    - Name: Finalize
-      _method: finalize_example_measurement_A
+    required_instruments:         # required instruments for this measurement
+      Camera:                     # this name should match the name in Instruments
+        stop: True                # call stop() method of this instrument before starting measurement
+        disable: False            # disable this instruments gui while measuring
+      Spectrometer:
+        stop: True
+        disable: True
+    view: hyperion.view.base_guis/BaseMeasurementGui
+    output_guis:
+      spec: pyqtgraph/PlotWidget
+      powr: pyqtgraph/PlotWidget
+    automated_actionlist:
+      - Name: Saving
+        Type: saver
+        basename: bestaat.nc
+        folder: C:\Temp\test2
+      - Name: Initialize
+        _method: initialize_example_measurement_A
+      - Name: Image Before
+        Type: image                               # Used to get some default values
+        _method: image_with_filter                # Override the _method of Type with a custom one
+        _view: gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
+        exposuretime: 5min
+        filter_a: True
+        filter_b: False
+      - Name: Scan Atto X
+        Type: atto_scanner
+        _store_name: sample_x
+        axis: x
+        start: 4 mm
+        stop: 1 mm
+        step: 1 mm
+        ~nested:
+          - Name: power
+            _method: measure_power
+          - Name: Scan Atto Y
+            Type: atto_scanner
+            _store_name: sample_y
+            axis: y
+            start: 2 um
+            stop: 9 um
+            num: 8
+            ~nested:
+              - Name: Spectrum
+                _method: fake_spectrum
+          - Name: break_after_scanning_XY
+            _method: check_break
+      - Name: Finalize
+        _method: finalize_example_measurement_A
 
 
 # ----------------------------------------------------------------------------------------------------------------------

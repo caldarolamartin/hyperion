@@ -791,6 +791,9 @@ class BaseExperiment:
         self._measurement_name = measurement_name  # Store the name for later use
 
         if measurement_name in self.properties['Measurements']:
+            if not 'automated_actionlist' in self.properties['Measurements'][measurement_name]:
+                self.logger.warning('To run an automated measurement an automated_actionlist needs to be specified in the config')
+                return
             self.logger.debug('Starting measurement: {}'.format(measurement_name))
             # Make dict with basic meta info to be added to the datafile.
             # default_saver will add this _saving_meta dict
@@ -804,7 +807,7 @@ class BaseExperiment:
             self.reset_measurement_flags()
             self.running_status = self._running
 
-            self.perform_actionlist(self.properties['Measurements'][measurement_name])
+            self.perform_actionlist(self.properties['Measurements'][measurement_name]['automated_actionlist'])
 
             self.reset_measurement_flags()
             self.logger.info('Measurement finished')

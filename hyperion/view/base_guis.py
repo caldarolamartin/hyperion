@@ -186,7 +186,7 @@ class ModifyMeasurement(QDialog):
         self.experiment = experiment
         self.measurement = measurement
         self.parent = parent
-        self._original_list = self.experiment.properties['Measurements'][measurement]
+        self._original_list = self.experiment.properties['Measurements'][measurement]['automated_actionlist']
         super().__init__(parent)
         self.setWindowTitle('Modify Measurement: {}'.format(measurement))
         self._indent = 2
@@ -265,7 +265,7 @@ class ModifyMeasurement(QDialog):
         if not self.convert_text_to_list():
             self.logger.warning('Failed to convert yaml-text to list')
             return
-        self.experiment.properties['Measurements'][self.measurement] = self._list
+        self.experiment.properties['Measurements'][self.measurement]['automated_actionlist'] = self._list
         if hasattr(self.parent, '_valid'):
             self.parent._valid = True
         if hasattr(self.parent, 'update_buttons'):
@@ -337,13 +337,13 @@ class ModifyMeasurement(QDialog):
         self.update_buttons()
 
 
-class BaseMeasurementGui(BaseGui):
+class AutoMeasurementGui(BaseGui):
     """
     Builds a Measurement GUI based on the Measurement actionlist in experiment.properties (which is read from the
     config file). The GUI will follow the nested structure in the actionlist.
     Note that the Actions in the actionlist need to refer to an appropriate GUI file and Widget and to an appropriate
     method in the experiment (which should contain nested() if nesting is to be possible).
-    I also builds the Start/Pause, Break and Stop buttons that
+    I also builds the Start/Pause, Break and Stop buttons that contol the flow of the measurement
 
     :param experiment: hyperion experiment object
     :param measurement: (str) name of a measurement (specified in the config of the experiment)
@@ -359,6 +359,8 @@ class BaseMeasurementGui(BaseGui):
             self.logger.error('Experiment object needs to have properties dictionary. Make sure you load config.')
         if measurement not in self.experiment.properties['Measurements']:
             self.logger.error('Unknown measurement: {}'.format(measurement))
+        if 'automated_actionlist' not in self.experiment.properties['Measurements'][measurement]:
+            self.logger.error("Measurement doesn't have automated_actionlist: {}".format(measurement))
 
         if 'ActionTypes' in self.experiment.properties:
             self.types = self.experiment.properties['ActionTypes']
@@ -415,7 +417,7 @@ class BaseMeasurementGui(BaseGui):
         """
         self.deleteItemsOfLayout(self.actions_layout)
         if self._valid:
-            self.actions_layout = self.add_actions_recursively(self.experiment.properties['Measurements'][self.measurement])
+            self.actions_layout = self.add_actions_recursively(self.experiment.properties['Measurements'][self.measurement]['automated_actionlist'])
         else:
             self.actions_layout = QVBoxLayout()
             self.actions_layout.addWidget(QLabel('incorrect config file'))
@@ -544,7 +546,7 @@ class BaseMeasurementGui(BaseGui):
         valid.
         :return: (boolean) True if valid
         """
-        new_action_list, invalid_methods, invalid_names = self.experiment._validate_actionlist(self.experiment.properties['Measurements'][self.measurement])
+        new_action_list, invalid_methods, invalid_names = self.experiment._validate_actionlist(self.experiment.properties['Measurements'][self.measurement]['automated_actionlist'])
         return (invalid_methods==0 and invalid_names==0)
 
 
