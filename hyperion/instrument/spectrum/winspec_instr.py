@@ -220,22 +220,30 @@ class WinspecInstr(BaseInstrument):
 
 
 
-    def collect_spectrum(self, wait=True, sleeptime=True):
+    def collect_spectrum(self, wait=True, sleeptime=False):
         """
         | Retrieves the last acquired spectrum from Winspec.
-        | **Pay attention: I added some extra sleeps to make it work**
+        | **Pay attention: you need to extra sleeps if you are autosaving with Winspec**
+        | If you are not using the Autosave option, you have to put sleeptime to False.
+
         :param wait: If wait is True (DEFAULT) it will wait for WinSpec to finish collecting data.
         :type wait: bool
+
+        :param sleeptime: Sleeptime adds some sleeps to make sure Winspec has enough time to Autosave ascii images
+        :type sleeptime: bool
+
         :return: list or nested list
         """
         if wait:
             while self.is_acquiring:
                 if sleeptime:
-                    time.sleep(1)
+                    time.sleep(1)       #use this one if you want to autosave images
                 else:
-                    time.sleep(0.1)
+                    time.sleep(0.1)     #this is enough if you autosave spectra
                 self.logger.debug("acquiring? {}".format(self.is_acquiring))
 
+            #this sleep is to save an image as ASCII, that takes quite some time,
+            # and Winspec breaks if you dont give that time
             if sleeptime:
                 time.sleep(2)
 
