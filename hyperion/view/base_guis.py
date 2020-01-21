@@ -349,12 +349,13 @@ class AutoMeasurementGui(BaseGui):
     :param measurement: (str) name of a measurement (specified in the config of the experiment)
     :param parent: parent QWidget
     """
-    def __init__(self, experiment, measurement, parent=None):
+    def __init__(self, experiment, measurement, parent=None, output_guis=None):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Creating BaseMeasurement object')
         super().__init__(parent)
         self.experiment = experiment
         self.measurement = measurement
+        self._parent = parent
         if not hasattr(self.experiment, 'properties'):
             self.logger.error('Experiment object needs to have properties dictionary. Make sure you load config.')
         if measurement not in self.experiment.properties['Measurements']:

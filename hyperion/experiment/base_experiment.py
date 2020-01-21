@@ -450,9 +450,9 @@ class BaseExperiment:
         # properly close connections with them at the end
         self.instruments_instances = {}
         self.meta_instr_instances = {}
-        # these next variables are for the master gui.
-        self.view_instances = {}
-        self.graph_view_instance = {}  # WHY IS THIS HERE  ?????????????????????????   REMOVE?
+
+        # This variable will be overwritten by the gui:
+        self._gui_parent = None
 
         self.filename = ''
         self.config_filename = None  # load_config(filename) stores the config filename here
@@ -808,10 +808,16 @@ class BaseExperiment:
             self.reset_measurement_flags()
             self.running_status = self._running
 
+            if self._gui_parent is not None:
+                self._gui_parent.lock_instruments(True, measurement_name)
+
             self.perform_actionlist(self.properties['Measurements'][measurement_name]['automated_actionlist'])
 
             self.reset_measurement_flags()
             self.logger.info('Measurement finished')
+
+            if self._gui_parent is not None:
+                self._gui_parent.lock_instruments(False, measurement_name)
 
             if self.__store_properties:
                 self.logger.info('Storing experiment properties in {}'.format(self.__store_properties))
@@ -997,12 +1003,26 @@ class BaseExperiment:
         self.logger.debug('Experiment object finalized.')
 
     def close_all_instruments(self):
+        """ Closes all instruments in self.instrument_instances"""
         self.logger.info('Closing all the devices connected')
-        for name in self.instruments_instances:
-            self.logger.info('Finalizing connection with device: {}'.format(name))
-            self.instruments_instances[name].finalize()
-        self.instruments_instances = {}
+        for name, instance in self.instruments_instances.items():
+            self.logger.debug('Finalizing connection with device: {}'.format(name))
+            try:
+                instance.finalize()
+            except:
+                self.logger.warning('Failed to finalize instrument: {}'.format(name))
 
+    def remove_all_instruments(self):
+        """ Closes all instruments and also removes the (meta) instrument objects. """
+        self.logger.debug('Removing meta instruments')
+        for instance in self.meta_instr_instances.values():
+            del instance
+        self.meta_instr_instances = {}
+        self.close_all_instruments()
+        self.logger.debug('Removing instruments')
+        for name, instance in self.instruments_instances.items():
+            del instance
+        self.instruments_instances = {}
 
     def load_instrument(self, name):
         """
@@ -1074,7 +1094,7 @@ class BaseExperiment:
 
     def load_instruments(self):
         """
-        Load all instruments specified in the config file.
+        Load all instruments specified in the config file. First regular Instruments and then MetaInstruments if applicable.
         """
         # NOTE: In the previous version adding instruments to self.instrument_instances was done here, but that has
         # moved to load_instrument

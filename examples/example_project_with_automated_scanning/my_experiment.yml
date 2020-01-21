@@ -20,11 +20,11 @@ VisualizationGuis:
   Spectrum:
     view: pyqtgraph/PlotWidget
     plotargs:
-      title: Hello World
+      title: Spectrum
   Power:
     view: pyqtgraph/PlotWidget
-    plotargs:
-      title: Hello World
+  Image:
+    view: pyqtgraph/PlotWidget
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Measurements:
@@ -55,19 +55,19 @@ VisualizationGuis:
 #              (Note that '~' makes this key always appear last when alphabetized)
 #
 Measurements:       # dictionary of Measurements
-  Manual Measurement Example:
-    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
-    visualization_guis:
-      out: pyqtgraph/PlotWidget
+#  Manual Measurement Example:
+#    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+#    visualization_guis:
+#      out: pyqtgraph/PlotWidget
   Automatic Measurement Example:
     required_instruments:         # required instruments for this measurement
       Camera:                     # this name should match the name in Instruments
         stop: True                # call stop() method of this instrument before starting measurement
-        disable: False            # disable this instruments gui while measuring
+        lock: True            # disable this instruments gui while measuring
       Spectrometer:
         stop: True
-        disable: True
-    view: hyperion.view.base_guis/BaseMeasurementGui
+        lock: True
+    view: hyperion.view.base_guis/AutoMeasurementGui
     visualization_guis:
       - Spectrum
     automated_actionlist:
@@ -80,7 +80,7 @@ Measurements:       # dictionary of Measurements
       - Name: Image Before
         Type: image                               # Used to get some default values
         _method: image_with_filter                # Override the _method of Type with a custom one
-        _view: gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
+        _view: examples.example_project_with_automated_scanning.gui.gui_elements/ImageWithFilters  # Override the _view of Type with a custom one
         exposuretime: 5min
         filter_a: True
         filter_b: False
@@ -145,18 +145,18 @@ ActionTypes:       # dictionary of ActionTypes
     step_min: 1nm
   histogram:
     _method: histogram
-    _view: gui.gui_elements/ExampleActionGui
+    _view: examples.example_project_with_automated_scanning.gui.gui_elements/ExampleActionGui
     exposuretime: 3
   image:
     _method: image
-    _view: gui.gui_elements/ExampleActionGui
+    _view: examples.example_project_with_automated_scanning.gui.gui_elements/ExampleActionGui
     _ui: image.ui
     exposuretime: 0.1s
     exposuretime_min: 1us
     exposuretime_max: 2hr
   spectrum:
     exposuretime: 2s
-    _view: gui.gui_elements/ExampleActionGui
+    _view: examples.example_project_with_automated_scanning.gui.gui_elements/ExampleActionGui
     _method: spectrum
     _ui: spectrum.ui
   powermeter:
@@ -184,26 +184,27 @@ ActionTypes:       # dictionary of ActionTypes
 # other params        Other parameter and settings for the instrument.
 #
 Instruments:       # dictionary of Instruments
-  ExampleInstrument:
+  PhotoDiode:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+    view: hyperion.view.example_instrument_view/ExampleInstrumentGuiMultiplePlots
 #    graphView: hyperion.view.example_instrument_view/ExampleOutputGui
-    graphView: pyqtgraph/PlotWidget
     start_visible: True  # ?????
-    plotargs:
-      title: Hello World
     visualization_guis:
       - Spectrum
+      - Power
   Camera:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
-    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
-#    graphView: hyperion.view.example_instrument_view/ExampleOutputGui
-    graphView: pyqtgraph/PlotWidget
-  PowerMeter:
+    view: hyperion.view.example_instrument_view/ExampleInstrumentGui2D
+    graphView: pyqtgraph/ImageView
+  Correlator:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
+    view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+    graphView: pyqtgraph/PlotWidget
+    plotargs:
+      title: Correlator
   Spectrometer:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
