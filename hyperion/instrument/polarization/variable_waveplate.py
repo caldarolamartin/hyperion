@@ -15,7 +15,7 @@ import os
 import numpy as np
 from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion import ur, root_dir
+from hyperion import ur, package_path
 
 
 class VariableWaveplate(BaseInstrument):
@@ -59,7 +59,7 @@ class VariableWaveplate(BaseInstrument):
         # this is to load the calibration file
         self.calibration = {}
         self.logger.debug('Get the source path')
-        cal_file = os.path.join(root_dir, 'instrument', 'polarization',
+        cal_file = os.path.join(package_path, 'instrument', 'polarization',
                                 'lookup_table_qwp_voltage_calibration_2019-03-15.txt')
         self.logger.info('Using Variable Waveplate QWP calibration file: {}'.format(cal_file))
         self.load_calibration(cal_file)

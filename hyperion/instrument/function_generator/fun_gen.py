@@ -11,7 +11,7 @@ It ads the use of units with pint.
 import os
 import yaml
 from time import sleep
-from hyperion import ur, root_dir
+from hyperion import ur, package_path
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import logging
 
@@ -86,7 +86,7 @@ class FunGen(BaseInstrument):
         the default config file in the model/function_generator folder
         """
         if filename is None:
-            filename = os.path.join(root_dir, 'instrument', 'function_generator', 'config_agilent33522A.yml')
+            filename = os.path.join(package_path, 'instrument', 'function_generator', 'config_agilent33522A.yml')
 
         with open(filename, 'r') as f:
             d = yaml.load(f, Loader=yaml.FullLoader)

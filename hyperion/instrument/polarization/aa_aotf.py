@@ -19,7 +19,7 @@ import os
 from hyperion import logging
 import numpy as np
 from time import sleep
-from hyperion import ur, root_dir
+from hyperion import ur
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion.controller.aa.aa_modd18012 import AaModd18012
 
