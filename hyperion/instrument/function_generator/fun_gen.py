@@ -89,7 +89,7 @@ class FunGen(BaseInstrument):
             filename = os.path.join(package_path, 'instrument', 'function_generator', 'config_agilent33522A.yml')
 
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
             self.logger.info('Loaded fun_gen configuration file: {}'.format(filename))
 
         self.DEFAULTS = d

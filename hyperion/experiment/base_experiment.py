@@ -958,7 +958,7 @@ class BaseExperiment:
         self.config_filename = filename
 
         with open(filename, 'r') as f:
-            # d = yaml.load(f, Loader=yaml.FullLoader)   # replacing with safeloader:
+            # d = yaml.safe_load(f)   # replacing with safeloader:
             d = yaml.safe_load(f)
             self.logger.info('Using configuration file: {}'.format(filename))
 
