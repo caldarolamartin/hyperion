@@ -198,11 +198,12 @@ class ExpGui(QMainWindow):
             vis_cls = get_class(vis_dict['view'])
             vis_inst = vis_cls(**plotargs)
             # dock.visibilityChanged.connect(act.setChecked)
-            self.__add_vis_dock_to_menu(vis_name, vis_inst, self.visualization_menu)
+            hidden = ('start_hidden' in vis_dict and vis_dict['start_hidden'])
+            self.__add_vis_dock_to_menu(vis_name, vis_inst, self.visualization_menu, hidden)
             return vis_inst
         return None
 
-    def __add_vis_dock_to_menu(self, name, pg_inst, menu):
+    def __add_vis_dock_to_menu(self, name, pg_inst, menu, hidden=False):
         dock = Dock(name=name, closable=True)
         dock.addWidget(pg_inst)
         dock._is_closed = False  # add this flag for hiding/closing the graph
@@ -211,10 +212,12 @@ class ExpGui(QMainWindow):
         #                                     lambda d=dock: d.setVisible(False) if d.isVisible() else d.setVisible(True))
         act = self.visualization_menu.addAction(name, lambda d=dock: self.__hide_show_raise_pg_dock(d))
         act.setCheckable(True)
-        act.setChecked(True)
+        act.setChecked(not hidden)
+        dock.setVisible(not hidden)
         # pg_inst._menu_item = act # add this reference here for possible deleting later
         dock._menu_item = act  # add this reference here for possible deleting later
         pg_inst._dock = dock
+        pg_inst.show_dock = lambda show, d=dock: self.__hide_show_raise_pg_dock(d, show)
         dock.sigClosed.connect(lambda d=dock, a=act: self.__vis_dock_closed(d, a))
         # dock.visibilityChanged.connect(act.setChecked)
         self.visualization_guis[name] = pg_inst  # dock
@@ -235,6 +238,7 @@ class ExpGui(QMainWindow):
                 self.plot_area.addDock(dock)
                 dock._is_closed = False
             # dock.raiseDock()
+            dock._menu_item.setChecked(True)
 
     def load_instrument_gui(self, inst_name):
         # assumes the instrument exists (intended to be called by load_all_instrument_guis)
@@ -266,7 +270,8 @@ class ExpGui(QMainWindow):
                 out_view_class = get_class(out_view)
                 out_view_instance = out_view_class(**plotargs)
                 new_name = '{} (instr)'.format(inst_name)
-                self.__add_vis_dock_to_menu(new_name, out_view_instance, self.visualization_menu)
+                hidden = ('start_hidden' in conf_dict and conf_dict['start_hidden'])
+                self.__add_vis_dock_to_menu(new_name, out_view_instance, self.visualization_menu, hidden)
         if 'view' in conf_dict:
             inst_view = conf_dict['view']
             if type(inst_view) is str:

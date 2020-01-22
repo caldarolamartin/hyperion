@@ -29,6 +29,7 @@ class ExampleInstrumentGui(BaseGui):
             self.curve = lambda *args, **kwargs: None
         else:
             self.curve = self.output_gui.plot() # initialize plot
+        # self.output_gui.show_dock = lambda *args, **kwargs: None  # this will be overwritten by ExpGui
         self.title = 'Example Gui'
         self.left = 40
         self.top = 40
@@ -77,6 +78,7 @@ class ExampleInstrumentGui(BaseGui):
         self.show()
 
     def show_one_plot(self):
+        self.output_gui.show_dock(True)  # Optional. Ensures the output gui is opened in ExpGui if it was hidden
         # Grab data from instrument here (or check if new data is available)
         data = self.example_instr.return_fake_1D_data()
         # update the plot
@@ -156,12 +158,14 @@ class ExampleInstrumentGuiMultiplePlots(BaseGui):
         self.show()
 
     def show_plot_a(self):
+        self.output_gui_dict['Spectrum'].show_dock(True)  # Optional. Ensures the output gui is opened in ExpGui if it was hidden
         # Grab data from instrument here (or check if new data is available)
         data = np.random.normal(size=100)
         # update the plot
         self.plot_a.setData(data)
 
     def show_plot_b(self):
+        self.output_gui_dict['Power'].show_dock(True)  # Optional. Ensures the output gui is opened in ExpGui if it was hidden
         # Grab data from instrument here (or check if new data is available)
         data = np.random.normal(size=100)
         # update the plot
@@ -258,6 +262,7 @@ class ExampleInstrumentGui2D(BaseGui):
         self.show()
 
     def show_one_plot(self):
+        self.imv.show_dock(True)  # Optional. Ensures the output gui is opened in ExpGui if it was hidden
         # Grab data from instrument here (or check if new data is available))
         data = self.example_instr.return_fake_2D_data()
         # update the plot

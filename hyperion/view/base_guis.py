@@ -355,6 +355,7 @@ class AutoMeasurementGui(BaseGui):
         super().__init__(parent)
         self.experiment = experiment
         self.measurement = measurement
+        self.output_guis = output_guis
         self._parent = parent
         if not hasattr(self.experiment, 'properties'):
             self.logger.error('Experiment object needs to have properties dictionary. Make sure you load config.')
@@ -486,6 +487,13 @@ class AutoMeasurementGui(BaseGui):
         """
         None
 
+    def ensure_output_docks_are_open(self):
+        """ Uses the show_dock method added by ExpGui to ensure that all aoutput guis are opened before starting the measurement"""
+        if self._parent is not None:
+            for instance in self.output_guis.values():
+                if hasattr(instance, 'show_dock'):
+                    instance.show_dock(True)
+
     def start_pause(self):
         """
         Called when Start/Pause/Continue button is pressed.
@@ -495,6 +503,7 @@ class AutoMeasurementGui(BaseGui):
         self.logger.debug('start/pause pressed')
         self.experiment.apply_pause = not self.experiment.apply_pause
         if self.experiment.running_status == self.experiment._not_running:
+            self.ensure_output_docks_are_open()
             self.measurement_thread.start()
             self.start_plotting()
         self.update_buttons()

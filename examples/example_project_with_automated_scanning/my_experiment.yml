@@ -24,6 +24,7 @@ VisualizationGuis:
   Power:
     view: pyqtgraph/PlotWidget
   Image:
+    start_hidden: True
     view: pyqtgraph/ImageView
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -192,7 +193,7 @@ Instruments:       # dictionary of Instruments
     controller: hyperion.controller.example_controller/ExampleController
     view: hyperion.view.example_instrument_view/ExampleInstrumentGuiMultiplePlots
 #    graphView: hyperion.view.example_instrument_view/ExampleOutputGui
-    start_hidden: False  # If False or not included in dict, the gui will show on startup
+    start_hidden: False  # If False or not included in dict, the gui will show on startup when using in ExpGui
     visualization_guis:
       - Spectrum
       - Power
@@ -208,6 +209,7 @@ Instruments:       # dictionary of Instruments
     controller: hyperion.controller.example_controller/ExampleController
     view: hyperion.view.example_instrument_view/ExampleInstrumentGui
     graphView: pyqtgraph/PlotWidget
+    start_hidden: True
     plotargs:
       title: Correlator
   Spectrometer:
