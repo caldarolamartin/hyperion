@@ -60,6 +60,7 @@ Measurements:       # dictionary of Measurements
 #    visualization_guis:
 #      out: pyqtgraph/PlotWidget
   Automatic Measurement Example:
+#    start_hidden: True
     required_instruments:         # required instruments for this measurement
       Camera:                     # this name should match the name in Instruments
         stop: True                # call stop() method of this instrument before starting measurement
@@ -98,6 +99,7 @@ Measurements:       # dictionary of Measurements
           - Name: Scan Atto Y
             Type: atto_scanner
             _store_name: sample_y
+#            _disabled: True
             axis: y
             start: 2 um
             stop: 9 um
@@ -190,7 +192,7 @@ Instruments:       # dictionary of Instruments
     controller: hyperion.controller.example_controller/ExampleController
     view: hyperion.view.example_instrument_view/ExampleInstrumentGuiMultiplePlots
 #    graphView: hyperion.view.example_instrument_view/ExampleOutputGui
-    start_visible: True  # ?????
+    start_hidden: False  # If False or not included in dict, the gui will show on startup
     visualization_guis:
       - Spectrum
       - Power
@@ -244,6 +246,7 @@ MetaInstruments:
   SampleXYZ:
     meta_instr: hyperion.instrument.example_meta_instrument/ExampleMetaInstrument
     view: hyperion.view.example_instrument_view/ExampleInstrumentGui
+    start_hidden: True
     instruments:
       x: MotorObjectiveX               # This should be the name of an instrument
       y: MotorObjectiveY

@@ -1,5 +1,6 @@
 from hyperion.view.base_guis import AutoMeasurementGui
 from hyperion import logging
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QTimer
 import numpy as np
 
@@ -12,6 +13,7 @@ class MyMeasurementGuiWithPlotting(AutoMeasurementGui):
         super().__init__(experiment, measurement, parent=parent, output_guis=output_guis)
         logging.getLogger(__name__)
         self.experiment = experiment
+        self.measurement = measurement
 
         self.output_guis = output_guis
         self.timer_interval_ms = 50
@@ -28,6 +30,18 @@ class MyMeasurementGuiWithPlotting(AutoMeasurementGui):
 
         if parent is None:
             self.show_ouputs_if_standalone()
+
+        # To demonstrate that th gui can still be expanded, a button to swap x and y direction is added here
+        button_swap_XY = QPushButton('Swap atto XY direction')
+        button_swap_XY.clicked.connect(self.swap_XY)
+        self.outer_layout.insertWidget(1,button_swap_XY)
+
+    def swap_XY(self):
+        self.experiment.swap_actions(
+            self.experiment.properties['Measurements'][self.measurement]['automated_actionlist'],
+            'Scan Atto X', 'Scan Atto Y')
+        self.create_actionlist_guis()
+
 
     def show_ouputs_if_standalone(self):
         for name, gui in self.output_guis.items():

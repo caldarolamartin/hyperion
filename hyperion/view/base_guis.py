@@ -372,10 +372,16 @@ class AutoMeasurementGui(BaseGui):
         self.measurement_thread = WorkThread(lambda: experiment.perform_measurement(self.measurement))
 
         self._valid = self.validate()
-        self.outer_layout = QGridLayout()
+
+        # self.outer_layout = QGridLayout()
+        self.outer_layout = QVBoxLayout()
+
         self.outer_layout.setSpacing(20)
         self.button_layout = self.create_buttons()
-        self.outer_layout.addLayout(self.button_layout, 0, 0)
+
+        # self.outer_layout.addLayout(self.button_layout, 0, 0)
+        self.outer_layout.addLayout(self.button_layout)
+
         self.actions_layout = QVBoxLayout()
         label_incorrect = QLabel('incorrect config file')
         label_incorrect.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
@@ -422,7 +428,10 @@ class AutoMeasurementGui(BaseGui):
         else:
             self.actions_layout = QVBoxLayout()
             self.actions_layout.addWidget(QLabel('incorrect config file'))
-        self.outer_layout.addLayout(self.actions_layout, 1, 0)
+
+        # self.outer_layout.addLayout(self.actions_layout, 1, 0)
+        self.outer_layout.addLayout(self.actions_layout)
+
         self.update()
 
     def add_actions_recursively(self, actionlist, nesting_level=0):
@@ -450,6 +459,9 @@ class AutoMeasurementGui(BaseGui):
                 action_gui_widget.layout.setContentsMargins(7,0,20-self.__shift(nesting_level)[1],10)
                 action_gui_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
                 box_layout.addWidget(action_gui_widget)
+                if '_disabled' in actiondict and actiondict['_disabled']:
+                    box.setChecked(False)
+                box.toggled.connect(lambda state, a=actiondict: a.__setitem__('_disabled', not state))
             if '~nested' in actiondict:
                 nested_layout = self.add_actions_recursively(actiondict['~nested'], nesting_level+1)
                 nested_layout.setContentsMargins(max(3,12-nesting_level), 0, self.__shift(nesting_level)[0],5+max(0,5-nesting_level))

@@ -215,11 +215,11 @@ class ExpGui(QMainWindow):
         # pg_inst._menu_item = act # add this reference here for possible deleting later
         dock._menu_item = act  # add this reference here for possible deleting later
         pg_inst._dock = dock
-        dock.sigClosed.connect(lambda d=dock, a=act: self.__dock_closed(d, a))
+        dock.sigClosed.connect(lambda d=dock, a=act: self.__vis_dock_closed(d, a))
         # dock.visibilityChanged.connect(act.setChecked)
         self.visualization_guis[name] = pg_inst  # dock
 
-    def __dock_closed(self, dock, act):
+    def __vis_dock_closed(self, dock, act):
         act.setChecked(False)
         dock.setVisible(False)
         dock._is_closed=True
@@ -249,6 +249,7 @@ class ExpGui(QMainWindow):
         self.__load_instr_gui(inst_name, instr_inst, conf_dict)
 
     def __load_instr_gui(self, inst_name, instr_inst, conf_dict):
+        # Shared helper function for load_instrument_gui() and load_meta_instrument_gui()
         vis_gui_instances = {}
         out_view_instance = None
         if 'visualization_guis' in conf_dict and 'VisualizationGuis' in self.experiment.properties:
@@ -280,16 +281,12 @@ class ExpGui(QMainWindow):
 
                 self.logger.debug('Adding Instrument gui: {}'.format(inst_name))
                 self.__add_qt_dock_to_menu(inst_name, instr_view_instance, self.instrument_menu, Qt.RightDockWidgetArea)
-
-                # dock = QDockWidget(inst_name)
-                # dock.setWidget(instr_view_instance)
-                # dock.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetClosable)
-                # self.addDockWidget(Qt.RightDockWidgetArea, dock)
-                # act = self.instrument_menu.addAction(inst_name, lambda d=dock: d.close() if d.isVisible() else d.setVisible(True))
-                # act.setCheckable(True)
-                # dock.visibilityChanged.connect(act.setChecked)
+                if 'start_hidden' in conf_dict and conf_dict['start_hidden']:
+                    instr_view_instance._dock.close()
+                    instr_view_instance._menu_item.setChecked(False)
 
     def __add_qt_dock_to_menu(self, name, instance, menu, dock_area):
+        # helper function for
         dock = QDockWidget(name)
         dock.setWidget(instance)
         dock.setFeatures(
@@ -343,6 +340,9 @@ class ExpGui(QMainWindow):
                 meas_instance = meas_class(self.experiment, meas_name, parent=self)
             self.measurement_guis[meas_name] = meas_instance
             self.__add_qt_dock_to_menu(meas_name, meas_instance, self.measurement_menu, Qt.LeftDockWidgetArea)
+            if 'start_hidden' in meas_dict and meas_dict['start_hidden']:
+                meas_instance._dock.close()
+                meas_instance._menu_item.setChecked(False)
 
     def load_config(self):
         # folder, basename = self.experiment._validate_folder_basename(self.actiondict)

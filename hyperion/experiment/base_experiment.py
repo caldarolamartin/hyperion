@@ -879,30 +879,38 @@ class BaseExperiment:
             # check for stop and pause
             actiondict = ActionDict(actiondictionary, exp=self)
             actionname = actiondict['Name']
-            if '_method' not in actiondict:
-                raise KeyError('No _method found in actiondict or actiontype')
-            else:
-                try:
-                    method = getattr(self, actiondict['_method'])
-                except AttributeError:
-                    raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
-            self._nesting_parents = parents  # to make it available outside
-            if '~nested' in actiondict:
-                # without error checking for now:
-                # else:
-                #     indices += [0]  # append 0 to list  current_values
-                if '_store_name' in actiondict:
-                    new_parent = valid_python(actiondict['_store_name'])
+
+            if '_disabled' not in actiondict or not actiondict['_disabled']:
+                # Normal operation:
+                if '_method' not in actiondict:
+                    raise KeyError('No _method found in actiondict or actiontype')
                 else:
-                    new_parent = valid_python(actionname)
-                nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
-                # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
+                    try:
+                        method = getattr(self, actiondict['_method'])
+                    except AttributeError:
+                        raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
+                self._nesting_parents = parents  # to make it available outside
+                if '~nested' in actiondict:
+                    # without error checking for now:
+                    # else:
+                    #     indices += [0]  # append 0 to list  current_values
+                    if '_store_name' in actiondict:
+                        new_parent = valid_python(actiondict['_store_name'])
+                    else:
+                        new_parent = valid_python(actionname)
+                    nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
+                    # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
+                else:
+                    nesting = lambda *args, **kwargs: None        # a "do nothing" function
+                    # nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
+                method(actiondict, nesting)
             else:
-                nesting = lambda *args, **kwargs: None        # a "do nothing" function
-                # nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
-            method(actiondict, nesting)
-            # if self.stop_measurement(): return
+                # If the action is disabled, only run nested() (those actions should occur once then)
+                nesting()
+
+            # Check for stop and pause before continuing to the next action:
             if self.pause_measurement(): return  #: return     # Use this line to check for pause
+
         if len(parents) < len(self._nesting_indices):
             del self._nesting_indices[-1]
 
