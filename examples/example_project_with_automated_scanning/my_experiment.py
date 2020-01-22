@@ -88,7 +88,7 @@ class MyExperiment(BaseExperiment):
         self.logger.info('Set camera exposure')
         # self.instruments_instances['Camera'].set_exposure(actiondict['exposure'])
         self.logger.info('Acquire image')
-        # camera_image = self.instruments_instances['Camera'].acquire_image()
+        camera_image = self.instruments_instances['Camera'].return_fake_2D_data()
 
         self.logger.info('LED off')
         # self.instruments_instances['LED'].enable = False
@@ -96,11 +96,10 @@ class MyExperiment(BaseExperiment):
         # self.instruments_instances['Filters'].filter_a(False)
         # self.instruments_instances['Filters'].filter_b(False)
 
-        fake_data = np.random.random((20,60))
         # Because this is higher dimensional data, create dimensions:
-        self.datman.dim('im_y', fake_data.shape[0])     # add extra axes if they don't exist yet
-        self.datman.dim('im_x', fake_data.shape[1])
-        self.datman.var(actiondict, fake_data, extra_dims=('im_y', 'im_x') )
+        self.datman.dim('im_y', camera_image.shape[0])     # add extra axes if they don't exist yet
+        self.datman.dim('im_x', camera_image.shape[1])
+        self.datman.var(actiondict, camera_image, extra_dims=('im_y', 'im_x') )
         self.datman.meta(actiondict, {'exposuretime': actiondict['exposuretime'], 'filter_a': actiondict['filter_a'], 'filter_b': actiondict['filter_b'] })
         # self.datman.meta(actiondict, expo='5s')
         # self.datman.meta(actiondict, actiondict)
@@ -145,16 +144,17 @@ class MyExperiment(BaseExperiment):
         if self.break_measurement(): return
 
     def measure_power(self, actiondict, nesting):
-        fake_data = np.random.random()
-        self.datman.var(actiondict, fake_data, meta=actiondict, units='mW')
+        fake_voltage = self.instruments_instances['PhotoDiode'].return_fake_voltage_datapoint()
+        unit = fake_voltage.u
+        value = fake_voltage.m_as(unit)
+        self.datman.var(actiondict, value, meta=actiondict, units=str(unit))
         nesting()
 
     def fake_spectrum(self, actiondict, nesting):
-        fake_wav_nm = np.arange(500, 601, 10)
-        fake_data = np.random.random(11)
+        fake_wav_nm = np.arange(500, 600.001, 5)
+        fake_counts = self.instruments_instances['Spectrometer'].return_fake_1D_data(len(fake_wav_nm))
         self.datman.dim_coord('wav', fake_wav_nm, meta={'units': 'nm'})
-        self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict, units='counts')
-        sleep(0.1)  # slow down this dummy measurement
+        self.datman.var(actiondict, fake_counts, extra_dims=('wav'), meta=actiondict, units='counts')
         nesting()
 
 

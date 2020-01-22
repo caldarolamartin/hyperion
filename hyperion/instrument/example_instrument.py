@@ -11,6 +11,8 @@ for real devices. This is only a dummy device.
 from hyperion.core import logman as logging # another way to do it
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
+import numpy as np
+from time import sleep
 
 class ExampleInstrument(BaseInstrument):
     """ Example instrument. it is a fake instrument
@@ -49,6 +51,27 @@ class ExampleInstrument(BaseInstrument):
         self.logger.debug('Ask IDN to device.')
         return self.controller.idn()
 
+    # Several
+
+    def return_fake_voltage_datapoint(self):
+        sleep(0.01)
+        return np.random.random()*ur('V')
+
+    def return_fake_datapoint(self):
+        sleep(0.01)
+        return np.random.random()
+
+    def return_fake_1D_data(self, width=200):
+        sleep(0.02)
+        return np.random.random(width)
+
+    def return_fake_2D_data(self, width=64, height=48):
+        sleep(0.05)
+        return np.random.random((height, width))
+
+    def return_fake_3D_data(self, width=32, height=24, depth=8):
+        sleep(0.1)
+        return np.random.random((height, width, depth))
 
     @property
     def amplitude(self):

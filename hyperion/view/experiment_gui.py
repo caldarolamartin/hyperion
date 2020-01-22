@@ -547,6 +547,11 @@ class ExpGui(QMainWindow):
         subprocess.Popen('python '+pyqtgraph.examples.__main__.__file__)
 
     def __about_dialog(self):
+        """
+        Show an "About" window with a bit of information about the history of development, the creators and where to get
+        help.
+        :return:
+        """
         QMessageBox.question(self, 'About',
                                    "The Hyperion framework/platform was developed in the KuipersLab\n"
                                    "at the Technical University Delft in The Netherlands with the\n"

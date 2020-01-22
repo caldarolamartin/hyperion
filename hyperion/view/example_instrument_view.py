@@ -19,10 +19,11 @@ class ExampleInstrumentGui(BaseGui):
     that is harder than it sounds.
     """
 
-    def __init__(self, example_ins, output_gui=None, also_close_output=True):
+    def __init__(self, example_instr, output_gui=None, also_close_output=True):
         super().__init__()
         self.logger = logman.getLogger(__name__)
         self.also_close_output = also_close_output
+        self.example_instr = example_instr
         self.output_gui = output_gui
         if self.output_gui is None:
             self.curve = lambda *args, **kwargs: None
@@ -33,7 +34,6 @@ class ExampleInstrumentGui(BaseGui):
         self.top = 40
         self.width = 320
         self.height = 200
-        self.example_ins = example_ins
         self.initUI()
 
         self.cont_plot_timer = QTimer()
@@ -78,7 +78,7 @@ class ExampleInstrumentGui(BaseGui):
 
     def show_one_plot(self):
         # Grab data from instrument here (or check if new data is available)
-        data = np.random.normal(size=100)
+        data = self.example_instr.return_fake_1D_data()
         # update the plot
         self.curve.setData(data)
 
@@ -185,11 +185,11 @@ class ExampleInstrumentGui2D(BaseGui):
     that is harder than it sounds.
     """
 
-    def __init__(self, example_ins, output_gui=None, also_close_output=True):
+    def __init__(self, example_instr, output_gui=None, also_close_output=True):
         super().__init__()
         self.logger = logman.getLogger(__name__)
         self.also_close_output = also_close_output
-
+        self.example_instr = example_instr
         self.imv = output_gui
 
         colors = [
@@ -208,7 +208,6 @@ class ExampleInstrumentGui2D(BaseGui):
         self.top = 40
         self.width = 320
         self.height = 200
-        self.example_ins = example_ins
         self.initUI()
 
         self.cont_plot_timer = QTimer()
@@ -252,10 +251,10 @@ class ExampleInstrumentGui2D(BaseGui):
         self.show()
 
     def show_one_plot(self):
-        # Grab data from instrument here (or check if new data is available)
-        data = np.random.normal(size=(100,100))
+        # Grab data from instrument here (or check if new data is available))
+        data = self.example_instr.return_fake_2D_data()
         # update the plot
-        self.imv.setImage(data, xvals=np.linspace(1., 3., data.shape[0]))
+        self.imv.setImage(data.transpose(), xvals=np.linspace(1., 3., data.shape[0]))
 
     def show_continuous_plot(self):
         if not self.cont_plot_timer.isActive():
