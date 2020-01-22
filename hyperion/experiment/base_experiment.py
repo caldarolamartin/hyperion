@@ -173,6 +173,12 @@ class DataManager:
         self._is_open = False
         self.lowercase = lowercase
         self._version = 0.1
+        self.__reset_flags_and_indices()
+
+    def __reset_flags_and_indices(self):
+        # These flags can be used to signal whomever takes carer of plotting that there's new data:
+        self.new_data_flags = DefaultDict({}, {}, ReturnNoneForMissingKey=True)
+        self.new_data_indices = DefaultDict({}, {}, ReturnNoneForMissingKey=True)
 
     def open_file(self, filename, write_mode='w', **kwargs):
         """
@@ -197,6 +203,7 @@ class DataManager:
 
         else:
             self.logger.warning('A file is already open')
+        self.__reset_flags_and_indices()
 
     def __check_not_open(self):
         # Private helper function
@@ -311,7 +318,7 @@ class DataManager:
             except:
                 self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
 
-    def var(self, name_or_dict, data, indices=None, dims=None, extra_dims=None, meta=None, **kwargs):
+    def var(self, name_or_dict, data, indices=None, dims=None, extra_dims=None, meta=None, no_new_data_flag=False, **kwargs):
         """
         Add or update a Variable.
         Can automatically deduce dimensions and indices if used in automated scanning (i.e. perform_actionlist() of BaseExperiment.)
@@ -331,8 +338,10 @@ class DataManager:
         :type dims: tuple or list of strings
         :param extra_dims: extra dimensions for higher dimensional data.
         :type extra_dims: tuple or list of strings
-        :param meta: dictionary holding meta arguments(Optional)
+        :param meta: dictionary holding meta arguments (Optional)
         :type meta: dict
+        :param no_new_data_flag: prevents setting the new_data_flag for plotting when True (Optional, defaults to False)
+        :type no_new_data_flag: bool
         :param **kwargs: additional unknown keyword arguments are added as meta attributes
         """
         if self.__check_not_open(): return
@@ -360,6 +369,10 @@ class DataManager:
             self.root.variables[name][tuple(indices)] = npdata
         else:
             self.root.variables[name][:] = data
+        # Set new data available flag (for plotting)
+        if not no_new_data_flag:
+            self.new_data_flags[name] = True
+            self.new_data_indices[name] = indices
 
     def meta(self, attach_to=None, dic=None, only_once=False, *args, **kwargs):
         """

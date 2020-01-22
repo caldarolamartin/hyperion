@@ -190,7 +190,12 @@ class ExampleInstrumentGui2D(BaseGui):
         self.logger = logman.getLogger(__name__)
         self.also_close_output = also_close_output
         self.example_instr = example_instr
-        self.imv = output_gui
+
+        # if output_gui is dict, just grab the first value
+        if type(output_gui) is dict:
+            self.imv = list(output_gui.values())[0]
+        else:
+            self.imv = output_gui
 
         colors = [
             (0, 0, 0),
@@ -218,7 +223,9 @@ class ExampleInstrumentGui2D(BaseGui):
         Stop the instruments activity. This can be used by a measurement or an ExperimentGui to tell an instrument to stop doing what it's doing (so that it can start taking
         """
         if self.cont_plot_timer.isActive():
-            self.cont_plot_timer.stop()
+            # self.cont_plot_timer.stop()  # stop the thread
+            self.show_continuous_plot()  # "pretent" to hit the stop continuous button
+
 
 
     def closeEvent(self, event):

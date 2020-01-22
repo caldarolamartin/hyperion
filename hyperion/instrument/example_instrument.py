@@ -54,23 +54,23 @@ class ExampleInstrument(BaseInstrument):
     # Several
 
     def return_fake_voltage_datapoint(self):
-        sleep(0.01)
+        sleep(0.02)
         return np.random.random()*ur('V')
 
     def return_fake_datapoint(self):
-        sleep(0.01)
+        sleep(0.02)
         return np.random.random()
 
     def return_fake_1D_data(self, width=200):
-        sleep(0.02)
+        sleep(0.05)
         return np.random.random(width)
 
     def return_fake_2D_data(self, width=64, height=48):
-        sleep(0.05)
+        sleep(0.1)
         return np.random.random((height, width))
 
     def return_fake_3D_data(self, width=32, height=24, depth=8):
-        sleep(0.1)
+        sleep(0.2)
         return np.random.random((height, width, depth))
 
     @property

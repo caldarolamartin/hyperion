@@ -152,9 +152,10 @@ class MyExperiment(BaseExperiment):
 
     def fake_spectrum(self, actiondict, nesting):
         fake_wav_nm = np.arange(500, 600.001, 5)
-        fake_counts = self.instruments_instances['Spectrometer'].return_fake_1D_data(len(fake_wav_nm))
+        self.fake_counts = self.instruments_instances['Spectrometer'].return_fake_1D_data(len(fake_wav_nm))
+        self.flag_new_spectral_data = True
         self.datman.dim_coord('wav', fake_wav_nm, meta={'units': 'nm'})
-        self.datman.var(actiondict, fake_counts, extra_dims=('wav'), meta=actiondict, units='counts')
+        self.datman.var(actiondict, self.fake_counts, extra_dims=('wav'), meta=actiondict, units='counts')
         nesting()
 
 
@@ -186,21 +187,35 @@ if __name__ == '__main__':
             ### Test with gui:
 
             from PyQt5.QtWidgets import QApplication
-            from hyperion.view.base_guis import AutoMeasurementGui, ModifyMeasurement
+
 
             app = QApplication(sys.argv)  # required "placeholder" for gui
 
-            # Open the BaseMeasurementGui with 'Example Measurement A' as input:
-            q = AutoMeasurementGui(e, 'Automatic Measurement Example')
-            # Note that this approach can be used to run an experiment with a small gui but without the master gui.
-            # (although plotting graphs would need to be tested)
+            # # Without plotting:
+            # from hyperion.view.base_guis import AutoMeasurementGui
+            # q = AutoMeasurementGui(e, 'Automatic Measurement Example')
+
+            # With plotting
+            # (This is a bit "hacky" because this is intended to be done from the ExpGui object)
+            from gui.measurement_gui import MyMeasurementGuiWithPlotting
+            from hyperion.tools.loading import get_class
+
+            # Create a dict of visualization guis (normally this is done automatically by ExpGui class)
+            plotting_dict = {}
+            for vis_name, vis_dict in e.properties['VisualizationGuis'].items():
+                if vis_name not in e.properties['Measurements']['Automatic Measurement Example']['visualization_guis']:
+                    continue
+                vis_cls = get_class(vis_dict['view'])
+                plotargs = {}
+                if 'plotargs' in vis_dict:
+                    plotargs = vis_dict['plotargs']
+                plotting_dict[vis_name] = vis_cls(**plotargs)
+
+            q = MyMeasurementGuiWithPlotting(e, 'Automatic Measurement Example', parent=None, output_guis=plotting_dict)
+
 
             # # Introduce corruption in actionlist for testing:
             # del(e.properties['Measurements']['Example Measurement A'][0]['Name'])
-
-            ### new section to test plotting stuff:
-            import pyqtgraph as pg
-
 
             app.exec_()
 

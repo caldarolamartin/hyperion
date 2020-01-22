@@ -7,6 +7,7 @@ import random
 import string
 import sys
 import os
+import hyperion
 from hyperion import logging
 import pyqtgraph as pg
 from PyQt5.QtCore import *
@@ -26,6 +27,8 @@ import numpy as np
 
 from pyqtgraph.dockarea import DockArea, Dock
 
+
+
 class ExpGui(QMainWindow):
 
     def __init__(self, experiment):
@@ -38,6 +41,8 @@ class ExpGui(QMainWindow):
 
         # Add reference to this gui to the experiment object
         self.experiment._gui_parent = self
+
+        self.statusBar().showMessage('idle')
 
         self._config_file = None
         # Create central pyqtgraph dock area for graphics outputs
@@ -109,20 +114,22 @@ class ExpGui(QMainWindow):
         self.fileMenu.addAction("&Modify Config File", self.modify_config)
         self.fileMenu.addAction("&Reconnect Instruments", self.reconnect_instruments)
         self.fileMenu.addAction("&Quit", self.close)
+
         self.measurement_menu = mainMenu.addMenu('&Measurements')
+        self.measurement_menu.addAction('&Show all', lambda: self._show_hide_all_qt(self.measurement_guis, show=True))
+        self.measurement_menu.addAction('&Hide all', lambda: self._show_hide_all_qt(self.measurement_guis, show=False))
+        self.measurement_menu.addSeparator()
+
         self.instrument_menu = mainMenu.addMenu('&Instruments')
+        self.instrument_menu.addAction('&Show all', lambda: self._show_hide_all_qt(self.instrument_guis, show=True))
+        self.instrument_menu.addAction('&Hide all', lambda: self._show_hide_all_qt(self.instrument_guis, show=False))
+        self.instrument_menu.addSeparator()
+
         self.visualization_menu = mainMenu.addMenu('&Visualization')
+        self.visualization_menu.addAction('&Show all', lambda: self._show_hide_all_plots(show=True))
+        self.visualization_menu.addAction('&Hide all', lambda: self._show_hide_all_plots(show=False))
+        self.visualization_menu.addSeparator()
 
-        # for inst_name, inst_gui_obj in self.instrument_guis.items():
-        #     # add the menu item to the view object:
-        #     inst_gui_obj._menu_action = self.instrument_menu.addAction(inst_name)
-        #     inst_gui_obj._menu_action.setCheckable(True)
-        #     inst_gui_obj._menu_action.setChecked(True)
-        #     inst_gui_obj._menu_action.triggered.connect(lambda state, x=inst_name: self.hide_show_outut_gui(state, x))
-
-
-        # self.instrument_graph_menu = mainMenu.addMenu('Graph windows')
-        # self.measurement_graph_menu = mainMenu.addMenu('Measurement graph windows')
 
         self.toolsMenu = mainMenu.addMenu('Tools')
         # self.toolsMenu.addAction("Let widget 1 disappear", self.get_status_open_or_closed)
@@ -135,16 +142,18 @@ class ExpGui(QMainWindow):
         self.helpMenu.addAction('&PyQtGraph examples', self.__show_pyqtgraph_examples)
         self.helpMenu.addAction('&About', self.__about_dialog)
 
-    # def hide_show_outut_gui(self, state, inst_name, start_hidden=False):
-    #     print(state)
-    #     print(inst_name)
-    #     if self.instrument_guis[inst_name].isVisible():
-    #         self.instrument_guis[inst_name]._menu_action.setChecked(False)
-    #         self.instrument_guis[inst_name].setVisible(False)
-    #     else:
-    #         self.instrument_guis[inst_name]._menu_action.setChecked(True)
-    #         self.instrument_guis[inst_name].setVisible(True)
-    #         # obj=QWidget()
+    def _show_hide_all_plots(self, show):
+        for key, value in self.plot_area.docks.items():
+            self.__hide_show_raise_pg_dock(value, show=show)
+            value._menu_item.setChecked(show)
+
+    def _show_hide_all_qt(self, gui_dict, show):
+        for value in gui_dict.values():
+            if show:
+                value._dock.setVisible(True)
+            else:
+                value._dock.close()
+
 
     def lock_instruments(self, lock, measurement_name):
         """
@@ -155,17 +164,18 @@ class ExpGui(QMainWindow):
         """
         self.logger.debug(['un',''][lock]+'locking {}'.format(measurement_name))
         if 'required_instruments' in self.experiment.properties['Measurements'][measurement_name]:
-            self.logger.debug('required_instruments found')
+            self.logger.debug('(un)locking required instruments of Measurement')
             for name, req_dict in self.experiment.properties['Measurements'][measurement_name]['required_instruments'].items():
                 self.logger.debug('{}: {}'.format(name, req_dict))
-                if lock:
-                    if name in self.experiment.instruments_instances:
-                        if 'stop' in req_dict and req_dict['stop']:
-                            instance = self.experiment.instruments_instances[name]
-                            if hasattr(instance, 'stop'):
-                                instance.stop()
-                if name in self.instrument_guis and 'lock' in req_dict:
-                    self.instrument_guis[name].setDisabled(req_dict['lock'] and lock)
+                if name in self.instrument_guis:
+                    # call stop if: lock AND req_dict['stop']==True AND if the gui has stop method
+                    if lock and 'stop' in req_dict and req_dict['stop']:
+                        instance = self.instrument_guis[name]
+                        if hasattr(instance, 'stop'):
+                            instance.stop()
+                    # disable / enable according to lock if 'lock' in req_dict and True
+                    if 'lock' in req_dict:
+                        self.instrument_guis[name].setDisabled(req_dict['lock'] and lock)
 
     def load_all_instrument_guis(self):
         # clear gui dicts
@@ -197,14 +207,13 @@ class ExpGui(QMainWindow):
         dock.addWidget(pg_inst)
         dock._is_closed = False  # add this flag for hiding/closing the graph
         self.plot_area.addDock(dock)
-        print(dock.topLayout)
-        print(dock.currentRow)
         # act = self.visualization_menu.addAction(name,
         #                                     lambda d=dock: d.setVisible(False) if d.isVisible() else d.setVisible(True))
         act = self.visualization_menu.addAction(name, lambda d=dock: self.__hide_show_raise_pg_dock(d))
         act.setCheckable(True)
         act.setChecked(True)
-        pg_inst._menu_item = act # add this reference here for possible deleting later
+        # pg_inst._menu_item = act # add this reference here for possible deleting later
+        dock._menu_item = act  # add this reference here for possible deleting later
         pg_inst._dock = dock
         dock.sigClosed.connect(lambda d=dock, a=act: self.__dock_closed(d, a))
         # dock.visibilityChanged.connect(act.setChecked)
@@ -215,8 +224,10 @@ class ExpGui(QMainWindow):
         dock.setVisible(False)
         dock._is_closed=True
 
-    def __hide_show_raise_pg_dock(self, dock):
-        if dock.isVisible():
+    def __hide_show_raise_pg_dock(self, dock, show=None):
+        if show is None:
+            show = not dock.isVisible()
+        if not show:
             dock.setVisible(False)
         else:
             dock.setVisible(True)
@@ -330,7 +341,7 @@ class ExpGui(QMainWindow):
                 meas_instance = meas_class(self.experiment, meas_name, parent=self, output_guis=vis_gui_instances)
             else:
                 meas_instance = meas_class(self.experiment, meas_name, parent=self)
-            # self.meas_guis[meas_name] = meas_instance
+            self.measurement_guis[meas_name] = meas_instance
             self.__add_qt_dock_to_menu(meas_name, meas_instance, self.measurement_menu, Qt.LeftDockWidgetArea)
 
     def load_config(self):
@@ -552,7 +563,13 @@ class ExpGui(QMainWindow):
         help.
         :return:
         """
-        QMessageBox.question(self, 'About',
+        if hasattr(self.experiment, 'datman'):
+            if hasattr(self.experiment.datman, '_version'):
+                datman_str = 'DataManager version: {}\n'.format(self.experiment.datman._version)
+            else:
+                datman_str=''
+        QMessageBox.question(self, 'About Hyperion',
+                                   "Hyperion version: {}\n{}\n"
                                    "The Hyperion framework/platform was developed in the KuipersLab\n"
                                    "at the Technical University Delft in The Netherlands with the\n"
                                    "purpose of controlling lab equipment and automating measurements.\n\n"
@@ -567,7 +584,7 @@ class ExpGui(QMainWindow):
                                    "None of us are professional software developers and this software is "
                                    "still very buggy. If you'd like to contribute to this software, find "
                                    "Hyperion on gitlab.com, or try hyperion.python@gmail.com or contact "
-                                   "the current members of the KuipersLab.",
+                                   "the current members of the KuipersLab.".format(hyperion.__version__, datman_str),
                                    QMessageBox.Close, QMessageBox.Close)
 
 

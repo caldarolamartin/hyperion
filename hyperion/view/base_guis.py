@@ -391,9 +391,9 @@ class AutoMeasurementGui(BaseGui):
         # Prepare window to modify config:
         self.dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
         # Set up QTimer to periodically update button states (based on
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_buttons)
-        self.timer.start(50) # in ms
+        self.timer_update_buttons = QTimer()
+        self.timer_update_buttons.timeout.connect(self.update_buttons)
+        self.timer_update_buttons.start(50) # in ms
 
     def create_buttons(self):
         """
@@ -468,6 +468,12 @@ class AutoMeasurementGui(BaseGui):
             shift += s+2
         return inverted, shift
 
+    def start_plotting(self, *args, **kwargs):
+        """
+        This method should be overwritten by a parent class.
+        """
+        None
+
     def start_pause(self):
         """
         Called when Start/Pause/Continue button is pressed.
@@ -478,6 +484,7 @@ class AutoMeasurementGui(BaseGui):
         self.experiment.apply_pause = not self.experiment.apply_pause
         if self.experiment.running_status == self.experiment._not_running:
             self.measurement_thread.start()
+            self.start_plotting()
         self.update_buttons()
 
     def apply_break(self):

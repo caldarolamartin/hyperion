@@ -24,7 +24,7 @@ VisualizationGuis:
   Power:
     view: pyqtgraph/PlotWidget
   Image:
-    view: pyqtgraph/PlotWidget
+    view: pyqtgraph/ImageView
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Measurements:
@@ -63,13 +63,14 @@ Measurements:       # dictionary of Measurements
     required_instruments:         # required instruments for this measurement
       Camera:                     # this name should match the name in Instruments
         stop: True                # call stop() method of this instrument before starting measurement
-        lock: True            # disable this instruments gui while measuring
+        lock: True                # disable this instruments gui while measuring
       Spectrometer:
         stop: True
         lock: True
-    view: hyperion.view.base_guis/AutoMeasurementGui
+    view: examples.example_project_with_automated_scanning.gui.measurement_gui/MyMeasurementGuiWithPlotting  #hyperion.view.base_guis/AutoMeasurementGui
     visualization_guis:
       - Spectrum
+      - Image
     automated_actionlist:
       - Name: Saving
         Type: saver
@@ -197,7 +198,9 @@ Instruments:       # dictionary of Instruments
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
     view: hyperion.view.example_instrument_view/ExampleInstrumentGui2D
-    graphView: pyqtgraph/ImageView
+    visualization_guis:
+      - Image
+#    graphView: pyqtgraph/ImageView
   Correlator:
     instrument: hyperion.instrument.example_instrument/ExampleInstrument
     controller: hyperion.controller.example_controller/ExampleController
