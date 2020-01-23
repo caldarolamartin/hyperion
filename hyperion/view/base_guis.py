@@ -443,7 +443,7 @@ class BaseMeasurementGui(BaseGui):
             box_layout.setSpacing(0)                    # distance between action widget and its nested items
             if '_view' in actiondict:
                 action_gui_class = get_class(actiondict['_view'])
-                action_gui_widget = action_gui_class(actiondict, self.experiment)
+                action_gui_widget = action_gui_class(actiondict, self.experiment, parent=box)
                 action_gui_widget.layout.setContentsMargins(7,0,20-self.__shift(nesting_level)[1],10)
                 action_gui_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
                 box_layout.addWidget(action_gui_widget)
