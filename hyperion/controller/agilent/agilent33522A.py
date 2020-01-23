@@ -473,7 +473,7 @@ class Agilent33522ADummy(Agilent33522A):
         self.logger.debug('Loading Agilent33522A defaults file: {}'.format(filename))
 
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
 
         self._properties = d
         self.logger.debug('_properties dict: {}'.format(self._properties))

@@ -57,7 +57,7 @@ class HydraInstrument(BaseInstrument):
             filename = os.path.join(root_dir,'instrument','correlator','HydraInstrument_config.yml')
       
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
     
         self.settings = d['settings']
         

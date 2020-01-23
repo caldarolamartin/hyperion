@@ -385,7 +385,7 @@ class LccDummy(Lcc):
         self.logger.debug('Loading LCC defaults file: {}'.format(filename))
 
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
 
         self._properties = d
         self.logger.debug('_properties dict: {}'.format(self._properties))

@@ -18,7 +18,7 @@ from PyQt5 import uic
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import *
-from hyperion import root_dir, _colors, Q_
+from hyperion import package_path, _colors, Q_
 from hyperion.tools.saving_tools import create_filename
 from hyperion.instrument.polarization.polarimeter import Polarimeter
 from hyperion.view.base_guis import BaseGui, BaseGraph
@@ -39,7 +39,7 @@ class PolarimeterGui(BaseGui):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         # to load from the UI file
-        gui_file = os.path.join(root_dir,'view', 'polarization','polarimeter.ui')
+        gui_file = os.path.join(package_path,'view', 'polarization','polarimeter.ui')
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
         # set location in screen
@@ -90,7 +90,7 @@ class PolarimeterGui(BaseGui):
 
     def customize_gui(self):
         """ Make changes to the gui """
-        self.setWindowIcon(QIcon(os.path.join(root_dir, 'view', 'logo_hyperion.png')))
+        self.setWindowIcon(QIcon(os.path.join(package_path, 'view', 'logo_hyperion.png')))
         self.logger.debug('Setting channels to plot')
         self._channels_labels = []
         self._channels_check_boxes = []
