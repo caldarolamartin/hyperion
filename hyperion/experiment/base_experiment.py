@@ -173,8 +173,9 @@ class DataManager:
         self._is_open = False
         self.lowercase = lowercase
         self._version = 0.1
-        self.__reset_flags_and_indices()
+        self.__reset_flags_and_indices()  ########################################################## MAYBY THIS SHOULD BE REMOVED
 
+    ########################################################## MAYBY THIS SHOULD BE REMOVED
     def __reset_flags_and_indices(self):
         # These flags can be used to signal whomever takes carer of plotting that there's new data:
         self.new_data_flags = DefaultDict({}, {}, ReturnNoneForMissingKey=True)
@@ -203,7 +204,7 @@ class DataManager:
 
         else:
             self.logger.warning('A file is already open')
-        self.__reset_flags_and_indices()
+        self.__reset_flags_and_indices()  ########################################################## MAYBY THIS SHOULD BE REMOVED
 
     def __check_not_open(self):
         # Private helper function
@@ -344,8 +345,17 @@ class DataManager:
         :type no_new_data_flag: bool
         :param **kwargs: additional unknown keyword arguments are added as meta attributes
         """
-        if self.__check_not_open(): return
+
         name = self.__name_or_dict(name_or_dict)
+
+        ########################################################## MAYBY THIS SHOULD BE REMOVED
+        # Set new data available flag (for plotting)
+        if not no_new_data_flag:
+            self.new_data_flags[name] = True
+            self.new_data_indices[name] = indices
+
+        if self.__check_not_open(): return
+
         if indices is None:
             indices = self.experiment._nesting_indices
 
@@ -369,10 +379,6 @@ class DataManager:
             self.root.variables[name][tuple(indices)] = npdata
         else:
             self.root.variables[name][:] = data
-        # Set new data available flag (for plotting)
-        if not no_new_data_flag:
-            self.new_data_flags[name] = True
-            self.new_data_indices[name] = indices
 
     def meta(self, attach_to=None, dic=None, only_once=False, *args, **kwargs):
         """
@@ -876,33 +882,32 @@ class BaseExperiment:
         # typically used on the whole list
         # In a an action that has nested Actions
         for actiondictionary in actionlist:
-            # check for stop and pause
             actiondict = ActionDict(actiondictionary, exp=self)
             actionname = actiondict['Name']
 
+            if '_method' not in actiondict:
+                raise KeyError('No _method found in actiondict or actiontype')
+            else:
+                try:
+                    method = getattr(self, actiondict['_method'])
+                except AttributeError:
+                    raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
+            self._nesting_parents = parents  # to make it available outside
+            if '~nested' in actiondict:
+                # without error checking for now:
+                # else:
+                #     indices += [0]  # append 0 to list  current_values
+                if '_store_name' in actiondict:
+                    new_parent = valid_python(actiondict['_store_name'])
+                else:
+                    new_parent = valid_python(actionname)
+                nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
+                # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
+            else:
+                nesting = lambda *args, **kwargs: None        # a "do nothing" function
+                # nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
             if '_disabled' not in actiondict or not actiondict['_disabled']:
                 # Normal operation:
-                if '_method' not in actiondict:
-                    raise KeyError('No _method found in actiondict or actiontype')
-                else:
-                    try:
-                        method = getattr(self, actiondict['_method'])
-                    except AttributeError:
-                        raise AttributeError('method {} not found in experiment object'.format(actiondict['_method']))
-                self._nesting_parents = parents  # to make it available outside
-                if '~nested' in actiondict:
-                    # without error checking for now:
-                    # else:
-                    #     indices += [0]  # append 0 to list  current_values
-                    if '_store_name' in actiondict:
-                        new_parent = valid_python(actiondict['_store_name'])
-                    else:
-                        new_parent = valid_python(actionname)
-                    nesting = lambda : self.perform_actionlist(actiondict['~nested'], parents+[new_parent])
-                    # store = lambda *args, **kwargs: self._datman.coord(*args, **kwargs, actiondict=actiondict, parents=parents, indices=self._nesting_indices)
-                else:
-                    nesting = lambda *args, **kwargs: None        # a "do nothing" function
-                    # nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
                 method(actiondict, nesting)
             else:
                 # If the action is disabled, only run nested() (those actions should occur once then)

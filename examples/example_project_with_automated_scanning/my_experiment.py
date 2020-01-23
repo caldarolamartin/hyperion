@@ -88,7 +88,8 @@ class MyExperiment(BaseExperiment):
         self.logger.info('Set camera exposure')
         # self.instruments_instances['Camera'].set_exposure(actiondict['exposure'])
         self.logger.info('Acquire image')
-        camera_image = self.instruments_instances['Camera'].return_fake_2D_data()
+        self.camera_image = self.instruments_instances['Camera'].return_fake_2D_data()
+        self.flag_new_camera_image = True
 
         self.logger.info('LED off')
         # self.instruments_instances['LED'].enable = False
@@ -97,9 +98,9 @@ class MyExperiment(BaseExperiment):
         # self.instruments_instances['Filters'].filter_b(False)
 
         # Because this is higher dimensional data, create dimensions:
-        self.datman.dim('im_y', camera_image.shape[0])     # add extra axes if they don't exist yet
-        self.datman.dim('im_x', camera_image.shape[1])
-        self.datman.var(actiondict, camera_image, extra_dims=('im_y', 'im_x') )
+        self.datman.dim('im_y', self.camera_image.shape[0])     # add extra axes if they don't exist yet
+        self.datman.dim('im_x', self.camera_image.shape[1])
+        self.datman.var(actiondict, self.camera_image, extra_dims=('im_y', 'im_x') )
         self.datman.meta(actiondict, {'exposuretime': actiondict['exposuretime'], 'filter_a': actiondict['filter_a'], 'filter_b': actiondict['filter_b'] })
         # self.datman.meta(actiondict, expo='5s')
         # self.datman.meta(actiondict, actiondict)

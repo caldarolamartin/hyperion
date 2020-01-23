@@ -16,15 +16,18 @@ class MyMeasurementGuiWithPlotting(AutoMeasurementGui):
         self.measurement = measurement
 
         self.output_guis = output_guis
+
         self.timer_interval_ms = 50
+
+        # Make sure the plotting update flags exist:
+        self.experiment.flag_new_spectral_data = False
+        self.experiment.flag_new_camera_image = False
 
         self.timer_update_plotting = QTimer()
         self.timer_update_plotting.timeout.connect(self.update_plots)
         # Idea:
         # Have one thread that
 
-        # Make sure this flag exists
-        self.experiment.flag_new_spectral_data = False
 
         self.initialize_some_graphics()
 
@@ -50,12 +53,12 @@ class MyMeasurementGuiWithPlotting(AutoMeasurementGui):
     def initialize_some_graphics(self):
         # Note that if you have your own plotting classes you could also set these things there.
         # But in this case I'm using pyqtgraph/PlotWidget directly for my VisualizationGui
-        number_of_existing_plots = len(self.output_guis['Spectrum'].getPlotItem().listDataItems())
+        number_of_existing_plots = len(self.output_guis['Power'].getPlotItem().listDataItems())
         if number_of_existing_plots == 1:
-            self.spec_curve = self.output_guis['Spectrum'].getPlotItem().listDataItems()[0]
+            self.spec_curve = self.output_guis['Power'].getPlotItem().listDataItems()[0]
         else:
-            self.output_guis['Spectrum'].getPlotItem().clear()
-            self.spec_curve = self.output_guis['Spectrum'].plot()
+            self.output_guis['Power'].getPlotItem().clear()
+            self.spec_curve = self.output_guis['Power'].plot()
 
     def start_plotting(self, *args, **kwargs):
         self.timer_update_plotting.start(self.timer_interval_ms)
@@ -78,16 +81,22 @@ class MyMeasurementGuiWithPlotting(AutoMeasurementGui):
         # What is implemented below is basically the same except it doesn't use manually created data variables and flags
         # but grabs data directly from the datamanager in the experiment class. This is a bit less transparent but
         # doesn't require extra copies of the data in memory.
+        # ONE DOWNSIDE IS THAT WHEN SAVING IS DISABLED, THE DATA IS NOT STORED IN THE DATAMANGER AND THEREFORE INACCESIBLE FOR PLOTTING
+        # THE OTHER APPROACH IS MORE PRACTICAL
 
-        if self.experiment.datman.new_data_flags['Image_Before']:
-            # grab the data:
-            data = self.experiment.datman.root.variables['Image_Before'][:]  # Grab the whole array because it's filled all at once
-            self.output_guis['Image'].setImage(data.transpose(), xvals=np.linspace(1., 3., data.shape[0]))
-            # self.output_guis['Image'].show()
-            # Clear the flag
-            self.experiment.datman.new_data_flags['Image_Before'] = False
+        # if self.experiment.datman.new_data_flags['Image_Before']:
+        #     # grab the data:
+        #     data = self.experiment.datman.root.variables['Image_Before'][:]  # Grab the whole array because it's filled all at once
+        #     self.output_guis['Image'].setImage(data.transpose(), xvals=np.linspace(1., 3., data.shape[0]))
+        #     # self.output_guis['Image'].show()
+        #     # Clear the flag
+        #     self.experiment.datman.new_data_flags['Image_Before'] = False
 
+        # Changed it to the other approach:
 
+        if self.experiment.flag_new_camera_image:
+            self.output_guis['Image'].setImage(self.experiment.camera_image.transpose(), xvals=np.linspace(1., 3., self.experiment.camera_image.shape[0]))
+            self.experiment.flag_new_camera_image = False
 
 
 

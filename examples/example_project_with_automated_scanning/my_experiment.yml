@@ -72,6 +72,7 @@ Measurements:       # dictionary of Measurements
     view: examples.example_project_with_automated_scanning.gui.measurement_gui/MyMeasurementGuiWithPlotting  #hyperion.view.base_guis/AutoMeasurementGui
     visualization_guis:
       - Spectrum
+      - Power
       - Image
     automated_actionlist:
       - Name: Saving
