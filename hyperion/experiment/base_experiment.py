@@ -200,7 +200,6 @@ class DataManager:
             self.meta(dic=self.experiment._saving_meta)
             self.meta(DataManager=self._version)
             self.sync_hdd()
-            print('completed adding meta after opening')
 
         else:
             self.logger.warning('A file is already open')
@@ -279,8 +278,8 @@ class DataManager:
             self.root.createVariable(name, 'f8', name)
             if length is not None:
                 self.root.variables[name][:] = array_or_value
-            if meta is not None:
-                self.meta(name, meta)
+            if meta is not None or len(kwargs):
+                self.meta(name, meta, **kwargs)
 
         if type(array_or_value) is not np.ndarray:
             if name in self.experiment._nesting_parents:

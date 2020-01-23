@@ -72,7 +72,7 @@ class ScanMicroPositioner(BaseGui):
     def initUI(self):
         # Create layout of your choice:
         self.layout = QHBoxLayout()
-        self.layout.setSpacing(0)
+        self.layout.setSpacing(3)
 
         right = Qt.AlignRight + Qt.AlignVCenter  # create shorthand for right Label alignment
 
@@ -118,13 +118,13 @@ class ScanMicroPositioner(BaseGui):
         self.stop_um = QDoubleSpinBox()
         self.step_um = QDoubleSpinBox()
         self.layout.addWidget(QWidget())  # adding this empty widget helps with aligning the layout in a prettier way
-        self.layout.addWidget(QLabel('start: ', alignment=right))
+        self.layout.addWidget(QLabel('start', alignment=right))
         self.layout.addWidget(self.start_value)
         self.layout.addWidget(self.start_units)
-        self.layout.addWidget(QLabel('   stop: ', alignment=right))
+        self.layout.addWidget(QLabel('  stop', alignment=right))
         self.layout.addWidget(self.stop_value)
         self.layout.addWidget(self.stop_units)
-        self.layout.addWidget(QLabel('   step: ', alignment=right))
+        self.layout.addWidget(QLabel('  step', alignment=right))
         self.layout.addWidget(self.step_value)
         self.layout.addWidget(self.step_units)
 
