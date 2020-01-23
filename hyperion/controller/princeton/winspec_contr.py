@@ -43,7 +43,9 @@ else:
 from hyperion.controller.base_controller import BaseController
 
 # some tests:
-# import pythoncom        # had to add this to achieve threading in combination with win32com
+import pythoncom        # had to add this to achieve threading in combination with win32com
+from hyperion.view.general_worker import WorkThread
+from time import sleep
 
 class WinspecContr(BaseController):
     """ Winspec Controller.
@@ -61,38 +63,67 @@ class WinspecContr(BaseController):
         self.logger.info('Class WinspecController created.')
         # pythoncom.CoInitialize()                    # added this line for threading
         self.name = 'Winspec Controller'
-        self.ws = None
+        # self.ws = None
         self.params = {}
         self.params_exp = {}
         self.params_spt = {}
-        self.exp = None
-        self._spec_mgr = None
-        self.spt = None
+        # self.exp = None
+        # self._spec_mgr = None
+        # self.spt = None
         # I don't really understand this stuff, but after a very long search trying many things, this turns out to work for collecting spectral data
         self._variant_array = win32com.client.VARIANT( win32com.client.pythoncom.VT_BYREF | win32com.client.pythoncom.VT_ARRAY | win32com.client.pythoncom.VT_I4 , [1,2,3,4] )
-        
 
     def initialize(self):
+        self._is_initialized = False
+        thr = WorkThread(self.__initialize_in_thread)
+        thr.start()
+        sleep(1)
+        while not self._is_initialized:
+            sleep(.5)
+            print('initializing')
+        print('__ws_app_id  ', self.__ws_app_id)
+        print('__ws_exp_id  ', self.__ws_exp_id)
+        print('__ws_spec_mgr_id  ', self.__ws_spec_mgr_id)
+
+    def __initialize_in_thread(self):
         """
         Mandatory function. Starts or connects to Winspec software
         """
         self.logger.info('Starting or connecting to Winspec')
         try:
-            self.ws = win32com.client.gencache.EnsureDispatch("WinX32.Winx32App")
-            self.ws.Hide(0) # make Winspec software visible
+            pythoncom.CoInitialize()
+            ws_app = win32com.client.Dispatch("WinX32.Winx32App")
+            # ws_app = win32com.client.Dispatch("WinX32.Winx32App")
+            print('\nws_app: ', ws_app)
+            self.__ws_app_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_app)
+            # com_object = win32com.client.gencache.EnsureDispatch("WinX32.Winx32App")
+            # self.ws = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, com_object)
+            ws_app.Hide(0) # make Winspec software visible
             self._generate_params()
-            self.exp = self._dispatch('WinX32.ExpSetup')
-            self._spec_mgr = self._dispatch('WinX32.SpectroObjMgr')
-            self.spt = self._spec_mgr.Current
-            # pythoncom.CoInitialize()
+            # ws_exp = self._dispatch('WinX32.ExpSetup')
+            ws_exp = win32com.client.Dispatch('WinX32.ExpSetup')
+            print('\nws_exp: ', ws_exp)
+            self.__ws_exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_exp)
+            sleep(.1)
+            # ws_spec_mgr = self._dispatch('WinX32.SpectroObjMgr')
+            ws_spec_mgr = win32com.client.Dispatch('WinX32.SpectroObjMgr')
+            print('\nws_spec_mgr: ', ws_spec_mgr)
+            self.__ws_spec_mgr_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
+            # ws_spt = ws_spec_mgr.Current
+            # self.exp = self._dispatch('WinX32.ExpSetup')
+            # self._spec_mgr = self._dispatch('WinX32.SpectroObjMgr')
+            # self.spt = self._spec_mgr.Current
+
             # exp_inst = win32com.client.Dispatch('WinX32.ExpSetup')
             # self.exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, exp_id)
         except win32com.client.pywintypes.com_error:
             self.logger.warning('Can\'t find Winspec. Are you sure it\'s installed?')
             # If Winspec is installed but you run into issues here, have a look at comments t the top of this file.
 
-        self.xdim = self.exp_get('XDIM')[0]
-        self.ydim = self.exp_get('YDIM')[0]
+        # self.xdim = self.exp_get('XDIM')[0]
+        # self.ydim = self.exp_get('YDIM')[0]
+        self.xdim = 1024#self.exp_get('XDIM')[0]
+        self.ydim = 1024#self.exp_get('YDIM')[0]
 
         self._is_initialized = True     # THIS IS MANDATORY!!
                                         # this is to prevent you to close the device connection if you
@@ -147,7 +178,11 @@ class WinspecContr(BaseController):
         """ Closes the Winspec software.
         Note that this is not necessary."""
         if self._is_initialized:
-            self.ws.Quit()
+            pythoncom.CoInitialize()
+            ws_app = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self.__ws_app_id, pythoncom.IID_IDispatch)
+            )
+            ws_app.Quit()
 
     def finalize(self):
         """
@@ -164,7 +199,10 @@ class WinspecContr(BaseController):
         :rtype: string
         """
         self.logger.debug('Ask IDN to device.')
-        return 'Winspec '+self.ws.Version
+        ws_app = win32com.client.Dispatch(
+            pythoncom.CoGetInterfaceAndReleaseStream(self.__ws_app_id, pythoncom.IID_IDispatch)
+        )
+        return 'Winspec '+ws_app.Version
 
     def exp_get(self, msg, *args, **kwargs):
         """ Retrieve WinSpec Experiment parameter
@@ -175,7 +213,12 @@ class WinspecContr(BaseController):
         :rtype: int or tuple ?
         """
         if msg.upper() in self.params_exp:
-            return self.exp.GetParam(self.params_exp[msg.upper()], *args, **kwargs)[:-1]
+            pythoncom.CoInitialize()
+            print('IID_D..  ', pythoncom.IID_IDispatch)
+            ws_exp = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self.__ws_exp_id, pythoncom.IID_IDispatch)
+            )
+            return ws_exp.GetParam(self.params_exp[msg.upper()], *args, **kwargs)[:-1]
         else:
             self.logger.warning('Unknown EXP parameter: {}'.format(msg))
             return None
@@ -190,7 +233,11 @@ class WinspecContr(BaseController):
         :rtype: typically a tuple containing an int, float or string
         """
         if msg.upper() in self.params_exp:
-            return self.exp.SetParam(self.params_exp[msg.upper()], value)
+            pythoncom.CoInitialize()
+            ws_exp = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self.__ws_exp_id, pythoncom.IID_IDispatch)
+            )
+            return ws_exp.SetParam(self.params_exp[msg.upper()], value)
         else:
             self.logger.warning('Unknown EXP parameter: {}'.format(msg))
             return None
@@ -205,7 +252,11 @@ class WinspecContr(BaseController):
         :rtype: typically a tuple containing an int, float or string
         """
         if msg.upper() in self.params_spt:
-            return self.spt.GetParam(self.params_spt[msg.upper()], *args, **kwargs)[:-1]
+            pythoncom.CoInitialize()
+            ws_spec_mgr = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self.__ws_spec_mgr_id, pythoncom.IID_IDispatch)
+            )
+            return ws_spec_mgr.Current.GetParam(self.params_spt[msg.upper()], *args, **kwargs)[:-1]
         else:
             self.logger.warning('Unknown SPT parameter: {}'.format(msg))
             return None
@@ -220,7 +271,11 @@ class WinspecContr(BaseController):
         :rtype: typically a tuple containing an int, float or string
         """
         if msg.upper() in self.params_spt:
-            return self.spt.SetParam(self.params_spt[msg.upper()], value)
+            pythoncom.CoInitialize()
+            ws_spec_mgr = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self.__ws_spec_mgr_id, pythoncom.IID_IDispatch)
+            )
+            return ws_spec_mgr.Current.SetParam(self.params_spt[msg.upper()], value)
         else:
             self.logger.warning('Unknown SPT parameter: {}'.format(msg))
             return None
