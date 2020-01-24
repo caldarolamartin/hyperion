@@ -29,7 +29,7 @@ class Attocube_GUI(BaseGui):
     :type anc350_instrument: instance of the instrument class
 
     """
-    def __init__(self, anc350_instrument):
+    def __init__(self, anc350_instrument, also_close_output=False):
         """Attocube
         """
 

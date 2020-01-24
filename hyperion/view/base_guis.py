@@ -485,6 +485,7 @@ class AutoMeasurementGui(BaseGui):
         """
         This method should be overwritten by a parent class.
         """
+        self.logger.warning('I didnt start plotting, ended up here in base_guis.AutoMeasurementGui')
         None
 
     def ensure_output_docks_are_open(self):

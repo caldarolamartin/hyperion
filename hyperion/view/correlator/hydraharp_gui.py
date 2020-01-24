@@ -33,7 +33,7 @@ class Hydraharp_GUI(BaseGui):
     :type draw: a plot widget class
     """
 
-    def __init__(self, hydra_instrument, draw):
+    def __init__(self, hydra_instrument, draw=None, also_close_output=False):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.title = 'Hydraharp400 correlator gui'
@@ -46,7 +46,11 @@ class Hydraharp_GUI(BaseGui):
         self.setLayout(self.grid_layout)
 
         self.hydra_instrument = hydra_instrument
-        self.draw = draw
+
+        if type(draw) is dict:
+            self.draw = list(draw.values())[0]
+        else:
+            self.draw = draw
 
         #default values, could be put in a yml file as well
         self.array_length = 65536
@@ -488,33 +492,36 @@ class Hydraharp_GUI(BaseGui):
 
         self.hydra_instrument.stop = False
 
-
-class DrawHistogram(BaseGraph):
-
-    """
-    In this class a widget is created to draw a graph on.
-    """
-
+class DrawHistogram(pg.PlotWidget):
     def __init__(self):
         super().__init__()
-        self.title = 'draw correlator gui'
-        self.left = 100
-        self.top = 100
-        self.width = 640
-        self.height = 480
-        self.histogram_plot = pg.PlotWidget()
+        self.histogram_plot = self
+
+# class DrawHistogram(BaseGraph):
+#     """
+#     In this class a widget is created to draw a graph on.
+#     """
+#
+#     def __init__(self):
+#         super().__init__()
+#         self.title = 'draw correlator gui'
+#         self.left = 100
+#         self.top = 100
+#         self.width = 640
+#         self.height = 480
+#         self.histogram_plot = pg.PlotWidget()
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        vbox = QVBoxLayout()
-        vbox.addWidget(self.histogram_plot)
+        # self.setWindowTitle(self.title)
+        # self.setGeometry(self.left, self.top, self.width, self.height)
+        # vbox = QVBoxLayout()
+        # vbox.addWidget(self.histogram_plot)
 
         self.layout_plot()
 
-        self.setLayout(vbox)
-        self.show()
+#        self.setLayout(vbox)
+        #self.show()
 
     def layout_plot(self):
         self.histogram_plot.setBackground('w')
@@ -545,5 +552,6 @@ if __name__ == '__main__':
     with HydraInstrument(settings={'devidx': 0, 'mode': 'Histogram', 'clock': 'Internal','controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as hydra_instrument:
         app = QApplication(sys.argv)
         draw = DrawHistogram()
+        draw.show()
         ex = Hydraharp_GUI(hydra_instrument, draw)
         sys.exit(app.exec_())
