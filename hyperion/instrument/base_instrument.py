@@ -114,17 +114,17 @@ class BaseMetaInstrument():
         self.settings = settings
         self.sub_instruments = sub_instruments
 
-        def __enter__(self):
-            return self
+    def __enter__(self):
+        return self
 
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            # A MetaInstrument should not finalize its sub classes when it exits a with statement
-            pass
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # A MetaInstrument should not finalize its sub classes when it exits a with statement
+        pass
 
-        def finalize(self):
-            for sub_instr_key, sub_instr in self.sub_instruments.items():
-                self.logger.warning('Finalizing sub instrument: {}'.format(sub_instr_key))
-                sub_instr.finalize()
+    def finalize(self):
+        for sub_instr_key, sub_instr in self.sub_instruments.items():
+            self.logger.warning('Finalizing sub instrument: {}'.format(sub_instr_key))
+            sub_instr.finalize()
 
 
 if __name__ == "__main__":
