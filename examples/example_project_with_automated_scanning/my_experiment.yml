@@ -64,7 +64,7 @@ Measurements:       # dictionary of Measurements
 #    start_hidden: True
     required_instruments:         # required instruments for this measurement
       Camera:                     # this name should match the name in Instruments
-        stop: True                # call stop() method of this instrument before starting measurement
+        stop: True                # call stop() method of this instrument gui before starting measurement
         lock: True                # disable this instruments gui while measuring
       Spectrometer:
         stop: True

@@ -81,6 +81,8 @@ class Hydraharp_GUI(BaseGui):
 
         self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
 
+        self.stop = self.stop_histogram
+
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
