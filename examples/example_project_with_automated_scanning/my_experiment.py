@@ -23,7 +23,7 @@ class MyExperiment(BaseExperiment):
     def __init__(self):
         super().__init__()                      # Mandatory line
         self.logger = logman.getLogger(__name__)
-
+        self.display_name = 'Hyperion Example Experiment'  # Title of the experimental setup
         # # Test logging messages:
         # self.logger.info('Initializing the ExampleExperiment object.')
         # self.logger.critical('test critical')
@@ -88,7 +88,8 @@ class MyExperiment(BaseExperiment):
         self.logger.info('Set camera exposure')
         # self.instruments_instances['Camera'].set_exposure(actiondict['exposure'])
         self.logger.info('Acquire image')
-        # camera_image = self.instruments_instances['Camera'].acquire_image()
+        self.camera_image = self.instruments_instances['Camera'].return_fake_2D_data()
+        self.flag_new_camera_image = True
 
         self.logger.info('LED off')
         # self.instruments_instances['LED'].enable = False
@@ -96,11 +97,10 @@ class MyExperiment(BaseExperiment):
         # self.instruments_instances['Filters'].filter_a(False)
         # self.instruments_instances['Filters'].filter_b(False)
 
-        fake_data = np.random.random((20,60))
         # Because this is higher dimensional data, create dimensions:
-        self.datman.dim('im_y', fake_data.shape[0])     # add extra axes if they don't exist yet
-        self.datman.dim('im_x', fake_data.shape[1])
-        self.datman.var(actiondict, fake_data, extra_dims=('im_y', 'im_x') )
+        self.datman.dim('im_y', self.camera_image.shape[0])     # add extra axes if they don't exist yet
+        self.datman.dim('im_x', self.camera_image.shape[1])
+        self.datman.var(actiondict, self.camera_image, extra_dims=('im_y', 'im_x') )
         self.datman.meta(actiondict, {'exposuretime': actiondict['exposuretime'], 'filter_a': actiondict['filter_a'], 'filter_b': actiondict['filter_b'] })
         # self.datman.meta(actiondict, expo='5s')
         # self.datman.meta(actiondict, actiondict)
@@ -145,16 +145,19 @@ class MyExperiment(BaseExperiment):
         if self.break_measurement(): return
 
     def measure_power(self, actiondict, nesting):
-        fake_data = np.random.random()
-        self.datman.var(actiondict, fake_data, meta=actiondict, units='mW')
+        fake_voltage = self.instruments_instances['PhotoDiode'].return_fake_voltage_datapoint()
+        unit = fake_voltage.u
+        value = fake_voltage.m_as(unit)
+        self.datman.var(actiondict, value, meta=actiondict, units=str(unit))
         nesting()
 
     def fake_spectrum(self, actiondict, nesting):
-        fake_wav_nm = np.arange(500, 601, 10)
-        fake_data = np.random.random(11)
-        self.datman.dim_coord('wav', fake_wav_nm, meta={'units': 'nm'})
-        self.datman.var(actiondict, fake_data, extra_dims=('wav'), meta=actiondict, units='counts')
-        sleep(0.1)  # slow down this dummy measurement
+        fake_wav_nm = np.arange(500, 600.001, 5)
+        self.fake_counts = self.instruments_instances['Spectrometer'].return_fake_1D_data(len(fake_wav_nm))
+        self.flag_new_spectral_data = True
+        # self.datman.dim_coord('wav', fake_wav_nm, meta={'units': 'nm'})
+        self.datman.dim_coord('wav', fake_wav_nm, units='nm')
+        self.datman.var(actiondict, self.fake_counts, extra_dims=('wav'), meta=actiondict, units='counts')
         nesting()
 
 
@@ -186,14 +189,32 @@ if __name__ == '__main__':
             ### Test with gui:
 
             from PyQt5.QtWidgets import QApplication
-            from hyperion.view.base_guis import BaseMeasurementGui, ModifyMeasurement
+
 
             app = QApplication(sys.argv)  # required "placeholder" for gui
 
-            # Open the BaseMeasurementGui with 'Example Measurement A' as input:
-            q = BaseMeasurementGui(e, 'Example Measurement A')
-            # Note that this approach can be used to run an experiment with a small gui but without the master gui.
-            # (although plotting graphs would need to be tested)
+            # Without plotting:
+            from hyperion.view.base_guis import AutoMeasurementGui
+            q = AutoMeasurementGui(e, 'Automatic Measurement Example')
+
+            # # With plotting
+            # # (This is a bit "hacky" because this is intended to be done from the ExpGui object)
+            # from gui.measurement_gui import MyMeasurementGuiWithPlotting
+            # from hyperion.tools.loading import get_class
+            #
+            # # Create a dict of visualization guis (normally this is done automatically by ExpGui class)
+            # plotting_dict = {}
+            # for vis_name, vis_dict in e.properties['VisualizationGuis'].items():
+            #     if vis_name not in e.properties['Measurements']['Automatic Measurement Example']['visualization_guis']:
+            #         continue
+            #     vis_cls = get_class(vis_dict['view'])
+            #     plotargs = {}
+            #     if 'plotargs' in vis_dict:
+            #         plotargs = vis_dict['plotargs']
+            #     plotting_dict[vis_name] = vis_cls(**plotargs)
+            #
+            # q = MyMeasurementGuiWithPlotting(e, 'Automatic Measurement Example', parent=None, output_guis=plotting_dict)
+
 
             # # Introduce corruption in actionlist for testing:
             # del(e.properties['Measurements']['Example Measurement A'][0]['Name'])

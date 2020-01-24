@@ -20,8 +20,10 @@ def get_class(string):
         temp_class = getattr(importlib.import_module(module_name), class_name)
     except ModuleNotFoundError:
         logger.error("Module not found: {}".format(module_name))
+        raise
     except AttributeError:
         logger.error("Class not found: {}".format(class_name))
+        raise
     except:
         logger.error("Unexpected error while loading {}".format(string))
         raise

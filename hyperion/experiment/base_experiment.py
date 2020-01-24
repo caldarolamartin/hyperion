@@ -173,6 +173,13 @@ class DataManager:
         self._is_open = False
         self.lowercase = lowercase
         self._version = 0.1
+        self.__reset_flags_and_indices()  ########################################################## MAYBY THIS SHOULD BE REMOVED
+
+    ########################################################## MAYBY THIS SHOULD BE REMOVED
+    def __reset_flags_and_indices(self):
+        # These flags can be used to signal whomever takes carer of plotting that there's new data:
+        self.new_data_flags = DefaultDict({}, {}, ReturnNoneForMissingKey=True)
+        self.new_data_indices = DefaultDict({}, {}, ReturnNoneForMissingKey=True)
 
     def open_file(self, filename, write_mode='w', **kwargs):
         """
@@ -193,10 +200,10 @@ class DataManager:
             self.meta(dic=self.experiment._saving_meta)
             self.meta(DataManager=self._version)
             self.sync_hdd()
-            print('completed adding meta after opening')
 
         else:
             self.logger.warning('A file is already open')
+        self.__reset_flags_and_indices()  ########################################################## MAYBY THIS SHOULD BE REMOVED
 
     def __check_not_open(self):
         # Private helper function
@@ -271,8 +278,8 @@ class DataManager:
             self.root.createVariable(name, 'f8', name)
             if length is not None:
                 self.root.variables[name][:] = array_or_value
-            if meta is not None:
-                self.meta(name, meta)
+            if meta is not None or len(kwargs):
+                self.meta(name, meta, **kwargs)
 
         if type(array_or_value) is not np.ndarray:
             if name in self.experiment._nesting_parents:
@@ -311,7 +318,7 @@ class DataManager:
             except:
                 self.logger.warning('unsupported {} in dict: {}: {}'.format(type(value), key, value))
 
-    def var(self, name_or_dict, data, indices=None, dims=None, extra_dims=None, meta=None, **kwargs):
+    def var(self, name_or_dict, data, indices=None, dims=None, extra_dims=None, meta=None, no_new_data_flag=False, **kwargs):
         """
         Add or update a Variable.
         Can automatically deduce dimensions and indices if used in automated scanning (i.e. perform_actionlist() of BaseExperiment.)
@@ -331,12 +338,23 @@ class DataManager:
         :type dims: tuple or list of strings
         :param extra_dims: extra dimensions for higher dimensional data.
         :type extra_dims: tuple or list of strings
-        :param meta: dictionary holding meta arguments(Optional)
+        :param meta: dictionary holding meta arguments (Optional)
         :type meta: dict
+        :param no_new_data_flag: prevents setting the new_data_flag for plotting when True (Optional, defaults to False)
+        :type no_new_data_flag: bool
         :param **kwargs: additional unknown keyword arguments are added as meta attributes
         """
-        if self.__check_not_open(): return
+
         name = self.__name_or_dict(name_or_dict)
+
+        ########################################################## MAYBY THIS SHOULD BE REMOVED
+        # Set new data available flag (for plotting)
+        if not no_new_data_flag:
+            self.new_data_flags[name] = True
+            self.new_data_indices[name] = indices
+
+        if self.__check_not_open(): return
+
         if indices is None:
             indices = self.experiment._nesting_indices
 
@@ -441,15 +459,18 @@ class BaseExperiment:
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing the BaseExperiment class.')
 
+        self.display_name = 'Untitled Experiment'  # overwrite this name in your Experiment class
+
         self.properties = {}    # this is to load the config yaml file and store all the
                                 # settings for the experiment. see load config
 
         # this variable is to keep track of all the instruments that are connected and
         # properly close connections with them at the end
         self.instruments_instances = {}
-        # these next variables are for the master gui.
-        self.view_instances = {}
-        self.graph_view_instance = {}
+        self.meta_instr_instances = {}
+
+        # This variable will be overwritten by the gui:
+        self._gui_parent = None
 
         self.filename = ''
         self.config_filename = None  # load_config(filename) stores the config filename here
@@ -789,6 +810,9 @@ class BaseExperiment:
         self._measurement_name = measurement_name  # Store the name for later use
 
         if measurement_name in self.properties['Measurements']:
+            if not 'automated_actionlist' in self.properties['Measurements'][measurement_name]:
+                self.logger.warning('To run an automated measurement an automated_actionlist needs to be specified in the config')
+                return
             self.logger.debug('Starting measurement: {}'.format(measurement_name))
             # Make dict with basic meta info to be added to the datafile.
             # default_saver will add this _saving_meta dict
@@ -797,14 +821,21 @@ class BaseExperiment:
             if hasattr(self, 'version'):
                 self._saving_meta['version'] = self.version
             self._saving_meta['Measurement'] = measurement_name
+            self._saving_meta['Config_file'] = self.config_filename
 
             self.reset_measurement_flags()
             self.running_status = self._running
 
-            self.perform_actionlist(self.properties['Measurements'][measurement_name])
+            if self._gui_parent is not None:
+                self._gui_parent.lock_instruments(True, measurement_name)
+
+            self.perform_actionlist(self.properties['Measurements'][measurement_name]['automated_actionlist'])
 
             self.reset_measurement_flags()
             self.logger.info('Measurement finished')
+
+            if self._gui_parent is not None:
+                self._gui_parent.lock_instruments(False, measurement_name)
 
             if self.__store_properties:
                 self.logger.info('Storing experiment properties in {}'.format(self.__store_properties))
@@ -850,9 +881,9 @@ class BaseExperiment:
         # typically used on the whole list
         # In a an action that has nested Actions
         for actiondictionary in actionlist:
-            # check for stop and pause
             actiondict = ActionDict(actiondictionary, exp=self)
             actionname = actiondict['Name']
+
             if '_method' not in actiondict:
                 raise KeyError('No _method found in actiondict or actiontype')
             else:
@@ -874,9 +905,16 @@ class BaseExperiment:
             else:
                 nesting = lambda *args, **kwargs: None        # a "do nothing" function
                 # nesting = lambda *args, **kwargs: self.check_pause()  # a "do nothing" function
-            method(actiondict, nesting)
-            # if self.stop_measurement(): return
+            if '_disabled' not in actiondict or not actiondict['_disabled']:
+                # Normal operation:
+                method(actiondict, nesting)
+            else:
+                # If the action is disabled, only run nested() (those actions should occur once then)
+                nesting()
+
+            # Check for stop and pause before continuing to the next action:
             if self.pause_measurement(): return  #: return     # Use this line to check for pause
+
         if len(parents) < len(self._nesting_indices):
             del self._nesting_indices[-1]
 
@@ -947,22 +985,26 @@ class BaseExperiment:
             os.makedirs(folder)
         return folder, basename
 
-    def load_config(self, filename):
+    def load_config(self, filename, use_dict=None):
         """
         Loads the configuration file to generate the properties dictionary.
 
         :param filename: Path to the filename.
         :type filename: str
         """
-        self.logger.debug('Loading configuration file: {}'.format(filename))
+
         self.config_filename = filename
+        if not use_dict:
+            self.logger.debug('Loading configuration file: {}'.format(filename))
 
-        with open(filename, 'r') as f:
-            # d = yaml.safe_load(f)   # replacing with safeloader:
-            d = yaml.safe_load(f)
-            self.logger.info('Using configuration file: {}'.format(filename))
+            with open(filename, 'r') as f:
+                # d = yaml.load(f, Loader=yaml.FullLoader)   # replacing with safeloader:
+                d = yaml.safe_load(f)
+                self.logger.info('Using configuration file: {}'.format(filename))
+            self.properties = d
+        else:
+            self.properties = use_dict
 
-        self.properties = d
         self.properties['config file'] = filename  # add to the class the name of the Config file used.
 
         if 'ActionTypes' in self.properties:
@@ -978,13 +1020,33 @@ class BaseExperiment:
         Closes all instruments in instrument_instances.
         Also calls the datamanager to close file.
         """
-        self.logger.info('Finalizing the experiment base class. Closing all the devices connected')
-        for name in self.instruments_instances:
-            self.logger.info('Finalizing connection with device: {}'.format(name))
-            self.instruments_instances[name].finalize()
+        self.logger.info('Finalizing the experiment base class.')
+        self.close_all_instruments()
         self.logger.debug('Closing open datafiles if there are any.')
         self.datman.close()
         self.logger.debug('Experiment object finalized.')
+
+    def close_all_instruments(self):
+        """ Closes all instruments in self.instrument_instances"""
+        self.logger.info('Closing all the devices connected')
+        for name, instance in self.instruments_instances.items():
+            self.logger.debug('Finalizing connection with device: {}'.format(name))
+            try:
+                instance.finalize()
+            except:
+                self.logger.warning('Failed to finalize instrument: {}'.format(name))
+
+    def remove_all_instruments(self):
+        """ Closes all instruments and also removes the (meta) instrument objects. """
+        self.logger.debug('Removing meta instruments')
+        for instance in self.meta_instr_instances.values():
+            del instance
+        self.meta_instr_instances = {}
+        self.close_all_instruments()
+        self.logger.debug('Removing instruments')
+        for name, instance in self.instruments_instances.items():
+            del instance
+        self.instruments_instances = {}
 
     def load_instrument(self, name):
         """
@@ -996,31 +1058,97 @@ class BaseExperiment:
         :type name: string
         :return: instance of instrument class
         """
-        self.logger.debug('Loading instrument: {}'.format(name))
+        self.logger.debug('Loading Instrument: {}'.format(name))
         if name not in self.properties['Instruments']:
             self.logger.warning('Instrument not specified in config: {}'.format(name))
-        elif 'instrument' not in self.properties['Instruments'][name]:
-            self.logger.error('Missing instrument in config of Instrument: {}'.format(name))
-        else:
-            instr_class = get_class(self.properties['Instruments'][name]['instrument'])
-            if instr_class is None:
-                self.warning("Couldn't load instrument class: {}".format(self.properties['Instruments'][name]['instrument']))
-                return None
-            instance = instr_class(self.properties['Instruments'][name])  # added this line
-            self.instruments_instances[name] = instance
-            self.logger.debug('Instrument: {} has been loaded and added to instrument_instances'.format(name))
-            return instance
-        return None
+            return
+        if 'instrument' not in self.properties['Instruments'][name]:
+            self.logger.error('No instrument key specified in config of Instrument: {}'.format(name))
+            return
+        instr_class = get_class(self.properties['Instruments'][name]['instrument'])
+        if instr_class is None:
+            self.warning("Couldn't load instrument class: {}".format(self.properties['Instruments'][name]['instrument']))
+            return None
+        instance = instr_class(self.properties['Instruments'][name])  # added this line
+        self.instruments_instances[name] = instance
+        self.logger.debug('Instrument: {} has been loaded and added to instrument_instances'.format(name))
+        return instance
+
+
+    def load_meta_instrument(self, name):
+        """
+        Loads a single instrument given by name.
+
+        The instance of the instrument is returned and also added to self.instrument_instances dictionary
+
+        :param name: name of the instrument to load. It has to be specified in the config file under Instruments
+        :type name: string
+        :return: instance of instrument class
+        """
+        self.logger.debug('Loading MetaInstrument: {}'.format(name))
+        if name not in self.properties['MetaInstruments']:
+            self.logger.error('MetaInstrument not specified in config: {}'.format(name))
+            return
+        meta_dict = self.properties['MetaInstruments'][name]
+        if 'instruments' not in meta_dict:
+            self.logger.error('No instruments key specified in MetaInstrument: {}'.format(name))
+            return
+        inst_dict = {}  # this dict will be filled with instrument objects
+        missing = 0
+        for inst_key, inst_name in meta_dict['instruments'].items():
+            if inst_name in self.instruments_instances:
+                inst_dict[inst_key] = self.instruments_instances[inst_name]
+            else:
+                self.logger.error('Missing Instrument {}:{} for MetaInstrument: {}'.format(inst_key, inst_name, name))
+                missing += 1
+        if missing:
+            return
+        if 'meta_instr' not in meta_dict:
+            self.logger.error('No meta_instr key specified in MetaInstrument: {}'.format(name))
+            return
+        instr_class = get_class(meta_dict['meta_instr'])
+        if instr_class is None:
+            self.warning(
+                "Couldn't load instrument class: {}".format(self.properties['MetaInstruments'][name]['meta_instr']))
+            return None
+        instance = instr_class(meta_dict, inst_dict)#self.properties['Instruments'][name])  # added this line
+        self.meta_instr_instances[name] = instance
+        self.logger.debug('MetaInstrument: {} has been loaded and added to meta_instrument_instances'.format(name))
+        return instance
 
     def load_instruments(self):
         """
-        Load all instruments specified in the config file.
+        Load all instruments specified in the config file. First regular Instruments and then MetaInstruments if applicable.
         """
         # NOTE: In the previous version adding instruments to self.instrument_instances was done here, but that has
         # moved to load_instrument
-        self.logger.info('Loading all instruments')
-        for instrument in self.properties['Instruments']:
-            self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+        if 'Instruments' not in self.properties:
+            self.logger.error('No Instruments in config file')
+            return
+        else:
+            self.logger.info('Loading all regular Instruments')
+            for instrument in self.properties['Instruments']:
+                self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+
+        if 'MetaInstruments' not in self.properties:
+            self.logger.warning('No MetaInstruments in config file')
+        else:
+            self.logger.info('Loading all MetaInstruments')
+            for meta_instr in self.properties['MetaInstruments']:
+                self.load_meta_instrument(meta_instr)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
+
+        #     for meta_inst_name, meta_inst_dict in self.properties['MetaInstruments'].items():
+        #         if 'instruments' not in meta_inst_dict:
+        #             self.logger.error('No instruments key in MetaInstrument; {}'.format(meta_inst_name))
+        #             continue
+        #         for
+        # self.instrument_gui_outputs = {}
+        # self.instrument_guis = {}
+        # for name in self.experiment.instruments_instances:
+        #     self.load_instrument_gui(name)
+
+
+
 
 
 if __name__ == '__main__':
