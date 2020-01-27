@@ -397,10 +397,16 @@ class AutoMeasurementGui(BaseGui):
         self.show()
         # Prepare window to modify config:
         self.dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
+
         # Set up QTimer to periodically update button states (based on
         self.timer_update_buttons = QTimer()
         self.timer_update_buttons.timeout.connect(self.update_buttons)
         self.timer_update_buttons.start(50) # in ms
+
+        # Set up QTimer to periodically update status message in parent gui if available.
+        if self._parent is not None:
+            self.timer_update_status = QTimer()
+            self.timer_update_status.timeout.connect(lambda: self._parent.update_statusbar(self.measurement, timer=self.timer_update_status))
 
     def create_buttons(self):
         """
@@ -505,6 +511,8 @@ class AutoMeasurementGui(BaseGui):
         if self.experiment.running_status == self.experiment._not_running:
             self.ensure_output_docks_are_open()
             self.measurement_thread.start()
+            if self._parent is not None:
+                self.timer_update_status.start(100)
             self.start_plotting()
         self.update_buttons()
 

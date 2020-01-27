@@ -115,14 +115,19 @@ class MyExperiment(BaseExperiment):
             self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
         # self.datman.meta(actiondict, actiondict)
         # self.datman.meta(actiondict['Name'], units=str(unit))
-        for s in arr:
+        for indx, pos in enumerate(arr):
+
+            # Update message in statusbar:
+            if actiondict['axis']=='x':
+                self.measurement_message = 'x position {}/{}  -  x = {} {}'.format(indx+1, len(arr), pos, str(unit))
+
             if actiondict['axis'] == 'x':
                 # It is possible to add values to a coordinate on the fly (and let it grow as the measurement progresses:
-                self.datman.dim_coord(actiondict, s, meta={'units': str(unit)})
+                self.datman.dim_coord(actiondict, pos, meta={'units': str(unit)})
             # In this example, add a line when x value changes (outer loop)
             if actiondict['axis']=='x':
                 print('---------------------')
-            print(actiondict['axis'],' : ', s, unit)
+            print(actiondict['axis'],' : ', pos, unit)
 
             nesting()  # NOTICE THE nesting() FUNCTION HERE INSIDE THE LOOP
 

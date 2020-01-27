@@ -494,6 +494,7 @@ class BaseExperiment:
         self._nesting_indices = []
         self._nesting_parents = []
         self._measurement_name = ''
+        self.measurement_message = ''  # overwrite this during your measurement and ExpGui will display it in the statusbar
         self.datman = DataManager(self)
         self._finalize_measurement_method = lambda *args, **kwargs: None
         self.__store_properties = None
@@ -502,6 +503,17 @@ class BaseExperiment:
 
         # placeholder do-nothing function that can be overwritten by saver gui
         self._saver_gui_incremeter = lambda : None  # empty function
+
+    # def update_measurement_status_string(self, message='', measurement_name=None):
+    #     if not self._gui_parent:
+    #         return
+    #     msg = ['Ready', 'Measuring', 'Pausing', 'Breaking', 'Stopping'][self.running_status]
+    #     if self.running_status:
+    #         if measurement_name is None:
+    #             msg += ': '+self._measurement_name
+    #         if message:
+    #             msg += ': '+message
+    #     self._gui_parent.statusBar().showMessage(msg)
 
     def reset_measurement_flags(self):
         """ Reset measurement flags (at the end of a measurement or when it's stopped). """
@@ -850,6 +862,8 @@ class BaseExperiment:
             self._saver_gui_incremeter()
         else:
             self.logger.error('Unknown measurement: {}'.format(measurement_name))
+        self._measurement_name = ''
+        self.measurement_message = ''
 
     def perform_actionlist(self, actionlist, parents=[]):
         """

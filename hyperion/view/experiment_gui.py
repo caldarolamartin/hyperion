@@ -42,7 +42,7 @@ class ExpGui(QMainWindow):
         # Add reference to this gui to the experiment object
         self.experiment._gui_parent = self
 
-        self.statusBar().showMessage('idle')
+        self.statusBar().showMessage('Ready')
 
         self._config_file = None
         # Create central pyqtgraph dock area for graphics outputs
@@ -314,7 +314,6 @@ class ExpGui(QMainWindow):
             dock.setVisible(True)
             dock.raise_()
 
-
     def load_all_measurement_guis(self):
         for meas_name in self.experiment.properties['Measurements']:
             self.load_measurement_gui(meas_name)
@@ -514,6 +513,23 @@ class ExpGui(QMainWindow):
 
 
         self.show()
+
+    def update_statusbar(self, measurement=None, timer=None):
+        """ This method should be started on a thread by the Measurement gui Start button.
+        It will grab the measurement status, name and message from experiment and display them in the statusbar.
+        If the timer is passed it will also stop its own timer when experiment.running_status is 0 again
+        """
+        msg = ['Ready', 'Measuring', 'Pausing', 'Breaking', 'Stopping'][self.experiment.running_status]
+        if self.experiment.running_status:
+            if self.experiment._measurement_name:
+                msg += ': '+self.experiment._measurement_name
+            if self.experiment.measurement_message:
+                msg += ': '+self.experiment.measurement_message
+        self.statusBar().showMessage(msg)
+        if not self.experiment.running_status and timer is not None:
+            timer.stop()
+
+
 
     def excepthook(self, etype, value, tb):
         """This is what it gets executed when there is an error. Here we build an
