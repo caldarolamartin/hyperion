@@ -202,6 +202,7 @@ if __name__ == '__main__':
             from hyperion.view.base_guis import AutoMeasurementGui
             q = AutoMeasurementGui(e, 'Automatic Measurement Example')
 
+
             # # With plotting
             # # (This is a bit "hacky" because this is intended to be done from the ExpGui object)
             # from gui.measurement_gui import MyMeasurementGuiWithPlotting
@@ -218,6 +219,7 @@ if __name__ == '__main__':
             #         plotargs = vis_dict['plotargs']
             #     plotting_dict[vis_name] = vis_cls(**plotargs)
             #
+            # q = MyMeasurementGuiWithPlotting(e, 'Automatic Measurement Example', parent=None, output_guis=plotting_dict)
             # q = MyMeasurementGuiWithPlotting(e, 'Automatic Measurement Example', parent=None, output_guis=plotting_dict)
 
 

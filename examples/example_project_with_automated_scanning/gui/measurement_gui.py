@@ -1,3 +1,18 @@
+"""
+==============
+Measuremnt GUI
+==============
+
+This file contains an example of a Measurement Gui.
+The class inherits from AutoMeasurementGui which takes care of building the gui from the config file and the
+"actionwidgets".
+If you like, you can add extra gui elements by adding them to self.layout (which is the outer QVBoxLayout from
+AutoMeasurementGui)
+
+The main purpose is to
+
+"""
+
 from hyperion.view.base_guis import AutoMeasurementGui
 from hyperion import logging
 from PyQt5.QtWidgets import *
@@ -7,8 +22,16 @@ import numpy as np
 class MyMeasurementGuiWithPlotting(AutoMeasurementGui):
     """
     Create a custom class that inherits from AutoMeasurementGui but expands it with plotting.
+
+    :param experiment:
+    :param measurement:
+    :param parent:
+    :param output_guis:
+    :param graphs_in_standalone:
+
     """
     def __init__(self, experiment, measurement, parent=None, output_guis=None):
+
         # Initialize parent class
         super().__init__(experiment, measurement, parent=parent, output_guis=output_guis)
         logging.getLogger(__name__)
@@ -31,9 +54,6 @@ class MyMeasurementGuiWithPlotting(AutoMeasurementGui):
 
         self.initialize_some_graphics()
 
-        if parent is None:
-            self.show_ouputs_if_standalone()
-
         # To demonstrate that th gui can still be expanded, a button to swap x and y direction is added here
         button_swap_XY = QPushButton('Swap atto XY direction')
         button_swap_XY.clicked.connect(self.swap_XY)
@@ -44,11 +64,6 @@ class MyMeasurementGuiWithPlotting(AutoMeasurementGui):
             self.experiment.properties['Measurements'][self.measurement]['automated_actionlist'],
             'Scan Atto X', 'Scan Atto Y')
         self.create_actionlist_guis()
-
-
-    def show_ouputs_if_standalone(self):
-        for name, gui in self.output_guis.items():
-            gui.show()
 
     def initialize_some_graphics(self):
         # Note that if you have your own plotting classes you could also set these things there.

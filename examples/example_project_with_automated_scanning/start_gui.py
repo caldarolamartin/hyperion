@@ -1,3 +1,11 @@
+"""
+=========
+Start GUI
+=========
+
+This is an example file demonstrating how to start your experiment in a GUI.
+
+"""
 import os
 import sys
 import hyperion
