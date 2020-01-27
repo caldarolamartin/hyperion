@@ -31,7 +31,7 @@ from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
 from hyperion import root_dir
-from hyperion.view.general_worker import WorkThread
+# from hyperion.view.general_worker import WorkThread
 import time
 import os
 import yaml
@@ -958,8 +958,13 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('Saving ascii file: ' + str(self.ascii_output)) #this is correct if you look at Winspec, but wrong here!!!
 
 
+
+
+
 if __name__ == "__main__":
     #logging.stream_level = logging.INFO
+
+
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
@@ -968,130 +973,83 @@ if __name__ == "__main__":
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',
                 'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
-import win32com.client
-import pythoncom
-from time import sleep
-from PyQt5.QtCore import QThread
-from hyperion.view.general_worker import WorkThread
-
-def thread_func():
-    global busy, __ws_app_id, __ws_exp_id, __ws_spec_mgr_id
-    pythoncom.CoInitialize()
-    ws_app = win32com.client.Dispatch("WinX32.Winx32App")
-    __ws_app_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_app)
-    ws_app.Hide(0)
-    ws_exp = win32com.client.Dispatch('WinX32.ExpSetup')
-    __ws_exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_exp)
-    ws_spec_mgr = win32com.client.Dispatch('WinX32.SpectroObjMgr')
-    __ws_spec_mgr_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
-    busy = False
-
-# thread = QThread(thread_func)
-thread = WorkThread(thread_func)
-busy = True
-thread.start()
-while busy:
-    sleep(.5)
-print(__ws_app_id)
-print(__ws_exp_id)
-print(__ws_spec_mgr_id)
-pythoncom.CoInitialize()
-ws_app = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(__ws_app_id, pythoncom.IID_IDispatch))
-ws_exp = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(__ws_exp_id, pythoncom.IID_IDispatch))
-ws_spec_mgr = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(__ws_spec_mgr_id, pythoncom.IID_IDispatch))
-
-
-
-
-
-
 
     ws = WinspecInstr(settings)
     d = ws.take_spectrum()
     print(d)
 
-# ### Section to test threading
-#     from hyperion.view.general_worker import WorkThread
-#
-#     def test_thread():
-#         d = ws.take_spectrum()
-#         print(d)
-#
-#     th = WorkThread(test_thread)
-#     th.run()
 
 
 
+    # ws.configure_settings()
 
-    # # ws.configure_settings()
-    #
-    # test_everything = False
-    #
-    # if test_everything:
-    #     print(ws.idn())
-    #     print('\nHardware Display settings:')
-    #     print('display_rotate = ', ws.display_rotate)
-    #     print('display_reverse = ', ws.display_reverse)
-    #     print('display_flip = ', ws.display_flip)
-    #
-    #     print('\nHardware Temperature settings:')
-    #     print('target_temp = ', ws.target_temp)
-    #     print('current_temp = ', ws.current_temp, '  (read-only property)')
-    #     print('temp_locked = ', ws.temp_locked, '  (read-only property)')
-    #
-    #     print('\nExperiment Settings:')
-    #     print('Data File        filename = ', ws.filename)
-    #     ws.confirm_overwrite = False
-    #     print('Data File        confim_overwrite = ', ws.confirm_overwrite)
-    #     ws.autosave = 'Auto'
-    #     print('Data File        autosave = ', ws.autosave)
-    #     print('ADC              gain = ', ws.gain)
-    #     print('Timing           timing_mode = ', ws.timing_mode)
-    #     print('Timing           shutter_control = ', ws.shutter_control)
-    #     print('Timing           fast_safe = ', ws.fast_safe)
-    #     print('Timing           delay_time_s = ', ws.delay_time_s)
-    #     ws.bg_subtract = False
-    #     print('Data Corrections bg_subtract = ', ws.bg_subtract)
-    #     print('Data Corrections bg_file = ', ws.bg_file)
-    #     ws.ascii_output = True
-    #     print('Saving copy of data in Ascii file = ', ws.ascii_output)
-    #
-    #     ws.exposure_time = Q_('3s')
-    #     print('Main             exposure_time = ', ws.exposure_time)
-    #     ws.ccd = 'ROI'
-    #     print('Main             ccd = ', ws.ccd)
-    #     print('Main             accumulations = ', ws.accumulations)
-    #     print('ROI              spec_mode = ', ws.spec_mode)
-    #
-    #     print('\nROI = ', ws.getROI())
-    #
-    #     print('\nGrating Settings:')
-    #     print(ws.number_of_gratings, ' gratings found')
-    #     for k in range(ws.number_of_gratings):
-    #         print(k+1, ':  ', ws.gratings_grooves[k], 'gr/mm  ',  ws.gratings_blaze_name[k])
-    #
-    #     print('current grating = ', ws.grating)
-    #     print('Switching grating ...')
-    #     if ws.grating == 2:
-    #         ws.grating = 1
-    #     elif ws.grating == 1:
-    #         ws.grating = 2
-    #
-    #     print('central_nm = ', ws.central_nm)
-    #     print('Changing grating central nm ...')
-    #     if ws.central_nm < 450:
-    #         ws.central = 500
-    #     if ws.central_nm > 450:
-    #         ws.central = 400
-    #
-    # print('Taking spectrum ...')
-    # counts = ws.take_spectrum('image')
-    # nm = ws.nm_axis()
-    # #print(nm,counts)
-    #
-    # ws.shutter_control = 'Closed'
+    test_everything = False
 
-    # ws.central_wav = 300
+    if test_everything:
+        print(ws.idn())
+        print('\nHardware Display settings:')
+        print('display_rotate = ', ws.display_rotate)
+        print('display_reverse = ', ws.display_reverse)
+        print('display_flip = ', ws.display_flip)
+
+        print('\nHardware Temperature settings:')
+        print('target_temp = ', ws.target_temp)
+        print('current_temp = ', ws.current_temp, '  (read-only property)')
+        print('temp_locked = ', ws.temp_locked, '  (read-only property)')
+
+        print('\nExperiment Settings:')
+        print('Data File        filename = ', ws.filename)
+        ws.confirm_overwrite = False
+        print('Data File        confim_overwrite = ', ws.confirm_overwrite)
+        ws.autosave = 'Auto'
+        print('Data File        autosave = ', ws.autosave)
+        print('ADC              gain = ', ws.gain)
+        print('Timing           timing_mode = ', ws.timing_mode)
+        print('Timing           shutter_control = ', ws.shutter_control)
+        print('Timing           fast_safe = ', ws.fast_safe)
+        print('Timing           delay_time_s = ', ws.delay_time_s)
+        ws.bg_subtract = False
+        print('Data Corrections bg_subtract = ', ws.bg_subtract)
+        print('Data Corrections bg_file = ', ws.bg_file)
+        ws.ascii_output = True
+        print('Saving copy of data in Ascii file = ', ws.ascii_output)
+
+        ws.exposure_time = Q_('3s')
+        print('Main             exposure_time = ', ws.exposure_time)
+        ws.ccd = 'ROI'
+        print('Main             ccd = ', ws.ccd)
+        print('Main             accumulations = ', ws.accumulations)
+        print('ROI              spec_mode = ', ws.spec_mode)
+
+        print('\nROI = ', ws.getROI())
+
+        print('\nGrating Settings:')
+        print(ws.number_of_gratings, ' gratings found')
+        for k in range(ws.number_of_gratings):
+            print(k+1, ':  ', ws.gratings_grooves[k], 'gr/mm  ',  ws.gratings_blaze_name[k])
+
+        print('current grating = ', ws.grating)
+        print('Switching grating ...')
+        if ws.grating == 2:
+            ws.grating = 1
+        elif ws.grating == 1:
+            ws.grating = 2
+
+        print('central_nm = ', ws.central_nm)
+        print('Changing grating central nm ...')
+        if ws.central_nm < 450:
+            ws.central = 500
+        if ws.central_nm > 450:
+            ws.central = 400
+
+    print('Taking spectrum ...')
+    counts = ws.take_spectrum('image')
+    nm = ws.nm_axis()
+    #print(nm,counts)
+
+    ws.shutter_control = 'Closed'
+
+    ws.central_wav = 300
 
 
 
