@@ -280,6 +280,7 @@ class Hydraharp_GUI(BaseGui):
 
     def set_resolution(self):
         """| This method takes the chosen resolution by the user and remembers it for the rest of this class.
+        | It would be cool if I could make it a spinbox, that only allows values of 2^n, but I couldnt make that work...
         """
         self.logger.info('setting the resolution')
 
@@ -366,7 +367,6 @@ class Hydraharp_GUI(BaseGui):
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
         self.take_histogram_button.setEnabled(True)
-        #self.make_progress_label("Done, the histogram has been made")
 
     def update_plot(self):
         pen = pg.mkPen(color=(0, 0, 0))  # makes the plotted lines black
@@ -460,35 +460,18 @@ class Hydraharp_GUI(BaseGui):
         self.hydra_instrument.stop = False
 
 class DrawHistogram(pg.PlotWidget):
+    """This will make a graph for the histogram.
+    Since it is a pg.PlotWidget, it can be used both by the Hydraharp_GUI and by the ExpGUI (mastergui) outside of hyperion.
+    The title and labels are already set, as is the layout. The units on the x-axis are changed in update plot, since they depend on the chosen resolution.
+    """
+
     def __init__(self):
         super().__init__()
         self.histogram_plot = self
-
-# class DrawHistogram(BaseGraph):
-#     """
-#     In this class a widget is created to draw a graph on.
-#     """
-#
-#     def __init__(self):
-#         super().__init__()
-#         self.title = 'draw correlator gui'
-#         self.left = 100
-#         self.top = 100
-#         self.width = 640
-#         self.height = 480
-#         self.histogram_plot = pg.PlotWidget()
         self.initUI()
 
     def initUI(self):
-        # self.setWindowTitle(self.title)
-        # self.setGeometry(self.left, self.top, self.width, self.height)
-        # vbox = QVBoxLayout()
-        # vbox.addWidget(self.histogram_plot)
-
         self.layout_plot()
-
-#        self.setLayout(vbox)
-        #self.show()
 
     def layout_plot(self):
         self.histogram_plot.setBackground('w')
