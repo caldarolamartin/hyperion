@@ -284,6 +284,9 @@ class WinspecContr(BaseController):
             ws_spec_mgr = win32com.client.Dispatch('WinX32.SpectroObjMgr')
             self._ws_spec_mgr_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
 
+            docfile = win32com.client.Dispatch('WinX32.DocFile')
+            self._docfile_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, docfile)
+
             # ws_doc = win32com.client.Dispatch('WinX32.DocFile')
             # self._ws_doc_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
 
@@ -354,6 +357,17 @@ class WinspecContr(BaseController):
         else:
             return self._spt
 
+    def docfile(self):
+        if self._threading_mode:
+            pythoncom.CoInitialize()
+            docfile = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self._docfile_id, pythoncom.IID_IDispatch)
+            )
+            self._docfile_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
+            return docfile
+        else:
+            return self._dispatch('WinX32.DocFile')
+
     def _dispatch(self, winx32_class_name):
         """ Helper function that wraps win32com.client.Dispatch() and catches errors"""
         try:
@@ -393,10 +407,6 @@ class WinspecContr(BaseController):
                     self.params_dm[key[3:]] = _constants[key]
                 else:
                     self.params_other[key] = _constants[key]
-
-    def docfile(self):
-        return self._dispatch('WinX32.DocFile')
-
 
     def close(self):
         """ Closes the Winspec software.
