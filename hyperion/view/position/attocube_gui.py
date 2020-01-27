@@ -50,13 +50,14 @@ class Attocube_GUI(BaseGui):
 
         self.max_amplitude_V = 60
         self.max_frequency = 2000
-        self.max_dclevel_V = 140 * ur('V')
+        self.max_dclevel_V = 140 * ur('V')          #Pay attention: this max only goes for 4K,
+        self.real_max_dcLevel_V = 60 * ur('V')       #at room temperature use 60V as max
         self.max_distance = 5*ur('mm')
 
         self.current_positions = {}
 
         self.current_axis = 'X,Y Piezo Stepper'
-        self.current_move = 'continuous'
+        self.current_move = 'step'
         self.direction = 'left'
         self.distance = 0*ur('um')
 
@@ -182,9 +183,15 @@ class Attocube_GUI(BaseGui):
         self.gui.doubleSpinBox_scannerY.setValue(int(self.dcY.m_as('V')))
         self.gui.doubleSpinBox_scannerZ.setValue(int(self.dcZ.m_as('V')))
 
+        self.move_scanner('dCX')
+        self.move_scanner('dCY')
+        self.move_scanner('dCZ')
+
         self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_scanner_position('X'))
         self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_scanner_position('Y'))
         self.gui.doubleSpinBox_scannerZ.valueChanged.connect(lambda: self.set_scanner_position('Z'))
+
+        self.gui.pushButton_zero_scanners.clicked.connect(self.zero_scanners)
 
     def show_position(self):
         """In the instrument level, the current positions are remembered in a dictionary and updated through get_position.
@@ -398,9 +405,10 @@ class Attocube_GUI(BaseGui):
 
 
     def set_scanner_unit(self, axis):
-        """
+        """To make it possible to use both V and mV for the scanner; NOT TESTED
 
-        :param axis:
+        :param axis: axis X, Y, Z
+        :type axis: string
         """
         if axis == 'X':
             self.scanner_unitX = self.gui.comboBox_unitX.currentText()
@@ -416,9 +424,11 @@ class Attocube_GUI(BaseGui):
     def set_scanner_position(self, axis):
         """To make it possible to use both V and mV for the scanner; NOT TESTED
 
-        :param axis:
+        :param axis: axis X, Y, Z
+        :type axis: string
         """
         change = 'not'
+
         if axis == 'X':
             scanner_pos = self.gui.doubleSpinBox_scannerX.value()
             scanner_unit = self.scanner_unitX
@@ -437,6 +447,8 @@ class Attocube_GUI(BaseGui):
             local_max = self.max_dclevel_V.to(scanner_unit)
             self.logger.debug(str(local_max))
             change = 'high'
+        elif local_position > self.real_max_dcLevel_V:
+            self.logger.warning('You are exceeding the 60V maximum for the piezo at room temperature')
         elif local_position < 0:
             self.logger.debug('value too low')
             change = 'low'
@@ -538,6 +550,14 @@ class Attocube_GUI(BaseGui):
         elif 'Z' in axis:
             self.logger.debug('move by {}'.format(self.dcZ))
             self.anc350_instrument.move_scanner('ZPiezoScanner',self.dcZ)
+
+    def zero_scanners(self):
+        """Put 0V on all scanners.
+        """
+
+        self.logger.info('Zero all Scanners.')
+        self.anc350_instrument.zero_scanners()
+
 
     def move(self, direction):
         """| Here the actual move takes place, after the user clicked on one of the four directional buttons.

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>639</width>
-    <height>730</height>
+    <width>526</width>
+    <height>551</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -152,6 +152,133 @@
     </widget>
    </item>
    <item row="0" column="1">
+    <widget class="QGroupBox" name="groupBox_scanner">
+     <property name="title">
+      <string/>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_13">
+      <item row="0" column="0">
+       <widget class="QGroupBox" name="groupBox_scanXY">
+        <property name="title">
+         <string/>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_scannerX">
+           <property name="text">
+            <string>move scanner X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerX">
+           <property name="suffix">
+            <string/>
+           </property>
+           <property name="maximum">
+            <double>999999999.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="comboBox_unitX">
+           <item>
+            <property name="text">
+             <string>mV</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>V</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_scannerY">
+           <property name="text">
+            <string>move scanner Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerY">
+           <property name="suffix">
+            <string/>
+           </property>
+           <property name="maximum">
+            <double>9999999999999.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QComboBox" name="comboBox_unitY">
+           <item>
+            <property name="text">
+             <string>mV</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>V</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QGroupBox" name="groupBox_scanZ">
+        <property name="title">
+         <string/>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_14">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_scannerZ">
+           <property name="text">
+            <string>move scanner Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerZ">
+           <property name="suffix">
+            <string/>
+           </property>
+           <property name="maximum">
+            <double>9999999999999.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="comboBox_unitZ">
+           <item>
+            <property name="text">
+             <string>mV</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>V</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="pushButton_zero_scanners">
+        <property name="text">
+         <string>zero all Scanners</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0">
     <widget class="QGroupBox" name="groupBox_configurate">
      <property name="title">
       <string/>
@@ -287,22 +414,22 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="1" column="1">
     <widget class="QGroupBox" name="groupBox_moving">
      <property name="title">
       <string/>
      </property>
-     <layout class="QGridLayout" name="gridLayout_13">
+     <layout class="QGridLayout" name="gridLayout_11">
       <item row="0" column="0">
        <widget class="QComboBox" name="comboBox_kindOfMove">
         <item>
          <property name="text">
-          <string>continuous</string>
+          <string>step</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>step</string>
+          <string>continuous</string>
          </property>
         </item>
         <item>
@@ -322,22 +449,22 @@
         <property name="title">
          <string/>
         </property>
-        <layout class="QGridLayout" name="gridLayout_12">
-         <item row="0" column="0">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0" colspan="2">
           <widget class="QLabel" name="label_sortMove">
            <property name="text">
             <string>to absolute position</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
+         <item row="1" column="0">
           <widget class="QDoubleSpinBox" name="doubleSpinBox_distance">
            <property name="maximum">
             <double>10000000000000000000.000000000000000</double>
            </property>
           </widget>
          </item>
-         <item row="0" column="2">
+         <item row="1" column="1">
           <widget class="QComboBox" name="comboBox_unit">
            <property name="currentText">
             <string>nm</string>
@@ -427,7 +554,7 @@
         <property name="title">
          <string/>
         </property>
-        <layout class="QGridLayout" name="gridLayout_3">
+        <layout class="QGridLayout" name="gridLayout_12">
          <item row="0" column="1">
           <widget class="QPushButton" name="pushButton_up">
            <property name="text">
@@ -454,126 +581,6 @@
            <property name="text">
             <string>down</string>
            </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QGroupBox" name="groupBox_scanner">
-     <property name="title">
-      <string/>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_11">
-      <item row="0" column="0">
-       <widget class="QGroupBox" name="groupBox_scanXY">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_scannerX">
-           <property name="text">
-            <string>move scanner X</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerX">
-           <property name="suffix">
-            <string/>
-           </property>
-           <property name="maximum">
-            <double>999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QComboBox" name="comboBox_unitX">
-           <item>
-            <property name="text">
-             <string>mV</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>V</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_scannerY">
-           <property name="text">
-            <string>move scanner Y</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerY">
-           <property name="suffix">
-            <string/>
-           </property>
-           <property name="maximum">
-            <double>9999999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QComboBox" name="comboBox_unitY">
-           <item>
-            <property name="text">
-             <string>mV</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>V</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QGroupBox" name="groupBox_scanZ">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_14">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_scannerZ">
-           <property name="text">
-            <string>move scanner Z</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerZ">
-           <property name="suffix">
-            <string/>
-           </property>
-           <property name="maximum">
-            <double>9999999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QComboBox" name="comboBox_unitZ">
-           <item>
-            <property name="text">
-             <string>mV</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>V</string>
-            </property>
-           </item>
           </widget>
          </item>
         </layout>
