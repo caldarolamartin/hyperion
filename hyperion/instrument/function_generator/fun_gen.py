@@ -128,6 +128,10 @@ class FunGen(BaseInstrument):
                 self.set_voltage_low(ch, ur(di['waveform']['low']))
                 sleep(0.1)
 
+                self.logger.debug('Setting DC offset {} for channel.'.format(di['waveform']['dc']))
+                self.set_voltage_offset(ch, ur(di['waveform']['dc']))
+                sleep(0.1)
+
                 self.logger.debug('Setting status {} for channel.'.format(di['output']))
                 self.enable_output(ch, di['output'])
                 sleep(0.1)
