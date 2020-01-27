@@ -315,8 +315,9 @@ class ExpGui(QMainWindow):
             dock.raise_()
 
     def load_all_measurement_guis(self):
-        for meas_name in self.experiment.properties['Measurements']:
-            self.load_measurement_gui(meas_name)
+        if 'Measurements' in self.experiment.properties:
+            for meas_name in self.experiment.properties['Measurements']:
+                self.load_measurement_gui(meas_name)
 
     def load_measurement_gui(self, meas_name):
         meas_dict = self.experiment.properties['Measurements'][meas_name]
@@ -367,6 +368,7 @@ class ExpGui(QMainWindow):
             QMessageBox.warning(self, 'Loading config failed', "Perhaps invalid YAML?", QMessageBox.Ok)
             return
         self.reconnect_instruments(dialog=False)
+        self.load_all_measurement_guis()
 
     def reconnect_instruments(self, dialog=True):
         if dialog:
@@ -771,12 +773,20 @@ class ModifyConfigFile(QDialog):
                 self.experiment.remove_all_instruments()
                 self.experiment.load_config('_manually_modified_yaml_', dic)
                 self.experiment.load_instruments()
-                self.close()
             except:
                 self.logger.error('Failed to load config and instruments from dict')
                 QMessageBox.warning(self, 'Error', 'Error while applying config or loading instruments', QMessageBox.Ok)
                 return
-
+            try:
+                for meas_name, meas_gui in self.measurement_guis.items():
+                    if hasattr(meas_gui, 'create_actionlist_guis'):
+                        self.logger.debug('Updating Measurement GUI: {}'.format(meas_name))
+                        meas_gui.create_actionlist_guis()
+                        meas_gui.update_buttons()
+                        meas_gui.update()
+            except:
+                self.logger.warning('Encountered error while trying to update Measurement GUIs')
+            self.close()
 
 
 if __name__ == '__main__':

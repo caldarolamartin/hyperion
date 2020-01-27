@@ -22,8 +22,8 @@ config_file = os.path.join(hyperion.repository_path, 'examples', 'example_projec
 # logging.stream_level = logging.WARNING
 experiment = MyExperiment()
 # logging.stream_level = logging.DEBUG
-experiment.load_config(config_file)
-experiment.load_instruments()
+# experiment.load_config(config_file)
+# experiment.load_instruments()
 
 app = QApplication(sys.argv)
 main_gui = ExpGui(experiment)

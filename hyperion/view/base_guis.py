@@ -396,8 +396,6 @@ class AutoMeasurementGui(BaseGui):
         self.setLayout(self.outer_layout)
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.show()
-        # Prepare window to modify config:
-        self.dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
 
         # Set up QTimer to periodically update button states (based on
         self.timer_update_buttons = QTimer()
@@ -569,7 +567,10 @@ class AutoMeasurementGui(BaseGui):
         Called when Config button is pressed.
         Opens the ModifyMeasurement Dialog to modify/correct the config text directly.
         """
-        self.dialog_config.exec_()
+
+        # Prepare window to modify config:
+        dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
+        dialog_config.exec_()
         self.update_buttons()
         self.create_actionlist_guis()
         self.update()
