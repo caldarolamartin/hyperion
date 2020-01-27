@@ -113,6 +113,7 @@ class Attocube_GUI(BaseGui):
 
         self.gui.groupBox_moving.setEnabled(False)
         self.gui.groupBox_scanner.setEnabled(False)
+        #self.gui.groupBox_scanner.setVisible(False)
 
         self.show_position()
 

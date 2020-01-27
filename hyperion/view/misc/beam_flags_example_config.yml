@@ -1,14 +1,14 @@
 Instruments:
   BeamFlags:
     name: BeamFlags
-    port: COM8
+    port: COM25
     dummy: False
     baudrate: 9600
     read_timeout: 0.1
     start_up_delay: 0.5      # Increase this if you have difficulty connecting
     instrument: hyperion.instrument.misc.beam_flags_instr/BeamFlagsInstr
     controller: hyperion.controller.generic.generic_serial_contr/GenericSerialController
-    view: hyperion.view.misc.beam_gui/BeamFlagsGui
+    view: hyperion.view.misc.beam_flags_gui/BeamFlagsGui
     flag_states:
       red:   'r'                # character for arduino red state
       green: 'g'                # character for arduino green state

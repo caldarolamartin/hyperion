@@ -246,7 +246,7 @@ class BeamFlagsInstr(BaseInstrument):
 
 if __name__ == "__main__":
 
-    example_settings = {'port': 'COM22', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+    example_settings = {'port': 'COM25', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
     with BeamFlagsInstr(settings = example_settings) as bf:
