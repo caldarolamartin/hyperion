@@ -146,8 +146,12 @@ ActionTypes:       # dictionary of ActionTypes
     _method: sweep_atto # key inside the ActionType-dictionary atto_scanner
     _ui: scanner.ui     # key inside the ActionType-dictionary atto_scanner
 #    _view: gui.gui_elements/ScanMicroPositioner
-    _view: hyperion.view.action_guis/ScanMicroPositioner
+    _view: hyperion.view.action_guis/ScanActuator
     step_min: 1nm
+    actuator_units:
+      - nm
+      - um
+      - mm
   histogram:
     _method: histogram
     _view: examples.example_project_with_automated_scanning.gui.gui_elements/ExampleActionGui

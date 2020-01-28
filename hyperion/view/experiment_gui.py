@@ -378,25 +378,32 @@ class ExpGui(QMainWindow):
                                                QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Yes)
             if buttonReply == QMessageBox.Cancel:
                 return
+        self.logger.debug('Removing instrument guis:')
         self.remove_all_instrument_guis()
         if not 'Instruments' in self.experiment.properties:
             QMessageBox.warning(self, 'No instruments specified', "No config loaded or no instruments listed in config file.", QMessageBox.Ok)
             return
         try:
+            self.logger.debug('Removing instruments:')
             self.experiment.remove_all_instruments()
         except:
             self.logger.warning('Error while removing instruments')
         try:
+            self.logger.debug('Loading instruments:')
             self.experiment.load_instruments()  # this loads both regular and meta instruments
         except:
             self.logger.warning('Error while loading instruments')
             QMessageBox.warning(self, 'Loading instruments failed', "Perhaps a device is not connected or it's still in use by another process?", QMessageBox.Ok)
-            self.logger.debug('Closing open instruments')
-            self.experiment.load_instruments()
-        for inst in self.experiment.instruments_instances:
-            inst_dict = self.experiment.properties['Instruments'][inst]
-            # if inst in
-        self.load_all_instrument_guis()
+            # self.logger.debug('Closing open instruments')
+            # self.experiment.load_instruments()
+        # for inst in self.experiment.instruments_instances:
+        #     inst_dict = self.experiment.properties['Instruments'][inst]
+        #     # if inst in
+        try:
+            self.logger.debug('Loading instrument guis:')
+            self.load_all_instrument_guis()
+        except:
+            self.logger.warning('Error while loading instrument guis')
 
     def remove_all_instrument_guis(self):
         """
@@ -628,6 +635,7 @@ class ModifyConfigFile(QDialog):
         self.resize(1000, 790)
         self.font = QFont("Courier New", 11)
         self.experiment = experiment
+        self._parent = parent
         self.initUI()
         self.filename = self.readfile(filename)
         self.reset()
@@ -760,7 +768,7 @@ class ModifyConfigFile(QDialog):
     def apply(self):
         if self.valid_yaml():
             try:
-                self.logger.debug('Converting text to dictionary')
+                # self.logger.debug('Converting text to dictionary')
                 dic = yaml.safe_load(self.txt.toPlainText())
                 if type(dic) is not dict:
                     raise
@@ -769,23 +777,31 @@ class ModifyConfigFile(QDialog):
                 QMessageBox.warning(self, 'Reading YAML failed', 'Error while converting yaml to dictionary', QMessageBox.Ok)
                 return
             try:
-                self.logger.debug('Closing instruments, loading dict as config and loading instruments')
+                # self.logger.debug('Closing instruments, loading dict as config and loading instruments')
                 self.experiment.remove_all_instruments()
                 self.experiment.load_config('_manually_modified_yaml_', dic)
-                self.experiment.load_instruments()
             except:
-                self.logger.error('Failed to load config and instruments from dict')
+                self.logger.error('Failed to remove instruments and load config')
                 QMessageBox.warning(self, 'Error', 'Error while applying config or loading instruments', QMessageBox.Ok)
                 return
             try:
-                for meas_name, meas_gui in self.measurement_guis.items():
-                    if hasattr(meas_gui, 'create_actionlist_guis'):
-                        self.logger.debug('Updating Measurement GUI: {}'.format(meas_name))
-                        meas_gui.create_actionlist_guis()
-                        meas_gui.update_buttons()
-                        meas_gui.update()
+                self.logger.debug('Reconnecting instruments:')
+                self._parent.reconnect_instruments(dialog=False)
             except:
-                self.logger.warning('Encountered error while trying to update Measurement GUIs')
+                self.logger.error('Failed to reconnect instruments')
+                QMessageBox.warning(self, 'Error', 'Failed to reconnect instruments', QMessageBox.Ok)
+                raise
+            # try:
+            #     for meas_name, meas_gui in self.measurement_guis.items():
+            #         if hasattr(meas_gui, 'create_actionlist_guis'):
+            #             self.logger.debug('Updating Measurement GUI: {}'.format(meas_name))
+            #             meas_gui.create_actionlist_guis()
+            #             meas_gui.update_buttons()
+            #             meas_gui.update()
+            # except:
+            #     self.logger.warning('Encountered error while trying to update Measurement GUIs')
+
+
             self.close()
 
 

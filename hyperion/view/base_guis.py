@@ -208,7 +208,7 @@ class ModifyMeasurement(QDialog):
         # Allow window to be shrunk and expanded:
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         grid = QGridLayout()
-        # create buttons, lables and the textedit:
+        # create buttons, labels and the textedit:
         self.button_reset = QPushButton('&Reset Original', clicked = self.reset)
         self.button_validate = QPushButton('&Validate', clicked = self.validate)
         self.button_suggestion = QPushButton('Show su&ggestion', clicked = self.suggestion)
@@ -567,7 +567,6 @@ class AutoMeasurementGui(BaseGui):
         Called when Config button is pressed.
         Opens the ModifyMeasurement Dialog to modify/correct the config text directly.
         """
-
         # Prepare window to modify config:
         dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
         dialog_config.exec_()
@@ -616,12 +615,6 @@ class AutoMeasurementGui(BaseGui):
         new_action_list, invalid_methods, invalid_names = self.experiment._validate_actionlist(self.experiment.properties['Measurements'][self.measurement]['automated_actionlist'])
         return (invalid_methods==0 and invalid_names==0)
 
-    # def _close(self):
-    #     print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& closing')
-    #     if self.graphs_in_standalone:
-    #         for name, gui in self.output_guis.items():
-    #             self.logger('Closing output gui {}'.format(name))
-    #             gui.close()
 
 
 # if __name__ == '__main__':
