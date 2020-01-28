@@ -22,7 +22,6 @@ from PyQt5.QtCore import QTimer, Qt
 from PyQt5 import uic
 import os
 
-
 class ExampleActionGui(BaseGui):
     def __init__(self, actiondict, experiment = None, parent = None):
         self.logger = logman.getLogger(__name__)
@@ -186,8 +185,8 @@ class ScanActuator(BaseGui):
                                             Q_(self.actiondict['step_max'])))
 
 
-ScanMicroPositioner = ScanActuator
 
+ScanMicroPositioner = ScanActuator
 
 class SaverGui(BaseGui):
     def __init__(self, actiondict, experiment = None, parent = None):
@@ -281,3 +280,5 @@ class SaverGui(BaseGui):
         self.folder_line.setText(folder)
         self.file_line.setText(basename)
         self.apply_incrementer()
+
+

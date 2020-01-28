@@ -33,10 +33,14 @@ class Skpolarimeter(BaseController):
         self.name = 'SK polarization'
         self.logger.debug('Is initialized state: {}'.format(self._is_initialized))
 
-        # TODO: put this in a config file so the code doe not depend on the location (PC)
-        path = 'C:/Users/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeterMFC_VS2015_x64/x64/Release/'
+        # get the path for the dll
+        if 'dll_path' in settings.keys():
+            path = settings['dll_path']
+        else:
+            path = 'C:/Users/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeterMFC_VS2015_x64/x64/Release/'
+
         name = settings['dll_name']
-        self.logger.debug('DLL to use: {}'.format(path + name))
+        self.logger.debug('DLL to use: {}.dll'.format(path + name))
         self.dll = ctypes.CDLL(path + name)
         self.logger.debug('DLL: {}'.format(self.dll))
 
@@ -227,7 +231,9 @@ class SkpolarimeterDummy(Skpolarimeter):
 if __name__ == "__main__":
     # logging.stream_level('DEBUG')
 
-    with Skpolarimeter(settings = {'dll_name': 'SKPolarimeter'}) as s:
+    with Skpolarimeter(settings = {#'dll_path':
+        #"C:/Users/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeter_4_6_4_downloaded_2020/WIN 7/program files/SK/SkPolarizationAnalyzer",
+                                    'dll_name': 'SKPolarimeter'}) as s:
         # get the info needed to open connection
         s.get_number_polarizers()
         s.get_device_information()

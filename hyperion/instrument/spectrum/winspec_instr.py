@@ -31,7 +31,7 @@ from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
 from hyperion import root_dir
-from hyperion.view.general_worker import WorkThread
+# from hyperion.view.general_worker import WorkThread
 import time
 import os
 import yaml
@@ -171,11 +171,17 @@ class WinspecInstr(BaseInstrument):
         if name==None:
             # name=self.default_name
             if hasattr(self,'doc'):
-                self.doc.Close()
+                try:
+                    self.doc.Close()
+                except:
+                    self.logger.warning('Winspec: Failed to close doc')
             self.doc = self.controller.docfile()
         else:
             if hasattr(self,'doc'):
-                self.doc.Close()
+                try:
+                    self.doc.Close()
+                except:
+                    self.logger.warning('Winspec: Failed to close doc')
             self.filename = name
             self.doc = self.controller.docfile()
         self.controller.exp.Start(self.doc)
@@ -220,22 +226,30 @@ class WinspecInstr(BaseInstrument):
 
 
 
-    def collect_spectrum(self, wait=True, sleeptime=True):
+    def collect_spectrum(self, wait=True, sleeptime=False):
         """
         | Retrieves the last acquired spectrum from Winspec.
-        | **Pay attention: I added some extra sleeps to make it work**
+        | **Pay attention: you need to extra sleeps if you are autosaving with Winspec**
+        | If you are not using the Autosave option, you have to put sleeptime to False.
+
         :param wait: If wait is True (DEFAULT) it will wait for WinSpec to finish collecting data.
         :type wait: bool
+
+        :param sleeptime: Sleeptime adds some sleeps to make sure Winspec has enough time to Autosave ascii images
+        :type sleeptime: bool
+
         :return: list or nested list
         """
         if wait:
             while self.is_acquiring:
                 if sleeptime:
-                    time.sleep(1)
+                    time.sleep(1)       #use this one if you want to autosave images
                 else:
-                    time.sleep(0.1)
+                    time.sleep(0.1)     #this is enough if you autosave spectra
                 self.logger.debug("acquiring? {}".format(self.is_acquiring))
 
+            #this sleep is to save an image as ASCII, that takes quite some time,
+            # and Winspec breaks if you dont give that time
             if sleeptime:
                 time.sleep(2)
 
@@ -950,8 +964,13 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('Saving ascii file: ' + str(self.ascii_output)) #this is correct if you look at Winspec, but wrong here!!!
 
 
+
+
+
 if __name__ == "__main__":
     #logging.stream_level = logging.INFO
+
+
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
@@ -960,7 +979,13 @@ if __name__ == "__main__":
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',
                 'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
+
     ws = WinspecInstr(settings)
+    d = ws.take_spectrum()
+    print(d)
+
+
+
 
     # ws.configure_settings()
 
@@ -1030,8 +1055,7 @@ if __name__ == "__main__":
 
     ws.shutter_control = 'Closed'
 
-    # ws.central_wav = 300
-
+    ws.central_wav = 300
 
 
 

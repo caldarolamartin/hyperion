@@ -12,6 +12,7 @@ import os             #for playing with files in operation system
 import time
 from hyperion import root_dir, ur
 import matplotlib.pyplot as plt
+import numpy as np
 
 from hyperion.instrument.base_instrument import BaseInstrument
 
@@ -57,7 +58,7 @@ class HydraInstrument(BaseInstrument):
             filename = os.path.join(root_dir,'instrument','correlator','HydraInstrument_config.yml')
       
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
     
         self.settings = d['settings']
         
@@ -225,9 +226,11 @@ if __name__ == "__main__":
         print('The count rate is: ' , q.count_rate(0))
 
         # use the hist
-        q.set_histogram(leng = 65536, res =8.0 * ur('ps'))
+        q.set_histogram(leng = 65530, res =8.0 * ur('ps'))
         q.make_histogram(5*ur('s'), count_channel = 0)
         print('The histogram: ', q.hist)
+
+        print('size histogram {}'.format(np.shape(q.hist)))
 
         plt.figure()
         plt.plot(q.hist)

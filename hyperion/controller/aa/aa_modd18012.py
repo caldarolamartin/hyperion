@@ -424,7 +424,7 @@ class AaModd18012Dummy(AaModd18012):
         self.logger.warning('NOT IMPLEMENTED YET')
         # filename = os.path.join(root_dir,'controller', 'dummy', 'lcc25.yml')
         # with open(filename, 'r') as f:
-        #     d = yaml.load(f, Loader=yaml.FullLoader)
+        #     d = yaml.safe_load(f)
         #
         # self._properties = d
         # self.logger.debug('_properties dict: {}'.format(self._properties))

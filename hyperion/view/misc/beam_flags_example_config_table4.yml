@@ -10,24 +10,14 @@ Instruments:
     controller: hyperion.controller.generic.generic_serial_contr/GenericSerialController
     view: hyperion.view.misc.beam_gui/BeamFlagsGui
     flag_states:
-      red:   'r'                # character for arduino red state
-      green: 'g'                # character for arduino green state
-    gui_red_color:   rgb(255, 100, 100)
-    gui_green_color: rgb(100, 255, 100)
+      red:   '0'                # character for arduino LED off state
+      green: '1'                # character for arduino LED on state
+    gui_red_color:   rgb(100, 100, 100)
+    gui_green_color: rgb(255, 100, 100)
     gui_state_update_ms: 100    # recommend 100,  update time in ms for the state indicators
     gui_flags:
-      '1':                      # key-name should be the id-character for the arduino controller
-        name: FilterA
+      'r':                      # key-name should be the id-character for the arduino controller
+        name: red_LED
         red_name: In
         green_name: Out
         shortkey: Ctrl+1
-      '2':
-        name: FilterB
-        red_name: In
-        green_name: Out
-        shortkey: Ctrl+2
-      '3':
-        name: FilterC
-        red_name: In
-        green_name: Out
-        shortkey: Ctrl+3

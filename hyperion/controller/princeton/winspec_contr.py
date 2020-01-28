@@ -6,6 +6,8 @@ Winspec controller
 
 This controller connects to the Winspec software (which in turn is used to control Princeton Instruments spectrometers).
 
+Note: this controller detects if PyQt5 module is laoded and if so it will take precautions to for threading.
+
 
 """
 # It has been difficult to get this to work.
@@ -42,13 +44,23 @@ else:
     import win32com.client
 from hyperion.controller.base_controller import BaseController
 
-# some tests:
-# import pythoncom        # had to add this to achieve threading in combination with win32com
+import pythoncom  # required for threading support
+
+# This controller should detect if PyQt5 is used (or other threading packages) and automatically start in
+# "threading mode", but if it doesn't and there are threading issues (e.g. an error mentioning that CoInitialize has
+# not been called), you could force it to use threading by passing this settings parameter: force_threading_mode = True
+
 
 class WinspecContr(BaseController):
     """ Winspec Controller.
         This class contains low level functionality for communicating with Winspec software.
         Higher level functionality is in the instrument.
+
+        Note:
+        There is an issue between win32com (used to control the Winspec software) and threading. A workaround is
+        implemented in this controller and is applied automatically if it detects that the PyQt5 module is loaded. To
+        force it to use this threading compatible mode add the key 'force_threading_mode' to the config dictionary and
+        set it True. To force it not to use this mode set it False. (Omit it or set it to None for automatic detection)
 
         :param settings: this includes all the settings needed to connect to the device in question.
         :type settings: dict
@@ -59,31 +71,114 @@ class WinspecContr(BaseController):
         super().__init__(settings)                  # mandatory line
         self.logger = logging.getLogger(__name__)   # mandatory line
         self.logger.info('Class WinspecController created.')
+
+        # force_threading_mode:
+        #   True    Force it to use threading mode
+        #   None    Automatic (default behaviour)
+        #   False   Force it to not use threading mode
+        if 'force_threading_mode' in settings:
+            self._force_threading = settings['force_threading_mode']
+        else:
+            self._force_threading = None
+        self._threading_mode = None
+
         # pythoncom.CoInitialize()                    # added this line for threading
         self.name = 'Winspec Controller'
-        self.ws = None
+        # self.ws = None
         self.params = {}
         self.params_exp = {}
         self.params_spt = {}
-        self.exp = None
-        self._spec_mgr = None
-        self.spt = None
+        # self.exp = None
+        # self._spec_mgr = None
+        # self.spt = None
         # I don't really understand this stuff, but after a very long search trying many things, this turns out to work for collecting spectral data
         self._variant_array = win32com.client.VARIANT( win32com.client.pythoncom.VT_BYREF | win32com.client.pythoncom.VT_ARRAY | win32com.client.pythoncom.VT_I4 , [1,2,3,4] )
-        
 
     def initialize(self):
+        self._is_initialized = False
+        if self._force_threading is True or (self._force_threading is None and 'PyQt5' in sys.modules):
+            # if _force_threading is None and PyQt5 is detected
+            # if _force_threading is True
+            self.logger.info('Winspec in threading mode ' + ['(automatic)', '(forced)'][self._force_threading is True])
+            from hyperion.view.general_worker import WorkThread
+            from time import sleep
+            init_thread = WorkThread(self.__initialize_in_thread)
+            self._busy_with_thread = True
+            init_thread.start()
+            timeout_count = 50  # wait 5 seconds before spitting out warnings
+            while self._busy_with_thread:
+                sleep(.2)
+                if timeout_count<=0:
+                    self.logger.warning('Waiting for Winspec')
+            init_thread.quit()
+            self._threading_mode = True
+        else:
+            # if _force_threading is False
+            # if _force_threading is None and PyQt5 is not detected
+            self.logger.info('Winspec NOT in threading mode ' + ['(forced)', '(automatic)'][self._force_threading is None])
+            self._threading_mode = False
+            self.__initialize_without_threading_support()
+
+        self._generate_params()
+        self._is_initialized = True     # THIS IS MANDATORY!!
+                                        # this is to prevent you to close the device connection if you
+                                        # have not initialized it inside a with statement
+
+        # self.xdim = self.exp_get('XDIM')[0]
+        # self.ydim = self.exp_get('YDIM')[0]
+        self.xdim = self.exp_get('XDIMDET')[0]
+        self.ydim = self.exp_get('YDIMDET')[0]
+
+    def __initialize_in_thread(self):
+        """
+        Mandatory function. Starts or connects to Winspec software
+        """
+        self.logger.info('Starting Winspec in threading compatible mode')
+        try:
+            pythoncom.CoInitialize()
+            ws_app = win32com.client.Dispatch("WinX32.Winx32App")
+            # ws_app = win32com.client.Dispatch("WinX32.Winx32App")
+            self._ws_app_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_app)
+            # com_object = win32com.client.gencache.EnsureDispatch("WinX32.Winx32App")
+            # self.ws = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, com_object)
+            ws_app.Hide(0) # make Winspec software visible
+            # ws_exp = self._dispatch('WinX32.ExpSetup')
+            ws_exp = win32com.client.Dispatch('WinX32.ExpSetup')
+            self._ws_exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_exp)
+            # ws_spec_mgr = self._dispatch('WinX32.SpectroObjMgr')
+            ws_spec_mgr = win32com.client.Dispatch('WinX32.SpectroObjMgr')
+            self._ws_spec_mgr_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
+
+            docfile = win32com.client.Dispatch('WinX32.DocFile')
+            self._docfile_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, docfile)
+
+            # ws_doc = win32com.client.Dispatch('WinX32.DocFile')
+            # self._ws_doc_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
+
+            # ws_spt = ws_spec_mgr.Current
+            # self.exp = self._dispatch('WinX32.ExpSetup')
+            # self._spec_mgr = self._dispatch('WinX32.SpectroObjMgr')
+            # self.spt = self._spec_mgr.Current
+
+            # exp_inst = win32com.client.Dispatch('WinX32.ExpSetup')
+            # self.exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, exp_id)
+        except win32com.client.pywintypes.com_error:
+            self.logger.warning("Can't find Winspec. Are you sure it's installed?")
+            # If Winspec is installed but you run into issues here, have a look at comments t the top of this file.
+
+        self._busy_with_thread = False
+
+    def __initialize_without_threading_support(self):
         """
         Mandatory function. Starts or connects to Winspec software
         """
         self.logger.info('Starting or connecting to Winspec')
         try:
-            self.ws = win32com.client.gencache.EnsureDispatch("WinX32.Winx32App")
-            self.ws.Hide(0) # make Winspec software visible
-            self._generate_params()
-            self.exp = self._dispatch('WinX32.ExpSetup')
+            self._ws_app = win32com.client.gencache.EnsureDispatch("WinX32.Winx32App")
+            self._ws_app.Hide(0)  # make Winspec software visible
+            self._exp = self._dispatch('WinX32.ExpSetup')
             self._spec_mgr = self._dispatch('WinX32.SpectroObjMgr')
-            self.spt = self._spec_mgr.Current
+            self._spt = self._spec_mgr.Current
             # pythoncom.CoInitialize()
             # exp_inst = win32com.client.Dispatch('WinX32.ExpSetup')
             # self.exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, exp_id)
@@ -91,14 +186,52 @@ class WinspecContr(BaseController):
             self.logger.warning('Can\'t find Winspec. Are you sure it\'s installed?')
             # If Winspec is installed but you run into issues here, have a look at comments t the top of this file.
 
-        self.xdim = self.exp_get('XDIM')[0]
-        self.ydim = self.exp_get('YDIM')[0]
+    @property
+    def ws_app(self):
+        if self._threading_mode:
+            pythoncom.CoInitialize()
+            ws_exp = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self._ws_exp_id, pythoncom.IID_IDispatch)
+            )
+            self._ws_exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_exp)
+            return ws_exp
+        else:
+            return self._ws_app
 
-        self._is_initialized = True     # THIS IS MANDATORY!!
-                                        # this is to prevent you to close the device connection if you
-                                        # have not initialized it inside a with statement
+    @property
+    def exp(self):
+        if self._threading_mode:
+            pythoncom.CoInitialize()
+            ws_exp = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self._ws_exp_id, pythoncom.IID_IDispatch)
+            )
+            self._ws_exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_exp)
+            return ws_exp
+        else:
+            return self._exp
 
+    @property
+    def spt(self):
+        if self._threading_mode:
+            pythoncom.CoInitialize()
+            ws_spec_mgr = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self._ws_spec_mgr_id, pythoncom.IID_IDispatch)
+            )
+            self._ws_spec_mgr_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
+            return ws_spec_mgr.Current
+        else:
+            return self._spt
 
+    def docfile(self):
+        if self._threading_mode:
+            pythoncom.CoInitialize()
+            docfile = win32com.client.Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(self._docfile_id, pythoncom.IID_IDispatch)
+            )
+            self._docfile_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, docfile)
+            return docfile
+        else:
+            return self._dispatch('WinX32.DocFile')
 
     def _dispatch(self, winx32_class_name):
         """ Helper function that wraps win32com.client.Dispatch() and catches errors"""
@@ -140,14 +273,11 @@ class WinspecContr(BaseController):
                 else:
                     self.params_other[key] = _constants[key]
 
-    def docfile(self):
-        return self._dispatch('WinX32.DocFile')
-
     def close(self):
         """ Closes the Winspec software.
         Note that this is not necessary."""
         if self._is_initialized:
-            self.ws.Quit()
+            self.ws_app.close()
 
     def finalize(self):
         """
@@ -164,16 +294,23 @@ class WinspecContr(BaseController):
         :rtype: string
         """
         self.logger.debug('Ask IDN to device.')
-        return 'Winspec '+self.ws.Version
+        if self._is_initialized:
+            return 'Winspec ' + self.ws_app.Version
+
+    def _check_not_init(self):
+        if not self._is_initialized:
+            self.logger.error('Winspec Controller is not initialized')
+            return True
 
     def exp_get(self, msg, *args, **kwargs):
         """ Retrieve WinSpec Experiment parameter
         :param msg: should be a key of self.params_exp
         :type msg: string
         :param *args, **kwargs: Any additional arguments are passed along into the self.exp.GetParam()
-        :return: returns Winspec value 
+        :return: returns Winspec value
         :rtype: int or tuple ?
         """
+        if self._check_not_init(): return
         if msg.upper() in self.params_exp:
             return self.exp.GetParam(self.params_exp[msg.upper()], *args, **kwargs)[:-1]
         else:
@@ -189,6 +326,7 @@ class WinspecContr(BaseController):
         :return: returns errorvalue, 0 if succeeded
         :rtype: typically a tuple containing an int, float or string
         """
+        if self._check_not_init(): return
         if msg.upper() in self.params_exp:
             return self.exp.SetParam(self.params_exp[msg.upper()], value)
         else:
@@ -204,6 +342,7 @@ class WinspecContr(BaseController):
         :return: returns errorvalue, 0 if succeeded
         :rtype: typically a tuple containing an int, float or string
         """
+        if self._check_not_init(): return
         if msg.upper() in self.params_spt:
             return self.spt.GetParam(self.params_spt[msg.upper()], *args, **kwargs)[:-1]
         else:
@@ -219,6 +358,7 @@ class WinspecContr(BaseController):
         :return: returns errorvalue, 0 if succeeded
         :rtype: typically a tuple containing an int, float or string
         """
+        if self._check_not_init(): return
         if msg.upper() in self.params_spt:
             return self.spt.SetParam(self.params_spt[msg.upper()], value)
         else:
@@ -265,6 +405,8 @@ if __name__ == "__main__":
     #     handlers=[logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576*5), backupCount=7),
     #               logging.StreamHandler()])
 
+
+
     dummy = False  # change this to false to work with the real device
 
     if dummy:
@@ -292,24 +434,11 @@ if __name__ == "__main__":
 
     # Because closing the device connection is not important for Winspec I'm not using 'with' in this example
 
-    ws = WinspecContr()
+    ws = WinspecContr({'force_threading_mode': True})
     ws.initialize()
-
     print( ws.exp_get('EXPOSURETIME')[0] )
 
-    from hyperion.view.general_worker import WorkThread
+    # Comment
+    #
+    # EXP_EXPOSURE seems to contain the exposuretime in seconds, but it appears that it is not always immediately updated, I recommend using EXP_EXPOSURETIME and EXP_EXPOSURETIME_UNITS instead
 
-
-    thr = WorkThread(ws.spt.Move)
-
-
-
-
-
-
-"""
-Comment
-
-EXP_EXPOSURE seems to contain the exposuretime in seconds, but it appears that it is not always immediately updated, I recommend using EXP_EXPOSURETIME and EXP_EXPOSURETIME_UNITS instead
-
-"""
