@@ -22,7 +22,6 @@ from PyQt5.QtCore import QTimer, Qt
 from PyQt5 import uic
 import os
 
-
 class ExampleActionGui(BaseGui):
     def __init__(self, actiondict, experiment = None, parent = None):
         self.logger = logman.getLogger(__name__)
@@ -141,7 +140,6 @@ class ScanMicroPositioner(BaseGui):
             spin_combo_to_pint_apply_limits(self.step_value, self.step_units, Q_(self.actiondict['step_min']),
                                             Q_(self.actiondict['step_max'])))
 
-
 class SaverGui(BaseGui):
     def __init__(self, actiondict, experiment = None, parent = None):
         self.logger = logman.getLogger(__name__)
@@ -234,3 +232,5 @@ class SaverGui(BaseGui):
         self.folder_line.setText(folder)
         self.file_line.setText(basename)
         self.apply_incrementer()
+
+
