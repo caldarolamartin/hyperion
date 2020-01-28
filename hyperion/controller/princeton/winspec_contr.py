@@ -1,144 +1,3 @@
-# from hyperion import logging
-# import sys
-# if sys.maxsize > 2**32:
-#     print('64 bit')
-# else:
-#     import win32com.client
-# from hyperion.controller.base_controller import BaseController
-#
-# import win32com.client
-# from time import sleep
-# import pythoncom  # required for threading support
-# from PyQt5.QtCore import QThread
-# from hyperion.view.general_worker import WorkThread
-#
-# # THIS WORKS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#
-# class Test_winspec_threading(BaseController):
-#     def __init__(self, settings = {}):
-#         super().__init__(settings)  # mandatory line
-#         self.logger = logging.getLogger(__name__)  # mandatory line
-#         self.logger.info('Class WinspecController created.')
-#
-#         # force_threading_mode:
-#         #   True    Force it to use threading mode
-#         #   None    Automatic (default behaviour)
-#         #   False   Force it to not use threading mode
-#         if 'force_threading_mode' in settings:
-#             self._force_threading = settings['force_threading_mode']
-#         else:
-#             self._force_threading = None
-#         self._threading_mode = None
-#
-#         # pythoncom.CoInitialize()                    # added this line for threading
-#         self.name = 'Winspec Controller'
-#         # self.ws = None
-#         self.params = {}
-#         self.params_exp = {}
-#         self.params_spt = {}
-#         # self.exp = None
-#         # self._spec_mgr = None
-#         # self.spt = None
-#         # I don't really understand this stuff, but after a very long search trying many things, this turns out to work for collecting spectral data
-#         self._variant_array = win32com.client.VARIANT(
-#             win32com.client.pythoncom.VT_BYREF | win32com.client.pythoncom.VT_ARRAY | win32com.client.pythoncom.VT_I4,
-#             [1, 2, 3, 4])
-#
-#     def initialize(self):
-#         thread1 = WorkThread(self.__initialize_in_thread)
-#         thread1.start()
-#         self._busy_with_thread = True
-#         while self._busy_with_thread:
-#             sleep(.5)
-#         # thread1.quit()
-#         print(self._ws_app_id)
-#         print(self._ws_exp_id)
-#         print(self._ws_spec_mgr_id)
-#         # thread2 = WorkThread(self.thread_func2)
-#         # thread2.start()
-#         self.thread_func2()
-#         # self.thread_func3()
-#         self.thread_func4()
-#         self.get_exp(852)
-#         # self.get_exp(803)
-#         # self.get_exp(804)
-#         self.thread_func2()
-#
-#
-#     def __initialize_in_thread(self):
-#         """
-#         Mandatory function. Starts or connects to Winspec software
-#         """
-#         self.logger.info('Starting Winspec in threading compatible mode')
-#         try:
-#             pythoncom.CoInitialize()
-#             ws_app = win32com.client.Dispatch("WinX32.Winx32App")
-#             # print('\nws_app: ', ws_app)
-#             self._ws_app_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_app)
-#             ws_app.Hide(0) # make Winspec software visible
-#             ws_exp = win32com.client.Dispatch('WinX32.ExpSetup')
-#             # print('\nws_exp: ', ws_exp)
-#             self._ws_exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_exp)
-#             ws_spec_mgr = win32com.client.Dispatch('WinX32.SpectroObjMgr')
-#             # print('\nws_spec_mgr: ', ws_spec_mgr)
-#             self._ws_spec_mgr_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
-#
-#         except win32com.client.pywintypes.com_error:
-#             self.logger.warning('Can\'t find Winspec. Are you sure it\'s installed?')
-#
-#         self._busy_with_thread = False
-#
-#     def thread_func1(self):
-#         self.logger.info('Starting Winspec in threading compatible mode')
-#         try:
-#             pythoncom.CoInitialize()
-#             ws_app = win32com.client.Dispatch("WinX32.Winx32App")
-#             # print('\nws_app: ', ws_app)
-#             self._ws_app_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_app)
-#             ws_app.Hide(0)
-#             ws_exp = win32com.client.Dispatch('WinX32.ExpSetup')
-#             # print('\nws_exp: ', ws_exp)
-#             self._ws_exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_exp)
-#             ws_spec_mgr = win32com.client.Dispatch('WinX32.SpectroObjMgr')
-#             # print('\nws_spec_mgr: ', ws_spec_mgr)
-#             self._ws_spec_mgr_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
-#         except win32com.client.pywintypes.com_error:
-#             self.logger.warning('Can\'t find Winspec. Are you sure it\'s installed?')
-#         self._busy_with_thread = False
-#
-#     def thread_func2(self):
-#         pythoncom.CoInitialize()
-#         print('ws_app...')
-#         ws_app = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(self._ws_app_id, pythoncom.IID_IDispatch))
-#         # update the ID
-#         self._ws_app_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_app)
-#
-#     def get_exp(self, code):
-#         pythoncom.CoInitialize()
-#         print('ws_exp...')
-#         ws_exp = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(self._ws_exp_id, pythoncom.IID_IDispatch))
-#         self._ws_exp_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_exp)
-#         print(ws_exp.GetParam(code))
-#
-#     def thread_func4(self):
-#         pythoncom.CoInitialize()
-#         print('ws_spec_mgr...')
-#         ws_spec_mgr = win32com.client.Dispatch(pythoncom.CoGetInterfaceAndReleaseStream(self._ws_spec_mgr_id, pythoncom.IID_IDispatch))
-#         print(ws_spec_mgr.Current.GetParam(88))
-#
-#
-# test = Test_winspec_threading()
-# test.initialize()
-# test.get_exp(852)
-# test.get_exp(803)
-# test.get_exp(804)
-#
-#
-# sys.exit()
-
-
-
-
 # -*- coding: utf-8 -*-
 """
 ==================
@@ -363,7 +222,7 @@ class WinspecContr(BaseController):
             docfile = win32com.client.Dispatch(
                 pythoncom.CoGetInterfaceAndReleaseStream(self._docfile_id, pythoncom.IID_IDispatch)
             )
-            self._docfile_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, ws_spec_mgr)
+            self._docfile_id = pythoncom.CoMarshalInterThreadInterfaceInStream(pythoncom.IID_IDispatch, docfile)
             return docfile
         else:
             return self._dispatch('WinX32.DocFile')
@@ -573,19 +432,7 @@ if __name__ == "__main__":
     ws.initialize()
     print( ws.exp_get('EXPOSURETIME')[0] )
 
-    # from hyperion.view.general_worker import WorkThread
+    # Comment
+    #
+    # EXP_EXPOSURE seems to contain the exposuretime in seconds, but it appears that it is not always immediately updated, I recommend using EXP_EXPOSURETIME and EXP_EXPOSURETIME_UNITS instead
 
-
-    # thr = WorkThread(ws.spt.Move)
-
-
-
-
-
-
-"""
-Comment
-
-EXP_EXPOSURE seems to contain the exposuretime in seconds, but it appears that it is not always immediately updated, I recommend using EXP_EXPOSURETIME and EXP_EXPOSURETIME_UNITS instead
-
-"""

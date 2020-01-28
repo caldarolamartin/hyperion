@@ -171,11 +171,17 @@ class WinspecInstr(BaseInstrument):
         if name==None:
             # name=self.default_name
             if hasattr(self,'doc'):
-                self.doc.Close()
+                try:
+                    self.doc.Close()
+                except:
+                    self.logger.warning('Winspec: Failed to close doc')
             self.doc = self.controller.docfile()
         else:
             if hasattr(self,'doc'):
-                self.doc.Close()
+                try:
+                    self.doc.Close()
+                except:
+                    self.logger.warning('Winspec: Failed to close doc')
             self.filename = name
             self.doc = self.controller.docfile()
         self.controller.exp.Start(self.doc)
@@ -1050,7 +1056,6 @@ if __name__ == "__main__":
     ws.shutter_control = 'Closed'
 
     ws.central_wav = 300
-
 
 
 
