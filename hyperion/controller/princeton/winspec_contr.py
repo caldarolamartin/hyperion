@@ -56,6 +56,12 @@ class WinspecContr(BaseController):
         This class contains low level functionality for communicating with Winspec software.
         Higher level functionality is in the instrument.
 
+        Note:
+        There is an issue between win32com (used to control the Winspec software) and threading. A workaround is
+        implemented in this controller and is applied automatically if it detects that the PyQt5 module is loaded. To
+        force it to use this threading compatible mode add the key 'force_threading_mode' to the config dictionary and
+        set it True. To force it not to use this mode set it False. (Omit it or set it to None for automatic detection)
+
         :param settings: this includes all the settings needed to connect to the device in question.
         :type settings: dict
 
