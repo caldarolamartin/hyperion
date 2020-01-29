@@ -115,14 +115,19 @@ class MyExperiment(BaseExperiment):
             self.datman.dim_coord(actiondict, arr, meta={'units': str(unit), **actiondict})
         # self.datman.meta(actiondict, actiondict)
         # self.datman.meta(actiondict['Name'], units=str(unit))
-        for s in arr:
+        for indx, pos in enumerate(arr):
+
+            # Update message in statusbar:
+            if actiondict['axis']=='x':
+                self.measurement_message = 'x position {}/{}  -  x = {} {}'.format(indx+1, len(arr), pos, str(unit))
+
             if actiondict['axis'] == 'x':
                 # It is possible to add values to a coordinate on the fly (and let it grow as the measurement progresses:
-                self.datman.dim_coord(actiondict, s, meta={'units': str(unit)})
+                self.datman.dim_coord(actiondict, pos, meta={'units': str(unit)})
             # In this example, add a line when x value changes (outer loop)
             if actiondict['axis']=='x':
                 print('---------------------')
-            print(actiondict['axis'],' : ', s, unit)
+            print(actiondict['axis'],' : ', pos, unit)
 
             nesting()  # NOTICE THE nesting() FUNCTION HERE INSIDE THE LOOP
 
@@ -197,6 +202,7 @@ if __name__ == '__main__':
             from hyperion.view.base_guis import AutoMeasurementGui
             q = AutoMeasurementGui(e, 'Automatic Measurement Example')
 
+
             # # With plotting
             # # (This is a bit "hacky" because this is intended to be done from the ExpGui object)
             # from gui.measurement_gui import MyMeasurementGuiWithPlotting
@@ -213,6 +219,7 @@ if __name__ == '__main__':
             #         plotargs = vis_dict['plotargs']
             #     plotting_dict[vis_name] = vis_cls(**plotargs)
             #
+            # q = MyMeasurementGuiWithPlotting(e, 'Automatic Measurement Example', parent=None, output_guis=plotting_dict)
             # q = MyMeasurementGuiWithPlotting(e, 'Automatic Measurement Example', parent=None, output_guis=plotting_dict)
 
 

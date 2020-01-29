@@ -50,7 +50,19 @@ class ExampleActionGui(BaseGui):
         self.layout.addWidget(dsp)
         self.layout.addWidget(cb)
 
-class ScanMicroPositioner(BaseGui):
+class ScanActuator(BaseGui):
+    """
+    This is an "ActionWidget" that can be used to sweep though an actuator in the automated gui.
+    Note that this class is intended to be called automatically.
+    The path to this class should be added to the yaml config file in the Action you want to use it for.
+    If you add a key actuator_units to your ActionDict and place (pint convertible) units in a list under this key,
+    those units will be used for the comboboxes.
+    Of course you could also create your own modified copy to fit your needs.
+
+    :param actiondict: an ActionDict belonging to the Action
+    :param experiment: The users Experiment which should inherit from BaseExperiment
+    :param parent: optional parent widget
+    """
     def __init__(self, actiondict, experiment = None, parent = None):
         self.logger = logman.getLogger(__name__)
         self.logger.debug('Creating ScanMicroPositioner gui')
@@ -75,11 +87,41 @@ class ScanMicroPositioner(BaseGui):
 
         right = Qt.AlignRight + Qt.AlignVCenter  # create shorthand for right Label alignment
 
-        positioner_units = ['nm', 'um', 'mm']
+        if 'actuator_units' in self.actiondict:
+            actuator_units = self.actiondict['actuator_units']
+        else:
+            self.logger.warning('No actuator_units key found in actiondict, trying to deduce units from start, stop, step')
+            pint_values = []
+            pint_values.append(Q_(self.actiondict['start']))
+            pint_values.append(Q_(self.actiondict['stop']))
+            pint_values.append(Q_(self.actiondict['step']))
+            pint_values.append(Q_(self.actiondict['start_min']))
+            pint_values.append(Q_(self.actiondict['stop_min']))
+            pint_values.append(Q_(self.actiondict['step_min']))
+            pint_values.append(Q_(self.actiondict['start_max']))
+            pint_values.append(Q_(self.actiondict['stop_max']))
+            pint_values.append(Q_(self.actiondict['step_max']))
+            pint_units = {}
+            for v in pint_values:
+                if v is not None and v.u not in pint_units:
+                    pint_units[v.u] = ''.join([c for c in str(v.u) if c.isalpha()])
+            actuator_units = [pint_units[key] for key in sorted(pint_units.keys())]
+            if len(actuator_units) == 0:
+                self.logger.error("Could not deduce a range of units from start/stop values. It's best to specify a list of actuator_units in the config file.")
+            # # Incomplete attempt to add units between, but instead I decided should just specify them in the config
+            # elif len(actuator_units) > 1:
+            #     # Fill in large gaps (i.e. add V between mV and kV)
+            #     add_units = []
+            #     for i in range(len(actuator_units)-1):
+            #         if Q_(actuator_units[i+1])/Q_(actuator_units[i]) > 1000:
+            #             add_units.append( ((1000*Q_(actuator_units[i])).to_compact()).u )
+            #         # if actuator_units[i + 1] / actuator_units[i] > 1000000:
+            #         #     add_units.append(((1000000 * actuator_units[i]).to_compact()).u)
+            #     actuator_units = sorted([*actuator_units, *add_units])
 
         self.start_value = QDoubleSpinBox()
         self.start_units = QComboBox()
-        self.start_units.addItems(positioner_units)
+        self.start_units.addItems(actuator_units)
         add_pint_to_combo(self.start_units)
         if 'start' in self.actiondict:
             self.logger.debug('Applying config value to start in gui')
@@ -89,7 +131,7 @@ class ScanMicroPositioner(BaseGui):
 
         self.stop_value = QDoubleSpinBox()
         self.stop_units = QComboBox()
-        self.stop_units.addItems(positioner_units)
+        self.stop_units.addItems(actuator_units)
         add_pint_to_combo(self.stop_units)
         if 'stop' in self.actiondict:
             self.logger.debug('Applying config value to stop in gui')
@@ -99,7 +141,7 @@ class ScanMicroPositioner(BaseGui):
 
         self.step_value = QDoubleSpinBox()
         self.step_units = QComboBox()
-        self.step_units.addItems(positioner_units)
+        self.step_units.addItems(actuator_units)
         add_pint_to_combo(self.step_units)
         if 'step' in self.actiondict:
             self.logger.debug('Applying config value to step in gui')
@@ -141,6 +183,10 @@ class ScanMicroPositioner(BaseGui):
         self.actiondict['step'] = str(
             spin_combo_to_pint_apply_limits(self.step_value, self.step_units, Q_(self.actiondict['step_min']),
                                             Q_(self.actiondict['step_max'])))
+
+
+
+ScanMicroPositioner = ScanActuator
 
 class SaverGui(BaseGui):
     def __init__(self, actiondict, experiment = None, parent = None):

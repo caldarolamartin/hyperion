@@ -31,7 +31,7 @@ from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
 from hyperion import root_dir
-from hyperion.view.general_worker import WorkThread
+# from hyperion.view.general_worker import WorkThread
 import time
 import os
 import yaml
@@ -171,11 +171,17 @@ class WinspecInstr(BaseInstrument):
         if name==None:
             # name=self.default_name
             if hasattr(self,'doc'):
-                self.doc.Close()
+                try:
+                    self.doc.Close()
+                except:
+                    self.logger.warning('Winspec: Failed to close doc')
             self.doc = self.controller.docfile()
         else:
             if hasattr(self,'doc'):
-                self.doc.Close()
+                try:
+                    self.doc.Close()
+                except:
+                    self.logger.warning('Winspec: Failed to close doc')
             self.filename = name
             self.doc = self.controller.docfile()
         self.controller.exp.Start(self.doc)
@@ -958,8 +964,13 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('Saving ascii file: ' + str(self.ascii_output)) #this is correct if you look at Winspec, but wrong here!!!
 
 
+
+
+
 if __name__ == "__main__":
     #logging.stream_level = logging.INFO
+
+
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
@@ -968,7 +979,13 @@ if __name__ == "__main__":
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',
                 'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
+
     ws = WinspecInstr(settings)
+    d = ws.take_spectrum()
+    print(d)
+
+
+
 
     # ws.configure_settings()
 
@@ -1038,8 +1055,7 @@ if __name__ == "__main__":
 
     ws.shutter_control = 'Closed'
 
-    # ws.central_wav = 300
-
+    ws.central_wav = 300
 
 
 

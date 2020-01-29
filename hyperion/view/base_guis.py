@@ -19,6 +19,7 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon, QFont, QFontMetrics
 from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import Qt
 from os import path
 import yaml
 from hyperion.view.general_worker import WorkThread
@@ -207,7 +208,7 @@ class ModifyMeasurement(QDialog):
         # Allow window to be shrunk and expanded:
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         grid = QGridLayout()
-        # create buttons, lables and the textedit:
+        # create buttons, labels and the textedit:
         self.button_reset = QPushButton('&Reset Original', clicked = self.reset)
         self.button_validate = QPushButton('&Validate', clicked = self.validate)
         self.button_suggestion = QPushButton('Show su&ggestion', clicked = self.suggestion)
@@ -349,7 +350,7 @@ class AutoMeasurementGui(BaseGui):
     :param measurement: (str) name of a measurement (specified in the config of the experiment)
     :param parent: parent QWidget
     """
-    def __init__(self, experiment, measurement, parent=None, output_guis=None):
+    def __init__(self, experiment, measurement, parent=None, output_guis=None, graphs_in_standalone=None):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Creating BaseMeasurement object')
         super().__init__(parent)
@@ -395,12 +396,44 @@ class AutoMeasurementGui(BaseGui):
         self.setLayout(self.outer_layout)
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.show()
-        # Prepare window to modify config:
-        self.dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
+
         # Set up QTimer to periodically update button states (based on
         self.timer_update_buttons = QTimer()
         self.timer_update_buttons.timeout.connect(self.update_buttons)
         self.timer_update_buttons.start(50) # in ms
+
+        # If run in standalone mode, but with graphs, display those graphs
+        self.graphs_in_standalone = graphs_in_standalone
+        if graphs_in_standalone is False:
+            self.logger.debug("Not using graphs_in_standalone mode")
+        if graphs_in_standalone is None:
+            if parent is None and output_guis is not None:
+                self.logger.info("Automatically using graphs_in_standalone mode")
+                self.graphs_in_standalone = True
+            else:
+                self.logger.info("Automatically not using graphs_in_standalone mode because parent is not None or output_guis is None")
+                self.graphs_in_standalone = False
+        elif graphs_in_standalone:
+            self.logger.debug("Using graphs_in_standalone mode")
+
+        if self.graphs_in_standalone:
+            self.show_ouputs_if_standalone()
+
+        # Set up QTimer to periodically update status message in parent gui if available.
+        if self._parent is not None:
+            self.timer_update_status = QTimer()
+            self.timer_update_status.timeout.connect(lambda: self._parent.update_statusbar(self.measurement, timer=self.timer_update_status))
+
+
+    def closeEvent(self, *args, **kwargs):
+        if self.graphs_in_standalone:
+            self.logger.debug('Running in graphs_in_standalone mode: Closing the QApplication')
+            QApplication.instance().quit()
+        super().closeEvent(*args, **kwargs)
+
+    def show_ouputs_if_standalone(self):
+        for name, gui in self.output_guis.items():
+            gui.show()
 
     def create_buttons(self):
         """
@@ -506,6 +539,8 @@ class AutoMeasurementGui(BaseGui):
         if self.experiment.running_status == self.experiment._not_running:
             self.ensure_output_docks_are_open()
             self.measurement_thread.start()
+            if self._parent is not None:
+                self.timer_update_status.start(100)
             self.start_plotting()
         self.update_buttons()
 
@@ -533,7 +568,9 @@ class AutoMeasurementGui(BaseGui):
         Called when Config button is pressed.
         Opens the ModifyMeasurement Dialog to modify/correct the config text directly.
         """
-        self.dialog_config.exec_()
+        # Prepare window to modify config:
+        dialog_config = ModifyMeasurement(self.experiment, self.measurement, self)
+        dialog_config.exec_()
         self.update_buttons()
         self.create_actionlist_guis()
         self.update()
@@ -578,7 +615,6 @@ class AutoMeasurementGui(BaseGui):
         """
         new_action_list, invalid_methods, invalid_names = self.experiment._validate_actionlist(self.experiment.properties['Measurements'][self.measurement]['automated_actionlist'])
         return (invalid_methods==0 and invalid_names==0)
-
 
 
 
