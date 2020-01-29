@@ -1,2 +1,2 @@
-.. automodule:: hyperion.controller.thermometer
+.. automodule:: hyperion.controller.rs.thermometer
     :members:
