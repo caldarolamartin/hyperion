@@ -20,6 +20,8 @@ class SpectrumGUI(BaseGui):
         self.actiondict = actiondict
         self.experiment = experiment
 
+        self.last_row = 0
+
         self.initUI()
         self.setLayout(self.layout)
 
@@ -87,18 +89,20 @@ class SpectrumGUI(BaseGui):
 
                 teller+=1
 
+        self.last_row = teller
+
     def place_in_grid(self):
         """In this method, the labels and the user input fields made in make_fields are put in a grid.
         """
-        self.layout.addWidget(QLabel('exposure time: '),2,0)
-        self.layout.addWidget(self.expo_value,2,1)
-        self.layout.addWidget(self.expo_units,2,2)
+        self.layout.addWidget(QLabel('exposure time: '),0,0)
+        self.layout.addWidget(self.expo_value,0,1)
+        self.layout.addWidget(self.expo_units,0,2)
 
-        self.layout.addWidget(QLabel('grating: '),0,0)
-        self.layout.addWidget(self.grating,0,1)
+        self.layout.addWidget(QLabel('grating: '),1,0)
+        self.layout.addWidget(self.grating,1,1)
 
-        self.layout.addWidget(QLabel('central wavelength: '),1,0)
-        self.layout.addWidget(self.central_nm,1,1)
+        self.layout.addWidget(QLabel('central wavelength: '),2,0)
+        self.layout.addWidget(self.central_nm,2,1)
 
     def expo_changed(self):
         """This method is the one that makes sure of updating the actiondict if the exposure time is changed by the user.

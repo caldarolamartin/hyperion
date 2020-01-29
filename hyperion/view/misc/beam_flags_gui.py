@@ -23,7 +23,7 @@ class BeamFlagsGui(QWidget):
     :type beam_flags_instr: an instance of the class
     """
 
-    def __init__(self, beam_flags_instr):
+    def __init__(self, beam_flags_instr, also_close_output=False):
         """
         Gui for beam blocker flags.
 
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     import yaml
     import os
 
-    example_config_file = 'beam_flags_example_config.yml'
+    example_config_file = 'beam_flags_example_config_table4.yml'
     example_config_filepath = os.path.join(hyperion.root_dir, 'view', 'misc', example_config_file)
     with open(example_config_filepath,'r') as file:
         example_config = yaml.full_load(file)

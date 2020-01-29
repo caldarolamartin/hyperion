@@ -1015,7 +1015,6 @@ class BaseExperiment:
                 # d = yaml.load(f, Loader=yaml.FullLoader)   # replacing with safeloader:
                 d = yaml.safe_load(f)
                 self.logger.info('Using configuration file: {}'.format(filename))
-
             self.properties = d
         else:
             self.properties = use_dict

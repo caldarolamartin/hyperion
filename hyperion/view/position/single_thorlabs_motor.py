@@ -23,7 +23,7 @@ class Thorlabs_motor_GUI(BaseGui):
     | Initialize of the instrument is already done by the init of the thorlabs_instrument, that runs with the with downstairs.
     """
 
-    def __init__(self, thorlabs_instrument):
+    def __init__(self, thorlabs_instrument, also_close_output=False):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.left = 50

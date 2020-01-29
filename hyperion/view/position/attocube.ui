@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>639</width>
-    <height>730</height>
+    <width>518</width>
+    <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_10">
+  <layout class="QGridLayout" name="gridLayout_7">
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox_basic">
      <property name="palette">
@@ -156,427 +156,438 @@
      <property name="title">
       <string/>
      </property>
-     <layout class="QGridLayout" name="gridLayout_9">
-      <item row="0" column="0">
-       <widget class="QGroupBox" name="groupBox_amplXY">
-        <property name="title">
-         <string/>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QStackedWidget" name="stackedWidget_actions">
+        <property name="currentIndex">
+         <number>0</number>
         </property>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_amplitudeX">
-           <property name="text">
-            <string>Amplitude X</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeX">
-           <property name="suffix">
-            <string>V</string>
-           </property>
-           <property name="maximum">
-            <double>999999999999.989990234375000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_frequencyX">
-           <property name="text">
-            <string>Frequency X</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyX">
-           <property name="suffix">
-            <string>Hz</string>
-           </property>
-           <property name="maximum">
-            <double>9999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_amplitudeY">
-           <property name="text">
-            <string>Amplitude Y</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeY">
-           <property name="suffix">
-            <string>V</string>
-           </property>
-           <property name="maximum">
-            <double>999999999999.989990234375000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_frequencyY">
-           <property name="text">
-            <string>Frequency Y</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyY">
-           <property name="suffix">
-            <string>Hz</string>
-           </property>
-           <property name="maximum">
-            <double>9999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QGroupBox" name="groupBox_amplZ">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_8">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_amplitudeZ">
-           <property name="text">
-            <string>Amplitude Z</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeZ">
-           <property name="suffix">
-            <string>V</string>
-           </property>
-           <property name="maximum">
-            <double>999999999999.989990234375000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_frequencyZ">
-           <property name="text">
-            <string>Frequency Z</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyZ">
-           <property name="suffix">
-            <string>Hz</string>
-           </property>
-           <property name="maximum">
-            <double>9999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QPushButton" name="pushButton_configurateStepper">
-        <property name="text">
-         <string>configure Stepper</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QGroupBox" name="groupBox_moving">
-     <property name="title">
-      <string/>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_13">
-      <item row="0" column="0">
-       <widget class="QComboBox" name="comboBox_kindOfMove">
-        <item>
-         <property name="text">
-          <string>continuous</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>step</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>move absolute</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>move relative</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QGroupBox" name="groupBox_distance">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_12">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_sortMove">
-           <property name="text">
-            <string>to absolute position</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_distance">
-           <property name="maximum">
-            <double>10000000000000000000.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QComboBox" name="comboBox_unit">
-           <property name="currentText">
-            <string>nm</string>
-           </property>
-           <item>
-            <property name="text">
-             <string>nm</string>
+        <widget class="QWidget" name="page_configure_stepper">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QStackedWidget" name="stackedWidget_configure">
+            <property name="currentIndex">
+             <number>1</number>
             </property>
-           </item>
-           <item>
+            <widget class="QWidget" name="page_amplZ">
+             <layout class="QGridLayout" name="gridLayout_9">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_amplitudeZ">
+                <property name="text">
+                 <string>Amplitude Z</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeZ">
+                <property name="suffix">
+                 <string>V</string>
+                </property>
+                <property name="maximum">
+                 <double>999999999999.989990234375000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_frequencyZ">
+                <property name="text">
+                 <string>Frequency Z</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyZ">
+                <property name="suffix">
+                 <string>Hz</string>
+                </property>
+                <property name="maximum">
+                 <double>9999999999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_amplXY">
+             <layout class="QGridLayout" name="gridLayout_8">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_frequencyX">
+                <property name="text">
+                 <string>Frequency X</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_amplitudeX">
+                <property name="text">
+                 <string>Amplitude X</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeX">
+                <property name="suffix">
+                 <string>V</string>
+                </property>
+                <property name="maximum">
+                 <double>999999999999.989990234375000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_amplitudeY">
+                <property name="text">
+                 <string>Amplitude Y</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyX">
+                <property name="suffix">
+                 <string>Hz</string>
+                </property>
+                <property name="maximum">
+                 <double>9999999999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_amplitudeY">
+                <property name="suffix">
+                 <string>V</string>
+                </property>
+                <property name="maximum">
+                 <double>999999999999.989990234375000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_frequencyY">
+                <property name="suffix">
+                 <string>Hz</string>
+                </property>
+                <property name="maximum">
+                 <double>9999999999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_frequencyY">
+                <property name="text">
+                 <string>Frequency Y</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_configurateStepper">
             <property name="text">
-             <string>um</string>
+             <string>configure Stepper</string>
             </property>
-           </item>
-           <item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="page_move_scanner">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QStackedWidget" name="stackedWidget_voltScanner">
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="page_scannerZ">
+             <layout class="QGridLayout" name="gridLayout_11">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_scannerZ">
+                <property name="text">
+                 <string>move scanner Z</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerZ">
+                <property name="suffix">
+                 <string/>
+                </property>
+                <property name="maximum">
+                 <double>9999999999999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox_unitZ">
+                <item>
+                 <property name="text">
+                  <string>mV</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>V</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_scannerXY">
+             <layout class="QGridLayout" name="gridLayout_10">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_scannerX">
+                <property name="text">
+                 <string>move scanner X</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerX">
+                <property name="suffix">
+                 <string/>
+                </property>
+                <property name="maximum">
+                 <double>999999999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox_unitX">
+                <item>
+                 <property name="text">
+                  <string>mV</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>V</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_scannerY">
+                <property name="text">
+                 <string>move scanner Y</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerY">
+                <property name="suffix">
+                 <string/>
+                </property>
+                <property name="maximum">
+                 <double>9999999999999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="comboBox_unitY">
+                <item>
+                 <property name="text">
+                  <string>mV</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>V</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_zero_scanners">
             <property name="text">
-             <string>mm</string>
+             <string>zero all Scanners</string>
             </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QGroupBox" name="groupBox_infoXY">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_speed_stepX">
-           <property name="text">
-            <string>speed X</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_speedsize_stepsizeX">
-           <property name="text">
-            <string>unavailable</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_speed_stepY">
-           <property name="text">
-            <string>speed Y</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_speedsize_stepsizeY">
-           <property name="text">
-            <string>unavailable</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QGroupBox" name="groupBox_infoZ">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_7">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_speed_stepZ">
-           <property name="text">
-            <string>speed Z</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_speedsize_stepsizeZ">
-           <property name="text">
-            <string>unavailable</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QGroupBox" name="groupBox_arrows">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="1">
-          <widget class="QPushButton" name="pushButton_up">
-           <property name="text">
-            <string>up</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QPushButton" name="pushButton_left">
-           <property name="text">
-            <string>left</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QPushButton" name="pushButton_right">
-           <property name="text">
-            <string>right</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QPushButton" name="pushButton_down">
-           <property name="text">
-            <string>down</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QGroupBox" name="groupBox_scanner">
+   <item row="1" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox_actions">
      <property name="title">
       <string/>
      </property>
-     <layout class="QGridLayout" name="gridLayout_11">
-      <item row="0" column="0">
-       <widget class="QGroupBox" name="groupBox_scanXY">
-        <property name="title">
-         <string/>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <widget class="QStackedWidget" name="stackedWidget_stepper">
+        <property name="currentIndex">
+         <number>1</number>
         </property>
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_scannerX">
-           <property name="text">
-            <string>move scanner X</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerX">
-           <property name="suffix">
-            <string/>
-           </property>
-           <property name="maximum">
-            <double>999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QComboBox" name="comboBox_unitX">
-           <item>
-            <property name="text">
-             <string>mV</string>
+        <widget class="QWidget" name="stackedWidgetempty" native="true"/>
+        <widget class="QWidget" name="stackedWidgetMoving" native="true">
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <widget class="QComboBox" name="comboBox_kindOfMove">
+            <item>
+             <property name="text">
+              <string>step</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>continuous</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>move absolute</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>move relative</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="1" rowspan="2">
+           <widget class="QGroupBox" name="groupBox_arrows">
+            <property name="title">
+             <string/>
             </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>V</string>
+            <layout class="QGridLayout" name="gridLayout_6">
+             <item row="0" column="1">
+              <widget class="QPushButton" name="pushButton_up">
+               <property name="text">
+                <string>up</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QPushButton" name="pushButton_left">
+               <property name="text">
+                <string>left</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QPushButton" name="pushButton_right">
+               <property name="text">
+                <string>right</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="pushButton_down">
+               <property name="text">
+                <string>down</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QStackedWidget" name="stackedWidget_moveDependent">
+            <property name="currentIndex">
+             <number>2</number>
             </property>
-           </item>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_scannerY">
-           <property name="text">
-            <string>move scanner Y</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerY">
-           <property name="suffix">
-            <string/>
-           </property>
-           <property name="maximum">
-            <double>9999999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QComboBox" name="comboBox_unitY">
-           <item>
-            <property name="text">
-             <string>mV</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>V</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QGroupBox" name="groupBox_scanZ">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_14">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_scannerZ">
-           <property name="text">
-            <string>move scanner Z</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_scannerZ">
-           <property name="suffix">
-            <string/>
-           </property>
-           <property name="maximum">
-            <double>9999999999999.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QComboBox" name="comboBox_unitZ">
-           <item>
-            <property name="text">
-             <string>mV</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>V</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
+            <widget class="QWidget" name="page_stepZ">
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QLabel" name="label_speed_stepZ">
+                <property name="text">
+                 <string>speed Z</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_speedsize_stepsizeZ">
+                <property name="text">
+                 <string>unavailable</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_distance">
+             <layout class="QGridLayout" name="gridLayout_3">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_sortMove">
+                <property name="text">
+                 <string>to absolute position</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_distance">
+                <property name="maximum">
+                 <double>10000000000000000000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox_unit">
+                <property name="currentText">
+                 <string>nm</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>nm</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>um</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>mm</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_stepXY">
+             <layout class="QGridLayout" name="gridLayout_2">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_speed_stepX">
+                <property name="text">
+                 <string>speed X</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_speedsize_stepsizeX">
+                <property name="text">
+                 <string>unavailable</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_speed_stepY">
+                <property name="text">
+                 <string>speed Y</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="label_speedsize_stepsizeY">
+                <property name="text">
+                 <string>unavailable</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
      </layout>

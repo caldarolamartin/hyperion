@@ -29,7 +29,7 @@ class Attocube_GUI(BaseGui):
     :type anc350_instrument: instance of the instrument class
 
     """
-    def __init__(self, anc350_instrument):
+    def __init__(self, anc350_instrument, also_close_output=False):
         """Attocube
         """
 
@@ -50,13 +50,14 @@ class Attocube_GUI(BaseGui):
 
         self.max_amplitude_V = 60
         self.max_frequency = 2000
-        self.max_dclevel_V = 140 * ur('V')
+        self.max_dclevel_V = 140 * ur('V')          #Pay attention: this max only goes for 4K,
+        self.real_max_dcLevel_V = 60 * ur('V')       #at room temperature use 60V as max
         self.max_distance = 5*ur('mm')
 
         self.current_positions = {}
 
         self.current_axis = 'X,Y Piezo Stepper'
-        self.current_move = 'continuous'
+        self.current_move = 'step'
         self.direction = 'left'
         self.distance = 0*ur('um')
 
@@ -109,9 +110,6 @@ class Attocube_GUI(BaseGui):
         self.gui.comboBox_axis.setCurrentText(self.current_axis)
         self.gui.comboBox_axis.currentTextChanged.connect(self.get_axis)
         self.gui.pushButton_stop.clicked.connect(self.stop_moving)
-
-        self.gui.groupBox_moving.setEnabled(False)
-        self.gui.groupBox_scanner.setEnabled(False)
 
         self.show_position()
 
@@ -182,9 +180,15 @@ class Attocube_GUI(BaseGui):
         self.gui.doubleSpinBox_scannerY.setValue(int(self.dcY.m_as('V')))
         self.gui.doubleSpinBox_scannerZ.setValue(int(self.dcZ.m_as('V')))
 
+        self.move_scanner('dCX')
+        self.move_scanner('dCY')
+        self.move_scanner('dCZ')
+
         self.gui.doubleSpinBox_scannerX.valueChanged.connect(lambda: self.set_scanner_position('X'))
         self.gui.doubleSpinBox_scannerY.valueChanged.connect(lambda: self.set_scanner_position('Y'))
         self.gui.doubleSpinBox_scannerZ.valueChanged.connect(lambda: self.set_scanner_position('Z'))
+
+        self.gui.pushButton_zero_scanners.clicked.connect(self.zero_scanners)
 
     def show_position(self):
         """In the instrument level, the current positions are remembered in a dictionary and updated through get_position.
@@ -197,13 +201,13 @@ class Attocube_GUI(BaseGui):
         self.gui.label_actualPositionZ.setText(str(self.current_positions['ZPiezoStepper']))
 
     def get_axis(self):
-        """| *Layout enabling and disabling plus blue borders*
+        """| *Layout stacked widgets plus blue borders*
         | Depending on the selected axis, the gui looks differently.
         | - The basic box is always enabled.
-        | - If one of the Steppers is selected, only the configuration box is enabled.
+        | - If one of the Steppers is selected, only the configuration box is shown.
         | - After configuration, also the box with all the moves will be enabled.
-        | - If one of the Scanners is selected, only the scanner box is enabled.
-        | - When the Z Piezo Stepper is selected, all of the X values change to Z, and the Y values are disabled.
+        | - If one of the Scanners is selected, only the scanner box is shown.
+        | - When the Z Piezo Stepper is selected, all of the X values change to Z.
         | - When the Z Piezo Scanner is selected, similar but now only for the two boxes in the scanner part.
         | - **Important** self.current_axis is saved here and used in the whole program.
         """
@@ -211,69 +215,59 @@ class Attocube_GUI(BaseGui):
         self.logger.debug('current axis:' + str(self.current_axis))
 
         if 'Stepper' in self.current_axis:
-            #Disable the scanner box, enable the configure box + show blue border
-            self.gui.groupBox_scanner.setEnabled(False)
-            self.gui.groupBox_scanner.setStyleSheet("QGroupBox default")
-
-            self.gui.groupBox_configurate.setEnabled(True)
+            #self.gui.groupBox_configurate.setEnabled(True)
             self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 2px solid blue;}")
 
-            self.gui.groupBox_moving.setEnabled(False)
-            self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
+            self.gui.groupBox_actions.setStyleSheet("QGroupBox default")
+
+            self.gui.stackedWidget_actions.setCurrentWidget(self.gui.page_configure_stepper)
+            self.gui.stackedWidget_stepper.setCurrentWidget(self.gui.stackedWidgetMoving)
+            self.gui.stackedWidgetMoving.setEnabled(False)
 
             if 'Z' in self.current_axis:
-                #Disable the xy groupboxes, enable the z groupboxes
+                #Disable the xy groupboxes, enable the z groupboxes,
+                # choose the page_amplZ of the stackedWidget_configure
                 self.gui.groupBox_XY.setEnabled(False)
                 self.gui.groupBox_Z.setEnabled(True)
 
-                self.gui.groupBox_amplZ.setEnabled(True)
-                self.gui.groupBox_amplXY.setEnabled(False)
+                self.gui.stackedWidget_configure.setCurrentWidget(self.gui.page_amplZ)
 
                 self.gui.pushButton_up.setEnabled(False)
                 self.gui.pushButton_down.setEnabled(False)
                 self.gui.pushButton_left.setText('closer')
                 self.gui.pushButton_right.setText('away')
-
-                self.gui.groupBox_infoXY.setEnabled(False)
-                self.gui.groupBox_infoZ.setEnabled(True)
             else:
-                #Enable the xy groupboxes, disable the z groupboxes
+                #Enable the xy groupboxes, disable the z groupboxes,
+                # choose the page_amplXY of the stackedWidget_configure.
+
                 self.gui.groupBox_XY.setEnabled(True)
                 self.gui.groupBox_Z.setEnabled(False)
 
-                self.gui.groupBox_amplZ.setEnabled(False)
-                self.gui.groupBox_amplXY.setEnabled(True)
+                self.gui.stackedWidget_configure.setCurrentWidget(self.gui.page_amplXY)
 
                 self.gui.pushButton_up.setEnabled(True)
                 self.gui.pushButton_down.setEnabled(True)
                 self.gui.pushButton_left.setText('left')
                 self.gui.pushButton_right.setText('right')
 
-                self.gui.groupBox_infoXY.setEnabled(True)
-                self.gui.groupBox_infoZ.setEnabled(False)
-
         elif 'Scanner' in self.current_axis:
-            #Enable the scanner box, disable the stepper boxes
-            self.gui.groupBox_scanner.setEnabled(True)
-            self.gui.groupBox_configurate.setEnabled(False)
-            self.gui.groupBox_moving.setEnabled(False)
+            #Choose the page_move_scanner of the stackedWidget_actions and the stackedWidgetEmpty of the stackedWidget_stepper
+            self.gui.stackedWidget_actions.setCurrentWidget(self.gui.page_move_scanner)
+            self.gui.stackedWidget_stepper.setCurrentWidget(self.gui.stackedWidgetempty)
 
-            self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
-            self.gui.groupBox_moving.setStyleSheet("QGroupBox default")
+            #Give the configurate box a border and the action box none
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 2px solid blue;}")
+            self.gui.groupBox_actions.setStyleSheet("QGroupBox default")
 
-            self.gui.groupBox_scanner.setObjectName("Colored_scanner")
-            self.gui.groupBox_scanner.setStyleSheet("QGroupBox#Colored_scanner {border: 2px solid blue;}")
-
+            #Choose either the page_scannerZ or page_scannerXY of the stackedWidget_voltScanner
             if 'Z' in self.current_axis:
-                self.gui.groupBox_scanXY.setEnabled(False)
-                self.gui.groupBox_scanZ.setEnabled(True)
+                self.gui.stackedWidget_voltScanner.setCurrentWidget(self.gui.page_scannerZ)
             else:
-                self.gui.groupBox_scanXY.setEnabled(True)
-                self.gui.groupBox_scanZ.setEnabled(False)
+                self.gui.stackedWidget_voltScanner.setCurrentWidget(self.gui.page_scannerXY)
 
     def get_move(self):
         """| *Layout of all moving options*
-        | Similar to the get_axis, the box with all the moves has lots of options that get disabled or enabled.
+        | Similar to the get_axis, the box with all the moves has lots of options that get chosen from the stacked widgets.
         | - When continuous is selected, it gives you the speed in the selected axes.
         | - When step is selected, it gives you the stepsize of the selected axes.
         | - When move absolute or move relative are selected, the user can enter the desired position/distance.
@@ -310,50 +304,39 @@ class Attocube_GUI(BaseGui):
         if self.current_move == 'move relative':
             #disable the info box (with speed or step size), enable user input posibility
             self.gui.label_sortMove.setText('to relative distance')
-            self.gui.groupBox_infoXY.setEnabled(False)
-            self.gui.groupBox_infoZ.setEnabled(False)
-            self.gui.groupBox_distance.setEnabled(True)
+            self.gui.stackedWidget_moveDependent.setCurrentWidget(self.gui.page_distance)
 
         elif self.current_move == 'move absolute':
             # disable the info box (with speed or step size), enable user input posibility
             self.gui.label_sortMove.setText('to absolute position')
-            self.gui.groupBox_infoXY.setEnabled(False)
-            self.gui.groupBox_infoZ.setEnabled(False)
-            self.gui.groupBox_distance.setEnabled(True)
+            self.gui.stackedWidget_moveDependent.setCurrentWidget(self.gui.page_distance)
 
         elif self.current_move == 'continuous':
             #disable the user input possibility, show either the speed of current axes (depends on amplitude)
             if 'Z' in self.current_axis:
+                self.gui.label_speed_stepZ.setText('speed Z')
                 self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Speed[1] * ur('nm/s').to('um/s')))
-                self.gui.groupBox_infoXY.setEnabled(False)
-                self.gui.groupBox_infoZ.setEnabled(True)
+                self.gui.stackedWidget_moveDependent.setCurrentWidget(self.gui.page_stepZ)
             else:
                 self.gui.label_speed_stepX.setText('speed X')
                 self.gui.label_speed_stepY.setText('speed Y')
 
                 self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Speed[0]*ur('nm/s').to('um/s')))
                 self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Speed[2] * ur('nm/s').to('um/s')))
-                self.gui.groupBox_infoXY.setEnabled(True)
-                self.gui.groupBox_infoZ.setEnabled(False)
-
-            self.gui.groupBox_distance.setEnabled(False)
+                self.gui.stackedWidget_moveDependent.setCurrentWidget(self.gui.page_stepXY)
 
         elif self.current_move == 'step':
             # disable the user input possibility, show either the step size on current axes (depends on frequency)
             if 'Z' in self.current_axis:
                 self.gui.label_speed_stepZ.setText('step size Z')
                 self.gui.label_speedsize_stepsizeZ.setText(str(self.anc350_instrument.Stepwidth[1]*ur('nm')))
-                self.gui.groupBox_infoXY.setEnabled(False)
-                self.gui.groupBox_infoZ.setEnabled(True)
+                self.gui.stackedWidget_moveDependent.setCurrentWidget(self.gui.page_stepZ)
             else:
                 self.gui.label_speed_stepX.setText('step size X')
                 self.gui.label_speed_stepY.setText('step size Y')
                 self.gui.label_speedsize_stepsizeX.setText(str(self.anc350_instrument.Stepwidth[0] * ur('nm')))
                 self.gui.label_speedsize_stepsizeY.setText(str(self.anc350_instrument.Stepwidth[2] * ur('nm')))
-                self.gui.groupBox_infoXY.setEnabled(True)
-                self.gui.groupBox_infoZ.setEnabled(False)
-
-            self.gui.groupBox_distance.setEnabled(False)
+                self.gui.stackedWidget_moveDependent.setCurrentWidget(self.gui.page_stepXY)
 
     def set_value(self, axis, value_type):
         """| Reads the values that the user filled in: amplitude, frequency or dc level on scanner.
@@ -398,9 +381,10 @@ class Attocube_GUI(BaseGui):
 
 
     def set_scanner_unit(self, axis):
-        """
+        """To make it possible to use both V and mV for the scanner; NOT TESTED
 
-        :param axis:
+        :param axis: axis X, Y, Z
+        :type axis: string
         """
         if axis == 'X':
             self.scanner_unitX = self.gui.comboBox_unitX.currentText()
@@ -416,9 +400,11 @@ class Attocube_GUI(BaseGui):
     def set_scanner_position(self, axis):
         """To make it possible to use both V and mV for the scanner; NOT TESTED
 
-        :param axis:
+        :param axis: axis X, Y, Z
+        :type axis: string
         """
         change = 'not'
+
         if axis == 'X':
             scanner_pos = self.gui.doubleSpinBox_scannerX.value()
             scanner_unit = self.scanner_unitX
@@ -437,6 +423,8 @@ class Attocube_GUI(BaseGui):
             local_max = self.max_dclevel_V.to(scanner_unit)
             self.logger.debug(str(local_max))
             change = 'high'
+        elif local_position > self.real_max_dcLevel_V:
+            self.logger.warning('You are exceeding the 60V maximum for the piezo at room temperature')
         elif local_position < 0:
             self.logger.debug('value too low')
             change = 'low'
@@ -502,7 +490,7 @@ class Attocube_GUI(BaseGui):
 
     def configure_stepper(self):
         """Configures the stepper, using the amplitude and frequency that had been set in set_frequency and set_amplitude.
-        After configuration, the box with all the different moves is enabled
+        After configuration, the box with all the different moves is chosen
         and the get_move is run to set the layout fit for the current move.
         """
         self.logger.info('configurating stepper')
@@ -512,11 +500,10 @@ class Attocube_GUI(BaseGui):
             self.anc350_instrument.configure_stepper('XPiezoStepper', self.settings['amplitudeX'] * ur('V'), self.settings['frequencyX'] * ur('Hz'))
             self.anc350_instrument.configure_stepper('YPiezoStepper', self.settings['amplitudeY'] * ur('V'), self.settings['frequencyY'] * ur('Hz'))
 
-        self.gui.groupBox_moving.setEnabled(True)
-        self.gui.groupBox_moving.setObjectName("ColoredGroupBox")
-        self.gui.groupBox_moving.setStyleSheet("QGroupBox#ColoredGroupBox {border: 2px solid blue;}")
+        self.gui.groupBox_actions.setObjectName("Colored_actions")
+        self.gui.groupBox_actions.setStyleSheet("QGroupBox#Colored_actions {border: 2px solid blue;}")
 
-        self.gui.groupBox_configurate.setStyleSheet("QGroupBox default")
+        self.gui.stackedWidgetMoving.setEnabled(True)
 
         self.get_move()
 
@@ -538,6 +525,14 @@ class Attocube_GUI(BaseGui):
         elif 'Z' in axis:
             self.logger.debug('move by {}'.format(self.dcZ))
             self.anc350_instrument.move_scanner('ZPiezoScanner',self.dcZ)
+
+    def zero_scanners(self):
+        """Put 0V on all scanners.
+        """
+
+        self.logger.info('Zero all Scanners.')
+        self.anc350_instrument.zero_scanners()
+
 
     def move(self, direction):
         """| Here the actual move takes place, after the user clicked on one of the four directional buttons.

@@ -386,6 +386,9 @@ class Anc350Instrument(BaseInstrument):
         """
 
         if 0 <= voltage.m_as('mV') <= self.controller.max_dclevel_mV:
+            if voltage.m_as('mV') > self.controller.real_max_dcLevel_mV:
+                self.logger.warning('Dont put voltages higher than 60V, unless you are at low temperatures!')
+
             self.logger.info('moving {} by putting {}'.format(axis, voltage))
             self.logger.debug('axis={}, voltage = {} in mV'.format(self.attocube_piezo_dict[axis]['axis'], voltage.m_as('mV')))
 
@@ -414,6 +417,14 @@ class Anc350Instrument(BaseInstrument):
         else:
             self.logger.warning('The required voltage is between 0V - 140V')
             return
+
+    def zero_scanners(self):
+        """Puts 0V on all three Piezo Scanners.
+        """
+        self.logger.debug('Putting 0V on every Scanner Piezo.')
+        self.move_scanner('XPiezoScanner',0*ur('V'))
+        self.move_scanner('YPiezoScanner', 0 * ur('V'))
+        self.move_scanner('ZPiezoScanner', 0 * ur('V'))
 
     def stop_moving(self, axis):
         """Stops moving to target/relative/reference position.
