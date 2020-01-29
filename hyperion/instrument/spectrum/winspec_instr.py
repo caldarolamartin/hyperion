@@ -932,7 +932,7 @@ class WinspecInstr(BaseInstrument):
 
 
     def configure_settings(self):
-        self.logger.debug(str(self.idn()))
+        #self.logger.debug(str(self.idn()))
 
         self.logger.info('Put settings as written down in instrument config file')
 
