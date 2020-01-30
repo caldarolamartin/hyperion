@@ -1,5 +1,6 @@
 import os
 import sys
+from hyperion import __version__
 
 sys.path.insert(0, os.path.abspath('../..'))
 extensions = ['sphinx.ext.autodoc', ]
@@ -7,8 +8,8 @@ extensions = ['sphinx.ext.autodoc', ]
 project = 'Hyperion'
 copyright = '2019, Authors: see authors'
 author = 'Authors: see authors'
-version = '0.2'
-release = '0.2'
+version = str(__version__)
+release = str(__version__)
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'

@@ -18,6 +18,7 @@ Index for this documentation
 
     about
     overview
+    features
     architecture
     installation
     contributors
