@@ -47,10 +47,15 @@ Experiment:
 
 View:
 
+Detailed documentation
+======================
+
+Here you can see the detailed documentation of all the objects in the package.
+
 
 .. toctree::
     :maxdepth: 2
-    :caption: General structure:
+    :caption: Contents:
 
     controllers
     experiment
