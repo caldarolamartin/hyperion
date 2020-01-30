@@ -37,7 +37,8 @@ class HydraInstrument(BaseInstrument):
 
         self.stop = False
         self.hist_ended = False
-        self.remaining_time = 0*ur('s')
+        #self.remaining_time = 0*ur('s')
+        self.time_passed = 0*ur('s')
 
     def initialize(self):
         """ Starts the connection to the device, calibrates it and configures based on the yml file.
@@ -141,7 +142,7 @@ class HydraInstrument(BaseInstrument):
         self.controller.start_measurement(int(integration_time.m_as('ms')))
 
         self.wait_till_finished(integration_time, count_channel)
-        self.logger.debug('Remaining time: ' + str(self.remaining_time))
+        self.logger.debug('Time passed: ' + str(self.time_passed))
 
         self.hist = self.controller.histogram(int(count_channel), True)     #Last time, put the histogram memory to 0
 
@@ -150,9 +151,11 @@ class HydraInstrument(BaseInstrument):
         self.hist_ended = False
         return self.hist
 
-    def show_remaining_time(self, integration_time, time_passed):
-        self.remaining_time = integration_time - time_passed
-        return self.remaining_time
+    def show_time_passed(self, integration_time, time_passed):
+        self.time_passed = time_passed
+        #print(self.time_passed)
+        remaining_time = integration_time - time_passed
+        return self.time_passed
 
     def wait_till_finished(self, integration_time, count_channel):
         """| This method should ask the device its status and keep asking until it's finished.
@@ -178,9 +181,7 @@ class HydraInstrument(BaseInstrument):
         self.logger.debug('Ended?: ' + str(self.hist_ended))
         total_time_passed += t * ur('s')
 
-        #self.show_remaining_time(integration_time, total_time_passed)
-
-        self.logger.debug('remaining time: {}'.format(self.show_remaining_time(integration_time, total_time_passed)))
+        self.logger.debug('time passed: {}'.format(self.show_time_passed(integration_time, total_time_passed)))
 
         time.sleep(1)
 
@@ -192,7 +193,8 @@ class HydraInstrument(BaseInstrument):
             #this line returns a pint quantity which tells the user how much time the program needs before it can collect the histogram
             self.logger.debug('time passed ' + str(total_time_passed))
 
-            self.logger.debug("{}".format(self.show_remaining_time(integration_time, total_time_passed)))
+            self.show_time_passed(integration_time, total_time_passed)
+            self.logger.debug('time_passed value: {}'.format(self.time_passed))
 
             self.hist = self.controller.histogram(int(count_channel), False)        #Dont let the histogram memory be cleared
             time.sleep(t)
@@ -202,9 +204,7 @@ class HydraInstrument(BaseInstrument):
                 self.stop = False
                 break
 
-        #self.show_remaining_time(integration_time, total_time_passed)
-
-        self.logger.debug('Remaining time: ' + str(self.show_remaining_time(integration_time, total_time_passed)))
+        self.logger.debug('Time passed: ' + str(self.show_time_passed(integration_time, total_time_passed)))
         self.logger.debug('Ended? ' + str(self.hist_ended))
 
     def stop_histogram(self):

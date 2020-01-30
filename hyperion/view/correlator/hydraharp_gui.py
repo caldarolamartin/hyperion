@@ -57,7 +57,7 @@ class Hydraharp_GUI(BaseGui):
         self.resolution = "1ps"
         self.integration_time = 5 * ur('s')
         self.channel = '0'
-        self.remaining_time = self.integration_time     #which also makes sure that the units are the same
+        self.time_passed = 0*ur('s')     #which also makes sure that the units are the same
 
         self.max_time = 24*ur('hour')
         self.max_length = 65536
@@ -71,7 +71,7 @@ class Hydraharp_GUI(BaseGui):
 
         #This one is to continuously (= every 100ms) show the remaining time
         self.timer = QTimer()
-        self.timer.timeout.connect(self.show_remaining_time)
+        self.timer.timeout.connect(self.show_time_passed)
 
         # timer to update
         self.timer_plot = QTimer()
@@ -105,21 +105,21 @@ class Hydraharp_GUI(BaseGui):
 
         self.groupBox_basic_layout = QVBoxLayout()
         self.groupBox_basic.setLayout(self.groupBox_basic_layout)
-        self.groupBox_basic.setStyleSheet("QGroupBox {border: 1px solid orange;}")
+        self.groupBox_basic.setStyleSheet("QGroupBox {border: 1px solid orange; border-radius: 9px;}")
 
         self.groupBox_values = QGroupBox()
         self.grid_layout.addWidget(self.groupBox_values,0,0)
 
         self.groupBox_values_layout = QGridLayout()
         self.groupBox_values.setLayout(self.groupBox_values_layout)
-        self.groupBox_values.setStyleSheet("QGroupBox {border: 1px solid orange;}")
+        self.groupBox_values.setStyleSheet("QGroupBox {border: 1px solid orange; border-radius: 9px;}")
 
         self.groupBox_saving = QGroupBox()
         self.grid_layout.addWidget(self.groupBox_saving,1,0,1,2)
 
         self.groupBox_saving_layout = QGridLayout()
         self.groupBox_saving.setLayout(self.groupBox_saving_layout)
-        self.groupBox_saving.setStyleSheet("QGroupBox {border: 1px solid orange;}")
+        self.groupBox_saving.setStyleSheet("QGroupBox {border: 1px solid orange; border-radius: 9px;}")
 
     def make_basics(self):
         self.take_histogram_button = QPushButton('take histogram', self)
@@ -132,13 +132,13 @@ class Hydraharp_GUI(BaseGui):
         self.stop_histogram_button.setStyleSheet("background-color: red")
 
         self.showing_remaining_time = QLabel(self)
-        self.showing_remaining_time.setText(str(self.remaining_time))
+        self.showing_remaining_time.setText(str(self.time_passed))
 
         self.progressbar = QProgressBar(self)
         self.progressbar.setMaximum(int(self.integration_time.magnitude))
-        self.progressbar.setValue(int(self.remaining_time.magnitude))
+        self.progressbar.setValue(int(self.time_passed.magnitude))
         self.progressbar.setTextVisible(False)
-        self.progressbar.valueChanged.connect(lambda: self.show_remaining_time)
+        self.progressbar.valueChanged.connect(lambda: self.show_time_passed)
 
         self.groupBox_basic_layout.addWidget(self.take_histogram_button)
         self.groupBox_basic_layout.addWidget(self.stop_histogram_button)
@@ -213,15 +213,15 @@ class Hydraharp_GUI(BaseGui):
         self.groupBox_saving_layout.addWidget(self.export_textfield, 0, 1, 1, 2)
 
     #------------------------------------------------------------------------------------
-    def show_remaining_time(self):
+    def show_time_passed(self):
         """This method asks the remaining time from the instrument level,
         and calculates the progress, so both can be displayed.
         """
-        self.remaining_time = self.hydra_instrument.remaining_time
-        self.showing_remaining_time.setText(str(self.remaining_time))
+        self.time_passed = self.hydra_instrument.time_passed
+        self.showing_remaining_time.setText(str(self.time_passed))
 
         self.progressbar.setMaximum(int(self.integration_time.magnitude))
-        self.progressbar.setValue(int(self.remaining_time.magnitude))
+        self.progressbar.setValue(int(self.time_passed.magnitude))
         #print(self.hydra_instrument.remaining_time)
 
     # ------------------------------------------------------------------------------------
@@ -333,9 +333,9 @@ class Hydraharp_GUI(BaseGui):
 
         self.endtime_label.setText(str(round(self.endtime.to(self.units), 4)))
 
-        self.logger.debug('endtime: {}, units: {}, array length: {}'.format(self.endtime, self.units, self.array_length))
+        #self.logger.debug('endtime: {}, units: {}, array length: {}'.format(self.endtime, self.units, self.array_length))
         self.time_axis = np.linspace(0, float(self.endtime.m_as(self.units)), self.array_length)
-        self.logger.debug('time axis: {}'.format(self.time_axis))
+        #self.logger.debug('time axis: {}'.format(self.time_axis))
 
     #------------------------------------------------------------------------------------
     def take_histogram(self):
@@ -360,13 +360,16 @@ class Hydraharp_GUI(BaseGui):
 
         self.timer.start(100)
         self.timer_plot.start(100)
-        self.show_remaining_time()
+        self.show_time_passed()
         self.histogram_thread = WorkThread(self.hydra_instrument.make_histogram, self.integration_time, self.channel)
         self.histogram_thread.start()
 
         #make it possible to press the save_histogram_button.(should be True)
         self.save_histogram_button.setEnabled(True)
         self.take_histogram_button.setEnabled(True)
+
+        self.hydra_instrument.time_passed = 0*ur('s')
+        self.show_time_passed()
 
     def update_plot(self):
         pen = pg.mkPen(color=(0, 0, 0))  # makes the plotted lines black
@@ -410,7 +413,6 @@ class Hydraharp_GUI(BaseGui):
             plt.close()
         except Exception:
             self.logger.warning("There is no picture to export...change that by clicking the button above")
-
 
     def actually_save_histogram(self, exporter):
         """|  In this method it is defined what the file_name is via checking if there is text in the export textfield.
@@ -457,6 +459,8 @@ class Hydraharp_GUI(BaseGui):
             self.logger.debug('histogram thread was running')
             self.histogram_thread.quit()
 
+        self.hydra_instrument.time_passed = 0*ur('s')
+        self.show_time_passed()
         self.hydra_instrument.stop = False
 
 class DrawHistogram(pg.PlotWidget):

@@ -101,10 +101,10 @@ class Attocube_GUI(BaseGui):
         | Connects buttons and show_position, which works with a timer that is started in the init of this class.
         """
         self.gui.groupBox_basic.setObjectName("Colored_basic")
-        self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 2px solid blue;}")
+        self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 1px solid blue;}")
 
         self.gui.groupBox_configurate.setObjectName("Colored_configure")
-        self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 2px solid blue;}")
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
 
         #combobox basic
         self.gui.comboBox_axis.setCurrentText(self.current_axis)
@@ -216,7 +216,7 @@ class Attocube_GUI(BaseGui):
 
         if 'Stepper' in self.current_axis:
             #self.gui.groupBox_configurate.setEnabled(True)
-            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 2px solid blue;}")
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
 
             self.gui.groupBox_actions.setStyleSheet("QGroupBox default")
 
@@ -256,7 +256,7 @@ class Attocube_GUI(BaseGui):
             self.gui.stackedWidget_stepper.setCurrentWidget(self.gui.stackedWidgetempty)
 
             #Give the configurate box a border and the action box none
-            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 2px solid blue;}")
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
             self.gui.groupBox_actions.setStyleSheet("QGroupBox default")
 
             #Choose either the page_scannerZ or page_scannerXY of the stackedWidget_voltScanner
@@ -501,7 +501,7 @@ class Attocube_GUI(BaseGui):
             self.anc350_instrument.configure_stepper('YPiezoStepper', self.settings['amplitudeY'] * ur('V'), self.settings['frequencyY'] * ur('Hz'))
 
         self.gui.groupBox_actions.setObjectName("Colored_actions")
-        self.gui.groupBox_actions.setStyleSheet("QGroupBox#Colored_actions {border: 2px solid blue;}")
+        self.gui.groupBox_actions.setStyleSheet("QGroupBox#Colored_actions {border: 1px solid blue;}")
 
         self.gui.stackedWidgetMoving.setEnabled(True)
 
