@@ -95,6 +95,7 @@ class Anc350(BaseController):
         self.logger.info('Class ANC350 init. Created object.')
 
         self.max_dclevel_mV = 140000
+        self.real_max_dcLevel_mV = 60000
         self.max_amplitude_mV = 60000
         self.max_frequency_Hz = 2000
         self.actor_name = ['ANPx101-A3-1079.aps','ANPx101-A3-1087.aps','ANPz102-F8-393.aps']
@@ -405,6 +406,9 @@ class Anc350(BaseController):
         :type dclev: integer
         """
         if 0 <= dclev <= self.max_dclevel_mV:
+            if dclev > self.real_max_dcLevel_mV:
+                self.logger.warning('Putting more than 60V is only allowed at low temperatures')
+
             ANC350lib.positionerDCLevel(self.handle, axis, dclev)
         else:
             raise Exception('The required voltage is between 0V - 140V')
