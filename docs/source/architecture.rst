@@ -17,13 +17,35 @@ The **instrument** is an intermediate layer where we abstract the
 specifics of the device into a more general mode.
 This helps to adapt to the view layer.
 
+Several instruments are condensed together to form an **experiment**
+where you can perform different measurements. In the folder examples
+you can find a few explanatory files that show how to use the complete package.
+
+
 The **view** is all that concerns the graphical user interface (GUI) of the
 applications. It consist of files that build up the GUI and some extra python
 files to load all the modules needed to run it. Under the hook, this uses the
-classes from the lower levels.
+classes from the lower levels. You can have a GUI for an instrument, that
+connects only to one device or a GUI for an experiment that connects to several
+devices. The design principle here is that any experiment and measurement should
+be independent of the view layer and thus can be run by just running code up to the
+experiment layer (not using the view layer). Then the view layer can be
+optional for users that require the graphical control of their experiment.
 
-There is an intermediate layer that puts models together and uses them
-in combination that we call **experiment**. Such classes are designed
-for a specific aim, for example, a calibration experiment, taking a spectra or
-performing a scan of one of the parameters available. Such tasks usually need
-the use of many devices that are controlled through their respective models.
+General structure
+=================
+
+.. toctree::
+    :maxdepth: 2
+    :caption: For developers:
+
+    controllers
+    experiment
+    instrument
+    test
+    tools
+    view
+    core
+
+
+

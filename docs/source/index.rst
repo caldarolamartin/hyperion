@@ -16,8 +16,8 @@ Index for this documentation
     :caption: Contents:
     :name: mastertoc
 
+    about
+    overview
+    architecture
     installation
-    users
     contributors
-    developers
-    core
