@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
 #    with my_class(settings = settingsX) as dev:
 
-    dev = my_class(settings=settingsX)
+    dev = my_class(settings=settingsWave)
     #This function comes from the core, outside of this specific motor
     print('T-cubes available: {}'.format(dev.core.list_available_devices()))
 

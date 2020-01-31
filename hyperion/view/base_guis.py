@@ -354,6 +354,7 @@ class AutoMeasurementGui(BaseGui):
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Creating BaseMeasurement object')
         super().__init__(parent)
+        self.child_action_widgets = {}
         self.experiment = experiment
         self.measurement = measurement
         self.output_guis = output_guis
@@ -458,6 +459,7 @@ class AutoMeasurementGui(BaseGui):
         """
         self.deleteItemsOfLayout(self.actions_layout)
         if self._valid:
+            self.child_action_widgets = {}
             self.actions_layout = self.add_actions_recursively(self.experiment.properties['Measurements'][self.measurement]['automated_actionlist'])
         else:
             self.actions_layout = QVBoxLayout()
@@ -490,6 +492,7 @@ class AutoMeasurementGui(BaseGui):
             if '_view' in actiondict:
                 action_gui_class = get_class(actiondict['_view'])
                 action_gui_widget = action_gui_class(actiondict, self.experiment, parent=box)
+                self.child_action_widgets[actiondict['Name']] = action_gui_widget
                 action_gui_widget.layout.setContentsMargins(7,0,20-self.__shift(nesting_level)[1],10)
                 action_gui_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
                 box_layout.addWidget(action_gui_widget)

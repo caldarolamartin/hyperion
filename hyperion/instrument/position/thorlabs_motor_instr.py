@@ -304,8 +304,6 @@ class Thorlabsmotor(BaseInstrument):
         :param direction: direction of movement
         :type direction: 1 for forward 2 for backward
         """
-
-
         direction_string = "unknown"
         if direction == 1:
             direction_string = "Forward"
@@ -315,9 +313,6 @@ class Thorlabsmotor(BaseInstrument):
             self.controller.move_velocity(direction)
             self.moving_loop()
             self.logger.info('Moving in {} direction'.format(direction_string))    # the blocking for the controller is False now
-
-
-
 
     def make_step(self, stepsize, blocking):
         """| Moves the T-cube by one step of a stepsize.
@@ -377,7 +372,8 @@ if __name__ == "__main__":
 
         waveplate.position()
 
-        waveplate.move_absolute(10*ur('degree'),True)
+        waveplate.move_absolute(4*ur('degree'),True)
+
         # time.sleep(1)
         # waveplate.stop_moving()
         # waveplate.position()
@@ -387,3 +383,5 @@ if __name__ == "__main__":
         #waveplate.make_step(1*ur('degrees'),True)
 
         waveplate.move_home(True)
+
+        print(waveplate.position())
