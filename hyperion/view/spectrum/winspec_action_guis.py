@@ -110,6 +110,9 @@ class SpectrumGUI(BaseGui):
         self.actiondict['exposuretime'] = str(spin_combo_to_pint_apply_limits(self.expo_value, self.expo_units,
                                                                               Q_(self.actiondict['exposuretime_min']),
                                                                               Q_(self.actiondict['exposuretime_max'])))
+        if hasattr(self,'measurement_gui_parent'):
+            print('found the measurement gui parent')
+            self.measurement_gui_parent.update_from_guis()
 
     def grating_changed(self):
         """This method updates the grating in the actiondict if the user changes it.
