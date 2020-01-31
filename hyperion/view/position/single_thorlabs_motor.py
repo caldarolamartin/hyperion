@@ -26,12 +26,9 @@ class Thorlabs_motor_GUI(BaseGui):
     def __init__(self, thorlabs_instrument, also_close_output=False):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.left = 50
-        self.top = 50
-        self.width = 400
-        self.height = 200
-        self.grid_layout = QGridLayout()
-        self.setLayout(self.grid_layout)
+
+        self.overall_layout = QHBoxLayout()
+        self.setLayout(self.overall_layout)
 
         self.motor = thorlabs_instrument
         self.logger.debug('You are connected to a {}'.format(self.motor.kind_of_device))
@@ -56,98 +53,74 @@ class Thorlabs_motor_GUI(BaseGui):
     def initUI(self):
         self.logger.debug('Setting up the Single Thorlabs Motor GUI')
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
+
+        groupBox = QGroupBox()
+        self.overall_layout.addWidget(groupBox)
+        groupBox.setStyleSheet("QGroupBox {border: 1px solid green; border-radius: 9px;}")
+
+        self.grid_layout = QGridLayout()
+        groupBox.setLayout(self.grid_layout)
 
         self.make_buttons()
-        self.make_labels()
-        self.make_misc_gui_stuff()
+        self.make_boxes()
+        self.fill_up_widget()
 
         self.show()
-    def make_buttons(self):
-        self.make_go_home_button()
-        self.make_go_to_button()
-        self.make_save_pos_button()
-        self.make_recover_pos_button()
-        self.make_keyboard_button()
-        self.make_stop_button()
-    def make_labels(self):
-        self.make_keyboard_label()
-        self.make_current_pos_label()
-        self.make_save_label()
-        self.make_recover_label()
-        self.make_unit_combobox()
-    def make_misc_gui_stuff(self):
-        self.make_distance_spinbox()
-        self.set_current_motor_position_label()
 
-    def make_go_home_button(self):
+    def make_buttons(self):
+        """This method makes all the buttons in this GUI and connects them to the correct methods.
+        """
         self.go_home_button = QPushButton("go home", self)
         self.go_home_button.setToolTip('go to home position')
         self.go_home_button.clicked.connect(self.go_home_motor)
-        self.grid_layout.addWidget(self.go_home_button, 0, 0)
-    def make_go_to_button(self):
+
         self.move_button = QPushButton('move to', self)
         self.move_button.setToolTip('move to given input')
         self.move_button.clicked.connect(self.go_to_input)
-        self.grid_layout.addWidget(self.move_button, 1, 0)
-    def make_save_pos_button(self):
-        self.save_pos_button = QPushButton("save pos", self)
-        self.save_pos_button.setToolTip('save the current position of the thorlabs_motor')
-        self.save_pos_button.clicked.connect(self.save_position)
-        self.grid_layout.addWidget(self.save_pos_button, 0, 4)
-    def make_recover_pos_button(self):
-        self.recover_pos_button = QPushButton("recover pos", self)
-        self.recover_pos_button.setToolTip("recover the set position of the thorlabs_motor")
-        self.recover_pos_button.clicked.connect(self.recover_position)
-        self.grid_layout.addWidget(self.recover_pos_button, 1, 4)
-    def make_keyboard_button(self):
+
         self.keyboard_button = QPushButton("keyboard", self)
         self.keyboard_button.setToolTip("use the keyboard to move the thorlabs_motor,\nit works great")
         self.keyboard_button.clicked.connect(self.use_keyboard)
-        self.grid_layout.addWidget(self.keyboard_button, 2, 1)
-    def make_stop_button(self):
+
+        self.save_pos_button = QPushButton("save pos", self)
+        self.save_pos_button.setToolTip('save the current position of the thorlabs_motor')
+        self.save_pos_button.clicked.connect(self.save_position)
+
+        self.recover_pos_button = QPushButton("recover pos", self)
+        self.recover_pos_button.setToolTip("recover the set position of the thorlabs_motor")
+        self.recover_pos_button.clicked.connect(self.recover_position)
+
         self.stop_button = QPushButton("stop moving", self)
         self.stop_button.setToolTip("stop any moving")
         self.stop_button.clicked.connect(self.stop_moving)
-        self.grid_layout.addWidget(self.stop_button, 2, 4)
-        self.stop_button.setStyleSheet("background-color: red")
 
-    def make_current_pos_label(self):
+    def make_boxes(self):
+        """This method makes the labels, spinbox and combobox to make them available for the rest of this class,
+        and connects them to the correct methods.
+        """
         self.current_motor_position_label = QLabel(self)
         try:
             self.current_motor_position_label.setText(self.motor.position())
         except Exception:
             self.current_motor_position_label.setText("currently/nunavailable")
-        self.grid_layout.addWidget(self.current_motor_position_label, 0, 1)
 
-    def make_keyboard_label(self):
-        self.keyboard_label = QLabel(self)
-        self.keyboard_label.setText("use keyboard\n(w/s, q to quit)")
-        self.grid_layout.addWidget(self.keyboard_label, 2, 0)
-    def make_save_label(self):
-        self.save_label = QLabel(self)
-        self.save_label.setText("saved:")
-        self.grid_layout.addWidget(self.save_label, 0, 3)
-    def make_recover_label(self):
-        self.recover_label = QLabel(self)
-        self.recover_label.setText("recover pos:")
-        self.grid_layout.addWidget(self.recover_label, 1, 3)
+        self.save_label = QLabel()
+        self.save_label.setText('saved:')
 
-    def make_distance_spinbox(self):
         self.distance_spinbox = QDoubleSpinBox(self)
         if self.motor.kind_of_device == 'waveplate':
             self.distance_spinbox.setValue(self.distance.m_as('mm'))
-            self.distance = self.distance.m_as('mm')*ur('degrees')
+            self.distance = self.distance.m_as('mm') * ur('degrees')
             self.min_distance = 0 * ur('degrees')
             self.max_distance = 360 * ur('degrees')
         else:
             self.distance_spinbox.setValue(self.distance.m_as('mm'))
-        self.grid_layout.addWidget(self.distance_spinbox, 1, 1)
-        self.distance_spinbox.setMinimum(-999999999)        #otherwise you cannot reach higher than 99
+
+        self.distance_spinbox.setMinimum(-999999999)  # otherwise you cannot reach higher than 99
         self.distance_spinbox.setMaximum(999999999)
         self.distance_spinbox.valueChanged.connect(self.set_distance)
 
-    def make_unit_combobox(self):
+
         self.unit_combobox = QComboBox(self)
         if self.motor.kind_of_device == 'waveplate':
             self.unit_combobox.addItems(["degrees"])
@@ -158,8 +131,27 @@ class Thorlabs_motor_GUI(BaseGui):
             self.unit_combobox.setCurrentText('mm')
 
         self.unit_combobox.currentTextChanged.connect(self.set_distance)
+
+        self.set_current_motor_position_label()
+
+    def fill_up_widget(self):
+        """This method puts all the widgets in the correct positions in the grid.
+        """
+        self.grid_layout.addWidget(self.go_home_button, 0, 0)
+        self.grid_layout.addWidget(self.move_button, 1, 0)
+        self.grid_layout.addWidget(QLabel("use keyboard\n(w/s, q to quit)"), 2, 0)
+
+        self.grid_layout.addWidget(self.current_motor_position_label, 0, 1)
+        self.grid_layout.addWidget(self.distance_spinbox, 1, 1)
+        self.grid_layout.addWidget(self.keyboard_button, 2, 1)
+
+        self.grid_layout.addWidget(self.save_label, 0, 3)
         self.grid_layout.addWidget(self.unit_combobox, 1, 3)
 
+        self.grid_layout.addWidget(self.save_pos_button, 0, 4)
+        self.grid_layout.addWidget(self.recover_pos_button, 1, 4)
+        self.grid_layout.addWidget(self.stop_button, 2, 4)
+        # self.stop_button.setStyleSheet("background-color: red")
 
     def set_current_motor_position_label(self):
         """ In the instrument level, the current position is remembered and updated through self.position,
@@ -168,7 +160,6 @@ class Thorlabs_motor_GUI(BaseGui):
         """
         self.current_position = self.motor.current_position
         self.current_motor_position_label.setText(str(round(self.current_position, 2)))
-
 
 #----------------------------------------------------------------------------------------------------------------------
 

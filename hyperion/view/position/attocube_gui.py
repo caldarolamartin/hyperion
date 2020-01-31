@@ -101,17 +101,17 @@ class Attocube_GUI(BaseGui):
         | Connects buttons and show_position, which works with a timer that is started in the init of this class.
         """
         self.gui.groupBox_basic.setObjectName("Colored_basic")
-        self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 1px solid blue;}")
+        self.gui.groupBox_basic.setStyleSheet("QGroupBox#Colored_basic {border: 1px solid blue; border-radius: 9px;}")
 
         self.gui.groupBox_configurate.setObjectName("Colored_configure")
-        self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
+        self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue; border-radius: 9px;}")
 
         #combobox basic
         self.gui.comboBox_axis.setCurrentText(self.current_axis)
         self.gui.comboBox_axis.currentTextChanged.connect(self.get_axis)
         self.gui.pushButton_stop.clicked.connect(self.stop_moving)
 
-        self.pushButton_stop.setStyleSheet("background-color: red")
+        #self.pushButton_stop.setStyleSheet("border: 1px solid red")
         self.gui.groupBox_XY.setEnabled(True)
         self.gui.groupBox_Z.setEnabled(False)
 
@@ -156,6 +156,8 @@ class Attocube_GUI(BaseGui):
         self.gui.doubleSpinBox_distance.valueChanged.connect(self.set_distance)
         self.gui.comboBox_unit.currentTextChanged.connect(self.set_distance)
 
+        self.gui.pushButton_left.setCheckable(True)
+        self.gui.pushButton_left.toggle()
         self.gui.pushButton_left.clicked.connect(lambda: self.move('left'))
         self.gui.pushButton_right.clicked.connect(lambda: self.move('right'))
         self.gui.pushButton_up.clicked.connect(lambda: self.move('up'))
@@ -220,7 +222,7 @@ class Attocube_GUI(BaseGui):
 
         if 'Stepper' in self.current_axis:
             #self.gui.groupBox_configurate.setEnabled(True)
-            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue; border-radius: 9px;}")
 
             self.gui.groupBox_actions.setStyleSheet("QGroupBox default")
 
@@ -260,7 +262,7 @@ class Attocube_GUI(BaseGui):
             self.gui.stackedWidget_stepper.setCurrentWidget(self.gui.stackedWidgetempty)
 
             #Give the configurate box a border and the action box none
-            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue;}")
+            self.gui.groupBox_configurate.setStyleSheet("QGroupBox#Colored_configure {border: 1px solid blue; border-radius: 9px;}")
             self.gui.groupBox_actions.setStyleSheet("QGroupBox default")
 
             #Choose either the page_scannerZ or page_scannerXY of the stackedWidget_voltScanner
@@ -492,7 +494,7 @@ class Attocube_GUI(BaseGui):
             self.anc350_instrument.configure_stepper('YPiezoStepper', self.settings['amplitudeY'] * ur('V'), self.settings['frequencyY'] * ur('Hz'))
 
         self.gui.groupBox_actions.setObjectName("Colored_actions")
-        self.gui.groupBox_actions.setStyleSheet("QGroupBox#Colored_actions {border: 1px solid blue;}")
+        self.gui.groupBox_actions.setStyleSheet("QGroupBox#Colored_actions {border: 1px solid blue; border-radius: 9px;}")
 
         self.gui.stackedWidgetMoving.setEnabled(True)
 
@@ -522,7 +524,6 @@ class Attocube_GUI(BaseGui):
         """
         self.logger.info('Zero all Scanners.')
         self.anc350_instrument.zero_scanners()
-
 
     def move(self, direction):
         """| Here the actual move takes place, after the user clicked on one of the four directional buttons.
@@ -601,8 +602,8 @@ class Attocube_GUI(BaseGui):
 
             if self.current_move == 'continuous':
                 self.logger.info('moving continuously')
-                self.moving_thread = WorkThread(self.anc350_instrument.move_continuous, axis_string, direction_int)
-                self.moving_thread.start()
+                # self.moving_thread = WorkThread(self.anc350_instrument.move_continuous, axis_string, direction_int)
+                # self.moving_thread.start()
 
             elif self.current_move == 'step':
                 self.logger.info('making a step')

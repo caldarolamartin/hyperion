@@ -129,7 +129,7 @@ class Hydraharp_GUI(BaseGui):
         self.stop_histogram_button = QPushButton('stop histogram', self)
         self.stop_histogram_button.setToolTip(('stop your histogram'))
         self.stop_histogram_button.clicked.connect(self.stop_histogram)
-        self.stop_histogram_button.setStyleSheet("background-color: red")
+        #self.stop_histogram_button.setStyleSheet("background-color: red")
 
         self.showing_remaining_time = QLabel(self)
         self.showing_remaining_time.setText(str(self.time_passed))
