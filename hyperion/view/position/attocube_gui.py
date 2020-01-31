@@ -72,6 +72,8 @@ class Attocube_GUI(BaseGui):
         self.dcY = 1*ur(self.scanner_unitY)
         self.dcZ = 0*ur(self.scanner_unitZ)
 
+        self.stop = self.stop_moving
+
         self.initUI()
 
         #This one is to continuously (= every 100ms) show the position of the axes
@@ -111,7 +113,7 @@ class Attocube_GUI(BaseGui):
         self.gui.comboBox_axis.currentTextChanged.connect(self.get_axis)
         self.gui.pushButton_stop.clicked.connect(self.stop_moving)
 
-        #self.pushButton_stop.setStyleSheet("border: 1px solid red")
+        self.pushButton_stop.setStyleSheet("background-color: red")
         self.gui.groupBox_XY.setEnabled(True)
         self.gui.groupBox_Z.setEnabled(False)
 

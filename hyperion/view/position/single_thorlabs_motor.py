@@ -42,6 +42,8 @@ class Thorlabs_motor_GUI(BaseGui):
         self.min_distance = -12.0 * ur('mm')
         self.max_distance = 12.0 * ur('mm')
 
+        self.stop = self.stop_moving
+
         self.initUI()
 
         self.timer = QTimer()
@@ -93,6 +95,7 @@ class Thorlabs_motor_GUI(BaseGui):
         self.stop_button = QPushButton("stop moving", self)
         self.stop_button.setToolTip("stop any moving")
         self.stop_button.clicked.connect(self.stop_moving)
+        self.stop_button.setStyleSheet("background-color: red")
 
     def make_boxes(self):
         """This method makes the labels, spinbox and combobox to make them available for the rest of this class,
@@ -151,7 +154,7 @@ class Thorlabs_motor_GUI(BaseGui):
         self.grid_layout.addWidget(self.save_pos_button, 0, 4)
         self.grid_layout.addWidget(self.recover_pos_button, 1, 4)
         self.grid_layout.addWidget(self.stop_button, 2, 4)
-        # self.stop_button.setStyleSheet("background-color: red")
+
 
     def set_current_motor_position_label(self):
         """ In the instrument level, the current position is remembered and updated through self.position,
