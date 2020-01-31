@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 extensions = ['sphinx.ext.autodoc', ]
 
 project = 'Hyperion'
-copyright = '2019, Authors: see authors'
+copyright = '2020 Authors: see authors'
 author = 'Authors: see authors'
 version = str(__version__)
 release = str(__version__)
