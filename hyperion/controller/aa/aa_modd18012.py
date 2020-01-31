@@ -7,7 +7,7 @@
     This controller (aa_modd18012.py) supplies one class with several methods to communicate
     with the AOTF driver from AA optoelectronics model: 1MODD18012_0074
 
-    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :copyright: 2020by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 import serial

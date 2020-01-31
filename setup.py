@@ -1,6 +1,6 @@
 import struct
 import setuptools
-version = '0.4'
+version = '0.5'
 
 # list of required packages
 install_requires = [

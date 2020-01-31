@@ -7,7 +7,7 @@ Agilent 33522A controller
 This is the controller class for the Agilent 33522A function generator.
 Based on pyvisa to send commands to the USB.
 
-:copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+:copyright: 2020by Hyperion Authors, see AUTHORS for more details.
 :license: BSD, see LICENSE for more details.
 """
 import visa

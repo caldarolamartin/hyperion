@@ -5,7 +5,7 @@
 
     This is the variable waveplate GUI.
 
-    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :copyright: 2020by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 import hyperion

@@ -1,32 +1,25 @@
-# import pyqtgraph.examples.dockarea
+"""
+==========================
+Experiment GUI: Master GUI
+==========================
 
 
 
-import importlib
-import random
-import string
+"""
 import sys
 import os
-import hyperion
 from hyperion import logging
-import pyqtgraph as pg
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-# from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QDockWidget, QPushButton, QVBoxLayout, QAction
 from PyQt5.QtWidgets import *
-from examples.example_experiment import ExampleExperiment
 import traceback
 import yaml
 from hyperion.tools.loading import get_class
-from hyperion.view.base_guis import AutoMeasurementGui
-
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.console
 import numpy as np
-
 from pyqtgraph.dockarea import DockArea, Dock
-
 
 
 class ExpGui(QMainWindow):
