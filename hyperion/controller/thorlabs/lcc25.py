@@ -8,13 +8,13 @@
 
     Note that this controller also implements units.
 
-    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :copyright: 2020by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 import os
+from hyperion import logging
 import serial
 import yaml
-import logging
 from time import sleep, time
 from hyperion import ur, root_dir
 from hyperion.controller.base_controller import BaseController
@@ -365,7 +365,7 @@ class LccDummy(Lcc):
 
     CHAR = {'ask' : '?', 'set' : '='}
 
-    def __init__(self, settings = {'port':'COM00', 'dummy':True}):
+    def __init__(self, settings):
         super().__init__(settings=settings)
         self.name = 'Dummy LCC25'
         self._buffer = []
@@ -385,7 +385,7 @@ class LccDummy(Lcc):
         self.logger.debug('Loading LCC defaults file: {}'.format(filename))
 
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
 
         self._properties = d
         self.logger.debug('_properties dict: {}'.format(self._properties))
@@ -402,6 +402,10 @@ class LccDummy(Lcc):
         self._properties['dummy_yaml_file'] = filename  # add to the class the name of the Config file used.
         self.logger.debug('Commands list: {}'.format(self._commands))
 
+    def query(self, message):
+        self.write(message)
+        ans = self.read()
+        return ans
 
     def write(self, msg):
         """Dummy write. It will compare the msg with the COMMANDS
@@ -445,18 +449,18 @@ class LccDummy(Lcc):
         return self._response[-1]
 
 if __name__ == "__main__":
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.DEBUG)
+    logging.stream_level= 'INFO'
+    logger = logging.getLogger(__name__)
 
-    # this is to print the serial ports connected to the PC
-    import serial.tools.list_ports
+    # #### this is to print the serial ports connected to the PC
+    # import serial.tools.list_ports
+    #
+    # comports = serial.tools.list_ports.comports()
+    # for port, desc, hwid in comports:
+    #     print((port, desc, hwid))
 
-    comports = serial.tools.list_ports.comports()
-    for port, desc, hwid in comports:
-        print((port, desc, hwid))
 
-
-    dummy = False  # change this to false to work with the real device in the COM specified below.
+    dummy = True  # change this to false to work with the real device in the COM specified below.
 
     if dummy:
         my_class = LccDummy
@@ -467,29 +471,29 @@ if __name__ == "__main__":
         dev.initialize()
         print(dev.get_voltage(1))
         # output status and set
-        # logging.info('The output is: {}'.format(dev.output))
+        # logger.info('The output is: {}'.format(dev.output))
         # dev.output = True
-        # logging.info('The output is: {}'.format(dev.output))
+        # logger.info('The output is: {}'.format(dev.output))
         #
         # # mode
-        # logging.info('The mode is: {}'.format(dev.output))
+        # logger.info('The mode is: {}'.format(dev.output))
         # for m in range(3):
         #     dev.mode = m
-        #     logging.info('The mode is: {}'.format(dev.output))
+        #     logger.info('The mode is: {}'.format(dev.output))
 
         # set voltage for both channels
         for ch in range(1,2):
-            logging.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
+            logger.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
             dev.set_voltage(ch, 1*ur('volts'))
             #print( dev.read_serial_buffer_in() )
-            logging.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
+            logger.info('Current voltage for channel {} is {}'.format(ch,dev.get_voltage(ch)))
 
         # unit_test freq
-        # logging.info('Current freq: {}'.format(dev.freq))
+        # logger.info('Current freq: {}'.format(dev.freq))
         # Freqs = [1, 10, 20, 60, 100]*ur('Hz')
         # for f in Freqs:
         #     dev.freq = f
-        #     logging.info('Current freq: {}'.format(dev.freq))
+        #     logger.info('Current freq: {}'.format(dev.freq))
 
 
 

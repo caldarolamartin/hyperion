@@ -9,18 +9,18 @@ If you have changed something in the controller and or instrument layer, you sho
 functionalities of if are still running properly by running this class and adding
 a method to unit_test the new methods in the instrument, if any.
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 
 """
-import logging
+from hyperion import logging
 from time import sleep
 from hyperion import Q_
-from hyperion.instrument.cobolt.cobolt08nld import CoboltLaser
+from hyperion.instrument.laser.cobolt08nld import CoboltLaser
 
 class UTestCobolt08NLD():
     """ Class to unit_test the Cobolt08NLD  controller."""
-    def __init__(self, settings = {'dummy': False,
-                                   'controller': 'hyperion.controller.laser.cobolt08NLD/Cobolt08NLD',
-                                   'via_serial': 'COM5'}):
+    def __init__(self, settings):
         """ initialize the unit_test class
 
         """
@@ -60,22 +60,17 @@ class UTestCobolt08NLD():
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
 
     dummy_mode = [False]  # add false here to also unit_test the real device with connection
     true_port = 'COM5'
-    for d in dummy_mode:
-        print('Running dummy={} tests.'.format(d))
+    for dummy in dummy_mode:
+        print('Running dummy={} tests.'.format(dummy))
         # run the tests
-        with UTestCobolt08NLD(settings = {'dummy': d,
-                                   'controller': 'hyperion.controller.laser.cobolt08NLD/Cobolt08NLD',
+        with UTestCobolt08NLD(settings = {'dummy': dummy,
+                                   'controller': 'hyperion.controller.cobolt.cobolt08NLD/Cobolt08NLD',
                                    'via_serial': true_port}) as t:
             t.test_idn()
             t.test_power_setpoint()
 
 
-        print('done with dummy={} tests.'.format(d))
+        print('\n\n\n Done with dummy={} tests. \n\n\n NO PROBLEM, you are great!!!! \n\n\n '.format(dummy))

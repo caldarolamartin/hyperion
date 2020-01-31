@@ -1,4 +1,4 @@
-Copyright (c) 2019 by Authors. See AUTHORS for more details.
+Copyright (c) 2020 by Authors. See AUTHORS for more details.
 
 Some rights reserved.
 

@@ -26,18 +26,16 @@ ws.controller.exp_get('EXPOSURETIME')
 ws.controller.exp_get('GRAT_GROOVES')
 
 """
-
-import logging
+import threading
+from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
 from hyperion import root_dir
-from hyperion.view.general_worker import WorkThread
+# from hyperion.view.general_worker import WorkThread
 import time
 import os
 import yaml
 # import numpy as np      # I'm having issues with numpy on the computer I'm developing, so I disable it temporarily and modified take_spectrum not to depend on it
-
-
 
 class WinspecInstr(BaseInstrument):
     """ Winspec Instrument
@@ -82,8 +80,9 @@ class WinspecInstr(BaseInstrument):
 
         # bug fix:
         self.ccd = 'Full'
-        self.controller.xdim = self.controller.exp_get('XDIM')
-        self.controller.ydim = self.controller.exp_get('YDIM')
+        # Changed exp_get('XDIM')[0] to exp_get('XDIMDET')[0]
+        self.controller.xdim = self.controller.exp_get('XDIMDET')[0]
+        self.controller.ydim = self.controller.exp_get('YDIMDET')[0]
         self.ccd = 'ROI'
 
         # !!!!!   THREADING WILL NOT WORK IN THE CURRENT IMPLENTATION
@@ -172,10 +171,18 @@ class WinspecInstr(BaseInstrument):
 
         if name==None:
             # name=self.default_name
+            if hasattr(self,'doc'):
+                try:
+                    self.doc.Close()
+                except:
+                    self.logger.warning('Winspec: Failed to close doc')
             self.doc = self.controller.docfile()
         else:
             if hasattr(self,'doc'):
-                self.doc.Close()
+                try:
+                    self.doc.Close()
+                except:
+                    self.logger.warning('Winspec: Failed to close doc')
             self.filename = name
             self.doc = self.controller.docfile()
         self.controller.exp.Start(self.doc)
@@ -194,22 +201,56 @@ class WinspecInstr(BaseInstrument):
             wav.append(cal.Lambda(index+1))
         return wav
 
-    def collect_spectrum(self, wait=True, sleeptime=True):
+    def collect_spectrum_alt(self):
+        thread = threading.Thread(self.waitforacquiring())
+        thread.start()
+        thread.join()
+        self.frame = self.doc.GetFrame(1,self.controller._variant_array)
+        # return frame                      # direct tuple of tuples
+        # return np.asarray(frame)          # np approach
+        if len(self.frame[0])==1:
+            return [col[0] for col in self.frame] # convert to 1D list
+        else:
+            return [list(col) for col in self.frame] # convert to nested list
+
+    def start_focus(self):
+
+        if hasattr(self, 'doc'):
+            self.doc.Close()
+        self.doc = self.controller.docfile()
+
+        self.controller.exp.StartFocus(self.doc)
+
+    def stop_focus(self):
+
+        self.controller.exp.Stop()
+
+
+
+    def collect_spectrum(self, wait=True, sleeptime=False):
         """
         | Retrieves the last acquired spectrum from Winspec.
-        | **Pay attention: I added some extra sleeps to make it work**
+        | **Pay attention: you need to extra sleeps if you are autosaving with Winspec**
+        | If you are not using the Autosave option, you have to put sleeptime to False.
+
         :param wait: If wait is True (DEFAULT) it will wait for WinSpec to finish collecting data.
         :type wait: bool
+
+        :param sleeptime: Sleeptime adds some sleeps to make sure Winspec has enough time to Autosave ascii images
+        :type sleeptime: bool
+
         :return: list or nested list
         """
         if wait:
             while self.is_acquiring:
                 if sleeptime:
-                    time.sleep(1)
+                    time.sleep(1)       #use this one if you want to autosave images
                 else:
-                    time.sleep(0.1)
+                    time.sleep(0.1)     #this is enough if you autosave spectra
                 self.logger.debug("acquiring? {}".format(self.is_acquiring))
 
+            #this sleep is to save an image as ASCII, that takes quite some time,
+            # and Winspec breaks if you dont give that time
             if sleeptime:
                 time.sleep(2)
 
@@ -221,6 +262,10 @@ class WinspecInstr(BaseInstrument):
         else:
             return [list(col) for col in self.frame] # convert to nested list
 
+    def waitforacquiring(self):
+        while self.is_acquiring == True:
+            time.sleep(0.1)
+
     def take_spectrum(self, name=None, sleeptime=True):
         """
         Acquire spectrum, wait for data and collect it.
@@ -230,6 +275,16 @@ class WinspecInstr(BaseInstrument):
 
         self.start_acquiring(name)
         return self.collect_spectrum(True, sleeptime)
+
+    def take_spectrum_alt(self, name=None, sleeptime=True):
+        """
+        Acquire spectrum, wait for data and collect it.
+        Performs start_acquiring(name), followed by collect_spectrum(True).
+        See those methods for more details.
+        """
+
+        self.start_acquiring(name)
+        return self.collect_spectrum_alt()
 
     def saveas(self, filename):
         """
@@ -484,22 +539,22 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('right{}, left{}'.format(right,left))
 
         if bottom is None:
-            bottom = self.controller.ydim[0]
+            bottom = self.controller.ydim
 
         if right is None:
-            right = self.controller.xdim[0]
+            right = self.controller.xdim
 
         if type(top) is str:
             if top=='full_im':
                 top = 1
-                bottom = self.controller.ydim[0]
+                bottom = self.controller.ydim
                 v_binsize = 1
             elif top != 'full_spec':
                 self.logger.warning('unknown command {}, using full_spec ')
                 top = 'full_spec'
             if top =='full_spec':
                 top = 1
-                bottom = self.controller.ydim[0]
+                bottom = self.controller.ydim
                 v_binsize = 1024
 
 
@@ -523,23 +578,8 @@ class WinspecInstr(BaseInstrument):
         # apply basic limits of the CCD
         if top < 1: top = 1
         if left < 1: left = 1
-        if bottom > self.controller.ydim[0]: bottom = self.controller.ydim[0]
-        if right > self.controller.xdim[0]: right = self.controller.xdim[0]
-
-        # if bottom < top:
-        #     if top < self.controller.ydim-1:
-        #         bottom = top
-        #     else:
-        #         top = bottom
-        # if right < left:
-        #     if left < self.controller.xdim-1:
-        #         right = left + 1
-        #     else:
-        #         left = right - 1
-        # if not 0 < top <= bottom: self.logger.error('top value invalid')
-        # if not top <= bottom <= self.controller.ydim: self.logger.error('bottom value invalid')
-        # if not 0 < left <= right: self.logger.error('left value invalid')
-        # if not left <= right <= self.controller.xdim: self.logger.error('right value invalid')
+        if bottom > self.controller.ydim: bottom = self.controller.ydim
+        if right > self.controller.xdim: right = self.controller.xdim
 
         pix = right - (left - 1)
         self.logger.debug('right{}, left{}'.format(right,left))
@@ -559,7 +599,7 @@ class WinspecInstr(BaseInstrument):
                     if ad and left>1:
                         left -= 1
                         ad -= 1
-            self.logger.warning('horizontal range is not muliple of {}: expanded to [{}-{}]'.format(self._horz_width_multiple, left, right))
+                self.logger.warning('horizontal range is not multiple of {}: expanded to [{}-{}]'.format(self._horz_width_multiple, left, right))
             pix = right - (left - 1)
 
         # if necessary correct h_group to fit horizontal range:
@@ -627,10 +667,35 @@ class WinspecInstr(BaseInstrument):
         exp_pint_unit = winspec_exposure_units[ self.controller.exp_get('EXPOSURETIME_UNITS')[0] -1 ]
         exp_value = self.controller.exp_get('EXPOSURETIME')[0]
         self._exposure_time = exp_value * exp_pint_unit
+
         return self._exposure_time
 
+    @property
+    def exposure_time_alt(self):
+        exp_value=self.controller.exp_get('EXPOSURE')[0]
+        self._exposure_time = exp_value * ur('s')
+
+        return self._exposure_time
+
+    @exposure_time_alt.setter
+    def exposure_time_alt(self, value):
+        if type(value) is not type(Q_('s')):
+            self.logger.error('exposure_time should be Pint quantity')
+        if value.dimensionality != Q_('s').dimensionality:
+            self.logger.error('exposure_time should be Pint quantity with unit of time')
+
+        else:
+            if value.units == 'millisecond':
+                exp_value = value.m / 1000
+            elif value.units == 'second':
+                exp_value = value.m
+            elif value.units == 'minute':
+                exp_value = value.m * 60
+
+        self.controller.exp_set('EXPOSURE', exp_value)
+
     @exposure_time.setter
-    def exposure_time(self, value):
+    def exposure_time(self, value,alt=False):
         if type(value) is not type(Q_('s')):
             self.logger.error('exposure_time should be Pint quantity')
         if value.dimensionality != Q_('s').dimensionality:
@@ -853,7 +918,7 @@ class WinspecInstr(BaseInstrument):
 
 
     def configure_settings(self):
-        self.logger.debug(str(self.idn()))
+        #self.logger.debug(str(self.idn()))
 
         self.logger.info('Put settings as written down in instrument config file')
 
@@ -885,12 +950,13 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('Saving ascii file: ' + str(self.ascii_output)) #this is correct if you look at Winspec, but wrong here!!!
 
 
-if __name__ == "__main__":
-    import hyperion
 
-#    hyperion.set_logfile('winspec_instr.log')
-    hyperion.file_logger.setLevel( logging.WARNING )
-    hyperion.stream_logger.setLevel( logging.DEBUG )
+
+
+if __name__ == "__main__":
+    #logging.stream_level = logging.INFO
+
+
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
@@ -899,9 +965,20 @@ if __name__ == "__main__":
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',
                 'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
+
     ws = WinspecInstr(settings_irina)
 
-    ws.configure_settings()
+    ws.setROI(top = 470, bottom = 500, left = 400, right = 599)
+
+    print('\nROI = ', ws.getROI())
+
+    d = ws.take_spectrum()
+    print(d)
+
+
+
+
+    # ws.configure_settings()
 
     test_everything = False
 
@@ -941,6 +1018,8 @@ if __name__ == "__main__":
         print('Main             accumulations = ', ws.accumulations)
         print('ROI              spec_mode = ', ws.spec_mode)
 
+        #ws.setROI(top = 500, bottom = 600)
+
         print('\nROI = ', ws.getROI())
 
         print('\nGrating Settings:')
@@ -970,5 +1049,7 @@ if __name__ == "__main__":
     ws.shutter_control = 'Closed'
 
     ws.central_wav = 300
-    
 
+
+
+# frame = ws.doc.GetFrame(1,ws.controller._variant_array)

@@ -10,8 +10,10 @@ dependencies:
  - pyqtgraph
  - netcdf4
  - matplotlib
- - pywin32                            # required for winspec
+ - h5py                   # for saving
+ - pywin32                # required for winspec
  - pip>=19
+ - xarray
  - pip:
    - pyyaml>=5.1
    - lantzdev

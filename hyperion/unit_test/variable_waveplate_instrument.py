@@ -9,17 +9,18 @@ If you have changed something in the controller and or instrument layer, you sho
 functionalities of if are still running properly by running this class and adding
 a method to unit_test the new methods in the instrument, if any.
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 
 """
-import logging
+from hyperion import logging
 from time import sleep
 from hyperion import ur
 from hyperion.instrument.polarization.variable_waveplate import VariableWaveplate
 
 class UTestVariableWaveplate():
     """ Class to unit_test the LCC25 controller."""
-    def __init__(self, settings = {'port':'COM8', 'enable': False, 'dummy' : True,
-                                       'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}):
+    def __init__(self, settings):
         """ initialize the unit_test class
 
         """
@@ -81,7 +82,8 @@ class UTestVariableWaveplate():
     def test_mode(self):
         """ Test the mode methods"""
         self.logger.debug('Starting unit_test on mode mode')
-        for m in [0, 1, 2]:
+        modes = ['Modulation','Voltage1','Voltage2']
+        for m in modes:
             self.inst.mode = m
             assert m == self.inst.mode
             self.logger.info('Mode assertion passed for mode: {}'.format(m))
@@ -89,25 +91,21 @@ class UTestVariableWaveplate():
         self.logger.info('Mode unit_test passed')
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
+    logging.stream_level = 'INFO'
 
-    dummy_mode = [True]  # add false here to also unit_test the real device with connection
+    dummy_mode = [True, False]  # add false here to also unit_test the real device with connection
     true_port = 'COM8'
-    for d in dummy_mode:
-        print('Running dummy={} tests.'.format(d))
+    for dummy in dummy_mode:
+        print('Running dummy={} tests.'.format(dummy))
         # run the tests
-        with UTestVariableWaveplate(settings = {'port':true_port, 'enable': False, 'dummy' : d,
+        with UTestVariableWaveplate(settings = {'port':true_port, 'enable': False, 'dummy' : dummy,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as t:
             t.test_voltage()
             t.test_output()
             t.test_freq()
             t.test_mode()
 
-        print('done with dummy={} tests.'.format(d))
+        print('\n\n\n Done with dummy={} tests. \n\n\n NO PROBLEM, you are great!!!! \n\n\n '.format(dummy))
 
 
 

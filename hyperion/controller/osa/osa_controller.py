@@ -7,10 +7,10 @@ Osa controller
 This controller (osa.py) supplies one class with several methods to communicate
     with the osa machine from ando AQ6317B model: ?
 
-    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :copyright: 2020by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-import logging
+from hyperion import logging
 import visa
 import time
 from hyperion.controller.base_controller import BaseController
@@ -18,7 +18,7 @@ from hyperion.controller.base_controller import BaseController
 class OsaController(BaseController):
     """ The controller for the Osa machine."""
 
-    def __init__(self, settings={'port': 'AUTO', 'dummy': False}):
+    def __init__(self, settings):
         """ Init of the class.
 
         :param settings: this includes all the settings needed to connect to the device in question.
@@ -309,8 +309,6 @@ class OsaControllerDummy(OsaController):
 
 
 if __name__ == "__main__":
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.DEBUG)
 
     dummy = True  # change this to false to work with the real device in the COM specified below.
 
@@ -319,7 +317,7 @@ if __name__ == "__main__":
     else:
         my_class = OsaController
 
-    with my_class(settings={'dummy': dummy}) as dev:
+    with my_class(settings={'port': 'AUTO'}) as dev:
         dev.initialize()
         #change paramaters
         print('OSA start wav is {}'.format(dev._start_wav))

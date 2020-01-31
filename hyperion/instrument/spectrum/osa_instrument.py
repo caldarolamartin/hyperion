@@ -10,9 +10,8 @@ get data which can be shown in the gui. So request for doing things go view > in
 This class uses pint to give units to the variables.
 
 """
-import logging
+from hyperion import logging
 import yaml
-
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
 
@@ -21,8 +20,7 @@ class OsaInstrument(BaseInstrument):
     """
     OsaInstrument class
     """
-    def __init__(self, settings = {'port':'COM10', 'dummy': False,
-                                   'controller': 'hyperion.controller.osa/OsaController'}):
+    def __init__(self, settings):
         """ Init of the class.
 
         It needs a settings dictionary that contains the following fields (mandatory)
@@ -194,13 +192,6 @@ class OsaInstrument(BaseInstrument):
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
 
     dummy = True
     with OsaInstrument(settings={'dummy': dummy, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as dev:
@@ -220,7 +211,3 @@ if __name__ == "__main__":
         plt.show()
 
         dev.finalize()
-
-
-
-

@@ -13,8 +13,11 @@ a method to unit_test the new methods in the instrument, if any.
 NOTE: This is still not implemented as a class, it just runs commands using the instrument. The assertion
 part has to be done, still.
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
-import logging
+from hyperion import logging
 from time import sleep
 from hyperion import ur
 from hyperion.instrument.function_generator.fun_gen import FunGen
@@ -22,9 +25,7 @@ from hyperion.instrument.function_generator.fun_gen import FunGen
 class UTestFunGen():
     """ Class to unit_test the FunGen instrument."""
 
-    def __init__(self, settings={'instrument_id' : '8967', 'dummy' : False,
-                          'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
-                          'apply_defaults': True }):
+    def __init__(self, settings):
         """ initialize the unit_test class
 
         """
@@ -50,20 +51,15 @@ class UTestFunGen():
 
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
 
     dummy_mode = [False]  # add false here to also unit_test the real device with connection
     id = '8967'
-    for d in dummy_mode:
-        print('Running dummy={} tests.'.format(d))
+    for dummy in dummy_mode:
+        print('Running dummy={} tests.'.format(dummy))
         # run the tests
-        with UTestFunGen(settings={'instrument_id' : '8967', 'dummy' : d,
-                          'controller': 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
-                          'apply_defaults': True}) as t:
+        with UTestFunGen(settings = {'instrument_id' : '8967', 'dummy' : False,
+                            'controller' : 'hyperion.controller.agilent.agilent33522A/Agilent33522A',
+                            'apply_defaults' : True, 'defaults_file' : None}) as t:
 
             print('Identification = {}.'.format(t.inst.idn()))
             # #### unit_test High and low voltage
@@ -126,4 +122,4 @@ if __name__ == "__main__":
             print(t.inst.get_voltage_limits(ch))
             sleep(1)
 
-        print('\n\n ::::: Done with dummy={} tests. ::::: \n\n'.format(d))
+        print('\n\n\n Done with dummy={} tests. \n\n\n NO PROBLEM, you are great!!!! \n\n\n '.format(dummy))

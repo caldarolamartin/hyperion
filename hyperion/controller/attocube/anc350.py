@@ -66,8 +66,7 @@ import sys
 import ctypes
 import math
 import os
-import numpy as np
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
 if sys.maxsize > 2**32:
     print('64 bit PC')
@@ -83,7 +82,7 @@ class Anc350(BaseController):
     :param settings: this includes all the settings needed to connect to the device in question.
     :type settings: dict
     """
-    def __init__(self, settings={'dummy': False}):
+    def __init__(self, settings):
         """ INIT of the class """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
@@ -96,6 +95,7 @@ class Anc350(BaseController):
         self.logger.info('Class ANC350 init. Created object.')
 
         self.max_dclevel_mV = 140000
+        self.real_max_dcLevel_mV = 60000
         self.max_amplitude_mV = 60000
         self.max_frequency_Hz = 2000
         self.actor_name = ['ANPx101-A3-1079.aps','ANPx101-A3-1087.aps','ANPz102-F8-393.aps']
@@ -406,6 +406,9 @@ class Anc350(BaseController):
         :type dclev: integer
         """
         if 0 <= dclev <= self.max_dclevel_mV:
+            if dclev > self.real_max_dcLevel_mV:
+                self.logger.warning('Putting more than 60V is only allowed at low temperatures')
+
             ANC350lib.positionerDCLevel(self.handle, axis, dclev)
         else:
             raise Exception('The required voltage is between 0V - 140V')
@@ -811,11 +814,10 @@ def debitmask(input_int,num_bits = False):
 
 
 if __name__ == "__main__":
-    import hyperion
 
     import time
 
-    with Anc350() as anc:
+    with Anc350(settings = {'dummy': False}) as anc:
         anc.initialize()
 
         #-------------------------------
@@ -828,9 +830,9 @@ if __name__ == "__main__":
         # instantiate position as anc
         print('-------------------------------------------------------------')
         print('capacitances:')
-        for axis in range(2):
-            print(axis, anc.capMeasure(axis))
-        print('-------------------------------------------------------------')
+        # for axis in range(2):
+        #     print(axis, anc.capMeasure(axis))
+        # print('-------------------------------------------------------------')
 
         print('setting Amplitude Control to StepWidth mode, which seems to be the close loop one')
         anc.amplitudeControl(0,2)
@@ -949,7 +951,7 @@ if __name__ == "__main__":
         #this one has only one way to make a step: put a voltage
 
         print('-------------------------------------------------------------')
-        print('moving something by putting 50V')
+        print('moving something by putting 510V')
         anc.dcLevel(3,10)
         print('put a DC level of ',anc.getDcLevel(3),'mV')
         print('no way of knowing when and if we ever arrive')

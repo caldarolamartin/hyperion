@@ -6,12 +6,13 @@ Hydraharp Instrument
 This is the instrument level of the correlator Hydraharp400 from Picoquant
 
 """
-import logging
+from hyperion import logging
 import yaml           #for the configuration file
 import os             #for playing with files in operation system
 import time
 from hyperion import root_dir, ur
 import matplotlib.pyplot as plt
+import numpy as np
 
 from hyperion.instrument.base_instrument import BaseInstrument
 
@@ -36,7 +37,8 @@ class HydraInstrument(BaseInstrument):
 
         self.stop = False
         self.hist_ended = False
-        self.remaining_time = 0*ur('s')
+        #self.remaining_time = 0*ur('s')
+        self.time_passed = 0*ur('s')
 
     def initialize(self):
         """ Starts the connection to the device, calibrates it and configures based on the yml file.
@@ -57,7 +59,7 @@ class HydraInstrument(BaseInstrument):
             filename = os.path.join(root_dir,'instrument','correlator','HydraInstrument_config.yml')
       
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
     
         self.settings = d['settings']
         
@@ -94,7 +96,7 @@ class HydraInstrument(BaseInstrument):
     def count_rate(self,channel):
         """ Asks the controller the rate of counts on the count channels and adds units.
         
-        :param channel: count rate channel 1 or 2 connected to the photon counter
+        :param channel: count rate channel 0 or 1 (1 or 2 on device) connected to the photon counter
         :type channel: int
         
         :return: count rate that is read out in counts per second
@@ -140,7 +142,7 @@ class HydraInstrument(BaseInstrument):
         self.controller.start_measurement(int(integration_time.m_as('ms')))
 
         self.wait_till_finished(integration_time, count_channel)
-        self.logger.debug('Remaining time: ' + str(self.remaining_time))
+        self.logger.debug('Time passed: ' + str(self.time_passed))
 
         self.hist = self.controller.histogram(int(count_channel), True)     #Last time, put the histogram memory to 0
 
@@ -149,9 +151,11 @@ class HydraInstrument(BaseInstrument):
         self.hist_ended = False
         return self.hist
 
-    def show_remaining_time(self, integration_time, time_passed):
-        self.remaining_time = integration_time - time_passed
-        return self.remaining_time
+    def show_time_passed(self, integration_time, time_passed):
+        self.time_passed = time_passed
+        #print(self.time_passed)
+        remaining_time = integration_time - time_passed
+        return self.time_passed
 
     def wait_till_finished(self, integration_time, count_channel):
         """| This method should ask the device its status and keep asking until it's finished.
@@ -177,9 +181,7 @@ class HydraInstrument(BaseInstrument):
         self.logger.debug('Ended?: ' + str(self.hist_ended))
         total_time_passed += t * ur('s')
 
-        #self.show_remaining_time(integration_time, total_time_passed)
-
-        self.logger.debug('remaining time: {}'.format(self.show_remaining_time(integration_time, total_time_passed)))
+        self.logger.debug('time passed: {}'.format(self.show_time_passed(integration_time, total_time_passed)))
 
         time.sleep(1)
 
@@ -191,7 +193,8 @@ class HydraInstrument(BaseInstrument):
             #this line returns a pint quantity which tells the user how much time the program needs before it can collect the histogram
             self.logger.debug('time passed ' + str(total_time_passed))
 
-            self.logger.debug("{}".format(self.show_remaining_time(integration_time, total_time_passed)))
+            self.show_time_passed(integration_time, total_time_passed)
+            self.logger.debug('time_passed value: {}'.format(self.time_passed))
 
             self.hist = self.controller.histogram(int(count_channel), False)        #Dont let the histogram memory be cleared
             time.sleep(t)
@@ -201,9 +204,7 @@ class HydraInstrument(BaseInstrument):
                 self.stop = False
                 break
 
-        #self.show_remaining_time(integration_time, total_time_passed)
-
-        self.logger.debug('Remaining time: ' + str(self.show_remaining_time(integration_time, total_time_passed)))
+        self.logger.debug('Time passed: ' + str(self.show_time_passed(integration_time, total_time_passed)))
         self.logger.debug('Ended? ' + str(self.hist_ended))
 
     def stop_histogram(self):
@@ -217,7 +218,6 @@ class HydraInstrument(BaseInstrument):
         self.controller.finalize()
 
 if __name__ == "__main__":
-    import hyperion
 
     with HydraInstrument(settings = {'devidx':0, 'mode':'Histogram', 'clock':'Internal',
                                    'controller': 'hyperion.controller.picoquant.hydraharp/Hydraharp'}) as q:
@@ -226,9 +226,11 @@ if __name__ == "__main__":
         print('The count rate is: ' , q.count_rate(0))
 
         # use the hist
-        q.set_histogram(leng = 65536, res =8.0 * ur('ps'))
+        q.set_histogram(leng = 65530, res =8.0 * ur('ps'))
         q.make_histogram(5*ur('s'), count_channel = 0)
         print('The histogram: ', q.hist)
+
+        print('size histogram {}'.format(np.shape(q.hist)))
 
         plt.figure()
         plt.plot(q.hist)

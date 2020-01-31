@@ -1,0 +1,23 @@
+User:
+  name: Marc
+
+Instruments:
+  xMotor:
+    serial_number: 83841160 #83817644
+    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+    controller: hyperion.controller.thorlabs.TDC001/TDC001
+  yMotor:
+    serial_number: 83850123 #83815760
+    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+    controller: hyperion.controller.thorlabs.TDC001/TDC001
+  zMotor:
+    serial_number: 83850111 #83815758
+    instrument: hyperion.instrument.motor.thorlabs_motor_instrument/Thorlabsmotor
+    controller: hyperion.controller.thorlabs.TDC001/TDC001
+
+MetaInstruments:
+  SampleXyzStageMotor:
+    motorx: xMotor
+    motory: yMotor
+    motorz: testMotor
+

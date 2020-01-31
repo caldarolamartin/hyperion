@@ -8,7 +8,7 @@ This is the variable waveplate GUI.
 
 
 """
-import logging
+from hyperion import logging
 import sys, os
 from PyQt5 import uic
 from PyQt5.QtGui import QIcon
@@ -197,20 +197,17 @@ class VariableWaveplateGui(QWidget):
 
 
 if __name__ == '__main__':
-    import hyperion
-    from hyperion import root_dir
+    from hyperion import package_path
     from os import path
+    log = logging.getLogger(__name__)
 
-    hyperion.file_logger.setLevel(logging.INFO)
-    hyperion.stream_logger.setLevel(logging.WARNING)
-
-    logging.info('Running vairable waveplate GUI file.')
+    log.info('Running vairable waveplate GUI file.')
     with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : False,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as variable_waveplate_ins:
 
         # variable_waveplate_ins.initialize() this should already happen in the __init__
         app = QApplication(sys.argv)
-        app.setWindowIcon(QIcon(path.join(root_dir,'view','polarization','vwp_icon.png')))
+        app.setWindowIcon(QIcon(path.join(package_path,'view','polarization','vwp_icon.png')))
         with VariableWaveplateGui(variable_waveplate_ins) as GUI:
             print('hello')
 

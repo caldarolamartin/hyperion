@@ -7,7 +7,7 @@ We list them here.
 
 .. toctree::
     :maxdepth: 2
-    :caption: Current controllers:
+    :caption: Tools:
 
     tools/array_tools
     tools/saving_tools

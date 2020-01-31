@@ -8,12 +8,16 @@ This class (polarization.py) is the model to connect to the SK Polarization anal
 The model is similar to the controller, but it adds specific functionalities such as units with Pint
 and error descriptions
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
-import logging
+from hyperion import logging
 from time import time, sleep
 import numpy as np
-from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
+from hyperion.tools.saving_tools import save_netCDF4
+from hyperion.instrument.base_instrument import BaseInstrument
 
 
 class Polarimeter(BaseInstrument):
@@ -25,8 +29,8 @@ class Polarimeter(BaseInstrument):
     DATA_TYPES = ['First Stokes component (norm)',
                   'Second Stokes component (norm)',
                   'Third Stokes component (norm)',
-                  'PER in units of dB',
-                  'Lin. PER in units of dB as described in manual page 13',
+                  'PER in logaritmic units: log(I_V/I_H)',
+                  'Linear PER in logaritmic units: log(I_total/I_H) (see manual page 13)',
                   'The angle of the main polarization axis. 0deg for vertical polarization',
                   'The degree of polarization in %',
                   'The intensity of the entrance bean in units of %',
@@ -42,15 +46,13 @@ class Polarimeter(BaseInstrument):
                        'LINV','ELLIP','POWER_SPLIT',
                        'RETARDATION']
 
-    DATA_TYPES_UNITS = ['norm','norm','norm',
-                        'dB','dB','deg',
-                        '%', '%', 'norm',
-                        'norm', 'deg', 'norm',
-                        'norm']
+    DATA_TYPES_UNITS = ['','','',
+                        '','','deg',
+                        'percent', 'percent', '',
+                        '', 'deg', '',
+                        '']
 
-    def __init__(self, settings = {'dummy' : False,
-                                   'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
-                                   'dll_name': 'SKPolarimeter'} ):
+    def __init__(self, settings):
         """
         Init of the class.
 
@@ -166,7 +168,7 @@ class Polarimeter(BaseInstrument):
             ans = self.controller.start_measurement()
 
             if ans == 0:
-                self.logger.debug('No error found, device {} started measurement')
+                self.logger.debug('No error found, device {} started measurement'.format(self._id))
                 self._measuring = True
             elif ans == -1:
                 raise Warning('The device {} is not yet initialized.'.format(self._id))
@@ -210,6 +212,8 @@ class Polarimeter(BaseInstrument):
 
         data = np.zeros((1, len(d)))
         data[0, :] = d
+        # if data[0, 7] > 99:
+        #     self.logger.warning('The intensity is too high! Please reduce intensity!')
         return data
 
     def get_multiple_data(self, N):
@@ -232,8 +236,17 @@ class Polarimeter(BaseInstrument):
     def get_average_data(self, N):
         """ Takes N data points and gives back the average and the error (std)
 
-        :return: array with dim 13 containing the average of the N measurements for each property in DATA_TYPES, and the std
+        :return: av, array with dim 13 containing the average of the N measurements for each property in DATA_TYPES, and the std
         :rtype: numpy array
+        :return: st, array with dim 13 containing the std of the N measurements for each property in DATA_TYPES, and the std
+        :rtype: numpy array
+
+        Example:
+            >>> av, st = get_average_data(10)
+            >>> print('Values: {} +/- {}'.format(av, st))
+            Values
+
+
         """
         self.logger.debug('Getting average data: {} points.'.format(N))
         data = self.get_multiple_data(N)
@@ -241,7 +254,7 @@ class Polarimeter(BaseInstrument):
         st = np.std(data, axis=0)
 
         if np.isinf(av).any():
-            self.looger.info('We got an inf!!!!')
+            self.looger.warning('We got an inf!!!!')
         return av, st
 
     def save_data(self, data, extra=[None, None, None, None], file_path = 'polarimeter_test.txt'):
@@ -255,8 +268,6 @@ class Polarimeter(BaseInstrument):
         the unit. For example: [np.array([1,2,3]),'time','second','elapsed time'].
         :type extra: list
         """
-
-
         self.logger.info('Saving data to {}'.format(file_path))
         self.logger.debug('The data is of shape: {}'.format(np.shape(data)))
 
@@ -276,7 +287,7 @@ class Polarimeter(BaseInstrument):
 
         self.logger.info('Data saved to {}'.format(file_path))
 
-    def create_header(self, extra_name = None, extra_unit = None, extra_description = None):
+    def create_header(self, errors= False, extra_name = None, extra_unit = None, extra_description = None):
         """ creates the header to save the data
 
         :param extra_name: if a first column has to be added, this is the name
@@ -313,11 +324,51 @@ class Polarimeter(BaseInstrument):
                                                                                        self.DATA_TYPES_UNITS[k],
                                                                                        self.DATA_TYPES[k])
             header += string
+            ind = k + N + 1
+
+        # to add the errors
+        if errors:
+            for k in range(len(self.DATA_TYPES)):
+                string = '#   Column number {} is the std for {} [{}]. Physical meaning: {} \n'.format(k + ind,
+                                                                                           self.DATA_TYPES_NAME[k],
+                                                                                           self.DATA_TYPES_UNITS[k],
+                                                                                           self.DATA_TYPES[k])
+                header += string
+
+
 
         header += '# \n'
         header += '# --------------------- End of header --------------------- \n'
 
         return header
+
+    def save_as_netCDF4(self, filename, data):
+        """ Saves the data from the polarimeter measurement into a netCDF4 file. """
+        self.logger.info(f'Saving into netCDF4 file: {filename}')
+        detectors = self.DATA_TYPES_NAME
+        self.logger.debug(f'The detectors are {detectors}')
+
+        DATA = []
+        for index, unit_name in enumerate(self.DATA_TYPES_UNITS):
+            unit = ur(unit_name)
+            self.logger.debug(f'The unit for the detector {detectors[index]} is: {unit}')
+            DATA.append( data[:,index] * unit )
+
+        self.logger.debug(f'The data to save is: {DATA}')
+
+        # create axes
+        axis = np.array(range(np.shape(data)[0]))*ur('')
+        extra = {'wavelength':self._wavelength}
+
+        description = 'This is a description of the variables: \n'
+
+        for index, s in enumerate(self.DATA_TYPES):
+
+            to_add = f'{self.DATA_TYPES_NAME[index]} : {s} \n'
+            description += to_add
+
+        save_netCDF4(filename, detectors, DATA, axes=(axis, ) , axes_name=('Measurement index',), extra_dims=extra,
+                     description = description)
 
     def get_wavelength(self):
         """ asks the device the current wavelength.
@@ -331,10 +382,11 @@ class Polarimeter(BaseInstrument):
 
 if __name__ == "__main__":
     import hyperion
+    import os
+    from hyperion.tools.saving_tools import read_netcdf4_and_plot_all
 
-    hyperion.file_logger.setLevel(logging.DEBUG)
-    hyperion.stream_logger.setLevel(logging.DEBUG)
-
+    path = hyperion.parent_path
+    filename = 'polarimeter_output'
 
     with Polarimeter(settings = {'dummy' : False,
                                  'controller': 'hyperion.controller.sk.sk_pol_ana/Skpolarimeter',
@@ -353,7 +405,14 @@ if __name__ == "__main__":
             s.stop_measurement()
             T = np.array([t]*Npts)
             print('T vector: {}'.format(T))
+
+            # save txt
             s.save_data(data)
-            s.save_data(data, extra=[np.zeros(Npts),'Time','second','Elapsed time'],file_path='with_extra.txt')
+            # save txt with extra info
+            s.save_data(data, extra = [np.zeros(Npts),'Time','second','Elapsed time'],
+                        file_path = os.path.join(path, filename + '_with_extra.txt') )
+            # save netCDF4
+            s.save_as_netCDF4(os.path.join(path, filename + '.nc'), data)
+            read_netcdf4_and_plot_all(os.path.join(path,filename+'.nc'))
 
         print('DONE')

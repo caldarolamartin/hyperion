@@ -15,14 +15,10 @@ THere is a bug here that we do not understand:
     Never shot is always mis
 
 """
-
-
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QLabel, QMessageBox, QComboBox, \
     QGridLayout, QVBoxLayout
-
-import logging
+from hyperion import logging
 import sys
-
 from hyperion.instrument.spectrum.osa_instrument import OsaInstrument
 from hyperion import Q_
 from hyperion.view.general_worker import WorkThread
@@ -341,13 +337,6 @@ class DrawSpectrum(QWidget):
 #     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    from hyperion import _logger_format, _logger_settings
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
 
     with OsaInstrument(settings ={'dummy': True, 'controller':'hyperion.controller.osa.osa_controller/OsaController'}) as instr:
         draw = DrawSpectrum()

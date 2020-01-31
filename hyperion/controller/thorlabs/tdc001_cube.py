@@ -3,18 +3,18 @@
 Thorlabs motor controller
 =======================
 
+Note: this is a wrapper class around an external controller to fit it into hyperion structure
+
 Is based on the imported Thorlabs APT python software from https://github.com/qpit/thorlabs_apt/tree/master/thorlabs_apt.
 This is installed in hyperion and can be found in C:/Users/NAME/AppData/Local/Continuum/anaconda3/envs/hyperion/Lib/site-packages/thorlabs_apt.
 This controller basically is just a wrapper to make things work within hyperion.
 The core is not always well documented, for better descriptions see the thorlabs_motor_instrument.
 
 """
-
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
 import thorlabs_apt.core as core
-import sys
-import time
+
 
 class TDC001_cube(core.Motor, BaseController):
     """ | This is the controller for the Thorlabs TDC001_cubes that work with motors.
@@ -34,6 +34,8 @@ class TDC001_cube(core.Motor, BaseController):
         :param settings: the class Motor needs a serial number
         :type settings: dict
         """
+
+
         self.logger = logging.getLogger(__name__)
         self._is_initialized = False
 
@@ -42,7 +44,11 @@ class TDC001_cube(core.Motor, BaseController):
 
         #These lines are a copy of the init of BaseController, that is not executed because it is the second inheritance
         self._settings = settings
-        self.serial = settings['serial']
+        if 'serial' in settings:
+            self.serial = settings['serial']
+            self.logger.debug("Serial = {}".format(self.serial))
+        else:
+            self.logger.error("No serial specified in settings")
         self._is_initialized = True
 
         # Calls init of core.Motor, whose init is executed
@@ -51,6 +57,7 @@ class TDC001_cube(core.Motor, BaseController):
         # There is one function that is outside of the Motor class in the core, which would be useful to have accessible.
         # That would be list_available_devices.
         self.core = core
+        self.logger.debug("Done with motorcontroller")
 
     def initialize(self):
         """ | The external core.Motor object is already initialized by executing super().__init__(self.serial).
@@ -97,7 +104,7 @@ if __name__ == "__main__":
 
 #    with my_class(settings = settingsX) as dev:
 
-    dev = my_class(settings=settingsX)
+    dev = my_class(settings=settingsWave)
     #This function comes from the core, outside of this specific motor
     print('T-cubes available: {}'.format(dev.core.list_available_devices()))
 

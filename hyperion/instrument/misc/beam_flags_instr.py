@@ -9,10 +9,10 @@ Designed to work with Arduino running:
     qnd_simple_double_flag_controller.ino
     "QND Simple Double Flag Controller, version 0.1, date 2019-09-17"
 """
-
-import logging
+from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 import time
+
 
 class BeamFlagsInstr(BaseInstrument):
     """
@@ -23,7 +23,6 @@ class BeamFlagsInstr(BaseInstrument):
 
     :param settings: This includes all the settings needed to connect to the device in question.
     :type settings: dict
-
     """
     def __init__(self, settings):
         super().__init__(settings)
@@ -246,10 +245,8 @@ class BeamFlagsInstr(BaseInstrument):
         self.set_flag(2,bool_state)
 
 if __name__ == "__main__":
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.DEBUG)
 
-    example_settings = {'port': 'COM4', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+    example_settings = {'port': 'COM25', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
     with BeamFlagsInstr(settings = example_settings) as bf:
@@ -259,12 +256,12 @@ if __name__ == "__main__":
 
         print( bf.idn() )
 
-        bf.set_specific_flag_state('1','r')
-        print( bf.get_specific_flag_state('1') )
+        bf.set_specific_flag_state('2','r')
+        print( bf.get_specific_flag_state('2') )
         time.sleep( bf.settings['actuator_timeout'] )
 
-        bf.set_flag(1, True)
-        print( bf.get_flag(1))
+        bf.set_flag(2, True)
+        print( bf.get_flag(2))
         time.sleep(bf.settings['actuator_timeout'])
 
         bf.f1 = False

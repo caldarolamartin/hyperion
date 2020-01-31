@@ -7,12 +7,12 @@ Agilent 33522A controller
 This is the controller class for the Agilent 33522A function generator.
 Based on pyvisa to send commands to the USB.
 
-:copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+:copyright: 2020by Hyperion Authors, see AUTHORS for more details.
 :license: BSD, see LICENSE for more details.
 """
 import visa
 import time
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
 
 
@@ -33,7 +33,7 @@ class Agilent33522A(BaseController):
     CHANNELS = [1,2]
     FUNCTIONS = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
 
-    def __init__(self, settings = {'instrument_id':'8967', 'dummy': True}):
+    def __init__(self, settings):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.rsc = None
@@ -473,7 +473,7 @@ class Agilent33522ADummy(Agilent33522A):
         self.logger.debug('Loading Agilent33522A defaults file: {}'.format(filename))
 
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
 
         self._properties = d
         self.logger.debug('_properties dict: {}'.format(self._properties))
@@ -534,8 +534,6 @@ class Agilent33522ADummy(Agilent33522A):
 
 
 if __name__ == "__main__":
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.INFO)
 
     with Agilent33522A(settings = {'instrument_id':'8967', 'dummy': False}) as gen:
         # initialize

@@ -7,14 +7,13 @@
     This controller (aa_modd18012.py) supplies one class with several methods to communicate
     with the AOTF driver from AA optoelectronics model: 1MODD18012_0074
 
-    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :copyright: 2020by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 import serial
 from time import sleep
-import logging
+from hyperion import logging
 from hyperion.controller.base_controller import BaseController
-from hyperion.controller.dummy_resource_manager import DummyResourceManager
 
 
 class AaModd18012(BaseController):
@@ -125,7 +124,7 @@ class AaModd18012(BaseController):
         if self.rsc is None:
             raise Warning('Trying to read from device before initializing')
 
-        self.logger.info('Reading from device')
+        self.logger.debug('Reading from device AA AOTF')
 
         if self.dummy:
             self.logger.debug('reading from dummy device')
@@ -425,7 +424,7 @@ class AaModd18012Dummy(AaModd18012):
         self.logger.warning('NOT IMPLEMENTED YET')
         # filename = os.path.join(root_dir,'controller', 'dummy', 'lcc25.yml')
         # with open(filename, 'r') as f:
-        #     d = yaml.load(f, Loader=yaml.FullLoader)
+        #     d = yaml.safe_load(f)
         #
         # self._properties = d
         # self.logger.debug('_properties dict: {}'.format(self._properties))
@@ -488,8 +487,6 @@ class AaModd18012Dummy(AaModd18012):
 
 
 if __name__ == "__main__":
-    import hyperion
-    hyperion.stream_logger.setLevel(logging.DEBUG)
 
     with AaModd18012(settings={'port':'COM10', 'dummy': False}) as dev:
         dev.initialize()

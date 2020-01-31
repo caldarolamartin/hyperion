@@ -50,7 +50,7 @@ import sys
 from enum import Enum
 import time
 import yaml
-import logging
+from hyperion import logging
 
 c_int_p = ctypes.POINTER(ctypes.c_int)
 
@@ -138,7 +138,7 @@ class Hydraharp(BaseController):
             filename = os.path.join(root_dir,'controller','picoquant','Hydraharp_config.yml')
       
         with open(filename, 'r') as f:
-            d = yaml.load(f, Loader=yaml.FullLoader)
+            d = yaml.safe_load(f)
     
         self.settings = d['settings']
 
@@ -790,7 +790,6 @@ class Reference_clock(Enum):
 
    
 if __name__ == "__main__":
-    import hyperion
     
     with Hydraharp({'devidx':0, 'mode':'Histogram', 'clock':'Internal'}) as q:
 #    q = Hydraharp({'devidx':0, 'mode':'Histogram', 'clock':'Internal'})

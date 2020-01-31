@@ -1,5 +1,4 @@
-import hyperion
-import logging
+from hyperion import logging
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -87,13 +86,6 @@ class TestWinspec(QWidget):
 
 
 if __name__ == '__main__':
-    import yaml
-    import os
-    # import hyperion
-
-    # hyperion.set_logfile(os.path.basename(__file__)+'.log')
-    # hyperion.stream_logger.setLevel(logging.DEBUG)
-    # hyperion.file_logger.setLevel(logging.DEBUG)
 
     settings = {'port': 'None', 'dummy': False,
                                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',

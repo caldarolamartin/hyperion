@@ -5,10 +5,11 @@
 
     This is the variable waveplate GUI.
 
-    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :copyright: 2020by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-import logging
+import hyperion
+from hyperion import logging
 import sys, os
 import numpy as np
 import pyqtgraph as pg
@@ -17,7 +18,7 @@ from PyQt5 import uic
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import *
-from hyperion import root_dir, _colors, Q_
+from hyperion import package_path, _colors, Q_
 from hyperion.tools.saving_tools import create_filename
 from hyperion.instrument.polarization.polarimeter import Polarimeter
 from hyperion.view.base_guis import BaseGui, BaseGraph
@@ -38,7 +39,7 @@ class PolarimeterGui(BaseGui):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         # to load from the UI file
-        gui_file = os.path.join(root_dir,'view', 'polarization','polarimeter.ui')
+        gui_file = os.path.join(package_path,'view', 'polarization','polarimeter.ui')
         self.logger.info('Loading the GUI file: {}'.format(gui_file))
         self.gui = uic.loadUi(gui_file, self)
         # set location in screen
@@ -89,7 +90,7 @@ class PolarimeterGui(BaseGui):
 
     def customize_gui(self):
         """ Make changes to the gui """
-        self.setWindowIcon(QIcon(os.path.join(root_dir, 'view', 'logo_hyperion.png')))
+        self.setWindowIcon(QIcon(os.path.join(package_path, 'view', 'logo_hyperion.png')))
         self.logger.debug('Setting channels to plot')
         self._channels_labels = []
         self._channels_check_boxes = []
@@ -197,7 +198,6 @@ class PolarimeterGui(BaseGui):
     def start_button(self):
         """ Action when you press start """
         # add the extra plots needed with one data point
-        print(d)
         self.Plots = []
         for i in range(len(self.index_to_plot)):
             self.logger.debug('Adding a new plot. Index: {}'.format(i))
@@ -275,11 +275,8 @@ class Graph(BaseGraph):
         self.initUI()       # This should be called here (not in the parent)
 
 if __name__ == '__main__':
-    import hyperion
-    hyperion.file_logger.setLevel(logging.DEBUG)
-    hyperion.stream_logger.setLevel(logging.DEBUG)
-
-    logging.info('Running Polarimeter GUI file.')
+    log =logging.getLogger(__name__)
+    log.info('Running Polarimeter GUI file.')
 
     # Create the Instrument (in this case we use the with statement)
     with Polarimeter(settings = {'dummy' : False,
@@ -288,10 +285,10 @@ if __name__ == '__main__':
         # Mandatory line for gui
         app = QApplication(sys.argv)
 
-        logging.debug('Creating the graph for the GUI.')
+        log.debug('Creating the graph for the GUI.')
         plot_window = Graph()
 
-        logging.debug('Now starting the GUI')
+        log.debug('Now starting the GUI')
         PolarimeterGui(polarimeter_ins, plot_window)
 
         # Mandatory line for gui

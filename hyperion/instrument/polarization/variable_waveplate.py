@@ -9,13 +9,16 @@ It ads the use of units with pint and the wavelength calibration to obtain make 
 waveplate a quarter waveplate for a given wavelength.
 
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
-import logging
 from time import sleep
 import os
 import numpy as np
+from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
-from hyperion import ur, root_dir
+from hyperion import ur, package_path
 
 
 class VariableWaveplate(BaseInstrument):
@@ -59,7 +62,7 @@ class VariableWaveplate(BaseInstrument):
         # this is to load the calibration file
         self.calibration = {}
         self.logger.debug('Get the source path')
-        cal_file = os.path.join(root_dir, 'instrument', 'polarization',
+        cal_file = os.path.join(package_path, 'instrument', 'polarization',
                                 'lookup_table_qwp_voltage_calibration_2019-03-15.txt')
         self.logger.info('Using Variable Waveplate QWP calibration file: {}'.format(cal_file))
         self.load_calibration(cal_file)
@@ -141,7 +144,7 @@ class VariableWaveplate(BaseInstrument):
         """
         This method gives the voltage needed to set on the LCC25 to get a
         quarter waveplate (QWP) behaviour for a given wavelength.
-        It is based on the calibration data from date 2018-11-12
+        It is based on a calibration file that relates the QWP voltage to a wavelength
         and (so far) uses a linear fit to those data points.
 
         :param wavelength: The input wavelength
@@ -336,15 +339,8 @@ class VariableWaveplate(BaseInstrument):
 
 
 if __name__ == '__main__':
-    from hyperion import _logger_format, _logger_settings
-
-    logging.basicConfig(level=logging.INFO, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler(_logger_settings['filename'],
-                                                                 maxBytes=_logger_settings['maxBytes'],
-                                                                 backupCount=_logger_settings['backupCount']),
-                            logging.StreamHandler()])
-
+    logging.stream_level = "INFO"
+    log = logging.getLogger(__name__)
 
     dummy_mode = [False] # add here false to unit_test the code with the real device
 
@@ -353,28 +349,28 @@ if __name__ == '__main__':
         with VariableWaveplate(settings = {'port':'COM8', 'enable': False, 'dummy' : dummy,
                                        'controller': 'hyperion.controller.thorlabs.lcc25/Lcc'}) as dev:
             #  output status and set
-            logging.info('The output is: {}'.format(dev.output))
+            log.info('The output is: {}'.format(dev.output))
             dev.output = True
-            logging.info('The output is: {}'.format(dev.output))
+            log.info('The output is: {}'.format(dev.output))
 
             # mode
-            logging.info('The mode is: {}'.format(dev.mode))
+            log.info('The mode is: {}'.format(dev.mode))
             for m in range(4):
                 dev.mode = dev.MODES[m]
-                logging.info('The mode is: {}'.format(dev.mode))
+                log.info('The mode is: {}'.format(dev.mode))
 
             # set voltage for both channels
             for ch in range(1, 2):
-                logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+                log.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
                 dev.set_analog_value(ch, 1*ur('volt') )
-                logging.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
+                log.info('Current voltage for channel {} is {}'.format(ch, dev.get_analog_value(ch)))
 
             # unit_test freq
-            logging.info('Current freq: {}'.format(dev.freq))
+            log.info('Current freq: {}'.format(dev.freq))
             Freqs = [1, 10, 20, 60, 100] * ur('Hz')
             for f in Freqs:
                 dev.freq = f
-                logging.info('Current freq: {}'.format(dev.freq))
+                log.info('Current freq: {}'.format(dev.freq))
 
             # set the quater waveplate voltage in voltage1
             wavelength = 633* ur('nanometer')

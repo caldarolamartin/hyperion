@@ -9,9 +9,11 @@ If you have changed something in the controller layer, you should check that the
 functionalities of if are still running properly by running this class and adding
 a method to unit_test the new methods in the controller, if any.
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 
 """
-import logging
+from hyperion import logging
 from time import sleep
 from hyperion import ur
 from hyperion.controller.thorlabs.lcc25 import Lcc, LccDummy
@@ -96,11 +98,7 @@ class UTestLcc():
         self.logger.info('Mode unit_test passed')
 
 if __name__ == "__main__":
-    from hyperion import _logger_format
-    logging.basicConfig(level=logging.DEBUG, format=_logger_format,
-                        handlers=[
-                            logging.handlers.RotatingFileHandler("logger.log", maxBytes=(1048576 * 5), backupCount=7),
-                            logging.StreamHandler()])
+
 
     dummy_mode = [False]  # add false here to also unit_test the real device with connection
     true_port = 'COM8'

@@ -5,14 +5,12 @@ Thorlabs thorlabs_motor Instrument
 
 Connects to the tdc001_cube controller, which is just a wrapper for the core underneath that we installed.
 You can find the core here https://github.com/qpit/thorlabs_apt/tree/master/thorlabs_apt,
-or installed in C:/Users/NAME/AppData/Local/Continuum/anaconda3/envs/hyperion/Lib/site-packages/thorlabs_apt.
+or need to copy it into C:/Users/NAME/AppData/Local/Continuum/anaconda3/envs/hyperion/Lib/site-packages/thorlabs_apt.
 
 I implemented and documented those functions that I am actually going to use. If you want to use others, they might exist in the core.
 """
-
-import logging
+from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
-
 from hyperion import ur
 import time
 
@@ -294,6 +292,28 @@ class Thorlabsmotor(BaseInstrument):
         else:
             self.logger.debug('You did not move at all.')
 
+    def move_velocity(self, direction, blocking):
+        """| Moves the T-cube with a certain velocity until it gets stoped.
+        | The method check_move will give back the correct units.
+        | If blocking is True, it will move until its done.
+        | If blocking is False, it might not reach its destination if you dont give it time.
+
+        :param blocking: wait until moving is finished; default False
+        :type blocking: bool
+
+        :param direction: direction of movement
+        :type direction: 1 for forward 2 for backward
+        """
+        direction_string = "unknown"
+        if direction == 1:
+            direction_string = "Forward"
+        elif direction == 2:
+            direction_string = "Backward"
+        if blocking:
+            self.controller.move_velocity(direction)
+            self.moving_loop()
+            self.logger.info('Moving in {} direction'.format(direction_string))    # the blocking for the controller is False now
+
     def make_step(self, stepsize, blocking):
         """| Moves the T-cube by one step of a stepsize.
         | Actually just uses move_relative, but I thought maybe this method might be useful for a gui.
@@ -333,7 +353,6 @@ class Thorlabsmotor(BaseInstrument):
 
 
 if __name__ == "__main__":
-    import hyperion
 
     xMotor = {'controller': 'hyperion.controller.thorlabs.tdc001_cube/TDC001_cube','serial' : 83850129, 'name': 'xMotor'}
 
@@ -353,7 +372,8 @@ if __name__ == "__main__":
 
         waveplate.position()
 
-        waveplate.move_absolute(10*ur('degree'),True)
+        waveplate.move_absolute(4*ur('degree'),True)
+
         # time.sleep(1)
         # waveplate.stop_moving()
         # waveplate.position()
@@ -363,3 +383,5 @@ if __name__ == "__main__":
         #waveplate.make_step(1*ur('degrees'),True)
 
         waveplate.move_home(True)
+
+        print(waveplate.position())

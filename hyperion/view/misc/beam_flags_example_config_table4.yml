@@ -1,0 +1,23 @@
+Instruments:
+  BeamFlags:
+    name: BeamFlags
+    port: COM8
+    dummy: False
+    baudrate: 9600
+    read_timeout: 0.1
+    start_up_delay: 0.5      # Increase this if you have difficulty connecting
+    instrument: hyperion.instrument.misc.beam_flags_instr/BeamFlagsInstr
+    controller: hyperion.controller.generic.generic_serial_contr/GenericSerialController
+    view: hyperion.view.misc.beam_gui/BeamFlagsGui
+    flag_states:
+      red:   '0'                # character for arduino LED off state
+      green: '1'                # character for arduino LED on state
+    gui_red_color:   rgb(100, 100, 100)
+    gui_green_color: rgb(255, 100, 100)
+    gui_state_update_ms: 100    # recommend 100,  update time in ms for the state indicators
+    gui_flags:
+      'r':                      # key-name should be the id-character for the arduino controller
+        name: red_LED
+        red_name: In
+        green_name: Out
+        shortkey: Ctrl+1

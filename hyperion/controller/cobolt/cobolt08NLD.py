@@ -8,7 +8,7 @@
 
     Based on the driver for laser 06-01 series by Vasco Tenner, available in lantz.drivers.laser.cobolt08NLD
 
-    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
+    :copyright: 2020by Hyperion Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 from pyvisa import constants
@@ -208,6 +208,7 @@ class Cobolt08NLD(MessageBasedDriver):
 if __name__ == '__main__':
     lantz.log.log_to_screen(lantz.log.DEBUG)
     from hyperion import Q_
+    from lantz.qt import start_test_app
 
     with Cobolt08NLD.via_serial('5') as inst:
 
@@ -224,4 +225,5 @@ if __name__ == '__main__':
         print('Power setpoint: {}'.format(inst.power_sp))
         print('Output power now: {}'.format(inst.power))
 
-
+        # this is to get an automatic GUI to test the code
+        start_test_app(inst)
