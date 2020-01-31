@@ -9,8 +9,9 @@ of the device.
 
 For now it only supports one polarization analyzer connected.
 
-    :copyright: 2019 by Hyperion Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
 import ctypes
 from hyperion import logging

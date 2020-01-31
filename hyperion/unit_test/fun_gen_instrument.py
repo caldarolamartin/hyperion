@@ -13,6 +13,9 @@ a method to unit_test the new methods in the instrument, if any.
 NOTE: This is still not implemented as a class, it just runs commands using the instrument. The assertion
 part has to be done, still.
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
 from hyperion import logging
 from time import sleep

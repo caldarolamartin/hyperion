@@ -7,6 +7,11 @@ Instrument for the function generator
 This class (fun_gen.py) is the model to control the function generator agilent33522A
 It ads the use of units with pint.
 
+
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
+
 """
 import os
 import yaml
@@ -81,7 +86,6 @@ class FunGen(BaseInstrument):
 
         :param apply: decides weather to apply this settings or not
         :type apply: logical
-        :param filename: location for the config_agilent33522A.yml to use. If not given uses
         :param filename: location for the config_agilent33522A.yml to use. If not given uses
         the default config file in the model/function_generator folder
         """

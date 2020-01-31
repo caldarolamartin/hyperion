@@ -9,7 +9,8 @@ If you have changed something in the controller layer, you should check that the
 functionalities of if are still running properly by running this class and adding
 a method to unit_test the new methods in the controller, if any.
 
-
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 from hyperion import logging
 from time import sleep

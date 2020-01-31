@@ -5,6 +5,9 @@ UI tools
 
 We group many functions useful for when building GUIS.
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
 from hyperion import logging
 from numpy import log10

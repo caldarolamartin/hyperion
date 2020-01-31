@@ -9,6 +9,8 @@ If you have changed something in the controller and or instrument layer, you sho
 functionalities of if are still running properly by running this class and adding
 a method to unit_test the new methods in the instrument, if any.
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 
 """
 from hyperion import logging

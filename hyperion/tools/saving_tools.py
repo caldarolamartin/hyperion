@@ -7,7 +7,8 @@ Saving tools
 This is a collection of useful methods related to saving data and metadata
 used along hyperion.
 
-
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 
 """
 import os

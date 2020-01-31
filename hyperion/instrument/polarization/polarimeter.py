@@ -8,6 +8,9 @@ This class (polarization.py) is the model to connect to the SK Polarization anal
 The model is similar to the controller, but it adds specific functionalities such as units with Pint
 and error descriptions
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
 from hyperion import logging
 from time import time, sleep
