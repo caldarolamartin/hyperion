@@ -80,8 +80,9 @@ class WinspecInstr(BaseInstrument):
 
         # bug fix:
         self.ccd = 'Full'
-        self.controller.xdim = self.controller.exp_get('XDIM')
-        self.controller.ydim = self.controller.exp_get('YDIM')
+        # Changed exp_get('XDIM')[0] to exp_get('XDIMDET')[0]
+        self.controller.xdim = self.controller.exp_get('XDIMDET')[0]
+        self.controller.ydim = self.controller.exp_get('YDIMDET')[0]
         self.ccd = 'ROI'
 
         # !!!!!   THREADING WILL NOT WORK IN THE CURRENT IMPLENTATION
@@ -538,22 +539,22 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('right{}, left{}'.format(right,left))
 
         if bottom is None:
-            bottom = self.controller.ydim[0]
+            bottom = self.controller.ydim
 
         if right is None:
-            right = self.controller.xdim[0]
+            right = self.controller.xdim
 
         if type(top) is str:
             if top=='full_im':
                 top = 1
-                bottom = self.controller.ydim[0]
+                bottom = self.controller.ydim
                 v_binsize = 1
             elif top != 'full_spec':
                 self.logger.warning('unknown command {}, using full_spec ')
                 top = 'full_spec'
             if top =='full_spec':
                 top = 1
-                bottom = self.controller.ydim[0]
+                bottom = self.controller.ydim
                 v_binsize = 1024
 
 
@@ -577,23 +578,8 @@ class WinspecInstr(BaseInstrument):
         # apply basic limits of the CCD
         if top < 1: top = 1
         if left < 1: left = 1
-        if bottom > self.controller.ydim[0]: bottom = self.controller.ydim[0]
-        if right > self.controller.xdim[0]: right = self.controller.xdim[0]
-
-        # if bottom < top:
-        #     if top < self.controller.ydim-1:
-        #         bottom = top
-        #     else:
-        #         top = bottom
-        # if right < left:
-        #     if left < self.controller.xdim-1:
-        #         right = left + 1
-        #     else:
-        #         left = right - 1
-        # if not 0 < top <= bottom: self.logger.error('top value invalid')
-        # if not top <= bottom <= self.controller.ydim: self.logger.error('bottom value invalid')
-        # if not 0 < left <= right: self.logger.error('left value invalid')
-        # if not left <= right <= self.controller.xdim: self.logger.error('right value invalid')
+        if bottom > self.controller.ydim: bottom = self.controller.ydim
+        if right > self.controller.xdim: right = self.controller.xdim
 
         pix = right - (left - 1)
         self.logger.debug('right{}, left{}'.format(right,left))
@@ -613,7 +599,7 @@ class WinspecInstr(BaseInstrument):
                     if ad and left>1:
                         left -= 1
                         ad -= 1
-            self.logger.warning('horizontal range is not muliple of {}: expanded to [{}-{}]'.format(self._horz_width_multiple, left, right))
+                self.logger.warning('horizontal range is not multiple of {}: expanded to [{}-{}]'.format(self._horz_width_multiple, left, right))
             pix = right - (left - 1)
 
         # if necessary correct h_group to fit horizontal range:
@@ -980,7 +966,12 @@ if __name__ == "__main__":
                 'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
 
-    ws = WinspecInstr(settings)
+    ws = WinspecInstr(settings_irina)
+
+    ws.setROI(top = 470, bottom = 500, left = 400, right = 599)
+
+    print('\nROI = ', ws.getROI())
+
     d = ws.take_spectrum()
     print(d)
 
@@ -1026,6 +1017,8 @@ if __name__ == "__main__":
         print('Main             ccd = ', ws.ccd)
         print('Main             accumulations = ', ws.accumulations)
         print('ROI              spec_mode = ', ws.spec_mode)
+
+        #ws.setROI(top = 500, bottom = 600)
 
         print('\nROI = ', ws.getROI())
 
