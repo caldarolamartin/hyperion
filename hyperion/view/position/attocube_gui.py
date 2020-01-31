@@ -111,8 +111,6 @@ class Attocube_GUI(BaseGui):
         self.gui.comboBox_axis.currentTextChanged.connect(self.get_axis)
         self.gui.pushButton_stop.clicked.connect(self.stop_moving)
 
-        self.show_position()
-
         self.pushButton_stop.setStyleSheet("background-color: red")
         self.gui.groupBox_XY.setEnabled(True)
         self.gui.groupBox_Z.setEnabled(False)
@@ -168,13 +166,13 @@ class Attocube_GUI(BaseGui):
         | Connects the spinboxes to set_value, that in case of the scanner will immediately put the voltage to move the scanner.
         """
         self.gui.comboBox_unitX.setCurrentText(self.scanner_unitX)
-        self.gui.comboBox_unitX.currentTextChanged.connect(lambda: self.set_scanner_unit('X'))
+        self.gui.comboBox_unitX.currentTextChanged.connect(lambda: self.set_scanner_position('X'))
 
         self.gui.comboBox_unitY.setCurrentText(self.scanner_unitY)
-        self.gui.comboBox_unitY.currentTextChanged.connect(lambda: self.set_scanner_unit('Y'))
+        self.gui.comboBox_unitY.currentTextChanged.connect(lambda: self.set_scanner_position('Y'))
 
         self.gui.comboBox_unitZ.setCurrentText(self.scanner_unitZ)
-        self.gui.comboBox_unitZ.currentTextChanged.connect(lambda: self.set_scanner_unit('Z'))
+        self.gui.comboBox_unitZ.currentTextChanged.connect(lambda: self.set_scanner_position('Z'))
 
         self.gui.doubleSpinBox_scannerX.setValue(int(self.dcX.m_as('V')))
         self.gui.doubleSpinBox_scannerY.setValue(int(self.dcY.m_as('V')))
@@ -191,14 +189,20 @@ class Attocube_GUI(BaseGui):
         self.gui.pushButton_zero_scanners.clicked.connect(self.zero_scanners)
 
     def show_position(self):
-        """In the instrument level, the current positions are remembered in a dictionary and updated through get_position.
+        """In the instrument level, the current positions of both Stepper and Scanner are remembered in a dictionary and updated through get_position.
         This method read them out (continuously, through the timer in the init) and displays their values.
         """
+        self.anc350_instrument.update_all_positions()
+
         self.current_positions = self.anc350_instrument.current_positions
 
         self.gui.label_actualPositionX.setText(str(self.current_positions['XPiezoStepper']))
         self.gui.label_actualPositionY.setText(str(self.current_positions['YPiezoStepper']))
         self.gui.label_actualPositionZ.setText(str(self.current_positions['ZPiezoStepper']))
+
+        self.gui.scan_positionX.setText(str(self.current_positions['XPiezoScanner']))
+        self.gui.scan_positionY.setText(str(self.current_positions['YPiezoScanner']))
+        self.gui.scan_positionZ.setText(str(self.current_positions['ZPiezoScanner']))
 
     def get_axis(self):
         """| *Layout stacked widgets plus blue borders*
@@ -379,26 +383,11 @@ class Attocube_GUI(BaseGui):
         # if value_type == 'dc':
         #     self.move_scanner(local_axis_name)
 
-
-    def set_scanner_unit(self, axis):
-        """To make it possible to use both V and mV for the scanner; NOT TESTED
-
-        :param axis: axis X, Y, Z
-        :type axis: string
-        """
-        if axis == 'X':
-            self.scanner_unitX = self.gui.comboBox_unitX.currentText()
-            self.logger.debug(self.scanner_unitX)
-        elif axis == 'Y':
-            self.scanner_unitY = self.gui.comboBox_unitY.currentText()
-            self.logger.debug(self.scanner_unitY)
-        elif axis == 'Z':
-            self.scanner_unitZ = self.gui.comboBox_unitZ.currentText()
-            self.logger.debug(self.scanner_unitZ)
-
-
     def set_scanner_position(self, axis):
-        """To make it possible to use both V and mV for the scanner; NOT TESTED
+        """To make it possible to use both V and mV for the scanner.
+        The value of the spinbox and the unit in the combobox are combined.
+        Then they are tested against the maximum and minimum values.
+        If they are labeled too high or too low, the user input is changed to the maximum or minimum value.
 
         :param axis: axis X, Y, Z
         :type axis: string
@@ -407,12 +396,15 @@ class Attocube_GUI(BaseGui):
 
         if axis == 'X':
             scanner_pos = self.gui.doubleSpinBox_scannerX.value()
+            self.scanner_unitX = self.gui.comboBox_unitX.currentText()
             scanner_unit = self.scanner_unitX
         elif axis == 'Y':
             scanner_pos = self.gui.doubleSpinBox_scannerY.value()
+            self.scanner_unitY = self.gui.comboBox_unitY.currentText()
             scanner_unit = self.scanner_unitY
         elif axis == 'Z':
             scanner_pos = self.gui.doubleSpinBox_scannerZ.value()
+            self.scanner_unitZ = self.gui.comboBox_unitZ.currentText()
             scanner_unit = self.scanner_unitZ
 
         local_position = ur(str(scanner_pos)+scanner_unit)
@@ -460,7 +452,6 @@ class Attocube_GUI(BaseGui):
             self.logger.debug('dictionary position {} changed to: {}'.format(axis, self.dcZ))
 
         self.move_scanner('dc'+axis)
-
 
     def set_distance(self):
         """Works similar to set_value method, but now only for the distance spinBox and unit.
@@ -529,7 +520,6 @@ class Attocube_GUI(BaseGui):
     def zero_scanners(self):
         """Put 0V on all scanners.
         """
-
         self.logger.info('Zero all Scanners.')
         self.anc350_instrument.zero_scanners()
 
@@ -617,7 +607,6 @@ class Attocube_GUI(BaseGui):
             elif self.current_move == 'step':
                 self.logger.info('making a step')
                 self.anc350_instrument.given_step(axis_string, direction_int, 1)
-                self.show_position()
 
     def stop_moving(self):
         """| Stops movement of all steppers.

@@ -34,7 +34,8 @@ class Anc350Instrument(BaseInstrument):
         self.logger.info('1. welcome to the instrument of the Attocube')
         self.logger.debug('Creating the instance of the controller')
 
-        self.current_positions = {'XPiezoStepper': 'unavailable', 'YPiezoStepper': 'unavailable', 'ZPiezoStepper': 'unavailable'}
+        self.current_positions = {'XPiezoStepper': 'unavailable', 'YPiezoStepper': 'unavailable', 'ZPiezoStepper': 'unavailable',
+                                  'XPiezoScanner': 'unavailable','YPiezoScanner':'unavailable','ZPiezoScanner': 'unavailable'}
         self.initialize()
 
     def initialize(self):
@@ -62,11 +63,21 @@ class Anc350Instrument(BaseInstrument):
     def get_position(self, axis):
         """ Asks the position from the controller level. This method is useful in higher levels where you want to display the position.
 
-        :param axis: stepper axis, XPiezoStepper, YPiezoStepper or ZPiezoStepper
+        :param axis: stepper axis, XPiezoStepper, YPiezoStepper, or XPiezoScanner, etc.
         :type axis: string
         """
         ax = self.attocube_piezo_dict[axis]['axis']  # otherwise you keep typing this
-        self.current_positions[axis] = round(self.controller.getPosition(ax) * ur('nm').to('mm'), 6)
+        if 'Stepper' in axis:
+            self.current_positions[axis] = round(self.controller.getPosition(ax) * ur('nm').to('mm'), 6)
+        elif 'Scanner' in axis:
+            self.current_positions[axis] = round(self.controller.getDcLevel(ax) * ur('mV'),6)
+
+    def update_all_positions(self):
+        """Uses self.get_position to ask the position on all axes. This method is useful in higher levels where you want to display the position.
+        """
+        for axis in self.attocube_piezo_dict:
+            self.get_position(axis)
+
 
     def configure_stepper(self, axis, amplitude, frequency):
         """ - Does the necessary configuration of the Stepper:
@@ -275,7 +286,6 @@ class Anc350Instrument(BaseInstrument):
             self.logger.debug('type of end is ' + str(type(end)))
             return (end, ismoved)
 
-
     def move_to(self,axis,position):
         """| Moves to an absolute position with the Stepper and tells when it arrived.
         | **Pay attention: does not indicate if you take a position outside of the boundary, but you will keep hearing the noise of the piezo.**
@@ -295,7 +305,6 @@ class Anc350Instrument(BaseInstrument):
         if ismoved:
             self.logger.info('axis arrived at ' + str(round(end.to('mm'), 6)))
             self.logger.info('difference is ' + str(round(position.to('nm') - end.to('nm'), 6)))
-
 
     def move_relative(self, axis, step):
         """| Moves the Stepper by an amount to be given by the user.
@@ -372,7 +381,6 @@ class Anc350Instrument(BaseInstrument):
             self.logger.info('Stopping approaching')
             self.stop = False
 
-
     def move_scanner(self, axis, voltage):
         """ | Moves the Scanner by applying a certain voltage.
         | *There is no calibration, so you don't know how far; but the range is specified for 50um with a voltage of 0-140V.*
@@ -384,7 +392,6 @@ class Anc350Instrument(BaseInstrument):
         :param voltage: voltage to move the scanner; from 0-140V
         :type voltage: pint quantity
         """
-
         if 0 <= voltage.m_as('mV') <= self.controller.max_dclevel_mV:
             if voltage.m_as('mV') > self.controller.real_max_dcLevel_mV:
                 self.logger.warning('Dont put voltages higher than 60V, unless you are at low temperatures!')
@@ -412,11 +419,20 @@ class Anc350Instrument(BaseInstrument):
             # if notreached:
             #     self.logger.warning('time out for piezo movement')
 
+            self.get_position(axis)
             dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
             self.logger.info('now the DC level is ' + str(round(dc.to('V'),4)))
         else:
             self.logger.warning('The required voltage is between 0V - 140V')
             return
+
+    # def get_scanner_positions(self):
+    #     scanner_positions = {}
+    #     scanners = ['XPiezoScanner','YPiezoScanner','ZPiezoScanner']
+    #     for scan in scanners:
+    #         scanner_positions[scan] = (self.controller.getDcLevel(self.attocube_piezo_dict[scan]['axis'])*ur('mV'))
+    #
+    #     print(scanner_positions)
 
     def zero_scanners(self):
         """Puts 0V on all three Piezo Scanners.
