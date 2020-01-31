@@ -11,17 +11,10 @@ This controller basically is just a wrapper to make things work within hyperion.
 The core is not always well documented, for better descriptions see the thorlabs_motor_instrument.
 
 """
-
 from hyperion import logging
 from hyperion.controller.base_controller import BaseController
+import thorlabs_apt.core as core
 
-import sys
-if sys.maxsize > 2**32:
-    print('64 bit')
-else:
-    import thorlabs_apt.core as core
-
-import time
 
 class TDC001_cube(core.Motor, BaseController):
     """ | This is the controller for the Thorlabs TDC001_cubes that work with motors.

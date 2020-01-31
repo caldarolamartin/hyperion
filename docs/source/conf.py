@@ -16,6 +16,7 @@ master_doc = 'index'
 pygments_style = 'sphinx'
 html_theme = 'sphinx_rtd_theme'
 html_logo = 'img/logo_hyperion.png'
+autodoc_mock_imports = ['thorlabs_apt', 'lantz', 'win32com']
 html_theme_options = {
     'canonical_url': '',
     'analytics_id': '',
