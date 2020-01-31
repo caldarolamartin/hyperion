@@ -14,8 +14,13 @@ The core is not always well documented, for better descriptions see the thorlabs
 
 from hyperion import logging
 from hyperion.controller.base_controller import BaseController
-import thorlabs_apt.core as core
+
 import sys
+if sys.maxsize > 2**32:
+    print('64 bit')
+else:
+    import thorlabs_apt.core as core
+
 import time
 
 class TDC001_cube(core.Motor, BaseController):
@@ -36,6 +41,8 @@ class TDC001_cube(core.Motor, BaseController):
         :param settings: the class Motor needs a serial number
         :type settings: dict
         """
+
+
         self.logger = logging.getLogger(__name__)
         self._is_initialized = False
 
