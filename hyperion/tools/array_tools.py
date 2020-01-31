@@ -5,7 +5,8 @@ Array Tools
 
 Here we group some array tools that we use in the project.
 
-
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 from hyperion import logging
 import numpy as np

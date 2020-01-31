@@ -9,6 +9,9 @@ It ads the use of units with pint and the wavelength calibration to obtain make 
 waveplate a quarter waveplate for a given wavelength.
 
 
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
 from time import sleep
 import os

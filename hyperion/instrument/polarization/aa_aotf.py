@@ -14,6 +14,10 @@ and some calibrations.
 
 With this the class knows what voltages should be set when changing the wavelength.
 
+
+:copyright: by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
+
 """
 import os
 from hyperion import logging

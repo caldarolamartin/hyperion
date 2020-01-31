@@ -33,7 +33,7 @@ class Agilent33522A(BaseController):
     CHANNELS = [1,2]
     FUNCTIONS = ['SIN', 'SQU', 'TRI', 'RAMP', 'PULS', 'PRBS', 'NOIS', 'ARB', 'DC']
 
-    def __init__(self, settings = {'instrument_id':'8967', 'dummy': True}):
+    def __init__(self, settings):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.rsc = None
