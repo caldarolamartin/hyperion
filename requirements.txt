@@ -1,0 +1,11 @@
+pyyaml
+lantzdev
+sphinx_rtd_theme
+lantz_core
+lantz_drivers
+lantz_qt
+lantz_sims
+pyvisa-py
+pyserial
+pynput
+colorama
