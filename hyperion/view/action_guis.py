@@ -120,6 +120,7 @@ class ScanActuator(BaseGui):
             #     actuator_units = sorted([*actuator_units, *add_units])
 
         self.start_value = QDoubleSpinBox()
+        self.start_value.setMaximum(999999999)          #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
         self.start_units = QComboBox()
         self.start_units.addItems(actuator_units)
         add_pint_to_combo(self.start_units)
@@ -130,6 +131,7 @@ class ScanActuator(BaseGui):
         self.start_units.currentIndexChanged.connect(self.start_changed)
 
         self.stop_value = QDoubleSpinBox()
+        self.stop_value.setMaximum(999999999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
         self.stop_units = QComboBox()
         self.stop_units.addItems(actuator_units)
         add_pint_to_combo(self.stop_units)
@@ -140,6 +142,7 @@ class ScanActuator(BaseGui):
         self.stop_units.currentIndexChanged.connect(self.stop_changed)
 
         self.step_value = QDoubleSpinBox()
+        self.step_value.setMaximum(999999999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
         self.step_units = QComboBox()
         self.step_units.addItems(actuator_units)
         add_pint_to_combo(self.step_units)
@@ -174,15 +177,26 @@ class ScanActuator(BaseGui):
             spin_combo_to_pint_apply_limits(self.start_value, self.start_units, Q_(self.actiondict['start_min']),
                                             Q_(self.actiondict['start_max'])))
 
+        # If this action gui has gotten his parent measurement gui as input, this will update his parents gui,
+        # for instance the expected scan time
+        if hasattr(self,'measurement_gui_parent'):
+            self.measurement_gui_parent.update_from_guis()
+
     def stop_changed(self):
         self.actiondict['stop'] = str(
             spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units, Q_(self.actiondict['stop_min']),
                                             Q_(self.actiondict['stop_max'])))
 
+        if hasattr(self,'measurement_gui_parent'):
+            self.measurement_gui_parent.update_from_guis()
+
     def step_changed(self):
         self.actiondict['step'] = str(
             spin_combo_to_pint_apply_limits(self.step_value, self.step_units, Q_(self.actiondict['step_min']),
                                             Q_(self.actiondict['step_max'])))
+
+        if hasattr(self,'measurement_gui_parent'):
+            self.measurement_gui_parent.update_from_guis()
 
 
 

@@ -32,14 +32,9 @@ class Attocube_GUI(BaseGui):
     def __init__(self, anc350_instrument, also_close_output=False):
         """Attocube
         """
-
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.title = 'Attocube GUI'
-        self.left = 50
-        self.top = 50
-        self.width = 500
-        self.height = 250
         self.anc350_instrument = anc350_instrument
 
         name = 'attocube.ui'
@@ -50,8 +45,8 @@ class Attocube_GUI(BaseGui):
 
         self.max_amplitude_V = 60
         self.max_frequency = 2000
-        self.max_dclevel_V = 140 * ur('V')          #Pay attention: this max only goes for 4K,
-        self.real_max_dcLevel_V = 60 * ur('V')       #at room temperature use 60V as max
+        self.max_dclevel_V = 60 * ur('V')          #Pay attention: this max only goes for 4K,
+        self.max_dcLevel_mV_300K = 30 * ur('V')       #at room temperature use 60V as max
         self.max_distance = 5*ur('mm')
 
         self.current_positions = {}
@@ -63,6 +58,8 @@ class Attocube_GUI(BaseGui):
 
         self.settings = {'amplitudeX': 30, 'amplitudeY': 40, 'amplitudeZ': 30,
                                        'frequencyX': 100, 'frequencyY': 100, 'frequencyZ': 100}
+
+        self.temperature = '300K'
 
         self.scanner_unitX = 'V'
         self.scanner_unitY = 'V'
@@ -88,7 +85,6 @@ class Attocube_GUI(BaseGui):
         """
         self.logger.debug('Setting up the Measurement GUI')
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
 
         self.show()
 
@@ -419,7 +415,7 @@ class Attocube_GUI(BaseGui):
             local_max = self.max_dclevel_V.to(scanner_unit)
             self.logger.debug(str(local_max))
             change = 'high'
-        elif local_position > self.real_max_dcLevel_V:
+        elif local_position > self.max_dcLevel_mV_300K:
             self.logger.warning('You are exceeding the 60V maximum for the piezo at room temperature')
         elif local_position < 0:
             self.logger.debug('value too low')
@@ -625,7 +621,6 @@ class Attocube_GUI(BaseGui):
         self.anc350_instrument.stop_moving('ZPiezoStepper')
 
         if self.moving_thread.isRunning:
-            print('is running')
             self.moving_thread.quit()
 
         self.anc350_instrument.stop = False
@@ -633,7 +628,7 @@ class Attocube_GUI(BaseGui):
 
 if __name__ == '__main__':
 
-    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as anc350_instrument:
+    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350','temperature': '300K'}) as anc350_instrument:
         app = QApplication(sys.argv)
         ex = Attocube_GUI(anc350_instrument)
         sys.exit(app.exec_())

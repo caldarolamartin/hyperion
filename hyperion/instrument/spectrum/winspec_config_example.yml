@@ -8,12 +8,12 @@ display:
   flip: True
 data_file:
   confirm_overwrite: False
-  autosave: 'Auto'
+  autosave: 'No'  #Auto
 timing:
   mode: 'Free Run'
   fast_safe: 'Fast'
   delay_time_s: 0
-ascii_file: True
+ascii_file: False
 
 
 

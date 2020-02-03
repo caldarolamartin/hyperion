@@ -27,10 +27,9 @@ ws.controller.exp_get('GRAT_GROOVES')
 
 """
 import threading
-from hyperion import logging
+from hyperion import logging, package_path
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur, Q_
-from hyperion import root_dir
 # from hyperion.view.general_worker import WorkThread
 import time
 import os
@@ -118,11 +117,15 @@ class WinspecInstr(BaseInstrument):
         self.logger.info(
             '{} gratings found. grooves/mm: {}, blaze: {}'.format(self.number_of_gratings, self.gratings_grooves,
                                                                   self.gratings_blaze_name))
-
-        filename = os.path.join(root_dir, 'instrument', 'spectrum', 'winspec_config_irina.yml')
+        if 'config' in self.settings:
+            filename = self.settings['config']
+        else:
+            filename = os.path.join(package_path, 'instrument', 'spectrum', 'winspec_config_example.yml')
 
         with open(filename, 'r') as f:
             self.config_settings = yaml.load(f, Loader=yaml.FullLoader)
+
+        self.configure_settings()
 
     def _move_grating(self):
         """ Low level function to move grating after specifying the new position. """
@@ -611,7 +614,7 @@ class WinspecInstr(BaseInstrument):
 
         if new_h != h_binsize:
             self.logger.warning('h_group {} does not fit in horizontal range of [{}-{}]: changing to: {}'.format(h_binsize, left, right, h_new))
-            h_binsize = h_new
+            h_binsize = new_h
 
         new_v = v_binsize
         pix = bottom - (top-1)
@@ -622,7 +625,7 @@ class WinspecInstr(BaseInstrument):
 
         if new_v != v_binsize:
             self.logger.warning('v_group {} does not fit in vertical range of [{}-{}]: changing to: {}'.format(v_binsize, top, bottom, v_new))
-            v_binsize = v_new
+            v_binsize = new_v
 
         # set the new ROI:
         self._roi = self.controller.exp.GetROI(1)                       # get ROI object
@@ -963,19 +966,14 @@ if __name__ == "__main__":
 
     settings_irina = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr',
+                'config':'D:/LabSoftware/hyperion/hyperion/instrument/spectrum/winspec_config_irina.yml',
                 'shutter_controls': ['Closed', 'Opened'], 'horz_width_multiple': 4}
 
-
-    ws = WinspecInstr(settings_irina)
+    ws = WinspecInstr(settings)
 
     ws.setROI(top = 470, bottom = 500, left = 400, right = 599)
 
     print('\nROI = ', ws.getROI())
-
-    d = ws.take_spectrum()
-    print(d)
-
-
 
 
     # ws.configure_settings()

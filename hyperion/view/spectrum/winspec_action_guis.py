@@ -19,7 +19,6 @@ class SpectrumGUI(BaseGui):
         super().__init__(parent)
         self.actiondict = actiondict
         self.experiment = experiment
-
         self.last_row = 0
 
         self.initUI()
@@ -111,7 +110,6 @@ class SpectrumGUI(BaseGui):
                                                                               Q_(self.actiondict['exposuretime_min']),
                                                                               Q_(self.actiondict['exposuretime_max'])))
         if hasattr(self,'measurement_gui_parent'):
-            print('found the measurement gui parent')
             self.measurement_gui_parent.update_from_guis()
 
     def grating_changed(self):
