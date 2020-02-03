@@ -8,3 +8,4 @@ lantz_sims
 pyvisa-py
 pyserial
 pynput
+colorama
