@@ -975,11 +975,6 @@ if __name__ == "__main__":
 
     print('\nROI = ', ws.getROI())
 
-    d = ws.take_spectrum()
-    print(d)
-
-
-
 
     # ws.configure_settings()
 

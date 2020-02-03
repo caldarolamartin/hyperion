@@ -393,7 +393,7 @@ class Anc350Instrument(BaseInstrument):
         :type voltage: pint quantity
         """
         if 0 <= voltage.m_as('mV') <= self.controller.max_dclevel_mV:
-            if voltage.m_as('mV') > self.controller.real_max_dcLevel_mV:
+            if voltage.m_as('mV') > self.controller.max_dcLevel_mV_300K:
                 self.logger.warning('Dont put voltages higher than 60V, unless you are at low temperatures!')
 
             self.logger.info('moving {} by putting {}'.format(axis, voltage))
@@ -423,7 +423,7 @@ class Anc350Instrument(BaseInstrument):
             dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
             self.logger.info('now the DC level is ' + str(round(dc.to('V'),4)))
         else:
-            self.logger.warning('The required voltage is between 0V - 140V')
+            self.logger.warning('Exceeding the max voltage on the piezo as defined in the controller')
             return
 
     # def get_scanner_positions(self):
@@ -461,7 +461,7 @@ if __name__ == "__main__":
 
 #    with Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'}) as q:
 
-    q = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350'})
+    q = Anc350Instrument(settings={'dummy':False,'controller': 'hyperion.controller.attocube.anc350/Anc350','temperature': '300K'})
     axis = 'XPiezoStepper'       #x of stepper, should be in yml file for experiment and gui
     ampl = 30*ur('V')   #30V
     freq = 100*ur('Hz')    #Hz
@@ -476,7 +476,7 @@ if __name__ == "__main__":
     #     print(q.controller.getPosition(q.attocube_piezo_dict[axis]['axis'])*ur('nm'))
     # q.stop_moving(axis)
 
-    q.move_relative(axis, 100 * ur('um'))
+    #q.move_relative(axis, 100 * ur('um'))
 
     # direct = 0  #forward
     # steps = 1  #amount of steps
@@ -487,6 +487,7 @@ if __name__ == "__main__":
 
     q.configure_scanner(axis)
 
-    volts = 0*ur('V')
+    volts = 40*ur('V')
     q.move_scanner(axis,volts)
 
+    q.finalize()

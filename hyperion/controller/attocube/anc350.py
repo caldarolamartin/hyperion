@@ -94,8 +94,17 @@ class Anc350(BaseController):
         self.status = []
         self.logger.info('Class ANC350 init. Created object.')
 
-        self.max_dclevel_mV = 140000
-        self.real_max_dcLevel_mV = 60000
+        if 'temperature' in settings:
+            self.logger.debug('The given cryostat temperature is {}'.format(settings['temperature']))
+            if settings['temperature'] == '4K':
+                self.max_dclevel_mV = 60000
+            else:
+                self.max_dclevel_mV = 30000
+        else:
+            self.max_dclevel_mV = 30000
+
+        self.max_dcLevel_mV_300K = 30000
+
         self.max_amplitude_mV = 60000
         self.max_frequency_Hz = 2000
         self.actor_name = ['ANPx101-A3-1079.aps','ANPx101-A3-1087.aps','ANPz102-F8-393.aps']
@@ -405,13 +414,14 @@ class Anc350(BaseController):
         :param dclev: DC level in mV; needs to be an integer!
         :type dclev: integer
         """
+
         if 0 <= dclev <= self.max_dclevel_mV:
-            if dclev > self.real_max_dcLevel_mV:
-                self.logger.warning('Putting more than 60V is only allowed at low temperatures')
+            if dclev > self.max_dcLevel_mV_300K:
+                self.logger.warning('Putting more than 60V is only okay at low temperatures')
 
             ANC350lib.positionerDCLevel(self.handle, axis, dclev)
         else:
-            raise Exception('The required voltage is between 0V - 140V')
+            self.logger.warning('Trying to exceed the voltage on the piezo')
 
     def getDcLevel(self, axis):
         """| Determines the status actual DC level on the scanner (or stepper).
@@ -450,8 +460,6 @@ class Anc350(BaseController):
         ANC350lib.positionerIntEnable(self.handle,axis,ctypes.c_bool(state))
 
 
-
-
     # ----------------------------------------------------------------------------------------------------
     # Maybe useful methods, but now unused
     # ----------------------------------------------------------------------------------------------------
@@ -466,8 +474,6 @@ class Anc350(BaseController):
         :param bitmask_of_axes:
         """
         ANC350lib.positionerMoveAbsoluteSync(self.handle,bitmask_of_axes)
-
-
 
     def moveReference(self, axis):
         """| *UNUSED*
@@ -510,8 +516,6 @@ class Anc350(BaseController):
         :param state:
         """
         ANC350lib.positionerSetStopDetectionSticky(self.handle,axis,state)
-
-
 
     def stopDetection(self, axis, state):
         """| *UNUSED*
@@ -817,7 +821,7 @@ if __name__ == "__main__":
 
     import time
 
-    with Anc350(settings = {'dummy': False}) as anc:
+    with Anc350(settings = {'dummy': False, 'temperature': '300K'}) as anc:
         anc.initialize()
 
         #-------------------------------
@@ -880,10 +884,10 @@ if __name__ == "__main__":
 
         #forward 0, backward 1
         #but you have to give it time, because it won't tell you that it's not finished moving yet
-        for ii in range(10):
-            anc.moveSingleStep(0,0)
-            time.sleep(0.5)
-            print(ii,': we are now at ',anc.getPosition(0),'nm')
+        # for ii in range(10):
+        #     anc.moveSingleStep(0,0)
+        #     time.sleep(0.5)
+        #     print(ii,': we are now at ',anc.getPosition(0),'nm')
         #
         # #nr. 3: with a step that you give it by ordering a relative move
         # #but this one takes a very long time
@@ -951,10 +955,10 @@ if __name__ == "__main__":
         #this one has only one way to make a step: put a voltage
 
         print('-------------------------------------------------------------')
-        print('moving something by putting 510V')
-        anc.dcLevel(3,10)
+        print('moving something by putting 40V')
+        anc.dcLevel(3,40000)
         print('put a DC level of ',anc.getDcLevel(3),'mV')
-        print('no way of knowing when and if we ever arrive')
+
 
 
 
