@@ -4,11 +4,12 @@
 Osa controller
 ==============
 
-This controller (osa.py) supplies one class with several methods to communicate
-    with the osa machine from ando AQ6317B model: ?
+This is the controller for the optical spectrum analyzer (OSA), from Ando, model AQ6317B.
 
-    :copyright: 2020by Hyperion Authors, see AUTHORS for more details.
-    :license: BSD, see LICENSE for more details.
+
+
+:copyright: 2020 by Hyperion Authors, see AUTHORS for more details.
+:license: BSD, see LICENSE for more details.
 """
 from hyperion import logging
 import visa
@@ -16,14 +17,13 @@ import time
 from hyperion.controller.base_controller import BaseController
 
 class OsaController(BaseController):
-    """ The controller for the Osa machine."""
-
-    def __init__(self, settings):
-        """ Init of the class.
+    """ Class for OSA controller.
 
         :param settings: this includes all the settings needed to connect to the device in question.
         :type settings: dict
-        """
+
+    """
+    def __init__(self, settings):
         super().__init__(settings)  # mandatory line
         self.logger = logging.getLogger(__name__)
         self.logger.info('Class Osa created.')
@@ -261,17 +261,15 @@ class OsaController(BaseController):
 
 class OsaControllerDummy(OsaController):
     """
-    Example Controller Dummy for the Osa machine
-    ========================
-    A dummy version of the Example Controller.
-    ========================
+    Dummy for the Osa controller
+    ============================
 
     In essence we have the same methods and we re-write the query to answer something meaningful but
     without connecting to the real device.
-    """
 
+    """
     def query(self, msg):
-        """ writes into the device msg
+        """ writes into the dummy device msg
 
         :param msg: command to write into the device port
         :type msg: string
@@ -279,6 +277,7 @@ class OsaControllerDummy(OsaController):
         self.logger.debug('Writing into the dummy device:{}'.format(msg))
         ans = 'A general dummy answer'
         return ans
+
     def read(self):
         """ Fake read that returns always the value in the dictionary FAKE RESULTS.
 
@@ -286,13 +285,15 @@ class OsaControllerDummy(OsaController):
         :rtype: string
         """
         return 'A'
+
     def write(self, msg):
-        """ Writes into the device
+        """ Writes into the dummy device
 
         :param msg: message to be written in the device port
         :type msg: string
         """
         self.logger.debug('Writing into the device:{}'.format(msg))
+
     def idn(self):
         """ Identify command
 

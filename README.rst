@@ -2,10 +2,14 @@
 Hyperion
 ========
 
+Hyperion is the instrumentation control software we use at the Nano-Optics
+Lab (Kuipers Lab) at Technical University Delft, The Netherlands.
+
+Below you can find the instructions to install locally the package within
+a new conda environment.
+
 Installing (develop version)
 ----------------------------
-
-TODO: how to install for user, not developer
 
 It's easiest, safest and cleanest to install these in their own environment. 
 We use conda_. Make sure you have an up-to-date
