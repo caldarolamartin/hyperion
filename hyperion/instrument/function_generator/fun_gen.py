@@ -113,9 +113,11 @@ class FunGen(BaseInstrument):
                 self.set_waveform(ch, di['waveform']['function'])
                 sleep(0.1)
 
-                self.logger.debug('Applying Frequency = {}'.format(di['waveform']['frequency']))
-                self.set_frequency(ch, ur(di['waveform']['frequency']))
-                sleep(0.1)
+                if 'frequency' in di['waveform'].keys():
+                    self.logger.debug('Applying Frequency = {}'.format(di['waveform']['frequency']))
+                    self.set_frequency(ch, ur(di['waveform']['frequency']))
+                    sleep(0.1)
+
 
                 self.logger.debug('Applying Voltage limit high={} and low={}'.format(di['limit_high'],
                                                                                      di['limit_low']))
@@ -124,13 +126,15 @@ class FunGen(BaseInstrument):
                 self.enable_voltage_limits(ch, True)
                 sleep(0.1)
 
-                self.logger.debug('Applying High Voltage {}'.format(di['waveform']['high']))
-                self.set_voltage_high(ch, ur(di['waveform']['high']))
-                sleep(0.1)
+                if 'high' in di['waveform'].keys():
+                    self.logger.debug('Applying High Voltage {}'.format(di['waveform']['high']))
+                    self.set_voltage_high(ch, ur(di['waveform']['high']))
+                    sleep(0.1)
 
-                self.logger.debug('Applying Low Voltage {}'.format(di['waveform']['low']))
-                self.set_voltage_low(ch, ur(di['waveform']['low']))
-                sleep(0.1)
+                if 'low' in di['waveform'].keys():
+                    self.logger.debug('Applying Low Voltage {}'.format(di['waveform']['low']))
+                    self.set_voltage_low(ch, ur(di['waveform']['low']))
+                    sleep(0.1)
 
                 if 'dc' in di['waveform'].keys():
                     self.logger.debug('Setting DC offset {} for channel.'.format(di['waveform']['dc']))
