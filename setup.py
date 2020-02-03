@@ -14,7 +14,7 @@ install_requires = [
         'lantz_sims',
         'pyvisa-py',
         'pyserial',
-        'pynput'
+        'pynput',
         'netcdf4>=1.4',
         'pip>=19',
         'xarray']
