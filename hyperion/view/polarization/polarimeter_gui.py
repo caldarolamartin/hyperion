@@ -35,7 +35,7 @@ class PolarimeterGui(BaseGui):
 
     MODES = ['Monitor', 'Time Trace'] # measuring modes
 
-    def __init__(self, polarimeter_ins, plot_window):
+    def __init__(self, polarimeter_ins, plot_window, also_close_output=False):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         # to load from the UI file
