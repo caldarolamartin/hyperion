@@ -401,7 +401,7 @@ class Anc350Instrument(BaseInstrument):
 
             self.controller.dcLevel(self.attocube_piezo_dict[axis]['axis'], int(voltage.m_as('mV')))
 
-            time.sleep(0.5)
+            #time.sleep(0.5)
 
             # dc = self.controller.getDcLevel(self.attocube_piezo_dict[axis]['axis']) * ur('mV')
             #

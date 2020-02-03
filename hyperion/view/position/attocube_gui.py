@@ -625,7 +625,6 @@ class Attocube_GUI(BaseGui):
         self.anc350_instrument.stop_moving('ZPiezoStepper')
 
         if self.moving_thread.isRunning:
-            print('is running')
             self.moving_thread.quit()
 
         self.anc350_instrument.stop = False
