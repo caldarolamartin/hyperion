@@ -8,7 +8,7 @@ display:
   flip: True
 data_file:
   confirm_overwrite: False
-  autosave: 'No'  #Auto
+  autosave: 'Auto'  #Auto
 timing:
   mode: 'Free Run'
   fast_safe: 'Fast'
