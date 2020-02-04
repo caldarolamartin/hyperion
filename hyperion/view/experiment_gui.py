@@ -20,7 +20,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.console
 import numpy as np
 from pyqtgraph.dockarea import DockArea, Dock
-
+import hyperion
 
 class ExpGui(QMainWindow):
 
@@ -131,7 +131,10 @@ class ExpGui(QMainWindow):
         self.helpMenu = mainMenu.addMenu('Help')
 
         # When we build sphinx docs, we could add a link to open them in a browser
-        self.helpMenu.addAction('&Documentation', lambda: print('Documentation is not implemented yet'))
+        local_doc = os.path.join(hyperion.repository_path, 'docs', 'build', 'index.html')
+        if os.path.isfile(local_doc):
+            self.helpMenu.addAction('Local Hyperion &Documentation', lambda: QDesktopServices.openUrl(QUrl(local_doc.replace('\\','/'))))
+        self.helpMenu.addAction('Hyperion &Read-the-docs', lambda: QDesktopServices.openUrl(QUrl(r'https://nanooptics-hyperion.readthedocs.io/en/latest/')))
         self.helpMenu.addAction('&PyQtGraph examples', self.__show_pyqtgraph_examples)
         self.helpMenu.addAction('&About', self.__about_dialog)
 
