@@ -38,7 +38,7 @@ class Skpolarimeter(BaseController):
         if 'dll_path' in settings.keys():
             path = settings['dll_path']
         else:
-            path = 'C:/Users/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeterMFC_VS2015_x64/x64/Release/'
+            path = 'D:/mcaldarola/surfdrive/NanoCD/Setup/SK/SKPolarimeterMFC_VS2015_x64/x64/Release/'
 
         name = settings['dll_name']
         self.logger.debug('DLL to use: {}.dll'.format(path + name))
