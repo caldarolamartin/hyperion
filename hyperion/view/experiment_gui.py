@@ -104,7 +104,7 @@ class ExpGui(QMainWindow):
         mainMenu = self.menuBar()
         self.fileMenu = mainMenu.addMenu('&File')
         self.fileMenu.addAction("&Load Config File", self.load_config)
-        self.fileMenu.addAction("&Modify Config File", self.modify_config)
+        # self.fileMenu.addAction("&Modify Config File", self.modify_config)  # Disabled this for now because it's too buggy
         self.fileMenu.addAction("&Reconnect Instruments", self.reconnect_instruments)
         self.fileMenu.addAction("&Quit", self.close)
 
