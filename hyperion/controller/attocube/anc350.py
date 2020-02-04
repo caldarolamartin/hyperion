@@ -77,13 +77,12 @@ from hyperion import root_dir
 
 class Anc350(BaseController):
     """
-    Class for the controller
+    Class for the ANC350 controller
 
-    :param settings: this includes all the settings needed to connect to the device in question.
+    :param settings: this includes all the settings needed to connect to the device in question, in this case just dummy.
     :type settings: dict
     """
     def __init__(self, settings):
-        """ INIT of the class """
         super().__init__()  # runs the init of the base_controller class.
         self.logger = logging.getLogger(__name__)
         self.name = 'ANC350'
@@ -92,18 +91,10 @@ class Anc350(BaseController):
         self.posinf = []
         self.numconnected = []
         self.status = []
-        self.logger.info('Class ANC350 init. Created object.')
+        self.logger.debug('Class ANC350 init. Created object.')
 
-        if 'temperature' in settings:
-            self.logger.debug('The given cryostat temperature is {}'.format(settings['temperature']))
-            if settings['temperature'] == '4K':
-                self.max_dclevel_mV = 60000
-            else:
-                self.max_dclevel_mV = 30000
-        else:
-            self.max_dclevel_mV = 30000
-
-        self.max_dcLevel_mV_300K = 30000
+        self.max_dclevel_mV = 140000
+        self.max_dcLevel_mV_300K = 60000
 
         self.max_amplitude_mV = 60000
         self.max_frequency_Hz = 2000
@@ -118,7 +109,6 @@ class Anc350(BaseController):
         """| Initializes the controller.
         | Checks for attocube controller units and connects to it.
         | **Pay attention: there are 6 positioners, but only 1 controller; we connect to the 1.**
-
         """
         self.check()
         self.connect()
@@ -130,15 +120,14 @@ class Anc350(BaseController):
         self.posinf = ANC350lib.PositionerInfo() #create PositionerInfo Struct
         self.numconnected = ANC350lib.positionerCheck(ctypes.byref(self.posinf)) #look for positioners!
         if self.numconnected > 0:
-            self.logger.info(str(self.numconnected) + 'ANC350 connected')
-            self.logger.info('ANC350 with id:'+ str(self.posinf.id) +'has locked state:' + str(self.posinf.locked))
+            self.logger.debug(str(self.numconnected) + 'ANC350 connected')
+            self.logger.debug('ANC350 with id:'+ str(self.posinf.id) +'has locked state:' + str(self.posinf.locked))
 
     def connect(self):
         """| Establishes connection to the first attocube device found.
         | **Pay attention: the 0 that you give to the ANC350lib.Int32 is the first attocube device; not the first of the 6 positioners.**
         """
         self.handle = ANC350lib.Int32(0)
-        'I am reaching the handle'
         try:
             ANC350lib.positionerConnect(0,ctypes.byref(self.handle)) #0 means "first device"
             self.logger.info('connected to first (and only) attocube device')
@@ -204,20 +193,9 @@ class Anc350(BaseController):
             filestring_pointer = ctypes.c_char_p(filestring)  # create c pointer to variable length char array
             ANC350lib.positionerLoad(self.handle, ctypes.c_int(axis), filestring_pointer)
 
-            self.logger.debug('loading actor appears to have succeeded')
+            self.logger.debug('Loading actor file for attocube piezo appears to have succeeded')
         else:
             self.logger.warning('you are trying to load an actor file for a Scanner, that doesnt need any')
-
-        # The old one letter version:
-        # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(filename.encode())))
-
-        # ANC350lib.positionerLoad(self.handle, axis, ctypes.byref(ctypes.c_char(bytearray(filename.encode()))))
-
-        #ANC350lib.positionerLoad(self.handle,axis,ctypes.byref(ctypes.c_char_p(filename.encode('utf-8'))))
-
-        #f = ctypes.create_string_buffer(filename.encode())
-
-
 
     #Used methods only stepper
     #----------------------------------------------------------------------------------------------------
@@ -333,7 +311,7 @@ class Anc350(BaseController):
         """
         self.stepwdth = ANC350lib.Int32(0)
         ANC350lib.positionerGetStepwidth(self.handle,axis,ctypes.byref(self.stepwdth))
-        self.logger.info('stepwidth is here ' + str(self.stepwdth.value))
+        self.logger.debug('stepwidth is here ' + str(self.stepwdth.value))
         return self.stepwdth.value
 
     def moveAbsolute(self, axis, position, rotcount=0):
@@ -349,7 +327,7 @@ class Anc350(BaseController):
 
         :param rotcount: optional argument position units are in 'unit of actor multiplied by 1000' (generally nanometres)
         """
-        self.logger.info('Moving axis {} to an absolute value: {}'.format(axis, position))
+        self.logger.debug('Moving axis {} to an absolute value: {}'.format(axis, position))
         ANC350lib.positionerMoveAbsolute(self.handle,axis,position,rotcount)
 
     def moveRelative(self, axis, position, rotcount=0):
@@ -821,7 +799,7 @@ if __name__ == "__main__":
 
     import time
 
-    with Anc350(settings = {'dummy': False, 'temperature': '300K'}) as anc:
+    with Anc350(settings = {'dummy': False}) as anc:
         anc.initialize()
 
         #-------------------------------
