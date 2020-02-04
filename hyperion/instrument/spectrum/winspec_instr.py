@@ -230,11 +230,18 @@ class WinspecInstr(BaseInstrument):
 
 
 
-    def collect_spectrum(self, wait=True, sleeptime=False):
+    def collect_spectrum(self, sleeptime=False):
         """
         | Retrieves the last acquired spectrum from Winspec.
-        | **Pay attention: you need to extra sleeps if you are autosaving with Winspec**
-        | If you are not using the Autosave option, you have to put sleeptime to False.
+        | There are a few possibilities:
+        | - you are not using the autosave of winspec: there will be no sleeps
+        | - you are using the autosave of winspec, but not saving the ascii: there will be no sleeps
+        | - you are using the autosave of winspec, and saving ascii: you need some sleeptime, otherwise things break
+        | - in case of acquiring a spectrum, 0.1s is enough for sleeping
+        | - in case of acquiring an image, you need 1s in between and 2s afterwards
+        | Winspec does wait while acquiring data, but does not send a wait command when it is autosaving.
+        | So the combination of autosaving big ascii data in a scan would cause problems without the sleep.
+        | **Pay attention: if you do get the sleeps unwanted, check whether you are sending the correct yml config file! **
 
         :param wait: If wait is True (DEFAULT) it will wait for WinSpec to finish collecting data.
         :type wait: bool
@@ -244,18 +251,27 @@ class WinspecInstr(BaseInstrument):
 
         :return: list or nested list
         """
-        if wait:
-            while self.is_acquiring:
-                if sleeptime:
-                    time.sleep(1)       #use this one if you want to autosave images
-                else:
-                    time.sleep(0.1)     #this is enough if you autosave spectra
-                self.logger.debug("acquiring? {}".format(self.is_acquiring))
 
-            #this sleep is to save an image as ASCII, that takes quite some time,
-            # and Winspec breaks if you dont give that time
-            if sleeptime:
-                time.sleep(2)
+        self.logger.debug('saving ascii? {}'.format(self.config_settings['ascii_file']))
+        self.logger.debug('autosaving? {}'.format(self.autosave))
+
+        if self.autosave == 'Auto':
+            if self.config_settings['ascii_file']:
+                while self.is_acquiring:
+                    if sleeptime:
+                        time.sleep(1)       #use this one if you want to autosave images
+                    else:
+                        time.sleep(0.1)     #this is enough if you autosave spectra
+                    self.logger.debug("acquiring? {}".format(self.is_acquiring))
+
+                #this sleep is to save an image as ASCII, that takes quite some time,
+                # and Winspec breaks if you dont give that time
+                if sleeptime:
+                    time.sleep(2)
+        else:
+            #No sleeps, just wait untill winspec tells that it is finished
+            while self.is_acquiring:
+                self.logger.debug("acquiring? {}".format(self.is_acquiring))
 
         self.frame = self.doc.GetFrame(1,self.controller._variant_array)
         # return frame                      # direct tuple of tuples
@@ -277,7 +293,7 @@ class WinspecInstr(BaseInstrument):
         """
 
         self.start_acquiring(name)
-        return self.collect_spectrum(True, sleeptime)
+        return self.collect_spectrum(sleeptime)
 
     def take_spectrum_alt(self, name=None, sleeptime=True):
         """
@@ -952,14 +968,8 @@ class WinspecInstr(BaseInstrument):
         self.ascii_output = self.config_settings['ascii_file']
         self.logger.debug('Saving ascii file: ' + str(self.ascii_output)) #this is correct if you look at Winspec, but wrong here!!!
 
-
-
-
-
 if __name__ == "__main__":
     #logging.stream_level = logging.INFO
-
-
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
@@ -971,9 +981,17 @@ if __name__ == "__main__":
 
     ws = WinspecInstr(settings)
 
-    ws.setROI(top = 470, bottom = 500, left = 400, right = 599)
+    #ws.setROI(top = 470, bottom = 500, left = 400, right = 599)
 
     print('\nROI = ', ws.getROI())
+
+    print('Taking spectrum ...')
+    counts = ws.take_spectrum('image')
+    nm = ws.nm_axis()
+    #print(nm,counts)
+
+    ws.shutter_control = 'Closed'
+
 
 
     # ws.configure_settings()
@@ -1039,14 +1057,7 @@ if __name__ == "__main__":
         if ws.central_nm > 450:
             ws.central = 400
 
-    print('Taking spectrum ...')
-    counts = ws.take_spectrum('image')
-    nm = ws.nm_axis()
-    #print(nm,counts)
 
-    ws.shutter_control = 'Closed'
-
-    ws.central_wav = 300
 
 
 

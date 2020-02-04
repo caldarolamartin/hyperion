@@ -38,6 +38,7 @@ class SpectrumGUI(BaseGui):
         | The central wavelength is a spinbox and the suffix nm is always added.
         """
         self.expo_value = QDoubleSpinBox()
+        self.expo_value.setMaximum(99999)
         self.expo_units = QComboBox()
         display_units = ['us', 'ms', 's', 'min', 'hr']
         self.expo_units.addItems(display_units)

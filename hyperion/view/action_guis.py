@@ -158,7 +158,6 @@ class ScanActuator(BaseGui):
         self.step_value.valueChanged.connect(self.step_changed)
         self.step_units.currentIndexChanged.connect(self.step_changed)
 
-
         self.stop_um = QDoubleSpinBox()
         self.step_um = QDoubleSpinBox()
         self.layout.addWidget(QWidget())  # adding this empty widget helps with aligning the layout in a prettier way
