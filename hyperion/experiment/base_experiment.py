@@ -1088,7 +1088,6 @@ class BaseExperiment:
         self.logger.debug('Instrument: {} has been loaded and added to instrument_instances'.format(name))
         return instance
 
-
     def load_meta_instrument(self, name):
         """
         Loads a single instrument given by name.

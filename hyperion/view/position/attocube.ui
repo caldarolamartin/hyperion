@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>538</width>
-    <height>465</height>
+    <width>518</width>
+    <height>355</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_11">
+  <layout class="QGridLayout" name="gridLayout_6">
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox_basic">
      <property name="palette">
@@ -56,8 +56,8 @@
      <property name="title">
       <string/>
      </property>
-     <layout class="QGridLayout" name="gridLayout_5">
-      <item row="0" column="0">
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
        <widget class="QComboBox" name="comboBox_axis">
         <item>
          <property name="text">
@@ -81,7 +81,7 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item>
        <widget class="QGroupBox" name="groupBox_XY">
         <property name="title">
          <string/>
@@ -118,7 +118,7 @@
         </layout>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item>
        <widget class="QGroupBox" name="groupBox_Z">
         <property name="title">
          <string/>
@@ -141,7 +141,26 @@
         </layout>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item>
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_temperature">
+        <property name="suffix">
+         <string>K</string>
+        </property>
+        <property name="minimum">
+         <double>4.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>350.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>300.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="pushButton_stop">
         <property name="text">
          <string>STOP</string>
@@ -454,7 +473,7 @@
      <property name="title">
       <string/>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
        <widget class="QStackedWidget" name="stackedWidget_stepper">
         <property name="currentIndex">
@@ -462,7 +481,7 @@
         </property>
         <widget class="QWidget" name="stackedWidgetempty"/>
         <widget class="QWidget" name="stackedWidgetMoving">
-         <layout class="QGridLayout" name="gridLayout_4">
+         <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="0">
            <widget class="QComboBox" name="comboBox_kindOfMove">
             <item>
@@ -489,14 +508,32 @@
           </item>
           <item row="0" column="1" rowspan="2">
            <widget class="QGroupBox" name="groupBox_arrows">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="title">
              <string/>
             </property>
-            <layout class="QGridLayout" name="gridLayout_6">
+            <layout class="QGridLayout" name="gridLayout_4">
              <item row="0" column="1">
               <widget class="QPushButton" name="pushButton_up">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>up</string>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>10</width>
+                 <height>16</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -505,12 +542,30 @@
                <property name="text">
                 <string>left</string>
                </property>
+               <property name="iconSize">
+                <size>
+                 <width>10</width>
+                 <height>16</height>
+                </size>
+               </property>
               </widget>
              </item>
              <item row="1" column="2">
               <widget class="QPushButton" name="pushButton_right">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>right</string>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>10</width>
+                 <height>16</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -518,6 +573,12 @@
               <widget class="QPushButton" name="pushButton_down">
                <property name="text">
                 <string>down</string>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>10</width>
+                 <height>16</height>
+                </size>
                </property>
               </widget>
              </item>

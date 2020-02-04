@@ -19,7 +19,6 @@ class SpectrumGUI(BaseGui):
         super().__init__(parent)
         self.actiondict = actiondict
         self.experiment = experiment
-
         self.last_row = 0
 
         self.initUI()
@@ -39,6 +38,7 @@ class SpectrumGUI(BaseGui):
         | The central wavelength is a spinbox and the suffix nm is always added.
         """
         self.expo_value = QDoubleSpinBox()
+        self.expo_value.setMaximum(99999)
         self.expo_units = QComboBox()
         display_units = ['us', 'ms', 's', 'min', 'hr']
         self.expo_units.addItems(display_units)
@@ -111,7 +111,6 @@ class SpectrumGUI(BaseGui):
                                                                               Q_(self.actiondict['exposuretime_min']),
                                                                               Q_(self.actiondict['exposuretime_max'])))
         if hasattr(self,'measurement_gui_parent'):
-            print('found the measurement gui parent')
             self.measurement_gui_parent.update_from_guis()
 
     def grating_changed(self):
