@@ -101,6 +101,9 @@ class ScanActuator(BaseGui):
             pint_values.append(Q_(self.actiondict['start_max']))
             pint_values.append(Q_(self.actiondict['stop_max']))
             pint_values.append(Q_(self.actiondict['step_max']))
+
+            print(self.actiondict['stop_max'])
+
             pint_units = {}
             for v in pint_values:
                 if v is not None and v.u not in pint_units:
@@ -157,7 +160,6 @@ class ScanActuator(BaseGui):
             pint_to_spin_combo( step, self.step_value, self.step_units)
         self.step_value.valueChanged.connect(self.step_changed)
         self.step_units.currentIndexChanged.connect(self.step_changed)
-
 
         self.stop_um = QDoubleSpinBox()
         self.step_um = QDoubleSpinBox()

@@ -968,14 +968,8 @@ class WinspecInstr(BaseInstrument):
         self.ascii_output = self.config_settings['ascii_file']
         self.logger.debug('Saving ascii file: ' + str(self.ascii_output)) #this is correct if you look at Winspec, but wrong here!!!
 
-
-
-
-
 if __name__ == "__main__":
     #logging.stream_level = logging.INFO
-
-
 
     settings = {'port': 'None', 'dummy': False,
                 'controller': 'hyperion.controller.princeton.winspec_contr/WinspecContr'}
