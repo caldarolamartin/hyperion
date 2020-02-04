@@ -101,9 +101,6 @@ class ScanActuator(BaseGui):
             pint_values.append(Q_(self.actiondict['start_max']))
             pint_values.append(Q_(self.actiondict['stop_max']))
             pint_values.append(Q_(self.actiondict['step_max']))
-
-            print(self.actiondict['stop_max'])
-
             pint_units = {}
             for v in pint_values:
                 if v is not None and v.u not in pint_units:
