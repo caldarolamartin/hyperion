@@ -25,6 +25,9 @@ To request the value for a keyword try:
 ws.controller.exp_get('EXPOSURETIME')
 ws.controller.exp_get('GRAT_GROOVES')
 
+.. seealso::
+    :doc:`../controller/winspec`
+
 """
 import threading
 from hyperion import logging, package_path
@@ -46,8 +49,8 @@ class WinspecInstr(BaseInstrument):
         To overwrite certain possible values add a key conaining a list of possible values to the settings dict:
         For example, if your WinSpec does not have 'Normal' mod in shutter_controls, add this key:
         shutter_controls:
-          - Closed
-          - Opened
+        - Closed
+        - Opened
 
     """
 
@@ -142,6 +145,7 @@ class WinspecInstr(BaseInstrument):
     def _remove_unavailable(self, settings_key, default_options_list):
         """
         Low level function to remove items from options_list that don't occur in settings_list and replace with their index.
+
         :param settings_key: the key name in the settings dict
         :param default_options_list: list of default values
         :return: corrected list
@@ -212,9 +216,9 @@ class WinspecInstr(BaseInstrument):
         # return frame                      # direct tuple of tuples
         # return np.asarray(frame)          # np approach
         if len(self.frame[0])==1:
-            return [col[0] for col in self.frame] # convert to 1D list
+            return [col[0] for col in self.frame]  # convert to 1D list
         else:
-            return [list(col) for col in self.frame] # convert to nested list
+            return [list(col) for col in self.frame]  # convert to nested list
 
     def start_focus(self):
 
@@ -241,7 +245,7 @@ class WinspecInstr(BaseInstrument):
         | - in case of acquiring an image, you need 1s in between and 2s afterwards
         | Winspec does wait while acquiring data, but does not send a wait command when it is autosaving.
         | So the combination of autosaving big ascii data in a scan would cause problems without the sleep.
-        | **Pay attention: if you do get the sleeps unwanted, check whether you are sending the correct yml config file! **
+        | **Pay attention: if you do get the sleeps unwanted, check whether you are sending the correct config yml file!**
 
         :param wait: If wait is True (DEFAULT) it will wait for WinSpec to finish collecting data.
         :type wait: bool
@@ -309,6 +313,7 @@ class WinspecInstr(BaseInstrument):
         """
         Make WinSpec save current spectrum to disk (in format specified in WinSpec).
         Note: I's also possible to use autosave function of WinSpec:  self.autosave = 'Auto'
+
         :param filename: The full path to save the file. If None specified it used default name.
         :type filename: string
         :return:
@@ -336,9 +341,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Grating number (starts at 1)
 
-        getter: Returns current grating number
-        setter: Switched to new grating. Waits for it to complete.
-        type: int
+        :getter: Returns current grating number
+        :setter: Switched to new grating. Waits for it to complete.
+        :type: int
         """
         return self.controller.spt_get('CUR_GRATING')[0]
 
@@ -361,9 +366,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Central position of grating in nm
 
-        getter: Returns current central position of grating
-        setter: Rotates grating to new nm position. Waits for it to complete.
-        type: float
+        :getter: Returns current central position of grating
+        :setter: Rotates grating to new nm position. Waits for it to complete.
+        :type: float
         """
 
         return self.controller.spt_get('CUR_POSITION')[0]
@@ -387,8 +392,8 @@ class WinspecInstr(BaseInstrument):
         """
         read-only attribute: Temperature measured by Winspec in degrees Celcius.
 
-        getter: Returns the Temperature measured by Winspec.
-        type: float
+        :getter: Returns the Temperature measured by Winspec.
+        :type: float
         """
         return self.controller.exp_get('ACTUAL_TEMP')[0]
 
@@ -397,8 +402,8 @@ class WinspecInstr(BaseInstrument):
         """
         read-only attribute: Temperature locked state measured by Winspec in degrees Celcius.
 
-        getter: Returns True is the Temperature is "locked"
-        type: bool
+        :getter: Returns True is the Temperature is "locked"
+        :type: bool
         """
         return self.controller.exp_get('TEMP_STATUS')[0] == 1
 
@@ -407,9 +412,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Detector target temperature in degrees Celcius.
 
-        getter: Returns Target Temperature set in Winspec
-        setter: Attempts to updates Target Temperature in Winspec if required. Gives warning if failed.
-        type: float
+        :getter: Returns Target Temperature set in Winspec
+        :setter: Attempts to updates Target Temperature in Winspec if required. Gives warning if failed.
+        :type: float
         """
         self._target_temp = self.controller.exp_get('TEMPERATURE')[0]
         return self._target_temp
@@ -428,9 +433,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Display Rotate.
 
-        getter: Returns if Display Rotation is set in Winspec.
-        setter: Sets Display Rotation in Winspec.
-        type: bool
+        :getter: Returns if Display Rotation is set in Winspec.
+        :setter: Sets Display Rotation in Winspec.
+        :type: bool
         """
         return self.controller.exp_get('ROTATE')[0] == 1
 
@@ -443,9 +448,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Display Reverse (left-right)
 
-        getter: Returns if Display Reverse is set in Winspec.
-        setter: Sets Display Reverse in Winspec.
-        type: bool
+        :getter: Returns if Display Reverse is set in Winspec.
+        :setter: Sets Display Reverse in Winspec.
+        :type: bool
         """
         return self.controller.exp_get('REVERSE')[0] == 1
 
@@ -458,9 +463,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Display Flip (up-down).
 
-        getter: Returns if Display Flip is set in Winspec.
-        setter: Sets Display Flip in Winspec.
-        type: bool
+        :getter: Returns if Display Flip is set in Winspec.
+        :setter: Sets Display Flip in Winspec.
+        :type: bool
         """
         return self.controller.exp_get('FLIP')[0] == 1
 
@@ -476,9 +481,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: ADC Gain value.
 
-        getter: Returns Gain set in Winspec
-        setter: Attempts to updates Gain setting in Winspec if required. Gives warning if failed.
-        type: int
+        :getter: Returns Gain set in Winspec
+        :setter: Attempts to updates Gain setting in Winspec if required. Gives warning if failed.
+        :type: int
         """
         self._gain = self.controller.exp_get('GAIN')[0]
         return self._gain
@@ -498,7 +503,8 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: CCD Readout mode.
         default possible values: 'Full' 'ROI'
-        type: str
+
+        :type: str
         """
         number = ws.controller.exp_get('USEROI')[0]
         return self._ccd[number]
@@ -513,6 +519,7 @@ class WinspecInstr(BaseInstrument):
     def spec_mode(self):
         """
         attribute: True for Spectroscopy Mode, False for Imaging Mode
+
         :type: bool
         """
         return ws.controller.exp_get('ROIMODE')[0]==1
@@ -536,6 +543,7 @@ class WinspecInstr(BaseInstrument):
         Note for the new camera (the 1024x1024 one) the  horizontal range needs to be a multiple of 4 pixels.
         If the users input fails this criterium, this method will expand the range.
         Also the v_group and h_group, need to fit in the specified range. If the input fails, a suitable value will be used. And the user will be warned.
+
         :param top: Top-pixel number (inclusive) (integer starting at 1). Alternatively 'full_im' (=DEFAULT) of 'full_spec' can be use.
         :param bottom: Bottom-pixel number (integer). DEFAULT value is bottom of chip
         :param v_binsize: Vertical bin-size in number of pixels (integer). None sums from 'top' to 'bottom'. DEFAULT: None
@@ -544,16 +552,17 @@ class WinspecInstr(BaseInstrument):
         :param h_binsize: Horizontal binning (integer), DEFAULT is 1
         :return:
 
-        Examples:
-        setROI('full_im')   returns the full CCD
-        setROI('full_spec') returns the full CCD, summed vertically to result in 1D array
-        setROI(51)          sums from pixel 51 to the bottom
-        setROI(51, 70)      sums vertically from pixel 51 to 70
-        setROI(51, 70, 20)  sums vertically from pixel 51 to 70
-        setROI(41, 60, 5)   result in 4 bins of 5 pixles
-        setROI(41, 60, 1)   no binning, result will be 20 pixels high
-        setROI(41, 60, None, 101, 601)      modify horizontal range
-        setROI(41, 60, None, 101, 601, 10)  apply horizontal binning of 10 pixels (result will be 50 datapoints wide)
+        :Examples:
+            >>>
+            setROI('full_im')     returns the full CCD
+            setROI('full_spec')   returns the full CCD, summed vertically to result in 1D array
+            setROI(51)            sums from pixel 51 to the bottom
+            setROI(51, 70)        sums vertically from pixel 51 to 70
+            setROI(51, 70, 20)    sums vertically from pixel 51 to 70
+            setROI(41, 60, 5)     result in 4 bins of 5 pixles
+            setROI(41, 60, 1)     no binning, result will be 20 pixels high
+            setROI(41, 60, None, 101, 601)      modify horizontal range
+            setROI(41, 60, None, 101, 601, 10)  apply horizontal binning of 10 pixels (result will be 50 datapoints wide)
         """
         self.logger.debug('right{}, left{}'.format(right,left))
 
@@ -657,9 +666,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Number of Accumulations.
 
-        getter: Returns the Number of Accumulations set in Winspec
-        setter: Attempts to updates the Number of Accumulations in Winspec if required. Gives warning if failed.
-        type: int
+        :getter: Returns the Number of Accumulations set in Winspec
+        :setter: Attempts to updates the Number of Accumulations in Winspec if required. Gives warning if failed.
+        :type: int
         """
         self._accums = self.controller.exp_get('ACCUMS')[0]
         return self._accums
@@ -677,9 +686,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Exposure Time.
 
-        getter: Returns the Exposure Time set in Winspec
-        setter: Attempts to updates the Exposure Time in Winspec if required. Gives warning if failed.
-        type: Pint Quantity of unit time
+        :getter: Returns the Exposure Time set in Winspec
+        :setter: Attempts to updates the Exposure Time in Winspec if required. Gives warning if failed.
+        :type: Pint Quantity of unit time
         """
 
         winspec_exposure_units = [ur('us'), ur('ms'), ur('s'), ur('min')]
@@ -759,9 +768,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Background Subtraction
 
-        getter: Returns if Background Subtraction is enabled.
-        setter: Sets Background Subtraction.
-        type: bool
+        :getter: Returns if Background Subtraction is enabled.
+        :setter: Sets Background Subtraction.
+        :type: bool
         """
         return self.controller.exp_get('BBACKSUBTRACT')[0] == 1     # turn it into bool
 
@@ -774,7 +783,8 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Full path to Background File
         Note: it does not check if the file exists or is it is a valid file.
-        type: string
+
+        :type: string
         """
         return self.controller.exp_get('DARKNAME')[0]
 
@@ -797,7 +807,8 @@ class WinspecInstr(BaseInstrument):
     def confirm_overwrite(self):
         """
         attribute: Confirm Overwrite File
-        type: bool
+
+        :type: bool
         """
         return self.controller.exp_get('OVERWRITECONFIRM')[0] == 1  # turn it into bool
 
@@ -808,9 +819,8 @@ class WinspecInstr(BaseInstrument):
     @property
     def filename(self):
         """
-        Note that this needs to be set before aqcuiring a spectrum.
-        If you want to store the SPE files as well, the best approach is to make sure
-          self.autosave = 'Auto'
+        Note that this needs to be set before acquiring a spectrum.
+        If you want to store the SPE files as well, the best approach is to make sure self.autosave = 'Auto'
 
         use take_spectrum('new_name.SPE')
         :return:
@@ -826,7 +836,8 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Auto-save and prompts:
         default possible values: 'Ask', 'Auto', 'No'
-        type: str
+
+        :type: str
         """
         number = self.controller.exp_get('AUTOSAVE')[0] - 1
         return self._autosave[number]
@@ -843,7 +854,8 @@ class WinspecInstr(BaseInstrument):
     def delay_time_s(self):
         """
         attribute: The delay time under Experiment/Timing in seconds
-        type: float
+
+        :type: float
         """
         # Experiment / Timing / Delay Time in seconds
         return self.controller.exp_get('DELAY_TIME')[0]
@@ -856,6 +868,7 @@ class WinspecInstr(BaseInstrument):
     def _setter_string_to_number(self, string, available_list):
         """
         Low level helper method that returns index of string in available_list.
+
         :param string: string to find
         :param available_list: list of possible strings
         :return: The index of the string if found, -1 otherwise (to indicate not found)
@@ -873,7 +886,8 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Timing Mode
         default possible values: 'Normal', 'Closed', 'Opened'
-        type: str
+
+        :type: str
         """
         number = self.controller.exp_get('TIMING_MODE')[0]
         return self._timing_modes[number]
@@ -889,7 +903,8 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Shutter Control
         default possible values: ? , 'Free Run', ? , 'External Sync'
-        type: str
+
+        :type: str
         """
         number = self.controller.exp_get('SHUTTER_CONTROL')[0]
         return self._shutter_controls[number]
@@ -905,7 +920,8 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Fast or Safe mode in Experiment/Timing
         default possible values: 'Fast', 'Safe'
-        type: str
+
+        :type: str
         """
         number = self.controller.exp_get('SYNC_ASYNC')[0]
         return self._fast_safe[number]
@@ -925,9 +941,9 @@ class WinspecInstr(BaseInstrument):
         """
         attribute: Also save as ASCII file (next to SPE)
 
-        getter: Returns if ASCII save is enabled.
-        setter: Sets saving as ASCII file.
-        type: bool
+        :getter: Returns if ASCII save is enabled.
+        :setter: Sets saving as ASCII file.
+        :type: bool
         """
         return self.controller.exp_get('ASCIIOUTPUTFILE')[0] == 1     # turn it into bool
 
