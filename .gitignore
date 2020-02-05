@@ -4,6 +4,9 @@
 # pycharm project folder
 .idea/*
 
+# environment output
+/environment_output/*
+
 # Compiled python modules.
 *.pyc
 

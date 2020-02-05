@@ -7,7 +7,7 @@ install_requires = [
         'pip>=19',          # Why >=19 ? Will 18 fail?
         'numpy>=1.16',
         'pyqtgraph>=0.10',  # For plotting in Qt
-        'pyqt5>5.8,<5.13.0',# 5.13.1 - 5.14 causes some weird wide layouts that take up too much space
+        'pyqt5>5.8,<=5.13.0',# 5.13.1 - 5.14 causes some weird wide layouts that take up too much space
         'colorama',         # used for logging with color in terminal
         'lantz_core',
         'lantz_drivers',
