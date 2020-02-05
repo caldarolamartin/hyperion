@@ -258,6 +258,7 @@ class WinspecContr(BaseController):
         self.params_tgc = {}
         self.params_tgp = {}
         self.params_dm = {}
+        self.params_x = {}
         self.params_other = {}
         for key in _constants:
             if isinstance(_constants[key], int):
@@ -272,6 +273,8 @@ class WinspecContr(BaseController):
                     self.params_tgp[key[4:]] = _constants[key]
                 elif key[:3] == 'DM_':
                     self.params_dm[key[3:]] = _constants[key]
+                elif key[:2] == 'X_':
+                    self.params_x[key[2:]] = _constants[key]
                 else:
                     self.params_other[key] = _constants[key]
 
