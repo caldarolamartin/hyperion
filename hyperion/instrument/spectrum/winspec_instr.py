@@ -130,6 +130,10 @@ class WinspecInstr(BaseInstrument):
 
         self.configure_settings()
 
+        if self.data_type != 'FLOAT' or self.data_type != 'LONG':
+            self.logger.warning('Datatype should be FLOAT or LONG, not {}. Changing to FLOAT'.format(self.data_type))
+            self.data_type = 'FLOAT'
+
     def _move_grating(self):
         """ Low level function to move grating after specifying the new position. """
         self._is_moving = True
@@ -259,23 +263,10 @@ class WinspecInstr(BaseInstrument):
         self.logger.debug('saving ascii? {}'.format(self.config_settings['ascii_file']))
         self.logger.debug('autosaving? {}'.format(self.autosave))
 
-        if self.autosave == 'Auto':
-            if self.config_settings['ascii_file']:
-                while self.is_acquiring:
-                    if sleeptime:
-                        time.sleep(1)       #use this one if you want to autosave images
-                    else:
-                        time.sleep(0.1)     #this is enough if you autosave spectra
-                    self.logger.debug("acquiring? {}".format(self.is_acquiring))
-
-                #this sleep is to save an image as ASCII, that takes quite some time,
-                # and Winspec breaks if you dont give that time
-                if sleeptime:
-                    time.sleep(2)
-        else:
-            #No sleeps, just wait untill winspec tells that it is finished
-            while self.is_acquiring:
-                self.logger.debug("acquiring? {}".format(self.is_acquiring))
+        self.logger.debug("waiting for Winspec to finish")
+        while self.controller.exp_get('RUNNING_EXPERIMENT')[0]:
+            time.sleep(0.001)
+        self.logger.debug("Winspec finished acquiring and saving")
 
         self.frame = self.doc.GetFrame(1,self.controller._variant_array)
         # return frame                      # direct tuple of tuples
@@ -803,6 +794,24 @@ class WinspecInstr(BaseInstrument):
 # BGTYPE ??
 
     # Experiment / Data File settings: ----------------------------------
+    @property
+    def data_type(self):
+        code = self.controller.exp_get('DATATYPE')[0]
+        # self.logger.debug('datatype code: {}'.format(code))
+        return [name for name, value in self.controller.params_x.items() if value==code][0]
+
+    @data_type.setter
+    def data_type(self,type_name):
+        type_name = type_name.upper()
+        if type_name in self.controller.params_x:
+            try:
+                self.controller.exp_set('DATATYPE', self.controller.params_x[type_name])
+            except:
+                self.logger.warning('Something went wrong trying to set datatype: {}. Check Winspec for allowed values'.format(type_name))
+        else:
+            self.logger.warning('Unknown data type: {}'.format(type_name))
+
+
     @property
     def confirm_overwrite(self):
         """
