@@ -12,6 +12,8 @@ some tools and common solutions we found convenient when building our experiment
 Please note that this is a continuously developing project (and community), so be aware
 of the changes.
 
+More documentation can be found on read the docs: `nanooptics-hyperion <https://nanooptics-hyperion.readthedocs.io/en/latest/>`_
+
 Below you can find the instructions to install locally the package within
 a new conda environment.
 

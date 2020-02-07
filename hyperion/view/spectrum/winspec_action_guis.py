@@ -75,17 +75,17 @@ class SpectrumGUI(BaseGui):
         self.layout.addWidget(QLabel('ROI:'), 0, 3)
 
         if 'ROI' in self.actiondict:
-            roilist = []
+            self.roilist = {}
             teller = 0
-            for key in self.actiondict['ROI']:
-                roilist.append(QDoubleSpinBox())
-                roilist[teller].setMaximum(1500)
-                roilist[teller].setValue(self.actiondict['ROI'][key])
 
-                roilist[teller].valueChanged.connect(lambda state: self.actiondict.__setitem__(key, state))
+            for key in self.actiondict['ROI']:
+                self.roilist[key] = QDoubleSpinBox()
+                self.roilist[key].setMaximum(1500)
+                self.roilist[key].setValue(self.actiondict['ROI'][key])
+                self.roilist[key].valueChanged.connect(self.roi_changed)
 
                 self.layout.addWidget(QLabel(key), teller+1, 3)
-                self.layout.addWidget(roilist[teller],teller+1,4)
+                self.layout.addWidget(self.roilist[key],teller+1,4)
 
                 teller+=1
 
@@ -103,6 +103,18 @@ class SpectrumGUI(BaseGui):
 
         self.layout.addWidget(QLabel('central wavelength: '),2,0)
         self.layout.addWidget(self.central_nm,2,1)
+
+    def roi_changed(self, this_roi):
+        """This method is the one that makes sure of updating the actiondict if any of the ROI is changed by the user.
+        Because the method roi_fields is walking through the list of rois and appending it,
+        if you send the key to this method via valueChanged, it will always give you the list key in the row.
+        So in this method, you walk through the dictionary of spinboxes and compare them to the spinbox that was sending you the valueChanged command,
+        and than you change the actiondict. It's slightly crappy but it works...
+        """
+        for roi in self.roilist:
+            if self.roilist[roi] == self.sender():
+                self.actiondict['ROI'][roi] = self.sender().value()
+                self.logger.debug('Changing ROI {} value to {}'.format(roi,self.sender().value()))
 
     def expo_changed(self):
         """This method is the one that makes sure of updating the actiondict if the exposure time is changed by the user.

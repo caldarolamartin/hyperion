@@ -8,7 +8,6 @@ This is an example file demonstrating how to start your experiment in a GUI.
 """
 import os
 import sys
-import hyperion
 from examples.example_project_with_automated_scanning.my_experiment import MyExperiment
 from hyperion.view.experiment_gui import ExpGui
 from PyQt5.QtWidgets import QApplication
@@ -17,8 +16,8 @@ from PyQt5.QtWidgets import QApplication
 # from hyperion import logging
 # logger = logging.getLogger(__name__)
 
-config_file = os.path.join(hyperion.repository_path, 'examples', 'example_project_with_automated_scanning',
-                           'my_experiment.yml')
+this_folder = os.path.dirname(os.path.abspath(__file__))
+config_file = os.path.join(this_folder, 'my_experiment.yml')
 
 # logging.stream_level = logging.WARNING  # Temporarily change logging level
 experiment = MyExperiment()

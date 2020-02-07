@@ -8,6 +8,8 @@ This controller connects to the Winspec software (which in turn is used to contr
 
 Note: this controller detects if PyQt5 module is laoded and if so it will take precautions to for threading.
 
+.. seealso::
+    :doc:`../instrument/winspec_instr`
 
 """
 # It has been difficult to get this to work.
@@ -256,6 +258,7 @@ class WinspecContr(BaseController):
         self.params_tgc = {}
         self.params_tgp = {}
         self.params_dm = {}
+        self.params_x = {}
         self.params_other = {}
         for key in _constants:
             if isinstance(_constants[key], int):
@@ -270,6 +273,8 @@ class WinspecContr(BaseController):
                     self.params_tgp[key[4:]] = _constants[key]
                 elif key[:3] == 'DM_':
                     self.params_dm[key[3:]] = _constants[key]
+                elif key[:2] == 'X_':
+                    self.params_x[key[2:]] = _constants[key]
                 else:
                     self.params_other[key] = _constants[key]
 
@@ -304,9 +309,10 @@ class WinspecContr(BaseController):
 
     def exp_get(self, msg, *args, **kwargs):
         """ Retrieve WinSpec Experiment parameter
+
         :param msg: should be a key of self.params_exp
         :type msg: string
-        :param *args, **kwargs: Any additional arguments are passed along into the self.exp.GetParam()
+        :param \*args,**kwargs: Any additional arguments are passed along into the self.exp.GetParam()
         :return: returns Winspec value
         :rtype: int or tuple ?
         """
@@ -319,6 +325,7 @@ class WinspecContr(BaseController):
 
     def exp_set(self, msg, value):
         """ Set WinSpec Experiment parameter
+
         :param msg: should be a key of self.params_exp
         :type msg: string
         :param value: The value to set
@@ -335,10 +342,12 @@ class WinspecContr(BaseController):
 
     def spt_get(self, msg, *args, **kwargs):
         """ Retrieve WinSpec Spectrograph parameter
+
         :param msg: should be a key of self.params_spt
         :type msg: string
         :param value: The value to set
         :type value: Depends on parameter (int, float, string)
+        :param \*args,**kwargs: Any additional arguments are passed along into the self.spt.GetParam()
         :return: returns errorvalue, 0 if succeeded
         :rtype: typically a tuple containing an int, float or string
         """
@@ -351,6 +360,7 @@ class WinspecContr(BaseController):
 
     def spt_set(self, msg, value):
         """ Set WinSpec Spectrograph parameter
+
         :param msg: should be a key of self.params_spt
         :type msg: string
         :param value: The value to set
