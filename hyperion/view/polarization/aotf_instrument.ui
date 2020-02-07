@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>376</width>
-    <height>229</height>
+    <width>504</width>
+    <height>275</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -37,12 +37,12 @@
      </property>
      <item>
       <property name="text">
-       <string>Internal</string>
+       <string>internal</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>External</string>
+       <string>external</string>
       </property>
      </item>
     </widget>
@@ -114,14 +114,24 @@
       <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
-      <double>0.100000000000000</double>
+      <double>1.000000000000000</double>
      </property>
      <property name="value">
       <double>1.000000000000000</double>
      </property>
     </widget>
    </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Power</string>
+     </property>
+    </widget>
+   </item>
    <item row="2" column="1">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_power"/>
+   </item>
+   <item row="2" column="2" colspan="2">
     <widget class="QCheckBox" name="checkBox_enable">
      <property name="text">
       <string>Enable</string>
