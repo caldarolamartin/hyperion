@@ -816,6 +816,7 @@ if __name__ == '__main__':
     experiment.load_instruments()
 
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(os.path.join(hyperion.package_path, 'view', 'logo_hyperion.png')))
     main_gui = ExpGui(experiment)
     # sys.exit(app.exec_())
     app.exec_()
