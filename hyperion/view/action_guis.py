@@ -121,6 +121,7 @@ class ScanActuator(BaseGui):
 
         self.start_value = QDoubleSpinBox()
         self.start_value.setMaximum(999999999)          #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        self.start_value.setMinimum(-999999999)
         self.start_units = QComboBox()
         self.start_units.addItems(actuator_units)
         add_pint_to_combo(self.start_units)
@@ -132,6 +133,7 @@ class ScanActuator(BaseGui):
 
         self.stop_value = QDoubleSpinBox()
         self.stop_value.setMaximum(999999999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        self.stop_value.setMinimum(-999999999)
         self.stop_units = QComboBox()
         self.stop_units.addItems(actuator_units)
         add_pint_to_combo(self.stop_units)
