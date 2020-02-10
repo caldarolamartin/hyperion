@@ -81,7 +81,7 @@ class BeamFlagsInstr(BaseInstrument):
 
     def finalize(self):
         """ Closes the connection to the device."""
-        self.logger.debug('Closing connection to device.')
+        self.logger.debug('Closing connection to beam flags.')
         self.controller.finalize()
 
     def idn(self):

@@ -112,7 +112,7 @@ class BeamFlagsGui(QWidget):
         for flag_id in self.bf_settings.keys():
             state = self.bfi.get_specific_flag_state(flag_id)
             if state != self.bf_settings[flag_id]['state']:
-                self.logger.info("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
+                self.logger.debug("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
                 self.bf_settings[flag_id]['state'] = state
                 self.set_label_state(flag_id)
 
@@ -136,7 +136,7 @@ class BeamFlagsGui(QWidget):
         It toggles the state flag of the corresponding beam flag in the settings dict.
         It creates and runs a thread that sets the state of the beam flag on the instrument.
         """
-        self.logger.info("Button of flag '{}' clicked".format(flag_id))
+        self.logger.debug("Button of flag '{}' clicked".format(flag_id))
         state = self.bf_settings[flag_id]['state']
         if state == self.red_char:
             state = self.green_char

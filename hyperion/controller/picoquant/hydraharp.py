@@ -73,7 +73,7 @@ class Hydraharp(BaseController):
 
         super().__init__(config)
         self.logger = logging.getLogger(__name__)
-        self.logger.info('0. hello, this is the correlator (controller) speaking')
+        self.logger.debug('This is the correlator (controller) speaking')
 
         # read the configuration
         self._config = config

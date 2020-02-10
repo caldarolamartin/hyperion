@@ -249,7 +249,7 @@ class WinspecContr(BaseController):
         Main reason to do this is so that programmer can use autocomplete (TAB) to view list of parameters.
         Additionally it generates params_exp and params_SPT with all the EXP and SPT parameters respectively.
         """
-        self.logger.info("Generating dictionary of parameters")
+        self.logger.debug("Generating dictionary of parameters")
         _constants = win32com.client.constants.__dict__['__dicts__'][0]
         # Convert these constants to a regular dictionary and only include key-value pairs of which the value is a number (integer)
         self.params = {}
@@ -293,7 +293,8 @@ class WinspecContr(BaseController):
         self._is_initialized = False
 
     def idn(self):
-        """ Returns Winspec version
+        """ Returns Winspec version.
+        **Pay attention: doesn't seem to work with threads!**
 
         :return: identification for the device
         :rtype: string
