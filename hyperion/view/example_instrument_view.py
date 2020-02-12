@@ -291,10 +291,14 @@ class ExampleOutputGui(pg.PlotWidget):
 
 
 if __name__ == '__main__':
+    from PyQt5.QtGui import QIcon
+    import os
+    import hyperion
 
     example_ins = ExampleInstrument(settings = {'port':'COM8', 'dummy':False,
                                                 'controller': 'hyperion.controller.example_controller/ExampleController'})
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(os.path.join(hyperion.package_path, 'view', 'logo_hyperion.png')))
     output = ExampleOutputGui()
 
     # win = pg.GraphicsWindow(title="Basic plotting examples")
