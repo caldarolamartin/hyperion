@@ -59,8 +59,6 @@ class AotfInstrumentGui(BaseGui):
         """
         self.logger.debug('Setting up the Measurement GUI')
 
-        self.show()
-
         self.gui.comboBox_mode.setCurrentText(self.mode)
         self.gui.comboBox_mode.currentTextChanged.connect(self.mode_changed)
 
@@ -77,6 +75,8 @@ class AotfInstrumentGui(BaseGui):
         self.gui.checkBox_enable.stateChanged.connect(self.enable_changed)
 
         self.gui.pushButton_goto.clicked.connect(self.apply_wavelength)
+
+        self.show()
 
     def mode_changed(self):
         self.mode = self.gui.comboBox_mode.currentText()
@@ -130,10 +130,18 @@ class AotfInstrumentGui(BaseGui):
 
 
 if __name__ == '__main__':
+    from os import path
+    from PyQt5.QtGui import QIcon
     from hyperion.instrument.polarization.aa_aotf import AaAotf
+    from hyperion import package_path
+
+    log = logman.getLogger(__name__)
+
     with AaAotf(settings= {'port':'COM8', 'dummy':False,
                                         'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012',
                                         'apply defaults': False})  as aotf:
+
         app = QApplication(sys.argv)
+        app.setWindowIcon(QIcon(path.join(package_path, 'view', 'logo_hyperion.png')))
         ex = AotfInstrumentGui(aotf)
         sys.exit(app.exec_())
