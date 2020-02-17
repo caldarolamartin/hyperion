@@ -855,7 +855,7 @@ class BaseExperiment:
                 with open(self.__store_properties, 'w') as f:
                     print('yml properties: {}'.format(self.properties))
                     print('yml __store_properties f: {}'.format(f))
-                    yaml.dump(self.properties, f)
+                    yaml.safe_dump(self.properties, f)
                 self.__store_properties = None
 
             # _saver_gui_incremeter is a placeholder that can be overwritten by the gui.

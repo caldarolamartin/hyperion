@@ -41,6 +41,7 @@ class BeamFlagsGui(QWidget):
         self.bfi = beam_flags_instr
         self.bf_settings = self.bfi.settings['gui_flags']
 
+        self.all_labels = {}
 
 
         if 'name' in self.bfi.settings:
@@ -91,7 +92,7 @@ class BeamFlagsGui(QWidget):
             state = self.bfi.get_specific_flag_state(flag_id)
             self.bf_settings[flag_id]['state'] = state
             label = QLabel('')
-            self.bf_settings[flag_id]['label'] = label
+            self.all_labels[flag_id] = label
             button = QPushButton(gui_flag['name'], self)
 
             button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
@@ -138,7 +139,7 @@ class BeamFlagsGui(QWidget):
 
     def set_label_state(self, flag_id):
         """ Sets gui label identified by flag_id to the corresponding value in the state key in settings."""
-        label = self.bf_settings[flag_id]['label']
+        label = self.all_labels[flag_id]
         state = self.bf_settings[flag_id]['state']
         self.logger.info("Set flag '{}' to '{}'".format(flag_id,state))
         if state == self.red_char:
