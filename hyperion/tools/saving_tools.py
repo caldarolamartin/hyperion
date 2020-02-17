@@ -13,7 +13,6 @@ used along hyperion.
 """
 import os
 import yaml
-import copy
 import netCDF4
 import datetime as dt
 import numpy as np
@@ -21,6 +20,9 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from hyperion.core import logman
 from hyperion import __version__, ur, Q_
+
+import copy
+from hyperion.experiment.base_experiment import DefaultDict, ActionDict
 
 logger = logman.getLogger(__name__)
 
@@ -33,7 +35,8 @@ def yaml_dump_builtin_types_only(object, stream=None, mode='remove', replace_wit
     remove: removes the entry
     repr: replaces the object with object.__repr__()
     replace: replaces with the value in replace_with
-    To return the modified object instead of dumping it, set dump to False
+    To return the modified object instead of dumping it, set dump to False.
+    (Note, in case of DefaultDict or ActionDict it only stores the main dict).
 
     :param object: The object to dump
     :param stream: The stream to save the yaml dump (default: None)
@@ -47,10 +50,14 @@ def yaml_dump_builtin_types_only(object, stream=None, mode='remove', replace_wit
         _mode = 1
     elif mode.lower() == 'repr':
         _mode = 2
-    elif mode.lower != 'remove':
+    elif mode.lower() != 'remove':
         logger.warning('unknown mode {}, using default mode: remove'.format(mode))
 
     def _yaml_checker(object, parent=None, k=None):
+        if type(object) is DefaultDict or type(object) is ActionDict:
+            object = object.main_dict
+            if parent is not None:
+                parent[k] = object
         if type(object) is dict:
             for key in list(object):
                 value = object[key]
