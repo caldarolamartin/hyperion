@@ -79,7 +79,11 @@ def yaml_dump_builtin_types_only(object, stream=None, mode='remove', replace_wit
                 else:
                     del parent[k]
 
-    modified = copy.copy(object)
+    try:
+        modified = copy.deepcopy(object)
+    except:
+        modified = copy.copy(object)
+        logger.warning('You were trying to save some weird object in the yml file')
 
     _yaml_checker(modified)
     if dump:
