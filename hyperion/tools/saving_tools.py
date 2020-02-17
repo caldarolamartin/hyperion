@@ -21,7 +21,70 @@ import xarray as xr
 from hyperion.core import logman
 from hyperion import __version__, ur, Q_
 
+import copy
+from hyperion.experiment.base_experiment import DefaultDict, ActionDict
+
 logger = logman.getLogger(__name__)
+
+
+def yaml_dump_builtin_types_only(object, stream=None, mode='remove', replace_with='_invalid_', dump = True):
+    """
+    A replacement for yaml.dump that skips object that can't be dumped safely.
+    Dictionaries and lists are searched recursively.
+    It has 3 modes how to handle invalid entries:
+    remove: removes the entry
+    repr: replaces the object with object.__repr__()
+    replace: replaces with the value in replace_with
+    To return the modified object instead of dumping it, set dump to False.
+    (Note, in case of DefaultDict or ActionDict it only stores the main dict).
+
+    :param object: The object to dump
+    :param stream: The stream to save the yaml dump (default: None)
+    :param mode (str): 'remove' (default), 'repr', 'replace'
+    :param replace_with: What to replace the invalid entry with (default '_invalid_')
+    :param dump (bool): Dumps to stream when True, returns modified object when False. (default: True)
+    :return:
+    """
+    _mode = 0
+    if mode.lower() == 'replace':
+        _mode = 1
+    elif mode.lower() == 'repr':
+        _mode = 2
+    elif mode.lower() != 'remove':
+        logger.warning('unknown mode {}, using default mode: remove'.format(mode))
+
+    def _yaml_checker(object, parent=None, k=None):
+        if type(object) is DefaultDict or type(object) is ActionDict:
+            object = object.main_dict
+            if parent is not None:
+                parent[k] = object
+        if type(object) is dict:
+            for key in list(object):
+                value = object[key]
+                _yaml_checker(value, object, key)
+        elif type(object) is list:
+            for k, element in enumerate(object):
+                _yaml_checker(element, object, k)
+        else:
+            try:
+                yaml.safe_dump(object)
+            except yaml.YAMLError:
+                logger.info(['removed', 'replaced'][bool(_mode)]+' object of type {} (dict key or list element: {})'.format(type(object), k))
+                if parent is None:
+                    parent = object
+                if _mode == 1:
+                    parent[k] = replace_with
+                elif _mode == 2:
+                    parent[k] = parent[k].__repr__()
+                else:
+                    del parent[k]
+
+    modified = copy.deepcopy(object)
+    _yaml_checker(modified)
+    if dump:
+        yaml.safe_dump(modified, stream)
+    else:
+        return modified
 
 
 def name_incrementer(basename, list_of_existing, separator='_', fill_zeros=0, use_number_for_first=None,
