@@ -56,8 +56,6 @@ class BeamFlagsGui(QWidget):
 
         self.initUI()
 
-
-
         # Start timer to repeatedly pull the current state of the toggle switches:
         self.logger.info('Starting timer thread')
         if 'gui_state_update_ms' in self.bfi.settings:
@@ -93,6 +91,9 @@ class BeamFlagsGui(QWidget):
             self.bf_settings[flag_id]['state'] = state
             label = QLabel('')
             self.all_labels[flag_id] = label
+
+            #self.bf_settings[flag_id]['label'] = label
+
             button = QPushButton(gui_flag['name'], self)
 
             button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
