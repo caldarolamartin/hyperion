@@ -238,7 +238,7 @@ class WinspecInstr(BaseInstrument):
 
 
 
-    def collect_spectrum(self, sleeptime=False):
+    def collect_spectrum(self, wait = True, sleeptime = True):
         """
         | Retrieves the last acquired spectrum from Winspec.
         | There are a few possibilities:

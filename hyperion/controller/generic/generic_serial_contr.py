@@ -218,7 +218,7 @@ class GenericSerialController(BaseController):
             
         self.logger.debug('{} bytes received'.format(len(raw)))
         return raw
-           
+
     def read_lines(self, remove_leading_trailing_empty_line=True):
         """
         Reads all lines the device has sent and returns list of strings.

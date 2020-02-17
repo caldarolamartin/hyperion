@@ -122,15 +122,20 @@ class SpectrumGUI(BaseGui):
         self.actiondict['exposuretime'] = str(spin_combo_to_pint_apply_limits(self.expo_value, self.expo_units,
                                                                               Q_(self.actiondict['exposuretime_min']),
                                                                               Q_(self.actiondict['exposuretime_max'])))
+        self.logger.debug('Changing winspec exposuretime')
+
         if hasattr(self,'measurement_gui_parent'):
+            self.logger.debug('winspec action gui can find his parent master gui')
             self.measurement_gui_parent.update_from_guis()
 
     def grating_changed(self):
         """This method updates the grating in the actiondict if the user changes it.
         """
         self.actiondict['grating'] = int(self.grating.currentText())
+        self.logger.debug('Changing winspec grating')
 
     def central_nm_changed(self):
         """This method updates the central wavelength in the actiondict if the user changes it.
         """
         self.actiondict['central_nm'] = int(self.central_nm.value())
+        self.logger.debug('Changing winspec central wavelength')

@@ -35,7 +35,6 @@ class TDC001_cube(core.Motor, BaseController):
         :type settings: dict
         """
 
-
         self.logger = logging.getLogger(__name__)
         self._is_initialized = False
 
