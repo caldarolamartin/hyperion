@@ -283,6 +283,7 @@ class SaverGui(BaseGui):
             self.actiondict['basename'] = basename
             self.file_line.setText(basename)
 
+
     def browse(self):
         folder, basename = self.experiment._validate_folder_basename(self.actiondict)
         fname = QFileDialog.getSaveFileName(self, 'Save data as', os.path.join(folder, basename), filter="netCDF4 (*.nc);;All Files (*.*)")

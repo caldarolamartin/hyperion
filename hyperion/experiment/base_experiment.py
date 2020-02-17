@@ -850,11 +850,11 @@ class BaseExperiment:
             if self._gui_parent is not None:
                 self._gui_parent.lock_instruments(False, measurement_name)
 
+            # safe_dump will not prevent all possible problems;
+            # make sure you dont try to save weird objects in the yml file!!!
             if self.__store_properties:
                 self.logger.info('Storing experiment properties in {}'.format(self.__store_properties))
                 with open(self.__store_properties, 'w') as f:
-                    print('yml properties: {}'.format(self.properties))
-                    print('yml __store_properties f: {}'.format(f))
                     yaml.safe_dump(self.properties, f)
                 self.__store_properties = None
 
