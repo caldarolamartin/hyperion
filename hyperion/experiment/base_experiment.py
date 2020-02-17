@@ -853,6 +853,8 @@ class BaseExperiment:
             if self.__store_properties:
                 self.logger.info('Storing experiment properties in {}'.format(self.__store_properties))
                 with open(self.__store_properties, 'w') as f:
+                    print('yml properties: {}'.format(self.properties))
+                    print('yml __store_properties f: {}'.format(f))
                     yaml.dump(self.properties, f)
                 self.__store_properties = None
 

@@ -454,7 +454,7 @@ class Anc350Instrument(BaseInstrument):
     def finalize(self):
         """ This is to close connection to the device.
         """
-        self.logger.info('Closing connection to device.')
+        self.logger.info('Closing connection to attocube.')
         self.controller.finalize()
 
 
