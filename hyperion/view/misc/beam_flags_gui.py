@@ -92,7 +92,7 @@ class BeamFlagsGui(QWidget):
             label = QLabel('')
             self.all_labels[flag_id] = label
 
-            #self.bf_settings[flag_id]['label'] = label
+            #self.bf_settings[flag_id]['label'] = label     #this will save a python qt object in the yml file = wrong
 
             button = QPushButton(gui_flag['name'], self)
 

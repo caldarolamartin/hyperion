@@ -79,7 +79,8 @@ def yaml_dump_builtin_types_only(object, stream=None, mode='remove', replace_wit
                 else:
                     del parent[k]
 
-    modified = copy.deepcopy(object)
+    modified = copy.copy(object)
+
     _yaml_checker(modified)
     if dump:
         yaml.safe_dump(modified, stream)
