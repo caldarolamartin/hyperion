@@ -67,6 +67,7 @@ class WinspecInstr(BaseInstrument):
         self._fast_safe = self._remove_unavailable('fast_safe', ['Fast', 'Safe'])
         self._ccd = self._remove_unavailable('ccd', ['Full', 'ROI'])
         self._autosave = self._remove_unavailable('autosave', ['Ask', 'Auto', 'No'])
+        self._accums = 1
 
         if 'horz_width_multiple' in self.settings:
             self._horz_width_multiple = self.settings['horz_width_multiple']  # This parameter specifies if camera requires horizontal range of certain interval
