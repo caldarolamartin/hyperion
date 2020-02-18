@@ -1154,7 +1154,7 @@ class BaseExperiment:
                 self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
 
         if 'MetaInstruments' not in self.properties:
-            self.logger.warning('No MetaInstruments in config file')
+            self.logger.info('No MetaInstruments in config file')
         else:
             self.logger.info('Loading all MetaInstruments')
             for meta_instr in self.properties['MetaInstruments']:

@@ -13,6 +13,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from hyperion.instrument.misc.beam_flags_instr import BeamFlagsInstr
 from hyperion.view.general_worker import WorkThread
+import time
 
 class BeamFlagsGui(QWidget):
     """
@@ -119,6 +120,17 @@ class BeamFlagsGui(QWidget):
         self.setLayout(layout)
         self.show()
 
+        # self._setting_label_state = False
+        #
+        # manual_thread = WorkThread(self.timer_thread_method)
+        # manual_thread.start()
+
+    # def timer_thread_method(self):
+    #     #infinite loop!!!!
+    #     while True:
+    #         time.sleep(1)
+    #         #print('I am in the timer')
+    #         self.update_label_states()
 
     def update_label_states(self):
         """ Asks device for current states of all beam flags and updates state key and gui if it has changed."""
@@ -127,6 +139,8 @@ class BeamFlagsGui(QWidget):
             if state != self.bf_settings[flag_id]['state']:
                 self.logger.debug("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
                 self.bf_settings[flag_id]['state'] = state
+                # if self._setting_label_state:
+                #     return
                 self.set_label_state(flag_id)
 
     def fast_update_label_states(self):
@@ -140,6 +154,8 @@ class BeamFlagsGui(QWidget):
 
     def set_label_state(self, flag_id):
         """ Sets gui label identified by flag_id to the corresponding value in the state key in settings."""
+        #self._setting_label_state = True
+
         label = self.all_labels[flag_id]
         state = self.bf_settings[flag_id]['state']
         self.logger.info("Set flag '{}' to '{}'".format(flag_id,state))
@@ -151,6 +167,8 @@ class BeamFlagsGui(QWidget):
             label.setText(self.bf_settings[flag_id]['green_name'])
         else:
             self.logger.warning('received state is unknown')
+
+        #self._setting_label_state = False
 
     def button_clicked(self, flag_id):
         """

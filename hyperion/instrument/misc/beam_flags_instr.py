@@ -73,6 +73,7 @@ class BeamFlagsInstr(BaseInstrument):
 
         self.initialize()
 
+
     def initialize(self):
         """ Starts the connection to the device."""
         self.logger.debug('Opening connection to device.')
@@ -84,7 +85,7 @@ class BeamFlagsInstr(BaseInstrument):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_manual_states)
-        self.timer.start(4000)
+        self.timer.start(5000)
 
     def finalize(self):
         """ Closes the connection to the device."""

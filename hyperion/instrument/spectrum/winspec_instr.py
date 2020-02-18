@@ -1010,6 +1010,16 @@ if __name__ == "__main__":
 
     print('\nROI = ', ws.getROI())
 
+    ws.exposure_time = 2*ur('s')
+    #ws.accumulations = 3
+
+    print('time: {}'.format(ws.exposure_time))
+    print('accumulations: {}'.format(ws.accumulations))
+
+    ws.accumulations = 3
+
+    print('accumulations: {}'.format(ws.accumulations))
+
     print('Taking spectrum ...')
     counts = ws.take_spectrum('image')
     nm = ws.nm_axis()

@@ -67,6 +67,17 @@ class SpectrumGUI(BaseGui):
             self.central_nm.setSuffix('nm')
         self.central_nm.valueChanged.connect(self.central_nm_changed)
 
+        self.accumulations = QSpinBox()
+        if 'accumulations' in self.actiondict and self.actiondict['accumulations'] is not None:
+
+            self.accumulations.setValue(self.actiondict['accumulations'])
+            self.accumulations.valueChanged.connect(self.accum_changed)
+
+        self.progress_label = QLabel()
+        self.progress_label.setText('')
+        self.progress_label.setObjectName('progress_label')
+        self.progress_label.setStyleSheet('QLabel#progress_label {color: magenta}')
+
     def roi_fields(self):
         """This method checks in the actiondict for the keyword ROI,
         and than adds spinboxes for every ROI key that it finds (top, bottom, left, right etc.).
@@ -98,11 +109,17 @@ class SpectrumGUI(BaseGui):
         self.layout.addWidget(self.expo_value,0,1)
         self.layout.addWidget(self.expo_units,0,2)
 
+        self.layout.addWidget(self.accumulations,3,1)
+        if self.last_row < 3:
+            self.last_row = 3
+
         self.layout.addWidget(QLabel('grating: '),1,0)
         self.layout.addWidget(self.grating,1,1)
 
         self.layout.addWidget(QLabel('central wavelength: '),2,0)
         self.layout.addWidget(self.central_nm,2,1)
+
+        self.layout.addWidget(self.progress_label,2,2)
 
     def roi_changed(self, this_roi):
         """This method is the one that makes sure of updating the actiondict if any of the ROI is changed by the user.
@@ -115,6 +132,10 @@ class SpectrumGUI(BaseGui):
             if self.roilist[roi] == self.sender():
                 self.actiondict['ROI'][roi] = self.sender().value()
                 self.logger.debug('Changing ROI {} value to {}'.format(roi,self.sender().value()))
+
+    def accum_changed(self):
+        self.actiondict['accumulations'] = int(self.accumulations.value())
+        self.logger.debug('changing winspec accumulations')
 
     def expo_changed(self):
         """This method is the one that makes sure of updating the actiondict if the exposure time is changed by the user.
