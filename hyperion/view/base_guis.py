@@ -527,9 +527,10 @@ class AutoMeasurementGui(BaseGui):
     def ensure_output_docks_are_open(self):
         """ Uses the show_dock method added by ExpGui to ensure that all aoutput guis are opened before starting the measurement"""
         if self._parent is not None:
-            for instance in self.output_guis.values():
-                if hasattr(instance, 'show_dock'):
-                    instance.show_dock(True)
+            if self.output_guis is not None:
+                for instance in self.output_guis.values():
+                    if hasattr(instance, 'show_dock'):
+                        instance.show_dock(True)
 
     def start_pause(self):
         """

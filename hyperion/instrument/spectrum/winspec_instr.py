@@ -226,8 +226,8 @@ class WinspecInstr(BaseInstrument):
 
     def start_focus(self):
 
-        if hasattr(self, 'doc'):
-            self.doc.Close()
+        # if hasattr(self, 'doc'):
+        #     self.doc.Close()
         self.doc = self.controller.docfile()
 
         self.controller.exp.StartFocus(self.doc)
