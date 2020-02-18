@@ -66,7 +66,7 @@ class BeamFlagsGui(QWidget):
         else:
             self.indicator_update_time = 100  # ms
 
-        self.timer_mode = True
+        self.timer_mode = False
 
         if self.timer_mode:
             self.timer = QTimer()

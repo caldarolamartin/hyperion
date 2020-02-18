@@ -67,9 +67,8 @@ class SpectrumGUI(BaseGui):
             self.central_nm.setSuffix('nm')
         self.central_nm.valueChanged.connect(self.central_nm_changed)
 
-        self.accumulations = QSpinBox()
         if 'accumulations' in self.actiondict and self.actiondict['accumulations'] is not None:
-
+            self.accumulations = QSpinBox()
             self.accumulations.setValue(self.actiondict['accumulations'])
             self.accumulations.valueChanged.connect(self.accum_changed)
 
@@ -109,10 +108,6 @@ class SpectrumGUI(BaseGui):
         self.layout.addWidget(self.expo_value,0,1)
         self.layout.addWidget(self.expo_units,0,2)
 
-        self.layout.addWidget(self.accumulations,3,1)
-        if self.last_row < 3:
-            self.last_row = 3
-
         self.layout.addWidget(QLabel('grating: '),1,0)
         self.layout.addWidget(self.grating,1,1)
 
@@ -120,6 +115,11 @@ class SpectrumGUI(BaseGui):
         self.layout.addWidget(self.central_nm,2,1)
 
         self.layout.addWidget(self.progress_label,2,2)
+
+        if self.accumulations:
+            self.layout.addWidget(self.accumulations, 3, 1)
+            if self.last_row < 3:
+                self.last_row = 3
 
     def roi_changed(self, this_roi):
         """This method is the one that makes sure of updating the actiondict if any of the ROI is changed by the user.
