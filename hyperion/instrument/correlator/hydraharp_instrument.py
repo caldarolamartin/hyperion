@@ -28,8 +28,7 @@ class HydraInstrument(BaseInstrument):
         super().__init__(settings)
         self.logger = logging.getLogger(__name__)
 
-        self.logger.info('1. welcome to the instrument level')
-        self.logger.debug('Creating the instance of the controller')
+        self.logger.debug('Welcome to the hydraharp instrument')
         self.sync = 0
         self.count = 0
         self.hist = []
@@ -67,8 +66,8 @@ class HydraInstrument(BaseInstrument):
         for key in self.settings:
             self.settings[key] = ur(self.settings[key])
 
-        self.logger.info('Status info:')
-        self.logger.info('number of input channels: ' + str(self.controller.number_input_channels))
+        self.logger.debug('Status info:')
+        self.logger.debug('number of input channels: ' + str(self.controller.number_input_channels))
         
         self.controller.sync_divider(self.settings['sync_div'])
         self.controller.sync_CFD(self.settings['sync_disc'].m_as('mV'),self.settings['sync_zero'].m_as('mV'))#.m_as('mV'))
@@ -214,7 +213,7 @@ class HydraInstrument(BaseInstrument):
 
     def finalize(self):
         """ This method is to close connection to the device."""
-        self.logger.info('Closing connection to device.')
+        self.logger.info('Closing connection to hydraharp.')
         self.controller.finalize()
 
 if __name__ == "__main__":

@@ -20,7 +20,6 @@ import yaml
 import importlib
 import hyperion
 import time
-from hyperion.tools.saving_tools import name_incrementer
 from hyperion.tools.loading import get_class
 # from hyperion.tools.saver import Saver
 import copy
@@ -122,6 +121,12 @@ class ActionDict(DefaultDict):
         else:
             actiontype = {}
         super().__init__(actiondict, actiontype, ReturnNoneForMissingKey=True)
+
+
+# This import needs to be after DefaultDict and ActionDict
+# This is because saving_tools needs to load those two classes.
+# In hindsight, these two classes should perhaps be placed somewhere else
+from hyperion.tools.saving_tools import name_incrementer, yaml_dump_builtin_types_only
 
 
 def valid_python(name):
@@ -850,10 +855,12 @@ class BaseExperiment:
             if self._gui_parent is not None:
                 self._gui_parent.lock_instruments(False, measurement_name)
 
+            # safe_dump will not prevent all possible problems;
+            # make sure you dont try to save weird objects in the yml file!!!
             if self.__store_properties:
                 self.logger.info('Storing experiment properties in {}'.format(self.__store_properties))
                 with open(self.__store_properties, 'w') as f:
-                    yaml.dump(self.properties, f)
+                    yaml_dump_builtin_types_only(self.properties, f)
                 self.__store_properties = None
 
             # _saver_gui_incremeter is a placeholder that can be overwritten by the gui.
@@ -1147,7 +1154,7 @@ class BaseExperiment:
                 self.load_instrument(instrument)  # this method from base_experiment adds intrument instance to self.instrument_instances dictionary
 
         if 'MetaInstruments' not in self.properties:
-            self.logger.warning('No MetaInstruments in config file')
+            self.logger.info('No MetaInstruments in config file')
         else:
             self.logger.info('Loading all MetaInstruments')
             for meta_instr in self.properties['MetaInstruments']:

@@ -221,7 +221,7 @@ class Hydraharp_GUI(BaseGui):
     def set_channel(self):
         """ This method sets the channel that the user puts, and remembers the string in the init in self.channel.
         """
-        self.logger.info('setting the channel')
+        self.logger.debug('setting the channel')
 
         self.channel = self.channel_combobox.currentText()
         self.logger.debug('channel: ' + self.channel)
@@ -231,7 +231,7 @@ class Hydraharp_GUI(BaseGui):
         and remembers the int in the init in self.array_length.
         It compares it to a max and min value.
         """
-        self.logger.info('setting the array length')
+        self.logger.debug('setting the array length')
         self.logger.warning('are you sure you want to change this value?')
 
         if self.sender().value() > self.max_length:
@@ -249,7 +249,7 @@ class Hydraharp_GUI(BaseGui):
         and remembers the pint quantity in the init in self.integration_time.
         It compares it to a max (24 hours) and min (1 s) value.
         """
-        self.logger.info('setting the integration time')
+        self.logger.debug('setting the integration time')
 
         tijd = self.integration_time_spinbox.value()
         unit = self.time_unit_combobox.currentText()
@@ -275,7 +275,7 @@ class Hydraharp_GUI(BaseGui):
         """| This method takes the chosen resolution by the user and remembers it for the rest of this class.
         | It would be cool if I could make it a spinbox, that only allows values of 2^n, but I couldnt make that work...
         """
-        self.logger.info('setting the resolution')
+        self.logger.debug('setting the resolution')
 
         self.resolution = self.resolution_combobox.currentText()
         self.logger.debug('resolution: ' + self.resolution)
@@ -339,7 +339,7 @@ class Hydraharp_GUI(BaseGui):
         | The data gets plot in the DrawHistogram plot(self.draw.histogram_plot.plot()).
         | The time axis is calculated in calculate_axis and used for the plot.
         """
-        self.logger.info("Take the histrogram")
+        self.logger.info("Taking the histrogram")
 
         #first, set the array length and resolution of the histogram
         self.logger.debug('chosen histogram length: ' + str(self.array_length))

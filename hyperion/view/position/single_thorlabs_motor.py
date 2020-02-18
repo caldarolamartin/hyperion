@@ -233,7 +233,7 @@ class Thorlabs_motor_GUI(BaseGui):
         """Sets position of motors to the saved position with a thread.
         When done, changes the save button to default.
         """
-        self.logger.info("current position: {}".format(self.current_position))
+        self.logger.debug("current position: {}".format(self.current_position))
         if self.saved_position == None:
             self.logger.warning("the positions have not been set!")
             return

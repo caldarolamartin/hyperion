@@ -67,6 +67,7 @@ class WinspecInstr(BaseInstrument):
         self._fast_safe = self._remove_unavailable('fast_safe', ['Fast', 'Safe'])
         self._ccd = self._remove_unavailable('ccd', ['Full', 'ROI'])
         self._autosave = self._remove_unavailable('autosave', ['Ask', 'Auto', 'No'])
+        self._accums = 1
 
         if 'horz_width_multiple' in self.settings:
             self._horz_width_multiple = self.settings['horz_width_multiple']  # This parameter specifies if camera requires horizontal range of certain interval
@@ -238,7 +239,7 @@ class WinspecInstr(BaseInstrument):
 
 
 
-    def collect_spectrum(self, sleeptime=False):
+    def collect_spectrum(self, wait = True, sleeptime = True):
         """
         | Retrieves the last acquired spectrum from Winspec.
         | There are a few possibilities:
@@ -1009,6 +1010,16 @@ if __name__ == "__main__":
     #ws.setROI(top = 470, bottom = 500, left = 400, right = 599)
 
     print('\nROI = ', ws.getROI())
+
+    ws.exposure_time = 2*ur('s')
+    #ws.accumulations = 3
+
+    print('time: {}'.format(ws.exposure_time))
+    print('accumulations: {}'.format(ws.accumulations))
+
+    ws.accumulations = 3
+
+    print('accumulations: {}'.format(ws.accumulations))
 
     print('Taking spectrum ...')
     counts = ws.take_spectrum('image')

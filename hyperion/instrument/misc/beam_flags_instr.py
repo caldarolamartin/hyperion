@@ -13,6 +13,7 @@ from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 import time
 
+from PyQt5.QtCore import QTimer
 
 class BeamFlagsInstr(BaseInstrument):
     """
@@ -68,7 +69,10 @@ class BeamFlagsInstr(BaseInstrument):
         # information from the Serial Buffer In whenever the state is required.
         self._use_passive_queries = True  # True recommended
 
+        self.update_gui = lambda: None
+
         self.initialize()
+
 
     def initialize(self):
         """ Starts the connection to the device."""
@@ -79,9 +83,13 @@ class BeamFlagsInstr(BaseInstrument):
         self._announce(self._use_passive_queries) # make sure arduino "announce" matches _use_passive_queries
         self.update_all_states()
 
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_manual_states)
+        self.timer.start(5000)
+
     def finalize(self):
         """ Closes the connection to the device."""
-        self.logger.debug('Closing connection to device.')
+        self.logger.debug('Closing connection to beam flags.')
         self.controller.finalize()
 
     def idn(self):
@@ -124,6 +132,21 @@ class BeamFlagsInstr(BaseInstrument):
                 changed = True
         self.logger.debug('changes while updating all states = {}'.format(changed))
         return changed
+
+    def update_manual_states(self):
+        changed = False
+        lines_list = str(self.controller.read_serial_buffer_in(), encoding=self.controller._encoding).split('\r\n')
+        if lines_list:
+            for name in self.settings['flag_names']:
+                state_lines = [line for line in lines_list if
+                           (len(line) == 2 and line[0] == name and line[1] in self.settings['states'])]
+                if len(state_lines):
+                    current_state = state_lines[-1][1]
+                    if self.flag_states[name] != current_state:
+                        changed = True
+                        self.flag_states[name] = current_state
+        if changed:
+            self.update_gui()
 
     def get_specific_flag_state(self, flag_name):
         """
@@ -246,33 +269,35 @@ class BeamFlagsInstr(BaseInstrument):
 
 if __name__ == "__main__":
 
-    example_settings = {'port': 'COM25', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+    example_settings = {'port': 'COM21', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
-    with BeamFlagsInstr(settings = example_settings) as bf:
+    # with BeamFlagsInstr(settings = example_settings) as bf:
         #bf.initialize()
 
-        # bf._announce(False)   # For testing "dumb" mode without _use_passive_queries
+    # bf._announce(False)   # For testing "dumb" mode without _use_passive_queries
 
-        print( bf.idn() )
+    bf = BeamFlagsInstr(settings = example_settings)
 
-        bf.set_specific_flag_state('2','r')
-        print( bf.get_specific_flag_state('2') )
-        time.sleep( bf.settings['actuator_timeout'] )
+    print( bf.idn() )
 
-        bf.set_flag(2, True)
-        print( bf.get_flag(2))
-        time.sleep(bf.settings['actuator_timeout'])
+    bf.set_specific_flag_state('2','r')
+    print( bf.get_specific_flag_state('2') )
+    time.sleep( bf.settings['actuator_timeout'] )
 
-        bf.f1 = False
-        print(bf.f1)
-        time.sleep(bf.settings['actuator_timeout'])
+    bf.set_flag(2, True)
+    print( bf.get_flag(2))
+    time.sleep(bf.settings['actuator_timeout'])
 
-        print('Change manual toggle switch to test detection... (for 10s)')
-        # start_time = time.time()
-        # while (time.time() - start_time < 10):
-        #     time.sleep(.2)
-        #     if bf.passive_update_from_manual_changes():
-        #         print(bf.flag_states)
+    bf.f1 = False
+    print(bf.f1)
+    time.sleep(bf.settings['actuator_timeout'])
+
+    print('Change manual toggle switch to test detection... (for 10s)')
+    # start_time = time.time()
+    # while (time.time() - start_time < 10):
+    #     time.sleep(.2)
+    #     if bf.passive_update_from_manual_changes():
+    #         print(bf.flag_states)
 
     print('done')
