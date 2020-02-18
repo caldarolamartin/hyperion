@@ -13,7 +13,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from hyperion.instrument.misc.beam_flags_instr import BeamFlagsInstr
 from hyperion.view.general_worker import WorkThread
-import time
+from time import sleep
+
 
 class BeamFlagsGui(QWidget):
     """
@@ -59,19 +60,30 @@ class BeamFlagsGui(QWidget):
 
         # Start timer to repeatedly pull the current state of the toggle switches:
         self.logger.info('Starting timer thread')
+        # self._busy = False
         if 'gui_state_update_ms' in self.bfi.settings:
-            indicator_update_time = self.bfi.settings['gui_state_update_ms']
+            self.indicator_update_time = self.bfi.settings['gui_state_update_ms']
         else:
-            indicator_update_time = 100  # ms
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.update_label_states)
-        # self.timer.start(indicator_update_time)
+            self.indicator_update_time = 100  # ms
 
-        # self.fast_timer = QTimer()
-        # self.fast_timer.timeout.connect(self.fast_update_label_states)
-        # self.fast_timer.start(indicator_update_time)
+        self.timer_mode = True
 
-        self.bfi.update_gui = lambda: self.fast_update_label_states()
+        if self.timer_mode:
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.update_label_states)
+            self.timer.start(self.indicator_update_time)
+        else:
+            self._thread = WorkThread(self.update_wrapper)
+            self._thread.start(priority=QThread.LowestPriority)
+
+
+    def update_wrapper(self):
+        while True:
+            sleep(self.indicator_update_time/1000.0)
+            if not self._busy:
+                self.update_label_states()
+            else:
+                self.logger.warning('Still busy: skipping checking for manual flag changes')
 
     def initUI(self):
         """
@@ -134,28 +146,31 @@ class BeamFlagsGui(QWidget):
 
     def update_label_states(self):
         """ Asks device for current states of all beam flags and updates state key and gui if it has changed."""
-        for flag_id in self.bf_settings.keys():
-            state = self.bfi.get_specific_flag_state(flag_id)
-            if state != self.bf_settings[flag_id]['state']:
-                self.logger.debug("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
-                self.bf_settings[flag_id]['state'] = state
-                # if self._setting_label_state:
-                #     return
-                self.set_label_state(flag_id)
+        if self._busy:
+            self.logger.warning()
+            return
+        self._busy = True
+        if self.bfi.passive_update_from_manual_changes():
+            for flag_id in self.bf_settings.keys():
+                state = self.bfi.get_specific_flag_state(flag_id)
+                if state != self.bf_settings[flag_id]['state']:
+                    self.logger.debug("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
+                    self.bf_settings[flag_id]['state'] = state
+                    self.set_label_state(flag_id)
+        self._busy = False
 
-    def fast_update_label_states(self):
-        """ Asks device for current states of all beam flags and updates state key and gui if it has changed."""
-        for flag_id in self.bf_settings.keys():
-            state = self.bfi.flag_states[flag_id]
-            if state != self.bf_settings[flag_id]['state']:
-                self.logger.debug("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
-                self.bf_settings[flag_id]['state'] = state
-                self.set_label_state(flag_id)
+    # def fast_update_label_states(self):
+    #     """ Asks device for current states of all beam flags and updates state key and gui if it has changed."""
+    #     for flag_id in self.bf_settings.keys():
+    #         state = self.bfi.flag_states[flag_id]
+    #         if state != self.bf_settings[flag_id]['state']:
+    #             self.logger.debug("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
+    #             self.bf_settings[flag_id]['state'] = state
+    #             self.set_label_state(flag_id)
 
-    def set_label_state(self, flag_id):
+    def set_label_state(self, flag_id, keep_busy_flag = False):
         """ Sets gui label identified by flag_id to the corresponding value in the state key in settings."""
-        #self._setting_label_state = True
-
+        self._busy = True
         label = self.all_labels[flag_id]
         state = self.bf_settings[flag_id]['state']
         self.logger.info("Set flag '{}' to '{}'".format(flag_id,state))
@@ -167,6 +182,7 @@ class BeamFlagsGui(QWidget):
             label.setText(self.bf_settings[flag_id]['green_name'])
         else:
             self.logger.warning('received state is unknown')
+        self._busy = keep_busy_flag
 
         #self._setting_label_state = False
 
@@ -176,6 +192,7 @@ class BeamFlagsGui(QWidget):
         It toggles the state flag of the corresponding beam flag in the settings dict.
         It creates and runs a thread that sets the state of the beam flag on the instrument.
         """
+        self._busy = True
         self.logger.debug("Button of flag '{}' clicked".format(flag_id))
         state = self.bf_settings[flag_id]['state']
         if state == self.red_char:
@@ -184,12 +201,10 @@ class BeamFlagsGui(QWidget):
             state = self.red_char
         else:
             self.logger.warning('unknown state in internal dictionary')
-        self.bfi.set_specific_flag_state(flag_id, state)
-        # self.worker_thread = WorkThread(self.bfi.set_specific_flag_state, flag_id, state)
-        # self.worker_thread.start()
-        # self.bfi.set_specific_flag_state(flag_id, state)
         self.bf_settings[flag_id]['state'] = state
-        self.set_label_state(flag_id)
+        self.set_label_state(flag_id, keep_busy_flag=True)
+        self.bfi.set_specific_flag_state(flag_id, state)  # Actually toggle the flag
+        self._busy = False
 
 
 if __name__ == '__main__':

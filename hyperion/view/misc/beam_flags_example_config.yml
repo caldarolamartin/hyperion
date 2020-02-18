@@ -1,7 +1,7 @@
 Instruments:
   BeamFlags:
     name: BeamFlags
-    port: COM21
+    port: COM5
     dummy: False
     baudrate: 9600
     read_timeout: 0.1

@@ -13,8 +13,6 @@ from hyperion import logging
 from hyperion.instrument.base_instrument import BaseInstrument
 import time
 
-from PyQt5.QtCore import QTimer
-
 class BeamFlagsInstr(BaseInstrument):
     """
     Beam Flags Instrument
@@ -69,8 +67,6 @@ class BeamFlagsInstr(BaseInstrument):
         # information from the Serial Buffer In whenever the state is required.
         self._use_passive_queries = True  # True recommended
 
-        self.update_gui = lambda: None
-
         self.initialize()
 
 
@@ -82,10 +78,6 @@ class BeamFlagsInstr(BaseInstrument):
         self.controller.read_lines()
         self._announce(self._use_passive_queries) # make sure arduino "announce" matches _use_passive_queries
         self.update_all_states()
-
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_manual_states)
-        self.timer.start(5000)
 
     def finalize(self):
         """ Closes the connection to the device."""
@@ -133,20 +125,19 @@ class BeamFlagsInstr(BaseInstrument):
         self.logger.debug('changes while updating all states = {}'.format(changed))
         return changed
 
-    def update_manual_states(self):
-        changed = False
-        lines_list = str(self.controller.read_serial_buffer_in(), encoding=self.controller._encoding).split('\r\n')
-        if lines_list:
-            for name in self.settings['flag_names']:
-                state_lines = [line for line in lines_list if
-                           (len(line) == 2 and line[0] == name and line[1] in self.settings['states'])]
-                if len(state_lines):
-                    current_state = state_lines[-1][1]
-                    if self.flag_states[name] != current_state:
-                        changed = True
-                        self.flag_states[name] = current_state
-        if changed:
-            self.update_gui()
+    # def update_manual_states(self):
+    #     changed = False
+    #     lines_list = str(self.controller.read_serial_buffer_in(), encoding=self.controller._encoding).split('\r\n')
+    #     if lines_list:
+    #         for name in self.settings['flag_names']:
+    #             state_lines = [line for line in lines_list if
+    #                        (len(line) == 2 and line[0] == name and line[1] in self.settings['states'])]
+    #             if len(state_lines):
+    #                 current_state = state_lines[-1][1]
+    #                 if self.flag_states[name] != current_state:
+    #                     changed = True
+    #                     self.flag_states[name] = current_state
+    #     return changed
 
     def get_specific_flag_state(self, flag_name):
         """
@@ -267,9 +258,20 @@ class BeamFlagsInstr(BaseInstrument):
     def f2(self, bool_state):
         self.set_flag(2,bool_state)
 
+    @property
+    def f3(self):
+        """
+        bool: Set/get flag with label '2' (True for 'g', False for 'r')
+        """
+        return self.get_flag(3)
+
+    @f3.setter
+    def f3(self, bool_state):
+        self.set_flag(3,bool_state)
+
 if __name__ == "__main__":
 
-    example_settings = {'port': 'COM21', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
+    example_settings = {'port': 'COM5', 'baudrate': 9600, 'write_termination': '\n', 'read_timeout': 0.1,
                         'controller': 'hyperion.controller.generic.generic_serial_contr/GenericSerialController'}
 
     # with BeamFlagsInstr(settings = example_settings) as bf:
@@ -293,7 +295,7 @@ if __name__ == "__main__":
     print(bf.f1)
     time.sleep(bf.settings['actuator_timeout'])
 
-    print('Change manual toggle switch to test detection... (for 10s)')
+    # print('Change manual toggle switch to test detection... (for 10s)')
     # start_time = time.time()
     # while (time.time() - start_time < 10):
     #     time.sleep(.2)
