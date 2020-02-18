@@ -136,7 +136,7 @@ class SpectrumGUI(BaseGui):
 
     def accum_changed(self):
         self.actiondict['accumulations'] = int(self.accumulations.value())
-        self.logger.debug('changing winspec accumulations')
+        print('changing winspec accumulations')
 
     def expo_changed(self):
         """This method is the one that makes sure of updating the actiondict if the exposure time is changed by the user.

@@ -1015,7 +1015,6 @@ if __name__ == "__main__":
     #ws.accumulations = 3
 
     print('time: {}'.format(ws.exposure_time))
-    print('accumulations: {}'.format(ws.accumulations))
 
     ws.accumulations = 3
 
