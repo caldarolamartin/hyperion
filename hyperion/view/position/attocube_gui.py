@@ -353,10 +353,7 @@ class Attocube_GUI(BaseGui):
         self.anc350_instrument.temperature = self.temperature
         self.anc350_instrument.set_temperature_limits()
 
-        if self.temperature > 4.0:
-            self.max_dclevel_V = 60 * ur('V')
-        else:
-            self.max_dclevel_V = 140 * ur('V')
+        self.max_dclevel_V = self.anc350_instrument.max_dC_level
 
         self.logger.debug('Changed the scanner piezo limits to {}'.format(self.max_dclevel_V))
 

@@ -11,6 +11,7 @@ import yaml           #for the configuration file
 import os             #for playing with files in operation system
 import time
 import numpy as np
+import matplotlib.pyplot as plt
 from hyperion import root_dir
 from hyperion.instrument.base_instrument import BaseInstrument
 from hyperion import ur
@@ -59,12 +60,27 @@ class Anc350Instrument(BaseInstrument):
 
     def set_temperature_limits(self):
         """The maximum voltage to put on the piezo scanners depends on the temperature in the cryostat. The user has to give that.
+        The maximum ranges from 60V at room temperature to 140V at 4K, and everything in between is linearly interpolated.
         """
         self.logger.debug('The given cryostat temperature is {}K'.format(self.temperature))
-        if self.temperature > 4.0:
-            self.max_dC_level = 60 * ur('V')
+
+        a = (140-60)/(4-300)
+        b = 140 - 4*a
+
+        # possible_temperatures = np.linspace(4,300,20)
+        # limits = a*possible_temperatures + b
+        # plt.figure()
+        # plt.plot(possible_temperatures, limits)
+        # plt.show()
+
+        if self.temperature < 4:
+            self.logger.warning('Trying to put a temperature below 4K')
+        elif self.temperature < 301:
+            self.max_dC_level = a * self.temperature + b
+            self.max_dC_level = round(self.max_dC_level) * ur('V')
+            self.logger.debug('max_dC_level interpolated to {}'.format(self.max_dC_level))
         else:
-            self.max_dC_level = 140 *ur('V')
+            self.max_dC_level = 60 * ur('V')
 
         self.logger.debug('Maximum voltage on scanner piezo: {}'.format(self.max_dC_level))
         self.max_dC_level_300K = 60 *ur('V')
@@ -485,7 +501,7 @@ if __name__ == "__main__":
 
     q.configure_scanner(axis)
 
-    volts = 40*ur('V')
-    q.move_scanner(axis,volts)
+    #volts = 40*ur('V')
+    #q.move_scanner(axis,volts)
 
     q.finalize()
