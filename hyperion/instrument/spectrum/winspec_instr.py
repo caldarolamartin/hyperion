@@ -1020,6 +1020,10 @@ if __name__ == "__main__":
 
     print('accumulations: {}'.format(ws.accumulations))
 
+    print('spec mode? {}'.format(ws.spec_mode))
+    ws.spec_mode(True)
+    print('spec mode? {}'.format(ws.spec_mode))
+
     print('Taking spectrum ...')
     counts = ws.take_spectrum('image')
     nm = ws.nm_axis()
