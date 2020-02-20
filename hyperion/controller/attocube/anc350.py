@@ -202,7 +202,9 @@ class Anc350(BaseController):
     def amplitudeControl(self, axis, mode):
         """| Selects the type of amplitude control in the Stepper.
         | The amplitude is controlled by the positioner to hold the value constant determined by the selected type of amplitude control.
-        | We think for closed look it needs to be set in Step Width mode, nr. 2.
+        | I thought for closed loop it needs to be set in Step Width mode, nr. 2.
+        | However, that gives issues, since sometimes the amplitude is not high enough to make the thing move at all.
+        | So Amplitude control mode, nr. 1, seems better.
 
         :param axis: axis number from 0 to 2 for steppers
         :type axis: integer

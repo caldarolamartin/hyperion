@@ -135,7 +135,12 @@ class SpectrumGUI(BaseGui):
 
     def accum_changed(self):
         self.actiondict['accumulations'] = int(self.accumulations.value())
-        print('changing winspec accumulations')
+        self.logger.debug('changing winspec accumulations')
+
+        if hasattr(self,'measurement_gui_parent'):
+            self.logger.debug('winspec action gui can find his parent master gui')
+            self.measurement_gui_parent.update_from_guis()
+
 
     def expo_changed(self):
         """This method is the one that makes sure of updating the actiondict if the exposure time is changed by the user.

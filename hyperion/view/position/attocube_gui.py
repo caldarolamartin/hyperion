@@ -57,7 +57,7 @@ class Attocube_GUI(BaseGui):
         self.distance = 0*ur('um')
 
         self.settings = {'amplitudeX': 30, 'amplitudeY': 40, 'amplitudeZ': 30,
-                                       'frequencyX': 100, 'frequencyY': 100, 'frequencyZ': 100}
+                                       'frequencyX': 1000, 'frequencyY': 1000, 'frequencyZ': 1000}
 
         self.temperature = 300
 

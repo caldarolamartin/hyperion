@@ -89,7 +89,7 @@ class Anc350Instrument(BaseInstrument):
 
     def configure_stepper(self, axis, amplitude, frequency):
         """ - Does the necessary configuration of the Stepper:
-        - for closed loop positioning the Amplitude Control needs to be set in Step Width mode, nr. 2
+        - the Stepper seem to perform best when put in Amplitude Control mode, nr. 1
         - loads the actor file, files are in controller folder, their names hardcoded in controller init
         - sets the amplitude and frequency
         - the amplitude influences the step width, the frequency influences the speed
@@ -108,14 +108,11 @@ class Anc350Instrument(BaseInstrument):
 
         self.logger.debug('Loading Stepper actor file, putting amplitude and frequency')
 
-        # filename = 'q_test_long_name'
-        # path = os.path.join(root_dir, 'controller', 'attocube')
         self.controller.load(ax)
-
         self.get_position(axis)
 
-        self.controller.amplitudeControl(ax,2)
-        self.logger.debug('Stepper Amplitude Control put in StepWidth mode')
+        self.controller.amplitudeControl(ax,1)
+        self.logger.debug('Stepper Amplitude Control put in Amplitude mode')
 
         if 0 <= amplitude.m_as('mV') <= self.controller.max_amplitude_mV:
             self.logger.debug('checking if the amplitude is okay')
