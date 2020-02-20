@@ -117,7 +117,6 @@ class SpectrumGUI(BaseGui):
         self.layout.addWidget(self.progress_label,2,2)
 
         if hasattr(self,'accumulations'):
-            self.layout.addWidget(QLabel('accumulations:'))
             self.layout.addWidget(self.accumulations, 3, 1)
             if self.last_row < 3:
                 self.last_row = 3
