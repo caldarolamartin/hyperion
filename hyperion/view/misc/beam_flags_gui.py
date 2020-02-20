@@ -45,7 +45,6 @@ class BeamFlagsGui(QWidget):
 
         self.all_labels = {}
 
-
         if 'name' in self.bfi.settings:
             self.title = self.bfi.settings['name']
         else:
@@ -66,8 +65,9 @@ class BeamFlagsGui(QWidget):
         else:
             self.indicator_update_time = 100  # ms
 
+        #Pay attention: using the Qtimer makes the gui very slow
+        #Instead, use a workthread
         self.timer_mode = False
-
         if self.timer_mode:
             self.timer = QTimer()
             self.timer.timeout.connect(self.update_label_states)
@@ -132,18 +132,6 @@ class BeamFlagsGui(QWidget):
         self.setLayout(layout)
         self.show()
 
-        # self._setting_label_state = False
-        #
-        # manual_thread = WorkThread(self.timer_thread_method)
-        # manual_thread.start()
-
-    # def timer_thread_method(self):
-    #     #infinite loop!!!!
-    #     while True:
-    #         time.sleep(1)
-    #         #print('I am in the timer')
-    #         self.update_label_states()
-
     def update_label_states(self):
         """ Asks device for current states of all beam flags and updates state key and gui if it has changed."""
         if self._busy:
@@ -158,15 +146,6 @@ class BeamFlagsGui(QWidget):
                     self.bf_settings[flag_id]['state'] = state
                     self.set_label_state(flag_id)
         self._busy = False
-
-    # def fast_update_label_states(self):
-    #     """ Asks device for current states of all beam flags and updates state key and gui if it has changed."""
-    #     for flag_id in self.bf_settings.keys():
-    #         state = self.bfi.flag_states[flag_id]
-    #         if state != self.bf_settings[flag_id]['state']:
-    #             self.logger.debug("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
-    #             self.bf_settings[flag_id]['state'] = state
-    #             self.set_label_state(flag_id)
 
     def set_label_state(self, flag_id, keep_busy_flag = False):
         """ Sets gui label identified by flag_id to the corresponding value in the state key in settings."""
@@ -183,8 +162,6 @@ class BeamFlagsGui(QWidget):
         else:
             self.logger.warning('received state is unknown')
         self._busy = keep_busy_flag
-
-        #self._setting_label_state = False
 
     def button_clicked(self, flag_id):
         """
