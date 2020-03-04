@@ -120,9 +120,11 @@ class ScanActuator(BaseGui):
             #     actuator_units = sorted([*actuator_units, *add_units])
 
         self.start_value = QDoubleSpinBox()
-        self.start_value.setMaximum(999999999)          #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
-        self.start_value.setMinimum(-999999999)
+        self.start_value.setDecimals(3)
+        self.start_value.setMaximum(999.999)          #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        self.start_value.setMinimum(-999.999)
         self.start_units = QComboBox()
+        self.start_units.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         self.start_units.addItems(actuator_units)
         add_pint_to_combo(self.start_units)
         if 'start' in self.actiondict:
@@ -132,9 +134,10 @@ class ScanActuator(BaseGui):
         self.start_units.currentIndexChanged.connect(self.start_changed)
 
         self.stop_value = QDoubleSpinBox()
-        self.stop_value.setMaximum(999999999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
-        self.stop_value.setMinimum(-999999999)
+        self.stop_value.setMaximum(999.999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        self.stop_value.setMinimum(-999.999)
         self.stop_units = QComboBox()
+        self.stop_units.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         self.stop_units.addItems(actuator_units)
         add_pint_to_combo(self.stop_units)
         if 'stop' in self.actiondict:
@@ -144,8 +147,10 @@ class ScanActuator(BaseGui):
         self.stop_units.currentIndexChanged.connect(self.stop_changed)
 
         self.step_value = QDoubleSpinBox()
-        self.step_value.setMaximum(999999999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        self.step_value.setMaximum(999.999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        # self.step_value.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         self.step_units = QComboBox()
+        self.step_units.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.step_units.addItems(actuator_units)
         add_pint_to_combo(self.step_units)
         if 'step' in self.actiondict:
@@ -162,7 +167,9 @@ class ScanActuator(BaseGui):
 
         self.stop_um = QDoubleSpinBox()
         self.step_um = QDoubleSpinBox()
-        self.layout.addWidget(QWidget())  # adding this empty widget helps with aligning the layout in a prettier way
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
+        self.layout.addWidget(spacer)  # adding this empty widget helps with aligning the layout in a prettier way
         self.layout.addWidget(QLabel('start', alignment=right))
         self.layout.addWidget(self.start_value)
         self.layout.addWidget(self.start_units)

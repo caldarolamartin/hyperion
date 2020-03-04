@@ -77,8 +77,8 @@ Measurements:       # dictionary of Measurements
     automated_actionlist:
       - Name: Saving
         Type: saver
-        basename: bestaat.nc
-        folder: C:\Temp\test2
+        basename: datafile.nc
+        folder: C:\Temp
       - Name: Initialize
         _method: initialize_example_measurement_A
       - Name: Image Before

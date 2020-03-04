@@ -393,7 +393,8 @@ class AutoMeasurementGui(BaseGui):
         # This line controls the size of the whole layout.
         # .SetDefaultConstraint causes it to adjust to the content size, but keeps it adjustable
         # .SetFixedSize adjust to the content and prevents manual resizing
-        self.outer_layout.setSizeConstraint(QLayout.SetFixedSize)
+        # self.outer_layout.setSizeConstraint(QLayout.SetDefaultConstraint)
+        # self.outer_layout.setSizeConstraint(QLayout.SetFixedSize)
         self.setLayout(self.outer_layout)
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.show()
