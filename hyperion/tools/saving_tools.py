@@ -22,7 +22,7 @@ from hyperion.core import logman
 from hyperion import __version__, ur, Q_
 
 import copy
-from hyperion.experiment.base_experiment import DefaultDict, ActionDict
+from hyperion.tools.types import DefaultDict, ActionDict
 
 logger = logman.getLogger(__name__)
 

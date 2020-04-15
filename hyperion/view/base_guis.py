@@ -24,7 +24,7 @@ from os import path
 import yaml
 from hyperion.view.general_worker import WorkThread
 from hyperion.tools.loading import get_class
-from hyperion.experiment.base_experiment import ActionDict
+from hyperion.tools.types import ActionDict
 from PyQt5 import uic
 
 
