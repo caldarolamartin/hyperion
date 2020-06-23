@@ -266,7 +266,7 @@ class AaAotf(BaseInstrument):
 
 if __name__ == '__main__':
 
-    example_settings =  {'port':'COM10', 'dummy':False,
+    example_settings =  {'port':'COM8', 'dummy':False,
                            'controller': 'hyperion.controller.aa.aa_modd18012/AaModd18012',
                          'apply defaults': True}
 

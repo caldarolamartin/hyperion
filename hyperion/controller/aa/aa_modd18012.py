@@ -90,9 +90,11 @@ class AaModd18012(BaseController):
          """
         if self.rsc is not None:
             self.rsc.close()
+            sleep(0.5)
             self.logger.info('The connection to aa_modd18012 is closed.')
+            self._is_initialized = False
 
-        self.logger.info('Finalized the class')
+        self.logger.info('Finalized the AOTF controller class')
 
     def write(self, message):
         """ Sends the message to the device.
