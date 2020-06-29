@@ -72,6 +72,11 @@ class SpectrumGUI(BaseGui):
             self.accumulations.setValue(self.actiondict['accumulations'])
             self.accumulations.valueChanged.connect(self.accum_changed)
 
+        if 'avalanche_gain' in self.actiondict and self.actiondict['avalanche_gain'] is not None:
+            self.avalanche_gain = QSpinBox()
+            self.avalanche_gain.setValue(self.actiondict['avalanche_gain'])
+            self.avalanche_gain.valueChanged.connect(self.avgain_changed)
+
         self.progress_label = QLabel()
         self.progress_label.setText('')
         self.progress_label.setObjectName('progress_label')
@@ -117,9 +122,16 @@ class SpectrumGUI(BaseGui):
         self.layout.addWidget(self.progress_label,2,2)
 
         if hasattr(self,'accumulations'):
+            self.layout.addWidget(QLabel('accumulations:'), 3, 0)
             self.layout.addWidget(self.accumulations, 3, 1)
             if self.last_row < 3:
                 self.last_row = 3
+
+        if hasattr(self,'avalanche_gain'):
+            self.layout.addWidget(QLabel('avalanche gain:'),4,0)
+            self.layout.addWidget(self.avalanche_gain, 4, 1)
+            if self.last_row < 4:
+                self.last_row = 4
 
     def roi_changed(self, this_roi):
         """This method is the one that makes sure of updating the actiondict if any of the ROI is changed by the user.
@@ -141,6 +153,9 @@ class SpectrumGUI(BaseGui):
             self.logger.debug('winspec action gui can find his parent master gui')
             self.measurement_gui_parent.update_from_guis()
 
+    def avgain_changed(self):
+        self.actiondict['avalanche_gain'] = int(self.avalanche_gain.value())
+        self.logger.debug('changing winspec avalanche gain')
 
     def expo_changed(self):
         """This method is the one that makes sure of updating the actiondict if the exposure time is changed by the user.

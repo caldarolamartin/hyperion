@@ -735,9 +735,9 @@ class WinspecInstr(BaseInstrument):
 
     @exposure_time.setter
     def exposure_time(self, value,alt=False):
-        if type(value) is not type(ur('s')):        #changed from Q_ to ur
+        if type(value) is not type(Q_('s')):
             self.logger.error('exposure_time should be Pint quantity')
-        if value.dimensionality != ur('s').dimensionality:
+        if value.dimensionality != Q_('s').dimensionality:
             self.logger.error('exposure_time should be Pint quantity with unit of time')
         else:
             if value.m_as('us') < 1:                                                    # remove this if necessary
