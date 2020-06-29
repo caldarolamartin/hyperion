@@ -491,6 +491,25 @@ class WinspecInstr(BaseInstrument):
     # Experiment / Main settings:  --------------------------------------------
 
     @property
+    def avalanche_gain(self):
+        """ Get the avalanche gain (only available with EM CCD camera)
+
+        :getter: Returns avalanche gain in Winspec
+        :setter: Tries to change avalanche gain in Winspec if required.
+        :type: int
+        """
+        self._avgain = self.controller.exp_get('AVGAIN')[0]
+        return self._avgain
+
+    @avalanche_gain.setter
+    def avalanche_gain(self, value):
+        if value != self._avgain:
+            if self.controller.exp_set('AVGAIN', value):
+                self.logger.warning('error setting value: {}'.format(value))
+            if self.avalanche_gain != value:
+                self.logger.warning('attempted to set avalanche gain to {}, but Winspec is at {}'.format(value, self._avgain))
+
+    @property
     def ccd(self):
         """
         attribute: CCD Readout mode.
@@ -716,9 +735,9 @@ class WinspecInstr(BaseInstrument):
 
     @exposure_time.setter
     def exposure_time(self, value,alt=False):
-        if type(value) is not type(Q_('s')):
+        if type(value) is not type(ur('s')):        #changed from Q_ to ur
             self.logger.error('exposure_time should be Pint quantity')
-        if value.dimensionality != Q_('s').dimensionality:
+        if value.dimensionality != ur('s').dimensionality:
             self.logger.error('exposure_time should be Pint quantity with unit of time')
         else:
             if value.m_as('us') < 1:                                                    # remove this if necessary
@@ -961,7 +980,6 @@ class WinspecInstr(BaseInstrument):
     def ascii_output(self, value):
         self.controller.exp_set('ASCIIOUTPUTFILE',value!=0)       # !=0  forces it to be bool
 
-
     def configure_settings(self):
         #self.logger.debug(str(self.idn()))
 
@@ -1021,7 +1039,7 @@ if __name__ == "__main__":
     print('accumulations: {}'.format(ws.accumulations))
 
     print('spec mode? {}'.format(ws.spec_mode))
-    ws.spec_mode(True)
+    ws.spec_mode = False
     print('spec mode? {}'.format(ws.spec_mode))
 
     print('Taking spectrum ...')
