@@ -9,6 +9,7 @@ display:
 data_file:
   confirm_overwrite: False
   autosave: 'Auto'  #Auto
+  increment: False
 timing:
   mode: 'Free Run'
   fast_safe: 'Fast'

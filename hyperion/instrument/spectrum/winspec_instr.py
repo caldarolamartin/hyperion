@@ -491,6 +491,25 @@ class WinspecInstr(BaseInstrument):
     # Experiment / Main settings:  --------------------------------------------
 
     @property
+    def avalanche_gain(self):
+        """ Get the avalanche gain (only available with EM CCD camera)
+
+        :getter: Returns avalanche gain in Winspec
+        :setter: Tries to change avalanche gain in Winspec if required.
+        :type: int
+        """
+        self._avgain = self.controller.exp_get('AVGAIN')[0]
+        return self._avgain
+
+    @avalanche_gain.setter
+    def avalanche_gain(self, value):
+        if value != self._avgain:
+            if self.controller.exp_set('AVGAIN', value):
+                self.logger.warning('error setting value: {}'.format(value))
+            if self.avalanche_gain != value:
+                self.logger.warning('attempted to set avalanche gain to {}, but Winspec is at {}'.format(value, self._avgain))
+
+    @property
     def ccd(self):
         """
         attribute: CCD Readout mode.
@@ -858,6 +877,24 @@ class WinspecInstr(BaseInstrument):
         if number>=0:
             self.controller.exp_set('AUTOSAVE', number + 1)
 
+    @property
+    def file_increment(self):
+        """ auto increments file or not
+
+        :type: bool
+        """
+        if self.controller.exp_get('FILEINCENABLE')[0] == 0:
+            return False
+        elif self.controller.exp_get('FILEINCENABLE')[0] == 1:
+            return True
+
+    @file_increment.setter
+    def file_increment(self, command):
+        if command:
+            self.controller.exp_set('FILEINCENABLE',1)
+        elif command == False:
+            self.controller.exp_set('FILEINCENABLE', 0)
+
     # Experiment / Timing settings: ----------------------------------
 
     @property
@@ -961,7 +998,6 @@ class WinspecInstr(BaseInstrument):
     def ascii_output(self, value):
         self.controller.exp_set('ASCIIOUTPUTFILE',value!=0)       # !=0  forces it to be bool
 
-
     def configure_settings(self):
         #self.logger.debug(str(self.idn()))
 
@@ -981,6 +1017,8 @@ class WinspecInstr(BaseInstrument):
         self.autosave = self.config_settings['data_file']['autosave']
         self.logger.debug('Data file confirm overwrite: ' + str(self.confirm_overwrite))
         self.logger.debug('Data file: ' + str(self.autosave))
+        self.file_increment = self.config_settings['data_file']['increment']
+        self.logger.debug('Data file incremented: {}'.format(self.file_increment))
 
         self.logger.debug('Current controller gain: ' + str(self.gain))
 
@@ -1011,7 +1049,7 @@ if __name__ == "__main__":
 
     print('\nROI = ', ws.getROI())
 
-    ws.exposure_time = 2*ur('s')
+    ws.exposure_time = 2*Q_('s')
     #ws.accumulations = 3
 
     print('time: {}'.format(ws.exposure_time))
@@ -1021,7 +1059,7 @@ if __name__ == "__main__":
     print('accumulations: {}'.format(ws.accumulations))
 
     print('spec mode? {}'.format(ws.spec_mode))
-    ws.spec_mode(True)
+    ws.spec_mode = False
     print('spec mode? {}'.format(ws.spec_mode))
 
     print('Taking spectrum ...')
