@@ -51,13 +51,30 @@ class PImotor(BaseInstrument):
         """
         pos = self.real_controller.qPOS()
         position=float(pos['A'])
+        position=ur(str(position)+"mm")
         return position
 
     def move_absolute(self,target):
-        self.real_controller.MOV(self.real_controller.axes, target)#in mm
+        value=target.m
+        unit=target.u
+        if unit=='micrometer':
+            value_real=value*1e-3
+        if unit=='millimeter':
+            value_real=value*1e1
+        if unit=='nanometer':
+            value_real=value*1e-6
+        self.real_controller.MOV(self.real_controller.axes, value_real)#in mm
 
     def move_relative(self,shift):
-        target=self.position()+shift
+        value=shift.m
+        unit=shift.u
+        if unit=='micrometer':
+            value_real=value*1e-3
+        if unit=='millimeter':
+            value_real=value*1
+        if unit=='nanometer':
+            value_real=value*1e-6
+        target=self.position().m+value_real
         self.real_controller.MOV(self.real_controller.axes, target)
 
 if __name__ == "__main__":
