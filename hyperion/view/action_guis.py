@@ -120,7 +120,11 @@ class ScanActuator(BaseGui):
             #     actuator_units = sorted([*actuator_units, *add_units])
 
         self.start_value = QDoubleSpinBox()
+        self.start_value.setDecimals(3)
+        self.start_value.setMaximum(999.999)          #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        self.start_value.setMinimum(-999.999)
         self.start_units = QComboBox()
+        self.start_units.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         self.start_units.addItems(actuator_units)
         add_pint_to_combo(self.start_units)
         if 'start' in self.actiondict:
@@ -130,7 +134,10 @@ class ScanActuator(BaseGui):
         self.start_units.currentIndexChanged.connect(self.start_changed)
 
         self.stop_value = QDoubleSpinBox()
+        self.stop_value.setMaximum(999.999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        self.stop_value.setMinimum(-999.999)
         self.stop_units = QComboBox()
+        self.stop_units.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         self.stop_units.addItems(actuator_units)
         add_pint_to_combo(self.stop_units)
         if 'stop' in self.actiondict:
@@ -140,7 +147,10 @@ class ScanActuator(BaseGui):
         self.stop_units.currentIndexChanged.connect(self.stop_changed)
 
         self.step_value = QDoubleSpinBox()
+        self.step_value.setMaximum(999.999)           #the standard Qt maximum is 99, so if you would want to put 500um, thats already too much...
+        # self.step_value.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         self.step_units = QComboBox()
+        self.step_units.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.step_units.addItems(actuator_units)
         add_pint_to_combo(self.step_units)
         if 'step' in self.actiondict:
@@ -155,10 +165,11 @@ class ScanActuator(BaseGui):
         self.step_value.valueChanged.connect(self.step_changed)
         self.step_units.currentIndexChanged.connect(self.step_changed)
 
-
         self.stop_um = QDoubleSpinBox()
         self.step_um = QDoubleSpinBox()
-        self.layout.addWidget(QWidget())  # adding this empty widget helps with aligning the layout in a prettier way
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
+        self.layout.addWidget(spacer)  # adding this empty widget helps with aligning the layout in a prettier way
         self.layout.addWidget(QLabel('start', alignment=right))
         self.layout.addWidget(self.start_value)
         self.layout.addWidget(self.start_units)
@@ -174,15 +185,26 @@ class ScanActuator(BaseGui):
             spin_combo_to_pint_apply_limits(self.start_value, self.start_units, Q_(self.actiondict['start_min']),
                                             Q_(self.actiondict['start_max'])))
 
+        # If this action gui has gotten his parent measurement gui as input, this will update his parents gui,
+        # for instance the expected scan time
+        if hasattr(self,'measurement_gui_parent'):
+            self.measurement_gui_parent.update_from_guis()
+
     def stop_changed(self):
         self.actiondict['stop'] = str(
             spin_combo_to_pint_apply_limits(self.stop_value, self.stop_units, Q_(self.actiondict['stop_min']),
                                             Q_(self.actiondict['stop_max'])))
 
+        if hasattr(self,'measurement_gui_parent'):
+            self.measurement_gui_parent.update_from_guis()
+
     def step_changed(self):
         self.actiondict['step'] = str(
             spin_combo_to_pint_apply_limits(self.step_value, self.step_units, Q_(self.actiondict['step_min']),
                                             Q_(self.actiondict['step_max'])))
+
+        if hasattr(self,'measurement_gui_parent'):
+            self.measurement_gui_parent.update_from_guis()
 
 
 
@@ -267,6 +289,7 @@ class SaverGui(BaseGui):
             basename = name_incrementer(self.actiondict['basename'], existing_files)
             self.actiondict['basename'] = basename
             self.file_line.setText(basename)
+
 
     def browse(self):
         folder, basename = self.experiment._validate_folder_basename(self.actiondict)

@@ -19,7 +19,6 @@ class SpectrumGUI(BaseGui):
         super().__init__(parent)
         self.actiondict = actiondict
         self.experiment = experiment
-
         self.last_row = 0
 
         self.initUI()
@@ -39,6 +38,7 @@ class SpectrumGUI(BaseGui):
         | The central wavelength is a spinbox and the suffix nm is always added.
         """
         self.expo_value = QDoubleSpinBox()
+        self.expo_value.setMaximum(99999)
         self.expo_units = QComboBox()
         display_units = ['us', 'ms', 's', 'min', 'hr']
         self.expo_units.addItems(display_units)
@@ -67,6 +67,21 @@ class SpectrumGUI(BaseGui):
             self.central_nm.setSuffix('nm')
         self.central_nm.valueChanged.connect(self.central_nm_changed)
 
+        if 'accumulations' in self.actiondict and self.actiondict['accumulations'] is not None:
+            self.accumulations = QSpinBox()
+            self.accumulations.setValue(self.actiondict['accumulations'])
+            self.accumulations.valueChanged.connect(self.accum_changed)
+
+        if 'avalanche_gain' in self.actiondict and self.actiondict['avalanche_gain'] is not None:
+            self.avalanche_gain = QSpinBox()
+            self.avalanche_gain.setValue(self.actiondict['avalanche_gain'])
+            self.avalanche_gain.valueChanged.connect(self.avgain_changed)
+
+        self.progress_label = QLabel()
+        self.progress_label.setText('')
+        self.progress_label.setObjectName('progress_label')
+        self.progress_label.setStyleSheet('QLabel#progress_label {color: magenta}')
+
     def roi_fields(self):
         """This method checks in the actiondict for the keyword ROI,
         and than adds spinboxes for every ROI key that it finds (top, bottom, left, right etc.).
@@ -75,17 +90,17 @@ class SpectrumGUI(BaseGui):
         self.layout.addWidget(QLabel('ROI:'), 0, 3)
 
         if 'ROI' in self.actiondict:
-            roilist = []
+            self.roilist = {}
             teller = 0
-            for key in self.actiondict['ROI']:
-                roilist.append(QDoubleSpinBox())
-                roilist[teller].setMaximum(1500)
-                roilist[teller].setValue(self.actiondict['ROI'][key])
 
-                roilist[teller].valueChanged.connect(lambda state: self.actiondict.__setitem__(key, state))
+            for key in self.actiondict['ROI']:
+                self.roilist[key] = QDoubleSpinBox()
+                self.roilist[key].setMaximum(1500)
+                self.roilist[key].setValue(self.actiondict['ROI'][key])
+                self.roilist[key].valueChanged.connect(self.roi_changed)
 
                 self.layout.addWidget(QLabel(key), teller+1, 3)
-                self.layout.addWidget(roilist[teller],teller+1,4)
+                self.layout.addWidget(self.roilist[key],teller+1,4)
 
                 teller+=1
 
@@ -104,22 +119,64 @@ class SpectrumGUI(BaseGui):
         self.layout.addWidget(QLabel('central wavelength: '),2,0)
         self.layout.addWidget(self.central_nm,2,1)
 
+        self.layout.addWidget(self.progress_label,2,2)
+
+        if hasattr(self,'accumulations'):
+            self.layout.addWidget(QLabel('accumulations:'), 3, 0)
+            self.layout.addWidget(self.accumulations, 3, 1)
+            if self.last_row < 3:
+                self.last_row = 3
+
+        if hasattr(self,'avalanche_gain'):
+            self.layout.addWidget(QLabel('avalanche gain:'),4,0)
+            self.layout.addWidget(self.avalanche_gain, 4, 1)
+            if self.last_row < 4:
+                self.last_row = 4
+
+    def roi_changed(self, this_roi):
+        """This method is the one that makes sure of updating the actiondict if any of the ROI is changed by the user.
+        Because the method roi_fields is walking through the list of rois and appending it,
+        if you send the key to this method via valueChanged, it will always give you the list key in the row.
+        So in this method, you walk through the dictionary of spinboxes and compare them to the spinbox that was sending you the valueChanged command,
+        and than you change the actiondict. It's slightly crappy but it works...
+        """
+        for roi in self.roilist:
+            if self.roilist[roi] == self.sender():
+                self.actiondict['ROI'][roi] = self.sender().value()
+                self.logger.debug('Changing ROI {} value to {}'.format(roi,self.sender().value()))
+
+    def accum_changed(self):
+        self.actiondict['accumulations'] = int(self.accumulations.value())
+        self.logger.debug('changing winspec accumulations')
+
+        if hasattr(self,'measurement_gui_parent'):
+            self.logger.debug('winspec action gui can find his parent master gui')
+            self.measurement_gui_parent.update_from_guis()
+
+    def avgain_changed(self):
+        self.actiondict['avalanche_gain'] = int(self.avalanche_gain.value())
+        self.logger.debug('changing winspec avalanche gain')
+
     def expo_changed(self):
         """This method is the one that makes sure of updating the actiondict if the exposure time is changed by the user.
         """
         self.actiondict['exposuretime'] = str(spin_combo_to_pint_apply_limits(self.expo_value, self.expo_units,
                                                                               Q_(self.actiondict['exposuretime_min']),
                                                                               Q_(self.actiondict['exposuretime_max'])))
+        self.logger.debug('Changing winspec exposuretime')
+
         if hasattr(self,'measurement_gui_parent'):
-            print('found the measurement gui parent')
+            self.logger.debug('winspec action gui can find his parent master gui')
             self.measurement_gui_parent.update_from_guis()
 
     def grating_changed(self):
         """This method updates the grating in the actiondict if the user changes it.
         """
         self.actiondict['grating'] = int(self.grating.currentText())
+        self.logger.debug('Changing winspec grating')
 
     def central_nm_changed(self):
         """This method updates the central wavelength in the actiondict if the user changes it.
         """
         self.actiondict['central_nm'] = int(self.central_nm.value())
+        self.logger.debug('Changing winspec central wavelength')

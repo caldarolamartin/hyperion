@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>504</width>
+    <height>93</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>AOTF</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Mode</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="comboBox_mode">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <item>
+      <property name="text">
+       <string>internal</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>external</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="0" column="2" colspan="2">
+    <widget class="QPushButton" name="pushButton_goto">
+     <property name="text">
+      <string>GO</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Wavelength</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_wavelength">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="suffix">
+      <string> nm</string>
+     </property>
+     <property name="decimals">
+      <number>1</number>
+     </property>
+     <property name="minimum">
+      <double>400.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>900.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>500.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>δ</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_wavelength_delta">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="suffix">
+      <string> nm</string>
+     </property>
+     <property name="decimals">
+      <number>1</number>
+     </property>
+     <property name="minimum">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Power</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QDoubleSpinBox" name="doubleSpinBox_power">
+     <property name="value">
+      <double>21.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2" colspan="2">
+    <widget class="QCheckBox" name="checkBox_enable">
+     <property name="text">
+      <string>Enable</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

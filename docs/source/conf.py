@@ -32,4 +32,4 @@ html_theme_options = {
     'includehidden': True,
     'titles_only': False
 }
-html_static_path = ['_static']
+html_static_path = []  # It used to be ['_static'], but that gives an error. Found on a forum that it should be []

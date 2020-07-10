@@ -13,6 +13,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from hyperion.instrument.misc.beam_flags_instr import BeamFlagsInstr
 from hyperion.view.general_worker import WorkThread
+from time import sleep
+
 
 class BeamFlagsGui(QWidget):
     """
@@ -41,6 +43,8 @@ class BeamFlagsGui(QWidget):
         self.bfi = beam_flags_instr
         self.bf_settings = self.bfi.settings['gui_flags']
 
+        self.all_labels = {}
+
         if 'name' in self.bfi.settings:
             self.title = self.bfi.settings['name']
         else:
@@ -55,13 +59,31 @@ class BeamFlagsGui(QWidget):
 
         # Start timer to repeatedly pull the current state of the toggle switches:
         self.logger.info('Starting timer thread')
+        # self._busy = False
         if 'gui_state_update_ms' in self.bfi.settings:
-            indicator_update_time = self.bfi.settings['gui_state_update_ms']
+            self.indicator_update_time = self.bfi.settings['gui_state_update_ms']
         else:
-            indicator_update_time = 100  # ms
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_label_states)
-        self.timer.start(indicator_update_time)
+            self.indicator_update_time = 100  # ms
+
+        #Pay attention: using the Qtimer makes the gui very slow
+        #Instead, use a workthread
+        self.timer_mode = False
+        if self.timer_mode:
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.update_label_states)
+            self.timer.start(self.indicator_update_time)
+        else:
+            self._thread = WorkThread(self.update_wrapper)
+            self._thread.start(priority=QThread.LowestPriority)
+
+
+    def update_wrapper(self):
+        while True:
+            sleep(self.indicator_update_time/1000.0)
+            if not self._busy:
+                self.update_label_states()
+            else:
+                self.logger.warning('Still busy: skipping checking for manual flag changes')
 
     def initUI(self):
         """
@@ -81,7 +103,10 @@ class BeamFlagsGui(QWidget):
             state = self.bfi.get_specific_flag_state(flag_id)
             self.bf_settings[flag_id]['state'] = state
             label = QLabel('')
-            self.bf_settings[flag_id]['label'] = label
+            self.all_labels[flag_id] = label
+
+            #self.bf_settings[flag_id]['label'] = label     #this will save a python qt object in the yml file = wrong
+
             button = QPushButton(gui_flag['name'], self)
 
             button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
@@ -109,16 +134,23 @@ class BeamFlagsGui(QWidget):
 
     def update_label_states(self):
         """ Asks device for current states of all beam flags and updates state key and gui if it has changed."""
-        for flag_id in self.bf_settings.keys():
-            state = self.bfi.get_specific_flag_state(flag_id)
-            if state != self.bf_settings[flag_id]['state']:
-                self.logger.info("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
-                self.bf_settings[flag_id]['state'] = state
-                self.set_label_state(flag_id)
+        if self._busy:
+            self.logger.warning()
+            return
+        self._busy = True
+        if self.bfi.passive_update_from_manual_changes():
+            for flag_id in self.bf_settings.keys():
+                state = self.bfi.get_specific_flag_state(flag_id)
+                if state != self.bf_settings[flag_id]['state']:
+                    self.logger.debug("Manual state change detected of switch '{}': '{}'".format(flag_id,state))
+                    self.bf_settings[flag_id]['state'] = state
+                    self.set_label_state(flag_id)
+        self._busy = False
 
-    def set_label_state(self, flag_id):
+    def set_label_state(self, flag_id, keep_busy_flag = False):
         """ Sets gui label identified by flag_id to the corresponding value in the state key in settings."""
-        label = self.bf_settings[flag_id]['label']
+        self._busy = True
+        label = self.all_labels[flag_id]
         state = self.bf_settings[flag_id]['state']
         self.logger.info("Set flag '{}' to '{}'".format(flag_id,state))
         if state == self.red_char:
@@ -129,6 +161,7 @@ class BeamFlagsGui(QWidget):
             label.setText(self.bf_settings[flag_id]['green_name'])
         else:
             self.logger.warning('received state is unknown')
+        self._busy = keep_busy_flag
 
     def button_clicked(self, flag_id):
         """
@@ -136,7 +169,8 @@ class BeamFlagsGui(QWidget):
         It toggles the state flag of the corresponding beam flag in the settings dict.
         It creates and runs a thread that sets the state of the beam flag on the instrument.
         """
-        self.logger.info("Button of flag '{}' clicked".format(flag_id))
+        self._busy = True
+        self.logger.debug("Button of flag '{}' clicked".format(flag_id))
         state = self.bf_settings[flag_id]['state']
         if state == self.red_char:
             state = self.green_char
@@ -144,27 +178,32 @@ class BeamFlagsGui(QWidget):
             state = self.red_char
         else:
             self.logger.warning('unknown state in internal dictionary')
-        self.worker_thread = WorkThread(self.bfi.set_specific_flag_state, flag_id, state)
-        self.worker_thread.start()
-        # self.bfi.set_specific_flag_state(flag_id, state)
         self.bf_settings[flag_id]['state'] = state
-        self.set_label_state(flag_id)
+        self.set_label_state(flag_id, keep_busy_flag=True)
+        self.bfi.set_specific_flag_state(flag_id, state)  # Actually toggle the flag
+        self._busy = False
 
 
 if __name__ == '__main__':
     import yaml
     import os
 
-    example_config_file = 'beam_flags_example_config_table4.yml'
+    example_config_file = 'beam_flags_example_config.yml'
     example_config_filepath = os.path.join(hyperion.root_dir, 'view', 'misc', example_config_file)
     with open(example_config_filepath,'r') as file:
         example_config = yaml.full_load(file)
     beam_flag_settings = example_config['Instruments']['BeamFlags']
     # beam_flag_settings['port']='COM4'   # modify the port if required
 
-    with BeamFlagsInstr(beam_flag_settings) as instr:
-        #instr.initialize()    # removed this line because instruments should initialize themselves
-        app = QApplication(sys.argv)
-        ex = BeamFlagsGui(instr)
-        # sys.exit(app.exec_())
-        app.exec_()
+    # with BeamFlagsInstr(beam_flag_settings) as instr:
+    #     #instr.initialize()    # removed this line because instruments should initialize themselves
+    #     app = QApplication(sys.argv)
+    #     ex = BeamFlagsGui(instr)
+    #     # sys.exit(app.exec_())
+    #     app.exec_()
+
+    app = QApplication(sys.argv)
+    instr = BeamFlagsInstr(beam_flag_settings)
+    ex = BeamFlagsGui(instr)
+    app.exec_()
+    instr.finalize()

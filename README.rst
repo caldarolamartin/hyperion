@@ -3,7 +3,7 @@ Hyperion
 ========
 
 Hyperion is the instrumentation control software we use at the Nano-Optics
-Lab (Kuipers Lab) at Technical University Delft, The Netherlands.
+Lab (`Kuipers Lab <https://kuiperslab.tudelft.nl/>`_) at Technical University Delft, The Netherlands.
 
 The spirit of Hyperion is to help researchers to develop an application that
 controls several devices in a complex experimental setup. Thus, it provides
@@ -11,6 +11,8 @@ some tools and common solutions we found convenient when building our experiment
 
 Please note that this is a continuously developing project (and community), so be aware
 of the changes.
+
+More documentation can be found on read the docs: `nanooptics-hyperion <https://nanooptics-hyperion.readthedocs.io/en/latest/>`_
 
 Below you can find the instructions to install locally the package within
 a new conda environment.
@@ -68,3 +70,7 @@ called ``doc/build`` and run::
 
 This will create a series of html files with the documentation for the project
 in the folder hyperion/docs/build, you should start at index.html
+
+Alternatively, you can find the compiled documentation for the latest version at
+our page in `Readthedocs
+<https://nanooptics-hyperion.readthedocs.io/en/latest/>`_.

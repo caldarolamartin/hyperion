@@ -46,7 +46,7 @@
 #define green false
 #define red true
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
  #define DEBUG_PRINT(x)  Serial.println (x)
@@ -58,20 +58,25 @@
 #define print_start_message  // comment this line if you don't want the arduino to print the start message
 
 // Toggle these parameters to switch between use_servo and use_pin for using a servo or regular pin
-#define flag_1a_style use_servo
-#define flag_1b_style use_servo
+#define use_pin 1
+#define use_servo 2
+#define flag_1a_style use_pin
+#define flag_1b_style use_pin
 #define flag_2a_style use_servo
-#define flag_2b_style use_pin
+#define flag_2b_style use_servo
 #define flag_3a_style use_servo
-#define flag_3b_style use_pin
+#define flag_3b_style use_servo
+
+
+
 
 // Set the two angles for each (potential) servo:
-const int servo_1a_angles[2] = {40,130};
-const int servo_1b_angles[2] = {40,130};
-const int servo_2a_angles[2] = {40,130};
-const int servo_2b_angles[2] = {40,130};
-const int servo_3a_angles[2] = {40,130};
-const int servo_3b_angles[2] = {40,130};
+const int servo_1a_angles[2] = {50,120};
+const int servo_1b_angles[2] = {50,120};
+const int servo_2a_angles[2] = {50,120};
+const int servo_2b_angles[2] = {50,120};
+const int servo_3a_angles[2] = {50,120};
+const int servo_3b_angles[2] = {50,120};
 
 // This parameter could be used to invert the behaviour of the leds.
 // (Might be useful in case of common cathode LEDs instead of common anode)
@@ -92,8 +97,8 @@ const uint8_t pin_toggle_1_green =A1;     // connect to "green" side of momentar
 const uint8_t pin_toggle_1_red = 8;       // connect to "red" side of momentary toggle switch
 const uint8_t pin_led_1_green =  A0;       // connect to green side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
 const uint8_t pin_led_1_red =    11; //PWM        // connect to red side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
-const uint8_t pin_flag_1a =      2;           // connect to servo or something else (make sure not to exceed 20mA),
-const uint8_t pin_flag_1b =      3; //PWM    // connect to servo or something else (make sure not to exceed 20mA)
+const uint8_t pin_flag_1a =      6;           // connect to servo or something else (make sure not to exceed 20mA),
+const uint8_t pin_flag_1b =      7; //PWM    // connect to servo or something else (make sure not to exceed 20mA)
 
 const uint8_t pin_toggle_2_green=A3;
 const uint8_t pin_toggle_2_red = A2;
@@ -106,8 +111,8 @@ const uint8_t pin_toggle_3_green=A5;
 const uint8_t pin_toggle_3_red = A4;
 const uint8_t pin_led_3_green =  12;     // connect to green side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
 const uint8_t pin_led_3_red =     9; //PWM    // connect to red side of red-green LED with resistor! (using PWM pin leaves option open to use shades of red/orange/yellow/green)
-const uint8_t pin_flag_3a =      7;
-const uint8_t pin_flag_3b =      6; //PWM
+const uint8_t pin_flag_3a =      2;
+const uint8_t pin_flag_3b =      3; //PWM
 
 /////////////////////////////  END OF USER SETTINGS ////////////////////////////////
 
@@ -203,6 +208,7 @@ void setup() {
   pinMode(pin_led_3_red, OUTPUT);
 
   #if flag_1a_style == use_servo
+    Serial.write("test");
     myservo_1a.attach(pin_flag_1a);  // attaches the servo on pin ... to the servo object
   #endif
   #if flag_1b_style == use_servo
@@ -415,12 +421,13 @@ void set_flag(uint8_t sflag, bool state) {
   if (sflag==1) {
     if (flag_1_state != state) {
       flag_1_state = state;
-      #if flag_1a_style == use_servo
+      #if flag_1a_style != use_servo
         myservo_1a.write(servo_1a_angles[state]);
       #else
         digitalWrite(pin_flag_1a, flag_1_state);
+        
       #endif
-      #if flag_1b_style == use_servo
+      #if flag_1b_style != use_servo
         myservo_1b.write(servo_1b_angles[state]);
       #else
         digitalWrite(pin_flag_1a, flag_1_state);
@@ -440,7 +447,7 @@ void set_flag(uint8_t sflag, bool state) {
     }
   }
   if (sflag==2) {
-    if (flag_2_state != state) {
+    if (flag_2_state == state) {
       flag_2_state = state;
       #if flag_2a_style == use_servo
         myservo_2a.write(servo_2a_angles[state]);

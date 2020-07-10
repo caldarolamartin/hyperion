@@ -67,7 +67,7 @@ class BaseInstrument():
         If you need to parse arguments to the finalize, make your own finalize method in
         your instrument class.
         """
-        self.logger.info('Closing connection to device.')
+        self.logger.info('Closing connection to device via BaseInstrument.')
         self.controller.finalize()
 
     def idn(self):

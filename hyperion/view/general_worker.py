@@ -4,7 +4,7 @@ threading the GUI, the instrument needs to get a different thread.
 The class is named general because it will run anything you say it must run.
 """
 from PyQt5 import QtCore
-
+import traceback
 
 class WorkThread(QtCore.QThread):
     def __init__(self, function, *args, **kwargs):
@@ -24,7 +24,15 @@ class WorkThread(QtCore.QThread):
     def __del__(self):
         self.wait()
 
-    def run(self):
-        self.function(*self.args,**self.kwargs)
-        return
+    # def run(self):
+    #     self.function(*self.args,**self.kwargs)
+    #     return
 
+    # In order to prevent the gui from crashing on any crash in any thread, the execution is now wrapped in a try except.
+    # If this turns out not te be desirable, switch back to the commented method above.
+    def run(self):
+        try:
+            self.function(*self.args, **self.kwargs)
+        except Exception as e:
+            print("error in thread:", str(e))
+            traceback.print_exc()

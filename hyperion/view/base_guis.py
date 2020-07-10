@@ -24,7 +24,7 @@ from os import path
 import yaml
 from hyperion.view.general_worker import WorkThread
 from hyperion.tools.loading import get_class
-from hyperion.experiment.base_experiment import ActionDict
+from hyperion.tools.types import ActionDict
 from PyQt5 import uic
 
 
@@ -393,7 +393,8 @@ class AutoMeasurementGui(BaseGui):
         # This line controls the size of the whole layout.
         # .SetDefaultConstraint causes it to adjust to the content size, but keeps it adjustable
         # .SetFixedSize adjust to the content and prevents manual resizing
-        self.outer_layout.setSizeConstraint(QLayout.SetFixedSize)
+        # self.outer_layout.setSizeConstraint(QLayout.SetDefaultConstraint)
+        # self.outer_layout.setSizeConstraint(QLayout.SetFixedSize)
         self.setLayout(self.outer_layout)
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         self.show()
@@ -527,9 +528,10 @@ class AutoMeasurementGui(BaseGui):
     def ensure_output_docks_are_open(self):
         """ Uses the show_dock method added by ExpGui to ensure that all aoutput guis are opened before starting the measurement"""
         if self._parent is not None:
-            for instance in self.output_guis.values():
-                if hasattr(instance, 'show_dock'):
-                    instance.show_dock(True)
+            if self.output_guis is not None:
+                for instance in self.output_guis.values():
+                    if hasattr(instance, 'show_dock'):
+                        instance.show_dock(True)
 
     def start_pause(self):
         """

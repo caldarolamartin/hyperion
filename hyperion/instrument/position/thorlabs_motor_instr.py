@@ -18,7 +18,6 @@ import time
 class Thorlabsmotor(BaseInstrument):
     """ Thorlabsmotor instrument
     """
-    
     def __init__(self, settings):
         """ init of the class"""
         

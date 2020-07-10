@@ -216,9 +216,9 @@ class GenericSerialController(BaseController):
             if not wait_for_termination_char or (len(raw) and (raw[-1] in term_chars)):
                 ends_at_term_char = True
             
-        self.logger.debug('{} bytes received'.format(len(raw)))
+        # self.logger.debug('{} bytes received'.format(len(raw)))  # removed this because it's being called very frequently
         return raw
-           
+
     def read_lines(self, remove_leading_trailing_empty_line=True):
         """
         Reads all lines the device has sent and returns list of strings.
