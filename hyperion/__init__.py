@@ -1,5 +1,4 @@
-
-__version__ = 0.5
+__version__ = 0.6
 import os
 # useful paths:
 package_path =    os.path.dirname(__file__)          #   ###/###/hyperion/hyperion/
