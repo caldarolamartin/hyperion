@@ -11,7 +11,7 @@ in the book "Python For The Lab".
 
 So far, we have contributed to this project:
 
-* Martin Caldarola (m.caldarola@tudelf.nl)
+* Martin Caldarola (m.caldarola@tudelft.nl)
 * Aron Opheij (a.opheij@tudelft.nl)
 * Thomas Bauer
 * Irina Komen
